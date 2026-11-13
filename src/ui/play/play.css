@@ -255,3 +255,229 @@ aside {
 .end-goals {
   margin-bottom: 14px;
 }
+
+/* ---------- Zargon's turn page ---------- */
+.zpage {
+  position: absolute;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  width: 500px;
+  background: var(--paper-3);
+  border-left: 2px solid var(--ink);
+  box-shadow: -10px 0 0 rgba(110, 31, 42, 0.08);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(104%);
+  visibility: hidden;
+  transition:
+    transform 0.34s var(--ease-ink),
+    visibility 0s 0.34s;
+}
+.zpage.open {
+  transform: none;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.zpage .zh {
+  padding: 18px 28px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.zpage h2 {
+  font: 700 26px 'Bonum';
+  color: var(--ink);
+}
+.zpage .zh span {
+  color: var(--muted);
+}
+.zpage .zh .link {
+  margin-left: auto;
+}
+.seg {
+  margin: 0 28px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1.5px solid var(--ink);
+  position: relative;
+}
+.seg button {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  font: 700 15px 'Bonum';
+  color: var(--ink);
+  transition: color 0.2s;
+}
+.seg button[aria-pressed='true'] {
+  color: var(--on-ink);
+}
+.seg .thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background: var(--ink);
+  transition: transform 0.25s var(--ease-ink);
+}
+.seg[data-mode='reach'] .thumb {
+  transform: translateX(100%);
+}
+.seg-help {
+  margin: -4px 28px 10px;
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+.orders {
+  list-style: none;
+  overflow: auto;
+  padding: 0 28px;
+  flex: 1;
+}
+.order {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--paper-2);
+}
+.order .num {
+  font: 700 22px/1 'Bonum';
+  color: var(--ink);
+  text-align: center;
+  padding-top: 3px;
+}
+.order h4 {
+  font: 700 18px 'Bonum';
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.order h4 > span:not(.coin) {
+  margin-left: 4px;
+}
+.order h4 .x {
+  font: italic 400 15px 'Pagella';
+  color: var(--muted);
+}
+.order h4 .link {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 400;
+}
+.order h4 .coin {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}
+.order.done h4 > span:not(.coin),
+.order.done .num {
+  color: var(--muted);
+}
+.order.done .coin {
+  background: var(--off);
+}
+.order dl {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 4px 10px;
+  margin-top: 8px;
+  font-size: 15.5px;
+}
+.order dt {
+  font: 700 12px/1.9 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.order .tgt {
+  font-family: 'Bonum';
+  color: var(--ink);
+  white-space: nowrap;
+}
+.order .rule {
+  font-size: 14.5px;
+  color: var(--ink);
+  margin-top: 6px;
+  font-style: italic;
+}
+.order .rulehint {
+  font-size: 15.5px;
+  margin-top: 6px;
+}
+.order .chips {
+  grid-template-columns: repeat(4, 1fr);
+  margin: 10px 0 4px;
+}
+.order .chip {
+  font-size: 13.5px;
+}
+.order .verdict {
+  font-size: 16px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  padding: 8px 12px;
+  margin-top: 8px;
+}
+.order .verdict .vplan {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.zfoot {
+  padding: 14px 28px 22px;
+  border-top: 2px solid var(--ink);
+}
+.roster .bp .tickdone {
+  color: var(--ink);
+  margin-right: 4px;
+}
+
+.order .spell {
+  margin-top: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  padding: 8px 12px 10px;
+}
+.order .spell .scond {
+  font-size: 14px;
+  color: var(--muted);
+}
+.order .spell .sname {
+  font-size: 16px;
+}
+.order .spell .sask {
+  margin: 8px 0 6px;
+  font-weight: 700;
+}
+.order .spell .row + .row {
+  margin-top: 6px;
+}
+
+.order .spell {
+  margin-top: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  padding: 8px 12px 10px;
+}
+.order .spell .scond {
+  font-size: 14px;
+  color: var(--muted);
+}
+.order .spell .sname {
+  font-size: 16px;
+}
+.order .spell .sask {
+  margin: 8px 0 6px;
+  font-weight: 700;
+}
+.order .spell .row + .row {
+  margin-top: 6px;
+}

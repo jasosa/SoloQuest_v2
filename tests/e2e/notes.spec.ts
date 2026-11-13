@@ -253,6 +253,7 @@ test.describe('notes engine on the dev fixture', () => {
   test("Zargon's turn still just ends the turn", async ({ page }) => {
     await fixture(page);
     await page.getByRole('button', { name: /Zargon's turn/ }).click();
+    await page.getByRole('button', { name: "End Zargon's turn" }).click();
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
 });

@@ -27,6 +27,7 @@ import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
+import { wanderAskLines } from './texts';
 import { Helpers, Journal, Objectives, QuestActions } from './sidebar';
 import {
   ChestBody,
@@ -39,6 +40,9 @@ import {
   trapStepBody,
 } from './notes';
 import { parseSelection, type Selection } from './selection';
+import { progressLabel } from './zargonView';
+import { ZargonPage } from './ZargonPage';
+import { turnProgress } from '../../engine/zargon';
 
 const MAP_PAD_X = 28;
 const MAP_PAD_Y = 18;
@@ -59,6 +63,10 @@ interface Result {
   anchor: Anchor;
   hero?: Hero;
   room?: string;
+  /** Showing the question "was there a free square?" for a wandering monster. */
+  ask?: boolean;
+  /** The answer, for the result card. */
+  adjacent?: boolean;
 }
 
 /** Small heading of a result sheet. */
@@ -94,6 +102,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const [sheetPos, setSheetPos] = useState({ seq: -1, i: 0 });
   const [reread, setReread] = useState<string | null>(null);
   const [endOpen, setEndOpen] = useState(false);
+  const [zOpen, setZOpen] = useState(false);
+  const progress = useMemo(() => turnProgress(level, state), [level, state]);
 
   // Sheets from the last event (notes, monsters to place), shown one after the other.
   const sheets = useMemo(() => sheetsOf(prompts), [prompts]);
@@ -152,7 +162,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   };
 
   /** Run an event whose prompts are shown as a result sheet at `anchor`. */
-  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: Hero; room?: string } = {}) => {
+  const run = (
+    event: GameEvent,
+    anchor: Anchor,
+    ctx: { hero?: Hero; room?: string; adjacent?: boolean } = {},
+  ) => {
     const ok = dispatch(event);
     if (!ok) return false;
     setSel(null);
@@ -170,26 +184,67 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
     }
   };
 
-  const alive = monsters.filter((m) => !m.dead);
   const wandering = quest.wandering;
 
   let note: React.ReactNode = null;
-  if (res) {
+  if (res?.ask && res.hero && res.room) {
     const { hero, room } = res;
+    const w = quest.wandering;
+    const type = w && 'monster' in w ? w.monster : undefined;
+    note = (
+      <MarginNote
+        anchor={res.anchor}
+        kind="Wandering monster"
+        title={type ? `A ${MONSTER_NAMES[type]} arrives` : 'A wandering monster'}
+        onClose={closeNote}
+      >
+        {type && wanderAskLines(type, hero).map((l, i) => <p key={i}>{l}</p>)}
+        <button
+          className="btn"
+          onClick={() =>
+            run({ type: 'WANDERING_MONSTER', room, hero, adjacent: true }, res.anchor, {
+              adjacent: true,
+            })
+          }
+        >
+          Placed next to the {HERO_NAMES[hero]}
+        </button>
+        <button
+          className="btn alt"
+          onClick={() =>
+            run({ type: 'WANDERING_MONSTER', room, hero, adjacent: false }, res.anchor, {
+              adjacent: false,
+            })
+          }
+        >
+          No free square next to the {HERO_NAMES[hero]}
+        </button>
+      </MarginNote>
+    );
+  } else if (res) {
+    const { hero, room } = res;
+    const w = quest.wandering;
     const askWandering =
       hero && room && res.prompts.some((p) => p.kind === 'drawCard')
         ? () => {
-            run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
+            // A monster asks the placement question first; a text-only wanderer is just shown.
+            if (w && 'monster' in w) setRes({ ...res, prompts: [], ask: true });
+            else run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
           }
         : undefined;
     note = (
       <MarginNote
         anchor={res.anchor}
         kind={resultKind(res.prompts)}
-        title={resultPrompts(res.prompts).map(headingOf)[0] ?? 'Done'}
+        title={resultPrompts(res.prompts).map((p) => headingOf(p, res.adjacent))[0] ?? 'Done'}
         onClose={closeNote}
       >
-        <ResultBody prompts={res.prompts} onDone={closeNote} onWandering={askWandering} />
+        <ResultBody
+          prompts={res.prompts}
+          onDone={closeNote}
+          onWandering={askWandering}
+          adjacent={res.adjacent ?? true}
+        />
       </MarginNote>
     );
   } else if (sel?.kind === 'door') {
@@ -520,6 +575,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
                   m={m}
                   code={codes.get(m.id) ?? ''}
                   fresh={fx?.freshMonsters.includes(m.id) ?? false}
+                  acted={state.doneThisTurn.includes(m.id)}
                   selected={sel?.kind === 'monster' && sel.id === m.id}
                   onTap={() => choose({ kind: 'monster', id: m.id })}
                 />
@@ -538,16 +594,25 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
             <b>{'monster' in wandering ? MONSTER_NAMES[wandering.monster] : wandering.text}</b>
           </p>
         )}
-        {/* M5 replaces this with the Zargon page (orders per monster). For now it ends the turn. */}
-        <button className="zargon-btn" onClick={() => dispatch({ type: 'ZARGON_TURN_END' })}>
+        <button className="zargon-btn" onClick={() => setZOpen(true)}>
           Zargon&apos;s turn
-          <small>
-            {alive.length === 0
-              ? 'no monster in sight'
-              : `${alive.length} monster${alive.length > 1 ? 's' : ''} to act`}
-          </small>
+          <small>{progressLabel(progress)}</small>
         </button>
       </aside>
+
+      <ZargonPage
+        open={zOpen && !end}
+        level={level}
+        state={state}
+        team={team}
+        codes={codes}
+        dispatch={dispatch}
+        onClose={() => setZOpen(false)}
+        onEndTurn={() => {
+          setZOpen(false);
+          dispatch({ type: 'ZARGON_TURN_END' });
+        }}
+      />
 
       {end ? (
         <EndScreen end={end} title={quest.title} onLeave={onLeave} onUndo={() => undo()} />
@@ -611,12 +676,15 @@ function RosterRow({
   m,
   code,
   fresh,
+  acted,
   selected,
   onTap,
 }: {
   m: MonsterView;
   code: string;
   fresh: boolean;
+  /** Marked done on the Zargon page this turn. */
+  acted: boolean;
   selected: boolean;
   onTap(): void;
 }) {
@@ -631,7 +699,14 @@ function RosterRow({
           <br />
           <span className="st">{rosterLine(m)}</span>
         </span>
-        <span className="bp">{m.dead ? 'Slain' : `${m.body}/${m.maxBody}`}</span>
+        <span className="bp">
+          {acted && !m.dead && (
+            <span className="tickdone" title="Done this turn">
+              ✓
+            </span>
+          )}
+          {m.dead ? 'Slain' : `${m.body}/${m.maxBody}`}
+        </span>
       </button>
     </li>
   );

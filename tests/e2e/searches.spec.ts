@@ -48,8 +48,12 @@ test.describe('treasure and wandering monster (quest 1)', () => {
 
     // it was a wandering monster
     await btn(page, 'It was a wandering monster').click();
-    await expect(dialog(page)).toContainText('attacks the Elf');
+    // the question comes first: nothing is added until one of the two buttons is pressed
+    await expect(dialog(page)).toContainText('Was there a free square next to the Elf?');
+    await expect(rows(page)).toHaveCount(4);
     await shot(page, 'wandering-card');
+    await btn(page, 'Placed next to the Elf').click();
+    await expect(dialog(page)).toContainText('attacks the Elf at once');
     await btn(page, 'Done').click();
     const wanderer = rows(page).filter({ hasText: 'Wandering · next to the Elf' });
     await expect(wanderer).toHaveCount(1);
@@ -58,6 +62,25 @@ test.describe('treasure and wandering monster (quest 1)', () => {
     // the wanderer has a callout but no token
     await wanderer.click();
     await expect(dialog(page)).toContainText('Wandering');
+  });
+
+  test('no free square: the wanderer joins the roster and acts next turn', async ({ page }) => {
+    await quest1(page, 'd1,d2,d3');
+    await page.waitForTimeout(900);
+    await roomCell(page, '9,13').click();
+    await btn(page, 'Search for treasure').click();
+    await btn(page, 'The room is clear, search anyway').click();
+    await btn(page, 'Dwarf').click();
+    await btn(page, 'Continue').click();
+    await roomCell(page, '9,13').click();
+    await btn(page, 'Search for treasure').click();
+    await btn(page, 'The room is clear, search anyway').click();
+    await btn(page, 'Elf').click();
+    await btn(page, 'It was a wandering monster').click();
+    await btn(page, 'No free square next to the Elf').click();
+    await expect(dialog(page)).toContainText("acts in Zargon's next turn");
+    await btn(page, 'Done').click();
+    await expect(rows(page)).toHaveCount(5);
   });
 
   test('a search in a room without monsters needs no override', async ({ page }) => {

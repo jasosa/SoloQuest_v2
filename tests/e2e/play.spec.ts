@@ -37,7 +37,7 @@ test.describe('play quest 1', () => {
   test('start room is shown, the rest is rock; no monsters yet', async ({ page }) => {
     await startQuest1(page, ['Dwarf', 'Elf']);
     await expect(page.locator('#board')).toBeVisible();
-    await expect(page.getByText('No monster in sight.')).toBeVisible();
+    await expect(page.locator('.roster .empty')).toBeVisible();
     await expect(page.locator('.tok')).toHaveCount(0);
     await expect(door(page, 'd1')).toHaveCount(1);
     await expect(door(page, 'd2')).toHaveCount(0);
@@ -145,6 +145,7 @@ test.describe('play quest 1', () => {
   test("Zargon's turn button advances the turn counter", async ({ page }) => {
     await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
     await page.getByRole('button', { name: /Zargon's turn/ }).click();
+    await page.getByRole('button', { name: "End Zargon's turn" }).click();
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
 
@@ -203,6 +204,7 @@ async function startQuestWithSave(page: Page) {
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
   }
   await page.getByRole('button', { name: /Zargon's turn/ }).click();
+  await page.getByRole('button', { name: "End Zargon's turn" }).click();
   await expect(page.locator('header .turn')).toContainText('Turn 2');
   await page.waitForTimeout(300); // let the autosave finish
 }

@@ -50,7 +50,8 @@ export async function devTestLevel(): Promise<Level | undefined> {
       traps: [...base.traps, { id: 't4', kind: 'fallingBlock', cell: [6, 18] }],
       // A statue in the start room that wakes when door d3 opens (dormant monster, decision 28).
       monsters: [
-        ...base.monsters,
+        // m3 is hidden until the quest places it: give it two Dread spells (a caster).
+        ...base.monsters.map((m) => (m.id === 'm3' ? { ...m, spells: ['fear', 'sleep'] } : m)),
         { id: 'm-statue', type: 'gargoyle', name: 'The statue', cell: [4, 16], state: 'dormant' },
       ],
       npcs: [

@@ -213,8 +213,11 @@ export function ResultBody({
   prompts,
   onDone,
   onWandering,
+  adjacent = true,
 }: {
   prompts: readonly Prompt[];
+  /** The answer to "was there a free square?" for a wandering monster. */
+  adjacent?: boolean;
   onDone(): void;
   /** Present when a wandering monster can be asked for (after a treasure search). */
   onWandering: (() => void) | undefined;
@@ -225,7 +228,7 @@ export function ResultBody({
     <>
       {shown.map((p, i) => (
         <section key={i} className="result">
-          <Section p={p} heading={i > 0} />
+          <Section p={p} heading={i > 0} adjacent={adjacent} />
         </section>
       ))}
       <button className="btn" onClick={onDone}>
@@ -241,7 +244,7 @@ export function ResultBody({
 }
 
 /** The big heading of a prompt, used as the note title for the first one. */
-export function headingOf(p: Prompt): string {
+export function headingOf(p: Prompt, adjacent = true): string {
   switch (p.kind) {
     case 'trapSprung':
       return sprungTitle(p.trapKind);
@@ -254,7 +257,7 @@ export function headingOf(p: Prompt): string {
     case 'drawCard':
       return 'Draw a treasure card';
     case 'wanderingMonster':
-      return `It attacks the ${HERO_NAMES[p.hero]}!`;
+      return adjacent ? `It attacks the ${HERO_NAMES[p.hero]}!` : 'It acts next turn';
     case 'wanderingText':
       return 'Wandering monster';
     case 'secretDoorsFound':
@@ -270,7 +273,7 @@ export function headingOf(p: Prompt): string {
   }
 }
 
-function lines(p: Prompt): string[] {
+function lines(p: Prompt, adjacent: boolean): string[] {
   switch (p.kind) {
     case 'trapSprung':
       return sprungLines(p);
@@ -283,7 +286,7 @@ function lines(p: Prompt): string[] {
     case 'drawCard':
       return ['No quest treasure here. Read the card aloud.'];
     case 'wanderingMonster':
-      return wanderingLines(p);
+      return wanderingLines(p, adjacent);
     case 'wanderingText':
       return [p.text];
     case 'secretDoorsFound':
@@ -325,11 +328,11 @@ export const resultPrompts = (prompts: readonly Prompt[]) =>
       !(p.kind === 'trapFound' && prompts.findIndex((q) => q.kind === 'trapFound') !== i),
   );
 
-function Section({ p, heading }: { p: Prompt; heading: boolean }) {
+function Section({ p, heading, adjacent }: { p: Prompt; heading: boolean; adjacent: boolean }) {
   return (
     <>
-      {heading && <h4>{headingOf(p)}</h4>}
-      {lines(p).map((l, i) => (
+      {heading && <h4>{headingOf(p, adjacent)}</h4>}
+      {lines(p, adjacent).map((l, i) => (
         <p key={i}>{l}</p>
       ))}
     </>

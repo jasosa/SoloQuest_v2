@@ -56,11 +56,11 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M5 · Zargon's turn
 
-- [ ] Weights, rule draw, tie list, plans, grudges (`ZARGON_AI.md`), deterministic per turn
-- [ ] Zargon page: priority list (grouped identical orders), "Who can it reach?" mode, done per entry, end turn
-- [ ] Special rules per monster (dormant, invulnerable until acts, stone, extra dice, moves 1)
-- [ ] Casters: spell suggestion and spell use tracking
-- [ ] Turn counter effects (`zargonTurn` triggers, stone countdown)
+- [x] Weights, rule draw, tie list, plans, grudges (`ZARGON_AI.md`), deterministic per turn
+- [x] Zargon page: priority list (grouped identical orders), "Who can it reach?" mode, done per entry, end turn
+- [x] Special rules per monster (dormant, invulnerable until acts, stone, extra dice, moves 1)
+- [x] Casters: one random spell the players confirm, spell use tracking (decision 31)
+- [x] Turn counter effects (`zargonTurn` triggers, stone countdown)
 
 ## Small changes (owner requests, 2026-11-13)
 
@@ -83,6 +83,8 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
 
 ## M8 · Polish
+
+- [ ] Polish from the M5 review: Esc closes both the Zargon page and an open note card (should close only the top one); clear reach selections on undo or page close; closing the wandering monster question card without a choice loses the draw-card result, so return to the result sheet instead; the Zargon page should move focus to its heading when it opens; check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
 
 - [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 

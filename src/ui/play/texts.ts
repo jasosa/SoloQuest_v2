@@ -57,12 +57,27 @@ export function sprungLines(p: Sprung): string[] {
   return lines;
 }
 
-export function wanderingLines(p: Extract<Prompt, { kind: 'wanderingMonster' }>): string[] {
-  const hero = HERO_NAMES[p.hero];
-  const name = MONSTER_NAMES[p.monsterType as MonsterType];
+/** Before the monster is added: where to put it, and the question. */
+export function wanderAskLines(type: MonsterType, hero: Hero): string[] {
+  const h = HERO_NAMES[hero];
   return [
-    `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${MONSTER_STATS[p.monsterType].att} attack dice. This round it attacks nobody else.`,
-    `No free square next to the ${hero}? Put it in the room as close to the ${hero} as you can. Then it does not attack now: it acts on Zargon's next turn.`,
+    `Put the ${MONSTER_NAMES[type]} on a free square next to the ${h}. It attacks the ${h} at once with ${MONSTER_STATS[type].att} attack dice. This round it attacks nobody else.`,
+    `Was there a free square next to the ${h}?`,
+  ];
+}
+
+/** After the answer. `adjacent` false: no free square, it acts in the coming Zargon turn. */
+export function wanderingLines(
+  p: Extract<Prompt, { kind: 'wanderingMonster' }>,
+  adjacent = true,
+): string[] {
+  const hero = HERO_NAMES[p.hero];
+  if (!adjacent)
+    return [
+      `Put the ${MONSTER_NAMES[p.monsterType as MonsterType]} in the room as close to the ${hero} as you can. It does not attack now: it acts in Zargon's next turn.`,
+    ];
+  return [
+    `It attacks the ${hero} at once with ${MONSTER_STATS[p.monsterType].att} attack dice. This round it attacks nobody else.`,
   ];
 }
 
