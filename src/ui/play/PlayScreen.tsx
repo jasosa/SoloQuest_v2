@@ -6,13 +6,20 @@ import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import type { GameEvent } from '../../engine/game/events';
 import type { Prompt } from '../../engine/game/prompts';
-import { monstersInPlay, searchState, trapsInView, type MonsterView } from '../../engine/game/view';
+import {
+  chestsInView,
+  monstersInPlay,
+  searchState,
+  trapsInView,
+  type MonsterView,
+} from '../../engine/game/view';
 import { CELL } from '../board/BoardView';
 import { PlayBoard } from '../board/PlayBoard';
 import { MarginNote } from '../shared/MarginNote';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
 import {
+  ChestBody,
   headingOf,
   PickHero,
   ResultBody,
@@ -35,7 +42,8 @@ type Anchor = { x: number; y: number };
 type Step =
   | { t: 'menu' }
   | { t: 'pick'; what: 'treasure' | 'secret'; override: boolean; blocked?: boolean }
-  | { t: 'jump' | 'who' | 'dwarf' | 'kit' };
+  | { t: 'jump' | 'who' | 'dwarf' | 'kit' }
+  | { t: 'chestOverride' };
 interface Result {
   prompts: readonly Prompt[];
   anchor: Anchor;
@@ -49,6 +57,7 @@ function resultKind(prompts: readonly Prompt[]): string {
   if (has('trapSprung', 'trapJumped', 'trapDisarmed')) return 'Trap';
   if (has('wanderingMonster', 'wanderingText')) return 'Wandering monster';
   if (has('secretDoorsFound', 'nothingFound')) return 'Secret doors';
+  if (has('trapFound', 'noTrap')) return 'Chest';
   return 'Treasure';
 }
 
@@ -305,6 +314,46 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           </MarginNote>
         );
       }
+    }
+  } else if (sel?.kind === 'chest') {
+    const cv = chestsInView(level, state).find((c) => c.id === sel.id);
+    if (cv) {
+      const xs = cv.cells.map((c) => c[0]);
+      const ys = cv.cells.map((c) => c[1]);
+      const anchor = toMap(
+        (Math.min(...xs) + Math.max(...xs) + 1) / 2,
+        (Math.min(...ys) + Math.max(...ys) + 1) / 2,
+      );
+      const found = traps.find((t) => t.furniture === cv.id && t.state === 'armed');
+      const roomCodes = searchState(level, state, cv.room).monstersInRoom.map(
+        (id) => codes.get(id) ?? id,
+      );
+      note = (
+        <MarginNote anchor={anchor} kind="Chest" title="Look for traps" onClose={closeNote}>
+          <ChestBody
+            searched={cv.searched}
+            trapFound={cv.trapFound}
+            monsters={roomCodes}
+            override={step.t === 'chestOverride'}
+            onOverride={() => setStep({ t: 'chestOverride' })}
+            onSearch={() =>
+              run(
+                {
+                  type: 'SEARCH_TRAPS',
+                  furniture: cv.id,
+                  ...(step.t === 'chestOverride' ? { override: true } : {}),
+                },
+                anchor,
+              )
+            }
+            onDisarm={() => {
+              if (!found) return;
+              setSel({ kind: 'trap', id: found.id });
+              setStep({ t: 'who' });
+            }}
+          />
+        </MarginNote>
+      );
     }
   } else if (sel?.kind === 'monster') {
     const m = monsterOf(sel.id);

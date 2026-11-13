@@ -181,15 +181,52 @@ test.describe('traps (dev fixture)', () => {
     await expect(dialog(page)).toContainText('You land safely');
   });
 
-  test('chest trap: only disarm is offered, and a search springs it first', async ({ page }) => {
+  test('chest: no "?" before a search; a search finds the trap, then disarm is the only way', async ({
+    page,
+  }) => {
     await fixture(page, 'd1,d2');
     await page.waitForTimeout(900);
+    await expect(trap(page, 't2')).toHaveCount(0); // hidden until found
+    await page.locator('[data-chest="f1"]').click();
+    await expect(dialog(page)).toContainText('Look for traps');
+    // the orc is in the room: guard first
+    await expect(dialog(page)).toContainText('still here');
+    await expect(btn(page, 'Search for traps')).toBeDisabled();
+    await shot(page, 'chest-guard');
+    await btn(page, 'The room is clear, search anyway').click();
+    await btn(page, 'Search for traps').click();
+    await expect(dialog(page)).toContainText('You found a trap');
+    await expect(dialog(page)).toContainText('a treasure search here springs it');
+    await shot(page, 'chest-trap-found');
+    await btn(page, 'Done').click();
+    await expect(trap(page, 't2')).toHaveCount(1);
+
+    // searched once: no second search is offered, only the disarm
+    await page.locator('[data-chest="f1"]').click({ position: { x: 60, y: 22 } });
+    await expect(btn(page, 'Search for traps')).toHaveCount(0);
+    await btn(page, 'Try to disarm it').click();
+    await btn(page, 'The Dwarf').click();
+    await btn(page, 'Other').click();
+    await expect(dialog(page)).toContainText('It was a chest trap');
+    await btn(page, 'Done').click();
+    await expect(trap(page, 't2')).toHaveCount(0);
+  });
+
+  test('chest trap: jump and step are not offered on the found trap', async ({ page }) => {
+    await fixture(page, 'd1,d2');
+    await page.locator('[data-chest="f1"]').click();
+    await btn(page, 'The room is clear, search anyway').click();
+    await btn(page, 'Search for traps').click();
+    await btn(page, 'Done').click();
     await trap(page, 't2').click();
     await expect(btn(page, 'Jump over it')).toBeDisabled();
     await expect(btn(page, 'Step onto it')).toBeDisabled();
     await expect(btn(page, 'Try to disarm it')).toBeEnabled();
-    await page.keyboard.press('Escape');
+  });
 
+  test('a hidden chest trap springs on a treasure search, before the result', async ({ page }) => {
+    await fixture(page, 'd1,d2');
+    await page.waitForTimeout(900);
     await roomCell(page, '5,17').click();
     await btn(page, 'Search for treasure').click();
     await btn(page, 'The room is clear, search anyway').click();
@@ -198,7 +235,22 @@ test.describe('traps (dev fixture)', () => {
     await expect(dialog(page)).toContainText('Draw a treasure card');
     await shot(page, 'trap-chest-search');
     await btn(page, 'Done').click();
-    await expect(trap(page, 't2')).toHaveCount(0);
+  });
+
+  test('quest 1: a chest with no trap says so, and cannot be searched twice', async ({ page }) => {
+    await quest1(page, 'd1,look@13:18,d5');
+    await page.waitForTimeout(900);
+    await page.locator('[data-chest="f-chest-b"]').click();
+    await expect(dialog(page)).toContainText('still here'); // two dread warriors
+    await btn(page, 'The room is clear, search anyway').click();
+    await btn(page, 'Search for traps').click();
+    await expect(dialog(page)).toContainText('No trap on this chest.');
+    await shot(page, 'chest-no-trap');
+    await btn(page, 'Done').click();
+    await page.locator('[data-chest="f-chest-b"]').click();
+    await expect(dialog(page)).toContainText('Already searched');
+    await expect(btn(page, 'Search for traps')).toHaveCount(0);
+    await shot(page, 'chest-searched');
   });
 
   test('undo takes a sprung trap back', async ({ page }) => {

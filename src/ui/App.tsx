@@ -38,7 +38,7 @@ function levelFromParams(params: URLSearchParams): Level | undefined {
 
 /**
  * Jump straight into a game from the URL, for e2e tests and screenshots:
- * `?quest=1&team=dwarf,elf` plus optional `seed=7`, `open=d1,d2` (doors opened at the start),
+ * `?quest=1&team=dwarf,elf` plus optional `seed=7`, `open=d1,look@13:18,d5` (doors and looks done at the start, in order),
  * `look=12:18` (squares looked from), `select=door:d3`, `nosave=1` (no IndexedDB), `resume=1`.
  * In development `?quest=test` plays the engine test fixture.
  */
@@ -53,8 +53,13 @@ function startFromUrl(
     .split(',')
     .filter((h): h is Hero => (HEROES as readonly string[]).includes(h));
   const events: GameEvent[] = [];
-  for (const door of (params.get('open') ?? '').split(',').filter(Boolean))
-    events.push({ type: 'OPEN_DOOR', door });
+  // `open` is an ordered list: door ids, or `look@x:y` for a look from a corridor square.
+  for (const item of (params.get('open') ?? '').split(',').filter(Boolean)) {
+    if (item.startsWith('look@')) {
+      const [x, y] = item.slice(5).split(':').map(Number);
+      if (x !== undefined && y !== undefined) events.push({ type: 'LOOK_FROM', cell: [x, y] });
+    } else events.push({ type: 'OPEN_DOOR', door: item });
+  }
   for (const at of (params.get('look') ?? '').split(',').filter(Boolean)) {
     const [x, y] = at.split(':').map(Number);
     if (x !== undefined && y !== undefined) events.push({ type: 'LOOK_FROM', cell: [x, y] });

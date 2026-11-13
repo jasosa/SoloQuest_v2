@@ -247,6 +247,10 @@ export function headingOf(p: Prompt): string {
       return p.doors.length > 1 ? 'Secret doors!' : 'A secret door!';
     case 'nothingFound':
       return 'Nothing found';
+    case 'trapFound':
+      return 'You found a trap';
+    case 'noTrap':
+      return 'No trap';
     default:
       return '';
   }
@@ -272,6 +276,12 @@ function lines(p: Prompt): string[] {
       return [`${p.doors.length > 1 ? 'They are' : 'It is'} on the map now, closed. Tap to open.`];
     case 'nothingFound':
       return ['There is no secret door to find here.'];
+    case 'trapFound':
+      return [
+        'You found a trap on this chest. Try to disarm it, or a treasure search here springs it.',
+      ];
+    case 'noTrap':
+      return ['No trap on this chest.'];
     default:
       return [];
   }
@@ -279,7 +289,13 @@ function lines(p: Prompt): string[] {
 
 /** Prompts that make a result sheet (reveal and nothing-new prompts do not). */
 export const resultPrompts = (prompts: readonly Prompt[]) =>
-  prompts.filter((p) => p.kind !== 'revealed' && p.kind !== 'nothingNew');
+  prompts.filter(
+    (p, i) =>
+      p.kind !== 'revealed' &&
+      p.kind !== 'nothingNew' &&
+      // two traps on one chest read as one "you found a trap"
+      !(p.kind === 'trapFound' && prompts.findIndex((q) => q.kind === 'trapFound') !== i),
+  );
 
 function Section({ p, heading }: { p: Prompt; heading: boolean }) {
   return (
@@ -288,6 +304,51 @@ function Section({ p, heading }: { p: Prompt; heading: boolean }) {
       {lines(p).map((l, i) => (
         <p key={i}>{l}</p>
       ))}
+    </>
+  );
+}
+
+/** Body of the chest note. A chest is searched for traps once, by anyone, with no hero input. */
+export function ChestBody(props: {
+  searched: boolean;
+  trapFound: boolean;
+  /** Codes of living monsters in the chest's room. */
+  monsters: readonly string[];
+  override: boolean;
+  onOverride(): void;
+  onSearch(): void;
+  onDisarm(): void;
+}) {
+  if (props.trapFound)
+    return (
+      <>
+        <p>A trap was found on this chest. A treasure search here springs it.</p>
+        <button className="btn" onClick={props.onDisarm}>
+          Try to disarm it
+        </button>
+      </>
+    );
+  if (props.searched)
+    return (
+      <>
+        <p>Already searched.</p>
+      </>
+    );
+  const guarded = props.monsters.length > 0 && !props.override;
+  return (
+    <>
+      <p>Anyone can look for traps on a chest, once.</p>
+      {props.monsters.length > 0 && (
+        <p className="warn">{props.monsters.join(', ')} still here. A search needs a clear room.</p>
+      )}
+      <button className="btn" disabled={guarded} onClick={props.onSearch}>
+        Search for traps
+      </button>
+      {guarded && (
+        <button className="btn alt" onClick={props.onOverride}>
+          The room is clear, search anyway
+        </button>
+      )}
     </>
   );
 }

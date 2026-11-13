@@ -4,7 +4,7 @@ import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
 import { lookHintCells } from '../../engine/game/hints';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
-import { monstersInPlay, trapsInView } from '../../engine/game/view';
+import { chestsInView, monstersInPlay, trapsInView } from '../../engine/game/view';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
@@ -294,6 +294,32 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
     }
   }
 
+  // Chests: tappable (Search for traps). The hit area is the chest, at least 44 px.
+  const chestHits: ReactNode[] = [];
+  for (const c of chestsInView(level, state)) {
+    const xs = c.cells.map((q) => q[0]);
+    const ys = c.cells.map((q) => q[1]);
+    const w = (Math.max(...xs) - Math.min(...xs) + 1) * S;
+    const h = (Math.max(...ys) - Math.min(...ys) + 1) * S;
+    const cx = Math.min(...xs) * S + w / 2;
+    const cy = Math.min(...ys) * S + h / 2;
+    const hw = Math.max(44, w);
+    const hh = Math.max(44, h);
+    chestHits.push(
+      <rect
+        key={`ch${c.id}`}
+        className="hit"
+        data-hit
+        data-chest={c.id}
+        x={cx - hw / 2}
+        y={cy - hh / 2}
+        width={hw}
+        height={hh}
+        {...press('Chest', () => onSelect({ kind: 'chest', id: c.id }))}
+      />,
+    );
+  }
+
   // Traps: "?" while armed, a pit tile once a pit sprung, a block once a falling block fell.
   const trapHits: ReactNode[] = [];
   for (const t of traps) {
@@ -572,6 +598,7 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
       {eyes}
       {tokens}
       {cellHits}
+      {chestHits}
       {trapHits}
       {monsterHits}
       {doorHits}
