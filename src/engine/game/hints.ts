@@ -20,6 +20,8 @@ export function lookHintCells(level: Level, state: GameState): Cell[] {
     if (state.seenBlocks.has(b.id))
       for (const c of b.cells) seenBlockCells.add(cellKey(c[0], c[1]));
 
+  for (const k of state.placedBlocks) seenBlockCells.add(k);
+
   const geometry: SightMap = {
     width: board.width,
     height: board.height,

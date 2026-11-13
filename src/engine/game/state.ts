@@ -1,7 +1,8 @@
 import type { AreaId } from '../board/board';
 import type { CellKey } from '../board/level';
 import { statsOf } from '../data/monsters';
-import type { MonsterDef } from '../quest/schema';
+import type { Hero } from '../data/heroes';
+import type { MonsterDef, MonsterType } from '../quest/schema';
 import { createRng, type Rng } from './rng';
 
 /**
@@ -15,6 +16,20 @@ export interface MonsterRecord {
   readonly body: number;
   readonly dead: boolean;
 }
+
+/** A wandering monster: in the roster, never on a square. */
+export interface WandererRecord {
+  readonly type: MonsterType;
+  /** The room where the search happened. */
+  readonly room: AreaId;
+  /** The hero it came for. */
+  readonly wanderAt: Hero;
+  /** True from the moment it appears until the end of the Zargon turn ("attacks now"). */
+  readonly fresh: boolean;
+}
+
+/** A trap that is not armed any more. An armed trap has no entry. */
+export type TrapState = 'sprung' | 'disarmed';
 
 export interface GameState {
   readonly rng: Rng;
@@ -38,6 +53,18 @@ export interface GameState {
   readonly seenFurniture: ReadonlySet<string>;
   /** Trap ids shown as "?". Their kind is not part of the state. */
   readonly seenTraps: ReadonlySet<string>;
+  /** Traps that sprung or were disarmed. Armed traps are not listed. */
+  readonly trapStates: Readonly<Record<string, TrapState>>;
+  /** Squares where a falling block trap left a permanent block (stops sight and movement). */
+  readonly placedBlocks: ReadonlySet<CellKey>;
+  /** Heroes that searched a room for treasure, in order. A hero searches a room once. */
+  readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
+  /** Wandering monsters by id (w1, w2...). They are also in `monsters` and `seenMonsters`. */
+  readonly wanderers: Readonly<Record<string, WandererRecord>>;
+  /** How many wandering monsters appeared (next id is w<count + 1>). */
+  readonly wanderCount: number;
+  /** Ids of notes that fired, in order, each once. The notes engine (M4) builds the journal. */
+  readonly notesFired: readonly string[];
 }
 
 export function emptyState(seed: number): GameState {
@@ -54,6 +81,12 @@ export function emptyState(seed: number): GameState {
     monsters: {},
     seenFurniture: new Set(),
     seenTraps: new Set(),
+    trapStates: {},
+    placedBlocks: new Set(),
+    treasureSearched: {},
+    wanderers: {},
+    wanderCount: 0,
+    notesFired: [],
   };
 }
 
@@ -63,7 +96,13 @@ export type Draft = {
     ? Set<T>
     : K extends 'monsters'
       ? Record<string, MonsterRecord>
-      : GameState[K];
+      : K extends 'wanderers'
+        ? Record<string, WandererRecord>
+        : K extends 'trapStates'
+          ? Record<string, TrapState>
+          : K extends 'treasureSearched'
+            ? Record<AreaId, readonly Hero[]>
+            : GameState[K];
 };
 
 /** A monster is seen for the first time: remember it and start its Body Points. */
@@ -86,5 +125,9 @@ export function draftOf(s: GameState): Draft {
     monsters: { ...s.monsters },
     seenFurniture: new Set(s.seenFurniture),
     seenTraps: new Set(s.seenTraps),
+    trapStates: { ...s.trapStates },
+    placedBlocks: new Set(s.placedBlocks),
+    treasureSearched: { ...s.treasureSearched },
+    wanderers: { ...s.wanderers },
   };
 }

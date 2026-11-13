@@ -97,11 +97,21 @@ export function isBlocked(level: Level, x: number, y: number): boolean {
   return level.blockAt.has(cellKey(x, y));
 }
 /** Rock, a blocked square, or outside the board: sight stops here. */
-export function blocksSight(level: Level, x: number, y: number): boolean {
-  return !inBoard(level.board, x, y) || isRock(level, x, y) || isBlocked(level, x, y);
+export function blocksSight(
+  level: Level,
+  x: number,
+  y: number,
+  placedBlocks: ReadonlySet<CellKey> = new Set(),
+): boolean {
+  return (
+    !inBoard(level.board, x, y) ||
+    isRock(level, x, y) ||
+    isBlocked(level, x, y) ||
+    placedBlocks.has(cellKey(x, y))
+  );
 }
 /** Same set as blocksSight: nobody can stand on or walk through these squares. */
-export const blocksMove = blocksSight;
+export const blocksMove: typeof blocksSight = blocksSight;
 
 /** Wall between two neighbours, derived from the areas only (doors and rock are not considered). */
 export function isWall(level: Level, a: Cell, b: Cell): boolean {
@@ -121,14 +131,21 @@ export function edgeOpen(level: Level, a: Cell, b: Cell, openDoors: ReadonlySet<
   return !isWall(level, a, b);
 }
 
-/** Line of sight map for the real game: rock and blocks from the quest, doors from `openDoors`. */
-export function sightMap(level: Level, openDoors: ReadonlySet<string>): SightMap {
+/**
+ * Line of sight map for the real game: rock and blocks from the quest, doors from `openDoors`.
+ * `placedBlocks` are blocks made during play (falling block traps).
+ */
+export function sightMap(
+  level: Level,
+  openDoors: ReadonlySet<string>,
+  placedBlocks: ReadonlySet<CellKey> = new Set(),
+): SightMap {
   return {
     width: level.board.width,
     height: level.board.height,
     cellKind(x, y): CellKind {
       if (isRock(level, x, y)) return 'rock';
-      if (isBlocked(level, x, y)) return 'block';
+      if (isBlocked(level, x, y) || placedBlocks.has(cellKey(x, y))) return 'block';
       return 'floor';
     },
     edgeOpen: (a, b) => edgeOpen(level, a, b, openDoors),

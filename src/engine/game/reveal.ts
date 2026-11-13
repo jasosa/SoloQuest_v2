@@ -79,7 +79,7 @@ export function revealRoom(level: Level, d: Draft, area: AreaId): RevealResult {
  * Blocked squares in sight are revealed, nothing behind them.
  */
 export function revealFrom(level: Level, d: Draft, from: Cell): RevealResult {
-  const map = sightMap(level, d.openDoors);
+  const map = sightMap(level, d.openDoors, d.placedBlocks);
   const cells: CellKey[] = [];
   for (let y = 0; y < level.board.height; y++)
     for (let x = 0; x < level.board.width; x++) {

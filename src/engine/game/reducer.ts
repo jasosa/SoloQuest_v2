@@ -11,46 +11,21 @@
  */
 import { inBoard, areaAt, type Cell } from '../board/board';
 import { keyOf, type CellKey, type Level } from '../board/level';
+import { EventError } from './errors';
 import type { GameEvent } from './events';
+import type { Prompt } from './prompts';
+import { searchSecretDoors, searchTreasure, wanderingMonster } from './search';
+import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
 import { progress, revealFrom, revealRoom } from './reveal';
 import { draftOf, emptyState, type Draft, type GameState, type MonsterRecord } from './state';
 
-/** Messages for the UI, produced by the reducer. */
-export type Prompt =
-  /** Something new is now visible. `cells` are the newly known squares, `origin` is where the
-   *  reveal starts, in board units (a cell center is x + 0.5, y + 0.5). */
-  | {
-      readonly kind: 'revealed';
-      readonly cells: readonly CellKey[];
-      readonly origin: readonly [number, number];
-    }
-  /** The action showed nothing new. */
-  | { readonly kind: 'nothingNew' };
+export { EventError, type EventErrorCode } from './errors';
+export type { Prompt } from './prompts';
 
 export interface Reduced {
   readonly state: GameState;
   readonly prompts: readonly Prompt[];
-}
-
-export type EventErrorCode =
-  | 'UNKNOWN_DOOR'
-  | 'DOOR_NOT_SEEN'
-  | 'ALREADY_OPEN'
-  | 'BAD_CELL'
-  | 'NOT_A_SEEN_CORRIDOR_CELL'
-  | 'UNKNOWN_MONSTER'
-  | 'MONSTER_NOT_SEEN'
-  | 'MONSTER_DEAD'
-  | 'BAD_AMOUNT';
-
-export class EventError extends Error {
-  readonly code: EventErrorCode;
-  constructor(code: EventErrorCode, message: string) {
-    super(message);
-    this.name = 'EventError';
-    this.code = code;
-  }
 }
 
 /** State at the start of the quest: the start room is revealed. */
@@ -81,8 +56,21 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
     case 'ZARGON_TURN_END': {
       const d = draftOf(state);
       d.turn += 1;
+      // A wandering monster that attacked at once is no longer "fresh" after Zargon's turn.
+      for (const [id, w] of Object.entries(d.wanderers))
+        if (w.fresh) d.wanderers[id] = { ...w, fresh: false };
       return { state: d, prompts: [] };
     }
+    case 'SEARCH_TREASURE':
+      return searchTreasure(level, state, event);
+    case 'WANDERING_MONSTER':
+      return wanderingMonster(level, state, event);
+    case 'SEARCH_SECRET_DOORS':
+      return searchSecretDoors(level, state, event);
+    case 'TRAP_JUMP':
+    case 'TRAP_DISARM':
+    case 'TRAP_STEP':
+      return trapEvent(level, state, event);
     default: {
       const never: never = event;
       throw new Error(`Unhandled event ${JSON.stringify(never)}`);
@@ -189,7 +177,8 @@ function monsterChange(
   id: string,
   change: (r: MonsterRecord, maxBody: number) => MonsterRecord,
 ): Reduced {
-  const def = level.quest.monsters.find((m) => m.id === id);
+  const w = state.wanderers[id];
+  const def = w ? { type: w.type } : level.quest.monsters.find((m) => m.id === id);
   if (!def) throw new EventError('UNKNOWN_MONSTER', `Unknown monster ${id}`);
   const rec = state.monsters[id];
   if (!state.seenMonsters.has(id) || !rec)

@@ -45,6 +45,8 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [ ] Traps house rule: jump / disarm (Dwarf, tool kit) / step on, die result input, spring effects by kind, sprung pit tile, falling block = permanent block
 - [ ] Chest traps: spring before the search result
 
+- [ ] Engine part done (searches, wandering monster, secret doors, traps; commit before UI). UI part: search sheets, trap menu, wandering monster card, roster entry, pit and falling block drawing
+
 ## M4 · Notes engine
 
 - [ ] Triggers, conditions, effects from `QUEST_FORMAT.md`

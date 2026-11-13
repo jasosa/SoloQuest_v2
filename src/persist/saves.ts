@@ -29,6 +29,28 @@ export const EventSchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('MONSTER_KILL'), monster: z.string() }),
   z.object({ type: z.literal('ZARGON_TURN_END') }),
+  z.object({
+    type: z.literal('SEARCH_TREASURE'),
+    room: z.string(),
+    hero: z.enum(HEROES),
+    override: z.boolean().optional(),
+  }),
+  z.object({ type: z.literal('WANDERING_MONSTER'), room: z.string(), hero: z.enum(HEROES) }),
+  z.object({
+    type: z.literal('SEARCH_SECRET_DOORS'),
+    hero: z.enum(HEROES),
+    area: z.string().optional(),
+    cell: CellSchema.optional(),
+    override: z.boolean().optional(),
+  }),
+  z.object({ type: z.literal('TRAP_JUMP'), trap: z.string(), result: z.enum(['skull', 'ok']) }),
+  z.object({
+    type: z.literal('TRAP_DISARM'),
+    trap: z.string(),
+    by: z.enum(['dwarf', 'toolkit']),
+    result: z.enum(['skull', 'blackShield', 'other']),
+  }),
+  z.object({ type: z.literal('TRAP_STEP'), trap: z.string() }),
 ]);
 
 // Compile-time guard: every GameEvent type needs an entry in EventSchema, or a save that holds

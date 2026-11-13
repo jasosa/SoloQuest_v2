@@ -25,3 +25,6 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 19 | 2026-11-13 | "New game" over a saved game asks for confirmation first. |
 | 20 | 2026-11-13 | One save slot per quest for now. |
 | 21 | 2026-11-13 | Named monsters carry their own stats, spells and special rules in the quest data (`overrides`, `spells`); the engine tables only hold the base monsters. The dread sorcerer base stats are a placeholder. |
+| 22 | 2026-11-13 | A search in a room with an armed chest trap: the trap springs first and its effect applies, then the search goes on (special treasure or a treasure card). Chest traps can be disarmed with the usual disarm rules. |
+| 23 | 2026-11-13 | Stepping onto an already sprung pit springs it again (the hero falls in). A sprung pit can still be jumped, never disarmed. |
+| 24 | 2026-11-13 | A living wandering monster counts as a monster in its room: treasure and secret-door searches there need the players' override. The game remembers only the room it was placed in and the hero it attacked, not a square. |
