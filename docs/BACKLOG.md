@@ -70,12 +70,24 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M6 · Editor
 
-- [ ] Editor layout: tools left, board center, inspector right
-- [ ] Tools: rock, doors, secret/false doors, blocks, furniture (cells), monsters, traps, stairs, markers, start
-- [ ] Inspector (monster overrides, spells, states; trap kind/effect; furniture letter)
-- [ ] Note builder (trigger picker on the board, conditions, effects)
+Slices (in order; each ends green with tests and a commit):
+
+**Slice 1: foundation and board tools**
+- [x] Editing model in the engine: pure operations on a quest draft (rock, doors incl. secret/false, blocks, furniture with footprint check and rotate, monsters, traps, markers, start, stairs), id generation, structured validation issues, empty quest template
+- [x] `.hqquest.json` export and import with migration and readable errors (`userText` never exported)
+- [x] User quests in IndexedDB (list, save, delete, draft autosave); [ ] Editor entry on the quest select screen (with the shell UI)
+- [ ] Editor shell UI (tools left, board center, inspector right, history undo/redo) and the board tools
+
+**Slice 2: inspector and notes**
+- [ ] Inspector (monster name, overrides, traits, spells, state; trap kind and effect; furniture letter; door kind)
+- [ ] Note builder (trigger picker on the board, conditions, effects, live check that every letter on the map has a note)
+
+**Slice 3: verification tools**
 - [ ] Reference underlay (load image, 4-corner align, opacity), local only
-- [ ] Validation panel, playtest with "Zargon view", import/export `.hqquest.json`
+- [ ] Validation panel with jump to the element; playtest with a "Zargon view" (shows everything)
+- [ ] Import/export in the UI; Quest 1 recreated in the editor equals the bundled file (done when)
+
+Open: "monster count vs box inventory" validation needs the miniature counts of the owner's box (not in the repo).
 
 ## M7 · The 14 quests
 

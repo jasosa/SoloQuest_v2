@@ -276,6 +276,18 @@ Same SVG board, different tools. Layout: tool palette left, board center, inspec
 - **Playtest**: open the quest in play mode, with a "Zargon view" toggle that shows everything.
 - **Import / export** `.hqquest.json`. Schema versioned with migrations.
 
+### Editor model (slice 1, engine and storage)
+
+Code: `src/engine/editor/` (ops, refs, io), `src/engine/quest/validate.ts`, `src/persist/userQuests.ts`.
+
+- **Draft** = a parsed `Quest`. Every operation is a pure function `(quest, ...args) => EditResult`, `{ ok: true, quest, warnings } | { ok: false, error }`. Input is never changed. Undo/redo in the UI is a stack of quests. The board is the fixed game board.
+- **Operations**: `emptyQuest`, `renameQuest`, `setSummary`, `setStartArea`, `setRockCell`, `setRockRoom`, `addDoor` / `removeDoor` / `setDoorKind` (normal, secret, false; ids d, s, x with the first free number), `addBlock` / `removeBlock` (by square), `addFurniture` / `moveFurniture` / `rotateFurniture` / `removeFurniture`, `addMonster` / `moveMonster` / `removeMonster`, `addTrap` / `removeTrap`, `addMarker` / `removeMarker`. Footprint rules: on the board, not rock, inside one room, squares touching, nothing else on them.
+- **Removing** an element never edits notes or objectives. What still points at it comes back in `warnings` (each with a ref to jump to) and stays a validation error until fixed. The chest trap of removed furniture is removed with it. `setDoorKind` renames the door and rewrites `doorOpened` and `addSecretDoor` references.
+- **Issues**: `validateQuestIssues(quest, board, { editor? })` returns `{ message, severity: 'error' | 'warning', ref? }`, with `ref = { kind, id?, cell?, area? }` for jumping to the element. The editor checks (an objective exists, letters on the map have notes) run unless `editor: false`; `validateQuest` is the game checks only, as plain messages. Errors block export, warnings do not.
+- **Files**: `exportQuest` (pretty JSON, fixed key order, no `intro.userText`), `exportQuestChecked` (refuses on errors), `importQuest` (never throws: bad JSON, unknown version, schema paths, validation errors; warnings returned). Extension `.hqquest.json`.
+- **Storage**: `UserQuestStore` (`list`, `load`, `save`, `remove`, plus `saveDraft` / `loadDraft` / `removeDraft` for autosave), `MemoryUserQuestStore`, `DexieUserQuestStore` in its own database (`soloquest-user-quests`), so the saves database is untouched. User quest ids start with `user-` (`newUserQuestId(title, taken)`), bundled ones are `qNN-...`, so they never collide. `userText` stays in local storage.
+- Test: quest 1 is rebuilt from `emptyQuest` with these operations only (`q01Rebuild.test.ts`).
+
 ---
 
 ## 7. Persistence and offline
