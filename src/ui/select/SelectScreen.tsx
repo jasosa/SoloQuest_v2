@@ -14,9 +14,11 @@ export interface SelectScreenProps {
   onStart(choice: StartChoice): void;
   /** A short message to show, for example when a saved game could not be opened. */
   notice?: string | undefined;
+  /** Open the quest editor. */
+  onEditor?: (() => void) | undefined;
 }
 
-export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
+export function SelectScreen({ saves, onStart, notice, onEditor }: SelectScreenProps) {
   const [number, setNumber] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.number,
   );
@@ -54,6 +56,11 @@ export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
       <header>
         <span className="qn">SoloQuest</span>
         <h1>Choose a quest</h1>
+        {onEditor && (
+          <button className="link" onClick={onEditor} style={{ marginLeft: 'auto' }}>
+            Quest editor
+          </button>
+        )}
       </header>
 
       <div className="pick">

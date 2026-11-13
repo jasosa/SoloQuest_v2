@@ -69,3 +69,29 @@ Furniture has a tap area (its footprint). Hover or keyboard focus shows a small 
 ## Wandering monster card (decision 33)
 
 After "It was a wandering monster" the card says: put the monster on a free square next to the <Hero>, it attacks that hero at once with n attack dice, nobody else this round. No choices.
+
+## Editor (M6, slice 1)
+
+Same shell and language as the play screen: paper, ink, square 2 px controls, Bonum for titles and buttons, margin-note style for hints. 1194 x 834 landscape, three columns under the title band.
+
+**Title band.** "Editor" eyebrow, the quest title, then on the right: the issue counter ("2 problems", "1 warning", "No problems"; a tap shows the issue list in the inspector), Undo, Redo, "Save" (button), "Back" (links to the editor start screen; the draft is already saved). Issues are errors (block saving) and warnings.
+
+**Tools column (left, 180 px).** One chip per tool, a single column, 44 px high, text only: Select, Rock, Doors, Blocks, Furniture, Monsters, Traps, Markers, Start. The active tool is the filled chip (`aria-pressed`). Under the chips: the options of the active tool (kind chips, a text field for the marker label, "Whole room" toggle for Rock) and a "Room ids" toggle. Shortcuts (ignored while typing in a field): S select, K rock, D doors, B blocks, F furniture, M monsters, T traps, L markers, H start, R rotate the selected furniture or the furniture being placed, Delete or Backspace delete the selection, Esc cancel, Ctrl+Z undo, Ctrl+Shift+Z or Ctrl+Y redo.
+
+**Board (center).** The whole 26 x 19 board at 26 px a square, no fog: rock hatch, rooms and corridors, every door (closed look, secret doors dashed, false doors crossed), blocks, furniture line art, monster tokens (green coin with the type letter), traps as faint "?" triangles, markers as a small ink diamond with its first letter, the start room tinted `--sel`. The board takes keyboard focus: arrow keys move a dashed cursor square, Enter or Space acts like a click on it (Shift+arrow picks the edge for a door).
+- *Hover*: the square under the pointer gets a thin ink outline; in the Doors tool the nearest edge is drawn as a thick ink bar.
+- *Selection*: a `--sel` ring around the element (same pulse as play); the inspector shows it.
+- *Select*: click an element (marker, monster, trap, furniture, block, door, in that order). Drag furniture or a monster to move it (a ghost follows, red if the move would fail). Delete key or the inspector "Delete".
+- *Rock*: click a square to toggle it. With "Whole room" a click on a room toggles all of it.
+- *Doors*: kind chips Normal, Secret, False. Click near the edge between two squares to add. Click an existing door to select it; the inspector changes its kind.
+- *Blocks*: Single or Double. Double: click two touching squares. Click an existing block to select it.
+- *Furniture*: type chips (the 12 types). Click places the piece with its first square (top left) on the clicked square; the footprint is shown as a ghost, `--sel` when it can be placed and red (`--ink` with a hatch) when the engine would refuse it, with the engine's reason in the hint line under the board. R turns the ghost.
+- *Monsters*: type chips (9 types). Click a square to place.
+- *Traps*: Pit, Falling block, Spear, Chest. Pit, falling block and spear go on a square. A chest trap goes on a chest: click the chest.
+- *Markers*: label field, visible to Zargon or players. Click a square.
+- *Start*: click a room: it becomes the start room.
+- A failed change shows a toast with the engine's plain sentence and leaves the quest untouched. A change that leaves notes or objectives pointing at something shows a warning list under the board (dismissible).
+
+**Inspector (right, 274 px).** Quest title and summary (saved when the field loses focus). With an element selected: its type and id, "Delete", "Rotate" for furniture, the kind chips for a door. With nothing selected, after the title and summary: the issue list, each line a button that selects the element it names.
+
+**Editor start screen.** The quest select layout: a list of your quests (title, number, last change, "Open", "Delete" with an inline "Delete it? Yes / No"), "New quest" (title and number), "Import file" (a `.hqquest.json` file; errors and warnings are listed, and a changed id is reported) and "Copy a bundled quest". It opens from the quest select screen with the link "Quest editor".

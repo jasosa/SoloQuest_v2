@@ -76,7 +76,7 @@ Slices (in order; each ends green with tests and a commit):
 - [x] Editing model in the engine: pure operations on a quest draft (rock, doors incl. secret/false, blocks, furniture with footprint check and rotate, monsters, traps, markers, start, stairs), id generation, structured validation issues, empty quest template
 - [x] `.hqquest.json` export and import with migration and readable errors (`userText` never exported)
 - [x] User quests in IndexedDB (list, save, delete, draft autosave); [ ] Editor entry on the quest select screen (with the shell UI)
-- [ ] Editor shell UI (tools left, board center, inspector right, history undo/redo) and the board tools
+- [x] Editor shell UI (tools left, board center, inspector right, history undo/redo) and the board tools; Editor entry on the quest select screen
 
 **Slice 2: inspector and notes**
 - [ ] Inspector (monster name, overrides, traits, spells, state; trap kind and effect; furniture letter; door kind)
@@ -95,6 +95,8 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 - [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
 
 ## M8 · Polish
+
+- [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board; show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable
 
 - [ ] Polish from the M5b review: NoteCard Esc stack should use a ref for `onClose` and a stable id, and margin notes should join the stack (Esc can close both a margin note and a card today); check that the all-heroes-fallen card does not reappear after every new event
 

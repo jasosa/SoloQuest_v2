@@ -6,7 +6,7 @@
 import type { MonsterType } from '../../engine/quest/schema';
 import type { Level } from '../../engine/board/level';
 
-const LETTER: Readonly<Record<MonsterType, string>> = {
+export const MONSTER_LETTER: Readonly<Record<MonsterType, string>> = {
   goblin: 'G',
   orc: 'O',
   abomination: 'A',
@@ -33,7 +33,7 @@ export function monsterCodes(
     if (!t) continue;
     const n = (counters.get(t) ?? 0) + 1;
     counters.set(t, n);
-    out.set(id, `${LETTER[t]}${n}`);
+    out.set(id, `${MONSTER_LETTER[t]}${n}`);
   }
   return out;
 }

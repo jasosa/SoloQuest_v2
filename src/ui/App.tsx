@@ -9,6 +9,14 @@ import { knownFor, parseState } from './board/boardStates';
 import { PlayScreen } from './play/PlayScreen';
 import { devTestLevel, levelOfNumber } from './quests';
 import { SelectScreen, type StartChoice } from './select/SelectScreen';
+import { EditorScreen } from './editor/EditorScreen';
+import { EditorStart } from './editor/EditorStart';
+import { createEditorStore, type EditorStore } from './editor/editorStore';
+import {
+  DexieUserQuestStore,
+  MemoryUserQuestStore,
+  type UserQuestStore,
+} from '../persist/userQuests';
 import { createGameStore, type GameStore } from './store/gameStore';
 import { openSaved, SAVED_GAME_FAILED } from './store/openSaved';
 import './shared/tokens.css';
@@ -16,6 +24,7 @@ import './shared/controls.css';
 import './app.css';
 import './play/play.css';
 import './select/select.css';
+import './editor/editor.css';
 
 /** A new random seed. Math.random is fine here: it is outside the engine. */
 const freshSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -106,6 +115,15 @@ function Game({ params }: { params: URLSearchParams }) {
 
   const [notice, setNotice] = useState<string | undefined>();
 
+  // The quest editor: its own screens, quests kept in their own database.
+  const userStore = useMemo<UserQuestStore>(
+    () => (params.has('nosave') ? new MemoryUserQuestStore() : new DexieUserQuestStore()),
+    [params],
+  );
+  const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
+    params.has('editor') ? 'start' : null,
+  );
+
   // Development only: the engine test fixture is loaded on demand, never bundled in production.
   useEffect(() => {
     if (game !== 'dev') return;
@@ -153,10 +171,26 @@ function Game({ params }: { params: URLSearchParams }) {
     }
   };
 
+  if (editor === 'start')
+    return (
+      <EditorStart
+        store={userStore}
+        onBack={() => setEditor(null)}
+        onOpen={(quest, clean) => setEditor(createEditorStore({ quest, clean, store: userStore }))}
+      />
+    );
+  if (editor) return <EditorScreen store={editor} onBack={() => setEditor('start')} />;
   if (game === 'resume' || game === 'dev') return <div className="app" />;
   if (game)
     return (
       <PlayScreen store={game} onLeave={() => setGame(null)} initialSelect={params.get('select')} />
     );
-  return <SelectScreen saves={saves} onStart={start} notice={notice} />;
+  return (
+    <SelectScreen
+      saves={saves}
+      onStart={start}
+      notice={notice}
+      onEditor={() => setEditor('start')}
+    />
+  );
 }
