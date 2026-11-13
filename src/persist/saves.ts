@@ -1,0 +1,147 @@
+import Dexie, { type EntityTable } from 'dexie';
+import { z } from 'zod';
+import type { Level } from '../engine/board/level';
+import type { GameEvent } from '../engine/game/events';
+import { replay } from '../engine/game/reducer';
+import type { GameState } from '../engine/game/state';
+
+/**
+ * Autosave: the event log is the save file (state = replay(level, seed, events)).
+ * One save per quest. This lives outside `src/engine/` because it touches IndexedDB and the clock.
+ */
+
+export const SAVE_VERSION = 1;
+
+const CellSchema = z.tuple([z.number().int(), z.number().int()]);
+export const EventSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
+  z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
+]);
+
+// Compile-time guard: every GameEvent type needs an entry in EventSchema, or a save that holds
+// the new event would read back as corrupt. This line fails to compile when one is missing.
+const _eventSchemaCoversAllEvents: [
+  Exclude<GameEvent['type'], z.infer<typeof EventSchema>['type']>,
+] extends [never]
+  ? true
+  : never = true;
+void _eventSchemaCoversAllEvents;
+
+export const SavedGameSchema = z.object({
+  questId: z.string(),
+  version: z.literal(SAVE_VERSION),
+  seed: z.number().int(),
+  events: z.array(EventSchema),
+  /** Milliseconds since the epoch, given by the caller. */
+  updatedAt: z.number(),
+});
+export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events'> & {
+  events: GameEvent[];
+};
+
+export interface SaveStore {
+  save(game: SavedGame): Promise<void>;
+  load(questId: string): Promise<SavedGame | undefined>;
+  list(): Promise<SavedGame[]>;
+  remove(questId: string): Promise<void>;
+}
+
+export class MemorySaveStore implements SaveStore {
+  private readonly games = new Map<string, SavedGame>();
+  async save(game: SavedGame): Promise<void> {
+    this.games.set(game.questId, structuredClone(game));
+  }
+  async load(questId: string): Promise<SavedGame | undefined> {
+    return structuredClone(this.games.get(questId));
+  }
+  async list(): Promise<SavedGame[]> {
+    return [...this.games.values()].map((g) => structuredClone(g));
+  }
+  async remove(questId: string): Promise<void> {
+    this.games.delete(questId);
+  }
+}
+
+class SoloQuestDb extends Dexie {
+  saves!: EntityTable<SavedGame, 'questId'>;
+  constructor(name: string) {
+    super(name);
+    this.version(1).stores({ saves: 'questId, updatedAt' });
+  }
+}
+
+export class DexieSaveStore implements SaveStore {
+  private readonly db: SoloQuestDb;
+  constructor(name = 'soloquest') {
+    this.db = new SoloQuestDb(name);
+  }
+  async save(game: SavedGame): Promise<void> {
+    await this.db.saves.put(game);
+  }
+  async load(questId: string): Promise<SavedGame | undefined> {
+    return this.db.saves.get(questId);
+  }
+  async list(): Promise<SavedGame[]> {
+    return this.db.saves.orderBy('updatedAt').reverse().toArray();
+  }
+  async remove(questId: string): Promise<void> {
+    await this.db.saves.delete(questId);
+  }
+  close(): void {
+    this.db.close();
+  }
+}
+
+/**
+ * Write the whole log after every event (a log is a few hundred small events at most).
+ * Returns false when the store is unavailable: play goes on, the game is just not saved.
+ */
+export async function autosave(
+  store: SaveStore,
+  questId: string,
+  seed: number,
+  events: readonly GameEvent[],
+  now: number,
+): Promise<boolean> {
+  try {
+    await store.save({ questId, version: SAVE_VERSION, seed, events: [...events], updatedAt: now });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export type Resumed =
+  | { ok: true; seed: number; events: readonly GameEvent[]; state: GameState }
+  | { ok: false; reason: 'none' | 'corrupt' | 'invalid' | 'unavailable'; message: string };
+
+/**
+ * Load the save of a quest and replay it. `corrupt`: the stored data does not match the save
+ * format. `invalid`: the log does not replay on this quest (for example the quest file changed).
+ */
+export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
+  let raw: SavedGame | undefined;
+  try {
+    raw = await store.load(level.quest.id);
+  } catch {
+    return {
+      ok: false,
+      reason: 'unavailable',
+      message: 'Saved games cannot be read on this device.',
+    };
+  }
+  if (!raw) return { ok: false, reason: 'none', message: 'No saved game for this quest.' };
+  const parsed = SavedGameSchema.safeParse(raw);
+  if (!parsed.success)
+    return { ok: false, reason: 'corrupt', message: 'The saved game could not be read.' };
+  try {
+    const state = replay(level, parsed.data.seed, parsed.data.events);
+    return { ok: true, seed: parsed.data.seed, events: parsed.data.events, state };
+  } catch (e) {
+    return {
+      ok: false,
+      reason: 'invalid',
+      message: `The saved game does not match this quest: ${(e as Error).message}`,
+    };
+  }
+}

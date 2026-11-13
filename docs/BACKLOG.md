@@ -25,7 +25,7 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [ ] Follow-ups from the M1 review (before M7): validator checks for `noEquipmentUntil`, objective monster ids, `trigger.monsterType`, trap/door overlaps with blocks and furniture; block id collision with generated `bN` ids; test for a door touched only by a block in `revealRoom`
 - [ ] Secret doors: the search event must add the door to `seenDoors` (M3); `addSecretDoor` effect too (M4)
 - [ ] **Owner decision before M2**: a room seen only partly through an open door is never completed by sight. Add an "A hero enters this room" reveal event?
-- [ ] Autosave of the event log (IndexedDB) and resume
+- [x] Autosave of the event log (IndexedDB) and resume (`src/persist/saves.ts`; wiring into the UI happens in M2)
 
 ## M2 · Play loop v1
 
