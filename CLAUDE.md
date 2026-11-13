@@ -31,7 +31,7 @@ Owner: Juanan. Write code comments, docs and UI text in plain, short English. **
 
 ## Commands
 
-Created in milestone M0. Until then, there is no `package.json`.
+Created in milestone M0.
 
 ```bash
 npm run dev            # Vite dev server
@@ -50,7 +50,6 @@ Run `npm run typecheck && npm test` before saying a task is done. Run `npm run t
 ```
 CLAUDE.md                 this file
 docs/                     plan, backlog, rules, formats, decisions
-docs/board.json           board geometry (26 x 19, 22 rooms) extracted from the blank map; moves to src/content in M0
 design/explore/           the three first-screen directions (A chosen)
 design/play-a/            Direction A prototype + DESIGN.md (reference implementation for the UI)
 src/engine/               pure game logic (board, quest, game, triggers, zargon, data)

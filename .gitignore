@@ -21,3 +21,4 @@ _to_delete/
 
 # Cowork app output folder
 Claude outputs/
+dev-dist/

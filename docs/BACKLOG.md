@@ -4,15 +4,15 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M0 · Setup and board
 
-- [ ] `git init`, `.gitignore` already in place; first commit with the harness
-- [ ] Vite + React 18 + TypeScript strict, ESLint, Prettier (2 spaces, single quotes, semicolons)
-- [ ] Vitest, Playwright (tablet project 1194 x 834, touch)
-- [ ] vite-plugin-pwa (offline shell, installable)
-- [ ] npm scripts from CLAUDE.md (`dev`, `test`, `test:e2e`, `lint`, `typecheck`, `validate`, `render:maps`, `overlay`)
-- [ ] Move `docs/board.json` to `src/content/board.json`; typed loader; test: 22 rooms, sizes, R15 L-shape, corridor ring
-- [ ] Design tokens and fonts from `design/play-a/` into `src/ui/shared/` (CSS variables, Bonum + Pagella)
-- [ ] SVG board renderer: grid, rock hatch, walls derived from areas; state switch via `?state=` for screenshots, like the prototype
-- [ ] `tools/quest-import/render-maps.ts` (pdftoppm wrapper, crop of the map frame)
+- [x] `git init`, `.gitignore` already in place; first commit with the harness
+- [x] Vite + React 18 + TypeScript strict, ESLint, Prettier (2 spaces, single quotes, semicolons)
+- [x] Vitest, Playwright (tablet project 1194 x 834, touch)
+- [x] vite-plugin-pwa (offline shell, installable)
+- [x] npm scripts from CLAUDE.md (`dev`, `test`, `test:e2e`, `lint`, `typecheck`, `validate`, `render:maps`, `overlay`); `overlay` is a stub until the quest schema (M1)
+- [x] Move `docs/board.json` to `src/content/board.json`; typed loader; test: 22 rooms, sizes, R15 L-shape, corridor ring
+- [x] Design tokens and fonts from `design/play-a/` into `src/ui/shared/` (CSS variables, Bonum + Pagella)
+- [x] SVG board renderer: grid, rock hatch, walls derived from areas; state switch via `?state=` for screenshots, like the prototype
+- [ ] `tools/quest-import/render-maps.ts` (pdftoppm wrapper, crop of the map frame); code and arg tests done, **not run against the real PDF yet** (Poppler not installed)
 
 ## M1 · Engine core
 
