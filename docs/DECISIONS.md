@@ -22,3 +22,6 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 16 | 2026-11-13 | Furniture does not block sight (the rulebook only says figures block spells). A block you can see is drawn as a block and stops sight behind it. The "look from here" eye disappears from a square once the players looked from it. |
 | 17 | 2026-11-13 | Quest 1 notes A and B (empty rack, empty chest): the first hero to search gets nothing; later searchers draw a normal treasure card. Same pattern for other "nothing here" notes unless the quest says otherwise. |
 | 18 | 2026-11-13 | Quest 1 note C: the guardian mummy is the one next to letter C, at (6,2). It rolls 4 attack dice. |
+| 19 | 2026-11-13 | "New game" over a saved game asks for confirmation first. |
+| 20 | 2026-11-13 | One save slot per quest for now. |
+| 21 | 2026-11-13 | Named monsters carry their own stats, spells and special rules in the quest data (`overrides`, `spells`); the engine tables only hold the base monsters. The dread sorcerer base stats are a placeholder. |

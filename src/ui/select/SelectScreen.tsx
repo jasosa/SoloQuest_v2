@@ -22,6 +22,7 @@ export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
   );
   const [team, setTeam] = useState<readonly Hero[]>([]);
   const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
+  const [confirming, setConfirming] = useState(false);
 
   const entry = questEntries.find((q) => q.number === number);
   const level = entry?.level;
@@ -42,8 +43,10 @@ export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
   const resumed = saved && saved.id === questId && saved.r.ok ? saved.r : undefined;
   const unusable = saved && saved.id === questId && !saved.r.ok && saved.r.reason !== 'none';
 
-  const toggle = (h: Hero) =>
+  const toggle = (h: Hero) => {
+    setConfirming(false);
     setTeam((t) => (t.includes(h) ? t.filter((x) => x !== h) : [...t, h]));
+  };
   const ready = team.length >= 1;
 
   return (
@@ -60,7 +63,10 @@ export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
             className="qcard"
             aria-pressed={q.number === number}
             disabled={!q.level}
-            onClick={() => setNumber(q.number)}
+            onClick={() => {
+              setNumber(q.number);
+              setConfirming(false);
+            }}
           >
             <span className="qnum">Quest {q.number}</span>
             {q.level && <span className="qtitle">{q.level.quest.title}</span>}
@@ -118,13 +124,29 @@ export function SelectScreen({ saves, onStart, notice }: SelectScreenProps) {
             </section>
 
             <div className="actions">
-              <button
-                className={resumed ? 'btn alt' : 'btn'}
-                disabled={!ready}
-                onClick={() => onStart({ kind: 'new', level, team })}
-              >
-                {resumed ? 'New game (replaces the saved one)' : 'Start the quest'}
-              </button>
+              {confirming && resumed ? (
+                <div className="confirm" role="alertdialog" aria-label="Replace the saved game?">
+                  <p className="hint">
+                    Replace the saved game (turn {resumed.state.turn})? It cannot be brought back.
+                  </p>
+                  <button className="btn" onClick={() => onStart({ kind: 'new', level, team })}>
+                    Replace it
+                  </button>
+                  <button className="btn alt" autoFocus onClick={() => setConfirming(false)}>
+                    Keep the saved game
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className={resumed ? 'btn alt' : 'btn'}
+                  disabled={!ready}
+                  onClick={() =>
+                    resumed ? setConfirming(true) : onStart({ kind: 'new', level, team })
+                  }
+                >
+                  {resumed ? 'New game (replaces the saved one)' : 'Start the quest'}
+                </button>
+              )}
             </div>
           </>
         )}

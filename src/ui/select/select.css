@@ -86,3 +86,8 @@
 .side .heroes .chips {
   margin-bottom: 6px;
 }
+.side .confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

@@ -167,6 +167,29 @@ test.describe('play quest 1', () => {
   });
 });
 
+test.describe('new game over a saved game', () => {
+  test('asks first; keeping the save leaves it intact, replacing starts fresh', async ({
+    page,
+  }) => {
+    await startQuestWithSave(page);
+    await page.reload();
+    await page
+      .getByRole('button', { name: /Quest 1/ })
+      .first()
+      .click();
+    await page.getByRole('button', { name: 'Elf', exact: true }).click();
+    await page.getByRole('button', { name: /New game/ }).click();
+    await expect(page.getByRole('alertdialog')).toContainText('Replace the saved game');
+    await page.getByRole('button', { name: 'Keep the saved game' }).click();
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+    await expect(page.getByText('Saved game')).toBeVisible();
+    await page.getByRole('button', { name: /New game/ }).click();
+    await page.getByRole('button', { name: 'Replace it' }).click();
+    await expect(page.locator('header .turn')).toContainText('Turn 1');
+    await expect(rosterRows(page)).toHaveCount(0);
+  });
+});
+
 async function startQuestWithSave(page: Page) {
   await page.goto('/');
   await page
