@@ -42,7 +42,7 @@ const code = (fn: () => unknown): string | undefined => {
 };
 const kinds = (ps: readonly Prompt[]) => ps.map((p) => p.kind);
 
-// Fixture: R17 holds orc m1 (6,15), table f1 with chest trap t2, pit t1. Open d2 to see it.
+// Fixture: R17 holds orc m1 (6,15), chest f1 with chest trap t2, pit t1. Open d2 to see it.
 const fx = buildLevel(testQuest());
 const intoR17 = [open('d2'), kill('m1')];
 
@@ -163,7 +163,6 @@ describe('SEARCH_TREASURE: chest trap order', () => {
     expect(kinds(r.prompts)).toEqual(['trapSprung', 'drawCard']);
     expect(r.prompts[0]).toMatchObject({ trap: 't2', trapKind: 'chest', via: 'search' });
     expect(r.state.trapStates.t2).toBe('sprung');
-    expect(trapsInView(fx, r.state).find((t) => t.id === 't2')?.onMap).toBe(false);
     // the other heroes find it gone
     const r2 = reduce(fx, r.state, treasure('R17', 'dwarf'));
     expect(kinds(r2.prompts)).toEqual(['drawCard']);
@@ -172,6 +171,7 @@ describe('SEARCH_TREASURE: chest trap order', () => {
   it('a disarmed chest trap does not spring', () => {
     const s = replay(fx, SEED, [
       ...intoR17,
+      { type: 'SEARCH_TRAPS', furniture: 'f1' },
       { type: 'TRAP_DISARM', trap: 't2', by: 'dwarf', result: 'other' },
     ]);
     expect(kinds(reduce(fx, s, treasure('R17', 'elf')).prompts)).toEqual(['drawCard']);

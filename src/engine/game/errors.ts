@@ -20,7 +20,10 @@ export type EventErrorCode =
   | 'TRAP_NOT_SEEN'
   | 'TRAP_GONE'
   | 'TRAP_CANNOT'
-  | 'BAD_RESULT';
+  | 'BAD_RESULT'
+  | 'UNKNOWN_FURNITURE'
+  | 'NOT_A_CHEST'
+  | 'FURNITURE_NOT_SEEN';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

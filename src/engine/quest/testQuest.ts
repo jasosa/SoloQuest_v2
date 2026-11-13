@@ -3,7 +3,7 @@
  *
  *   start room R20 (x1-4, y14-17)
  *   d1  R20 -> bottom corridor (3,17)|(3,18)
- *   d2  R20 -> R17 (4,15)|(5,15)         R17 holds orc m1, table f1 (chest trap t2), pit t1
+ *   d2  R20 -> R17 (4,15)|(5,15)         R17 holds orc m1, chest f1 (chest trap t2), pit t1
  *   d3  R17 -> R18 (8,15)|(9,15)         R18 holds goblin m2
  *   d4  R18 -> corridor (11,14)|(12,14)
  *   d5  corridor -> R12 (0,11)|(1,11)
@@ -35,7 +35,7 @@ export const testQuestData = {
   furniture: [
     {
       id: 'f1',
-      type: 'table',
+      type: 'chest',
       cells: [
         [6, 14],
         [7, 14],

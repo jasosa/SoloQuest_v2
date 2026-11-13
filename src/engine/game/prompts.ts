@@ -56,5 +56,8 @@ export type Prompt =
     }
   /** The quest's wandering monster is a text, not a monster. */
   | { readonly kind: 'wanderingText'; readonly text: string }
+  /** A search of a chest found a trap. Its kind and effect stay hidden. */
+  | { readonly kind: 'trapFound'; readonly furniture: string; readonly trap: string }
+  | { readonly kind: 'noTrap'; readonly furniture: string }
   | { readonly kind: 'secretDoorsFound'; readonly doors: readonly string[] }
   | { readonly kind: 'nothingFound' };

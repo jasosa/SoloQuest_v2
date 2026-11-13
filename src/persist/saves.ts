@@ -43,6 +43,11 @@ export const EventSchema = z.discriminatedUnion('type', [
     cell: CellSchema.optional(),
     override: z.boolean().optional(),
   }),
+  z.object({
+    type: z.literal('SEARCH_TRAPS'),
+    furniture: z.string(),
+    override: z.boolean().optional(),
+  }),
   z.object({ type: z.literal('TRAP_JUMP'), trap: z.string(), result: z.enum(['skull', 'ok']) }),
   z.object({
     type: z.literal('TRAP_DISARM'),

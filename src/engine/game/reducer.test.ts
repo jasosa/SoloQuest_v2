@@ -49,7 +49,7 @@ describe('OPEN_DOOR into a room', () => {
   it('shows monsters, furniture, trap "?" markers and doors on its walls', () => {
     expect(s.seenMonsters).toEqual(new Set(['m1'])); // m3 is hidden, m2 is in another room
     expect(s.seenFurniture).toEqual(new Set(['f1']));
-    expect(s.seenTraps).toEqual(new Set(['t1', 't2'])); // pit on a cell, chest trap on the table
+    expect(s.seenTraps).toEqual(new Set(['t1'])); // the pit; the chest trap stays hidden
     expect(s.seenDoors.has('d3')).toBe(true);
   });
 

@@ -50,7 +50,9 @@ function markCell(level: Level, d: Draft, x: number, y: number): boolean {
   for (const f of q.furniture)
     if (f.cells.some((c) => c[0] === x && c[1] === y)) {
       d.seenFurniture.add(f.id);
-      for (const t of q.traps) if (t.furniture === f.id) d.seenTraps.add(t.id);
+      // A chest trap stays hidden until the chest is searched for traps (SEARCH_TRAPS).
+      for (const t of q.traps)
+        if (t.furniture === f.id && t.kind !== 'chest') d.seenTraps.add(t.id);
     }
   for (const m of q.monsters)
     if (!m.hidden && m.cell && m.cell[0] === x && m.cell[1] === y) seeMonster(d, m);

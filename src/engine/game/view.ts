@@ -1,6 +1,6 @@
 /** Read-only selectors over the game state, for the UI. Pure. */
 import { MONSTER_NAMES, statsOf, type MonsterStats } from '../data/monsters';
-import { roomIds, type AreaId, type Cell } from '../board/board';
+import { areaAt, roomIds, type AreaId, type Cell } from '../board/board';
 import type { Level } from '../board/level';
 import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
@@ -96,6 +96,40 @@ export function trapsInView(level: Level, state: GameState): TrapView[] {
       ...(st !== 'armed' ? { kind: t.kind } : {}),
       onMap: stays,
       block: st === 'sprung' && t.kind === 'fallingBlock',
+    });
+  }
+  return out;
+}
+
+export interface ChestView {
+  readonly id: string;
+  readonly cells: readonly Cell[];
+  readonly room: AreaId;
+  /** Searched for traps already. */
+  readonly searched: boolean;
+  /** A trap was found on it and is still armed. False before the search, whatever is there. */
+  readonly trapFound: boolean;
+}
+
+/** Seen chests. Whether a trap exists is not told before the search. */
+export function chestsInView(level: Level, state: GameState): ChestView[] {
+  const out: ChestView[] = [];
+  for (const f of level.quest.furniture) {
+    if (f.type !== 'chest' || !state.seenFurniture.has(f.id)) continue;
+    const room = areaAt(level.board, f.cells[0]![0], f.cells[0]![1]);
+    if (room === undefined) continue;
+    out.push({
+      id: f.id,
+      cells: f.cells,
+      room,
+      searched: state.trapSearched.includes(f.id),
+      trapFound: level.quest.traps.some(
+        (t) =>
+          t.kind === 'chest' &&
+          t.furniture === f.id &&
+          state.seenTraps.has(t.id) &&
+          state.trapStates[t.id] === undefined,
+      ),
     });
   }
   return out;

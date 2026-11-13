@@ -38,18 +38,28 @@ const prompts = (lv: typeof level, events: GameEvent[], last: GameEvent): readon
 // t1 pit (7,16) and t2 chest trap are in R17 (open d2); t3 spear (5,18) is in the corridor (open d1).
 const inR17 = [open('d2')];
 const inCorridor = [open('d1')];
+// R17 with the orc dead and the chest f1 searched: its trap t2 is found.
+const foundT2: GameEvent[] = [
+  open('d2'),
+  { type: 'MONSTER_KILL', monster: 'm1' },
+  { type: 'SEARCH_TRAPS', furniture: 'f1' },
+];
 
 describe('traps: seen but kind hidden', () => {
   it('lists a seen trap as armed with no kind', () => {
     const s = run(level, ...inR17);
     const views = trapsInView(level, s);
-    expect(views.map((v) => v.id)).toEqual(['t1', 't2']);
+    expect(views.map((v) => v.id)).toEqual(['t1']); // a chest trap is not shown before the search
+    const found = trapsInView(level, run(level, ...foundT2));
+    expect(found.map((v) => v.id)).toEqual(['t1', 't2']);
+    expect(found.find((v) => v.id === 't2')?.cell).toEqual([6, 14]); // first square of the chest
+    expect(found.find((v) => v.id === 't2')).toMatchObject({ state: 'armed', onMap: true });
+    expect(found.find((v) => v.id === 't2')?.kind).toBeUndefined();
     for (const v of views) {
       expect(v.state).toBe('armed');
       expect(v.kind).toBeUndefined();
       expect(v.onMap).toBe(true);
     }
-    expect(views.find((v) => v.id === 't2')?.cell).toEqual([6, 14]); // first square of the table
     expect(JSON.stringify(views)).not.toContain('pit');
   });
 
@@ -157,7 +167,12 @@ describe('traps: by kind', () => {
   });
 
   it('chest trap: can be disarmed, never jumped or stepped on', () => {
-    const s = run(level, ...inR17);
+    // not found yet: it cannot be disarmed
+    const hidden = run(level, ...inR17);
+    expect(code(() => reduce(level, hidden, disarm('t2', 'toolkit', 'other')))).toBe(
+      'TRAP_NOT_SEEN',
+    );
+    const s = run(level, ...foundT2);
     expect(code(() => reduce(level, s, jump('t2', 'ok')))).toBe('TRAP_CANNOT');
     expect(code(() => reduce(level, s, step('t2')))).toBe('TRAP_CANNOT');
     expect(reduce(level, s, disarm('t2', 'toolkit', 'other')).prompts).toEqual([
@@ -174,7 +189,7 @@ describe('traps: by kind', () => {
         traps: [{ id: 't2', kind: 'chest', furniture: 'f1', effect: 'Poison gas. Lose a turn.' }],
       }),
     );
-    const p = prompts(lv, [open('d2')], disarm('t2', 'dwarf', 'blackShield'));
+    const p = prompts(lv, foundT2, disarm('t2', 'dwarf', 'blackShield'));
     expect(p[0]).toMatchObject({ kind: 'trapSprung', effect: 'Poison gas. Lose a turn.' });
   });
 
@@ -263,11 +278,11 @@ describe('traps: falling block', () => {
 
 describe('traps: undo and replay', () => {
   it('undo drops the last trap event and replays to the same state', () => {
-    const events: GameEvent[] = [open('d2'), jump('t1', 'skull'), disarm('t2', 'toolkit', 'other')];
+    const events: GameEvent[] = [...foundT2, jump('t1', 'skull'), disarm('t2', 'toolkit', 'other')];
     const full = replay(level, SEED, events);
     expect(full.trapStates).toEqual({ t1: 'sprung', t2: 'disarmed' });
     const u = undo(level, SEED, events);
-    expect(u.state).toEqual(replay(level, SEED, events.slice(0, 2)));
+    expect(u.state).toEqual(replay(level, SEED, events.slice(0, 4)));
     expect(u.state.trapStates).toEqual({ t1: 'sprung' });
     expect(replay(level, SEED, events)).toEqual(full);
   });

@@ -41,6 +41,13 @@ export type GameEvent =
       readonly cell?: Cell | undefined;
       readonly override?: boolean | undefined;
     }
+  /** Search a chest for traps (chests only, once per chest, any hero). `override` skips the
+   *  "monsters in the room" guard. */
+  | {
+      readonly type: 'SEARCH_TRAPS';
+      readonly furniture: string;
+      readonly override?: boolean | undefined;
+    }
   /** Jump a seen trap: one combat die, a skull springs it. */
   | { readonly type: 'TRAP_JUMP'; readonly trap: string; readonly result: 'skull' | 'ok' }
   /** Disarm a seen trap. The Dwarf fails on a black shield, a tool kit fails on a skull. */

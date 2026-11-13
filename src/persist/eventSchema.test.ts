@@ -9,6 +9,8 @@ describe('EventSchema covers the search and trap events', () => {
     { type: 'WANDERING_MONSTER', room: 'R17', hero: 'wizard' },
     { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', area: 'R17' },
     { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', cell: [3, 18], override: false },
+    { type: 'SEARCH_TRAPS', furniture: 'f1' },
+    { type: 'SEARCH_TRAPS', furniture: 'f1', override: true },
     { type: 'TRAP_JUMP', trap: 't1', result: 'skull' },
     { type: 'TRAP_DISARM', trap: 't1', by: 'toolkit', result: 'blackShield' },
     { type: 'TRAP_STEP', trap: 't1' },

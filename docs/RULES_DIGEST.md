@@ -30,7 +30,7 @@ Draw a straight line from the center of one square to the center of the other. I
 - Special treasure in the quest notes goes to the **first** hero who searches; later searches in that room get nothing special.
 - No special treasure: draw a treasure card. About half the cards are wandering monsters or hazards.
 - **Wandering monster card**: the quest names the monster. Place it next to the searching hero; it attacks that hero at once (and only that hero this round). If no square next to the hero is free, place it in the room as close as possible; it acts on Zargon's next turn. The hero defends normally, then goes on with the turn.
-- Chest/furniture trap not disarmed: searching springs it first (effect from the quest note), the turn ends.
+- Chest trap not found and disarmed: searching for treasure springs it first (effect from the quest note), then the search goes on (decision 22).
 
 ## Search for secret doors (p. 16-17)
 
@@ -43,8 +43,8 @@ Draw a straight line from the center of one square to the center of the other. I
 Official kinds: pit, falling block, spear, chest/furniture. Positions are on the quest map.
 
 **House rule (decided)**:
-- Traps are **visible** as a "?" as soon as their square is seen (room revealed or square in line of sight). Chest/furniture traps show the "?" on the furniture. The **kind** stays hidden.
-- There is **no search for traps**.
+- Traps on a square (pit, falling block, spear) are **visible** as a "?" as soon as their square is seen (room revealed or square in line of sight). The **kind** stays hidden.
+- There is **no general search for traps**. One exception, **chests only** (decision 25): chest traps are hidden. A hero can search a chest for traps once; that one search finds every trap on it and puts a "?" on the chest. Disarm it with the rules below (jump and step do not apply to a chest). A chest trap that was never found or never disarmed springs when a hero searches the room for treasure.
 - Players choose:
   - **Jump**: needs 2 squares of movement left (onto the trap and one free square beyond). Roll 1 combat die: anything but a skull = jumped, the trap stays. Skull = the trap springs (normal effect for its kind) and the hero stays on the trap square, turn ends.
   - **Disarm**: the hero announces it before moving, moves onto the square, rolls 1 combat die. Dwarf: only a black shield springs it. Any other hero needs a tool kit: a skull springs it. Success removes the trap and the app tells its kind.

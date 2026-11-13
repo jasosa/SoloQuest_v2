@@ -59,6 +59,8 @@ export interface GameState {
   readonly placedBlocks: ReadonlySet<CellKey>;
   /** Heroes that searched a room for treasure, in order. A hero searches a room once. */
   readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
+  /** Chests (furniture ids) that were searched for traps. One search per chest. */
+  readonly trapSearched: readonly string[];
   /** Wandering monsters by id (w1, w2...). They are also in `monsters` and `seenMonsters`. */
   readonly wanderers: Readonly<Record<string, WandererRecord>>;
   /** How many wandering monsters appeared (next id is w<count + 1>). */
@@ -84,6 +86,7 @@ export function emptyState(seed: number): GameState {
     trapStates: {},
     placedBlocks: new Set(),
     treasureSearched: {},
+    trapSearched: [],
     wanderers: {},
     wanderCount: 0,
     notesFired: [],

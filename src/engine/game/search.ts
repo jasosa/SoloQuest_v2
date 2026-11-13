@@ -153,6 +153,41 @@ export function searchTreasure(
   return { state: d, prompts };
 }
 
+// ---- chest traps
+
+export function searchTraps(
+  level: Level,
+  state: GameState,
+  event: Extract<GameEvent, { type: 'SEARCH_TRAPS' }>,
+): Reduced {
+  const f = level.quest.furniture.find((x) => x.id === event.furniture);
+  if (!f) throw new EventError('UNKNOWN_FURNITURE', `Unknown furniture ${event.furniture}`);
+  if (f.type !== 'chest') throw new EventError('NOT_A_CHEST', `${f.id} is not a chest`);
+  if (!state.seenFurniture.has(f.id))
+    throw new EventError('FURNITURE_NOT_SEEN', `${f.id} is not seen yet`);
+  const room = areaAt(level.board, f.cells[0]![0], f.cells[0]![1]);
+  if (room === undefined || !state.revealedRooms.has(room))
+    throw new EventError('ROOM_NOT_REVEALED', `The room of ${f.id} is not revealed`);
+  if (state.trapSearched.includes(f.id))
+    throw new EventError('ALREADY_SEARCHED', `${f.id} was already searched for traps`);
+  if (event.override !== true && liveMonstersInRoom(level, state, room).length > 0)
+    throw new EventError('MONSTERS_IN_ROOM', `Monsters are in ${room}`);
+
+  const d = draftOf(state);
+  d.trapSearched = [...d.trapSearched, f.id];
+  const found = level.quest.traps.filter(
+    (t) => t.kind === 'chest' && t.furniture === f.id && d.trapStates[t.id] === undefined,
+  );
+  for (const t of found) d.seenTraps.add(t.id);
+  return {
+    state: d,
+    prompts:
+      found.length > 0
+        ? found.map((t) => ({ kind: 'trapFound', furniture: f.id, trap: t.id }))
+        : [{ kind: 'noTrap', furniture: f.id }],
+  };
+}
+
 // ---- wandering monster
 
 export function wanderingMonster(
