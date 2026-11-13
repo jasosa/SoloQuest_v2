@@ -10,5 +10,7 @@ export const color = {
   sel: '#D9C49A',
   cellLine: '#CDBBA6',
   white: '#FFFFFF',
+  pit: '#3B2A25',
+  pitDeep: '#1E1411',
   tokenText: '#F2EBDD',
 } as const;

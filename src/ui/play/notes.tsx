@@ -1,0 +1,293 @@
+/** Bodies of the margin notes for searches and traps. Presentational: no game logic. */
+import type { ReactNode } from 'react';
+import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import type { Prompt } from '../../engine/game/prompts';
+import { TRAP_NAMES, sprungLines, sprungTitle, wanderingLines } from './texts';
+
+export function HeroChips({
+  team,
+  disabled,
+  onPick,
+}: {
+  team: readonly Hero[];
+  disabled: (h: Hero) => boolean;
+  onPick(h: Hero): void;
+}) {
+  return (
+    <div className="chips">
+      {team.map((h) => (
+        <button key={h} className="chip" disabled={disabled(h)} onClick={() => onPick(h)}>
+          {HERO_NAMES[h]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function RoomMenu({ onTreasure, onSecret }: { onTreasure(): void; onSecret(): void }) {
+  return (
+    <>
+      <p>One hero, one search, on their own turn.</p>
+      <button className="btn" onClick={onTreasure}>
+        Search for treasure
+      </button>
+      <button className="btn alt" onClick={onSecret}>
+        Search for secret doors
+      </button>
+    </>
+  );
+}
+
+export function PickHero(props: {
+  team: readonly Hero[];
+  /** Heroes that cannot search (they already searched this room for treasure). */
+  searched: readonly Hero[];
+  /** Codes of living monsters in the way, empty when there are none. */
+  monsters: readonly string[];
+  /** Monsters are in sight but the engine does not say which. */
+  blocked: boolean;
+  override: boolean;
+  onOverride(): void;
+  onPick(h: Hero): void;
+}) {
+  const warned = props.monsters.length > 0 || props.blocked;
+  const guarded = warned && !props.override;
+  return (
+    <>
+      {warned && (
+        <p className="warn">
+          {props.monsters.length > 0
+            ? `${props.monsters.join(', ')} still here. A search needs a clear room.`
+            : 'A monster is in sight. A search needs a clear corridor.'}
+        </p>
+      )}
+      <HeroChips
+        team={props.team}
+        disabled={(h) => guarded || props.searched.includes(h)}
+        onPick={props.onPick}
+      />
+      {guarded && (
+        <button className="btn alt" onClick={props.onOverride}>
+          The room is clear, search anyway
+        </button>
+      )}
+    </>
+  );
+}
+
+export function TrapMenu(props: {
+  canJump: boolean;
+  canDisarm: boolean;
+  canStep: boolean;
+  sprung: boolean;
+  onJump(): void;
+  onDisarm(): void;
+  onStep(): void;
+}) {
+  return (
+    <>
+      <p>
+        {props.sprung
+          ? 'The pit is still here.'
+          : 'The kind of trap stays hidden until it springs or is disarmed.'}
+      </p>
+      <button className="btn" disabled={!props.canJump} onClick={props.onJump}>
+        Jump over it
+      </button>
+      <button className="btn alt" disabled={!props.canDisarm} onClick={props.onDisarm}>
+        Try to disarm it
+      </button>
+      <button className="btn alt" disabled={!props.canStep} onClick={props.onStep}>
+        Step onto it
+      </button>
+      {!props.canJump && !props.sprung && (
+        <p className="small">A trap on furniture can only be disarmed.</p>
+      )}
+    </>
+  );
+}
+
+export type TrapStep = 'jump' | 'who' | 'dwarf' | 'kit';
+
+export function trapStepBody(props: {
+  step: TrapStep;
+  hasDwarf: boolean;
+  onJump(result: 'skull' | 'ok'): void;
+  onWho(who: 'dwarf' | 'kit'): void;
+  onDisarm(by: 'dwarf' | 'toolkit', result: 'skull' | 'blackShield' | 'other'): void;
+}): { kind: string; title: string; body: ReactNode } {
+  switch (props.step) {
+    case 'jump':
+      return {
+        kind: 'Jump · needs 2 moves left',
+        title: 'Roll 1 combat die',
+        body: (
+          <>
+            <p>Anything but a skull: you jump over.</p>
+            <div className="row">
+              <button className="btn" onClick={() => props.onJump('skull')}>
+                Skull
+              </button>
+              <button className="btn alt" onClick={() => props.onJump('ok')}>
+                No skull
+              </button>
+            </div>
+          </>
+        ),
+      };
+    case 'who':
+      return {
+        kind: 'Disarm',
+        title: 'Who tries?',
+        body: (
+          <>
+            <p>Move onto the square first.</p>
+            <button className="btn" disabled={!props.hasDwarf} onClick={() => props.onWho('dwarf')}>
+              The Dwarf
+            </button>
+            <button className="btn alt" onClick={() => props.onWho('kit')}>
+              A hero with a tool kit
+            </button>
+          </>
+        ),
+      };
+    case 'dwarf':
+      return {
+        kind: 'Disarm · Dwarf',
+        title: 'Roll 1 combat die',
+        body: (
+          <>
+            <p>
+              Only a <b>black shield</b> springs the trap.
+            </p>
+            <div className="row">
+              <button className="btn" onClick={() => props.onDisarm('dwarf', 'blackShield')}>
+                Black shield
+              </button>
+              <button className="btn alt" onClick={() => props.onDisarm('dwarf', 'other')}>
+                Other
+              </button>
+            </div>
+          </>
+        ),
+      };
+    case 'kit':
+      return {
+        kind: 'Disarm · tool kit',
+        title: 'Roll 1 combat die',
+        body: (
+          <>
+            <p>
+              A <b>skull</b> springs the trap.
+            </p>
+            <div className="row">
+              <button className="btn" onClick={() => props.onDisarm('toolkit', 'skull')}>
+                Skull
+              </button>
+              <button className="btn alt" onClick={() => props.onDisarm('toolkit', 'other')}>
+                Shield
+              </button>
+            </div>
+          </>
+        ),
+      };
+  }
+}
+
+/** The result of a search or a trap: one section per prompt, in the order the engine gave them. */
+export function ResultBody({
+  prompts,
+  onDone,
+  onWandering,
+}: {
+  prompts: readonly Prompt[];
+  onDone(): void;
+  /** Present when a wandering monster can be asked for (after a treasure search). */
+  onWandering: (() => void) | undefined;
+}) {
+  const shown = resultPrompts(prompts);
+  const draws = shown.some((p) => p.kind === 'drawCard');
+  return (
+    <>
+      {shown.map((p, i) => (
+        <section key={i} className="result">
+          <Section p={p} heading={i > 0} />
+        </section>
+      ))}
+      <button className="btn" onClick={onDone}>
+        Done
+      </button>
+      {draws && onWandering && (
+        <button className="btn alt" onClick={onWandering}>
+          It was a wandering monster
+        </button>
+      )}
+    </>
+  );
+}
+
+/** The big heading of a prompt, used as the note title for the first one. */
+export function headingOf(p: Prompt): string {
+  switch (p.kind) {
+    case 'trapSprung':
+      return sprungTitle(p.trapKind);
+    case 'trapJumped':
+      return 'You land safely';
+    case 'trapDisarmed':
+      return `It was a ${TRAP_NAMES[p.trapKind]}`;
+    case 'note':
+      return p.letter ? `Quest note ${p.letter}` : 'Quest note';
+    case 'drawCard':
+      return 'Draw a treasure card';
+    case 'wanderingMonster':
+      return `It attacks the ${HERO_NAMES[p.hero]}!`;
+    case 'wanderingText':
+      return 'Wandering monster';
+    case 'secretDoorsFound':
+      return p.doors.length > 1 ? 'Secret doors!' : 'A secret door!';
+    case 'nothingFound':
+      return 'Nothing found';
+    default:
+      return '';
+  }
+}
+
+function lines(p: Prompt): string[] {
+  switch (p.kind) {
+    case 'trapSprung':
+      return sprungLines(p);
+    case 'trapJumped':
+      return ['The trap is still there for the next hero.'];
+    case 'trapDisarmed':
+      return ['The square is safe now.'];
+    case 'note':
+      return [...p.texts];
+    case 'drawCard':
+      return ['No quest treasure here. Read the card aloud.'];
+    case 'wanderingMonster':
+      return wanderingLines(p);
+    case 'wanderingText':
+      return [p.text];
+    case 'secretDoorsFound':
+      return [`${p.doors.length > 1 ? 'They are' : 'It is'} on the map now, closed. Tap to open.`];
+    case 'nothingFound':
+      return ['There is no secret door to find here.'];
+    default:
+      return [];
+  }
+}
+
+/** Prompts that make a result sheet (reveal and nothing-new prompts do not). */
+export const resultPrompts = (prompts: readonly Prompt[]) =>
+  prompts.filter((p) => p.kind !== 'revealed' && p.kind !== 'nothingNew');
+
+function Section({ p, heading }: { p: Prompt; heading: boolean }) {
+  return (
+    <>
+      {heading && <h4>{headingOf(p)}</h4>}
+      {lines(p).map((l, i) => (
+        <p key={i}>{l}</p>
+      ))}
+    </>
+  );
+}

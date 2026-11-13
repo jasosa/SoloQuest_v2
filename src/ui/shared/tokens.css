@@ -38,6 +38,8 @@
   --on-ink-2: #e6cfc0;
   --token-text: #f2ebdd;
   --white: #ffffff;
+  --pit: #3b2a25;
+  --pit-deep: #1e1411;
   --gap: 18px;
   --ease-ink: cubic-bezier(0.22, 0.8, 0.3, 1);
 }

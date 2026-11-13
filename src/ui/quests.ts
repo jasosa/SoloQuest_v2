@@ -35,3 +35,19 @@ export const questEntries: readonly QuestEntry[] = loadQuestEntries();
 export function levelOfNumber(n: number): Level | undefined {
   return questEntries.find((q) => q.number === n)?.level;
 }
+
+/**
+ * Development only: `?quest=test` plays the made-up engine fixture (pit, chest trap, spear, secret
+ * door) plus one falling block, so the trap flows can be tried and tested. It is never listed in
+ * the quest select, and `import.meta.env.DEV` is false in a production build.
+ */
+export async function devTestLevel(): Promise<Level | undefined> {
+  if (!import.meta.env.DEV) return undefined;
+  const { testQuest } = await import('../engine/quest/testQuest');
+  const base = testQuest();
+  return buildLevel(
+    testQuest({
+      traps: [...base.traps, { id: 't4', kind: 'fallingBlock', cell: [6, 18] }],
+    }),
+  );
+}

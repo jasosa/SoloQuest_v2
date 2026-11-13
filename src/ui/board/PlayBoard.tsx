@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { areaAt, isWallBetween } from '../../engine/board/board';
+import { areaAt, isWallBetween, type Cell } from '../../engine/board/board';
 import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
 import { lookHintCells } from '../../engine/game/hints';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
-import { monstersInPlay } from '../../engine/game/view';
+import { monstersInPlay, trapsInView } from '../../engine/game/view';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
@@ -81,6 +81,9 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
   }, [level, state.seenBlocks]);
   const drawn = (x: number, y: number) =>
     state.seenCells.has(cellKey(x, y)) || blockCells.has(cellKey(x, y));
+  const traps = useMemo(() => trapsInView(level, state), [level, state]);
+  const trapAt = new Map<string, string>();
+  for (const t of traps) if (t.onMap && !t.block) trapAt.set(keyOf(t.cell), t.id);
 
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
@@ -132,15 +135,17 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
     }
 
   // Blocked squares that were seen.
-  for (const b of level.blocks) {
-    if (!state.seenBlocks.has(b.id)) continue;
-    for (const [x, y] of b.cells) {
+  const blockList: Cell[] = [];
+  for (const b of level.blocks) if (state.seenBlocks.has(b.id)) blockList.push(...b.cells);
+  for (const k of state.placedBlocks) blockList.push(parseKey(k)); // falling block traps
+  {
+    for (const [x, y] of blockList) {
       const f = fresh(cellKey(x, y));
       const px = x * S;
       const py = y * S;
       const q = (S - 4) / 4;
       into(f).push(
-        <g key={`b${x},${y}`}>
+        <g key={`b${x},${y}`} data-block={`${x},${y}`}>
           <rect
             x={px + 2}
             y={py + 2}
@@ -254,22 +259,108 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
       );
   }
 
-  // Tap areas of seen corridor squares ("Look from here").
+  // Tap areas of seen squares: corridor squares ("Look from here, search for secret doors") and
+  // room squares (searches). Doors, tokens and traps sit on top of these.
   const cellHits: ReactNode[] = [];
+  const roomSeen = new Set<string>();
   for (const k of state.seenCells) {
     const [x, y] = parseKey(k);
-    if (areaAt(board, x, y) !== 'C' || monsterAt.has(k)) continue;
-    cellHits.push(
+    if (monsterAt.has(k) || trapAt.has(k) || state.placedBlocks.has(k)) continue;
+    const area = areaAt(board, x, y);
+    if (area === undefined) continue;
+    const common = { className: 'hit', 'data-hit': true, x: x * S, y: y * S, width: S, height: S };
+    if (area === 'C') {
+      cellHits.push(
+        <rect
+          key={`c${k}`}
+          data-cell={k}
+          {...common}
+          {...press('Corridor square', () => onSelect({ kind: 'cell', at: [x, y] }))}
+        />,
+      );
+    } else {
+      // One keyboard stop per room; the other squares are still tappable.
+      const first = !roomSeen.has(area);
+      roomSeen.add(area);
+      cellHits.push(
+        <rect
+          key={`r${k}`}
+          data-room-cell={k}
+          {...common}
+          {...press(`Room ${area}`, () => onSelect({ kind: 'room', room: area }))}
+          tabIndex={first ? 0 : -1}
+        />,
+      );
+    }
+  }
+
+  // Traps: "?" while armed, a pit tile once a pit sprung, a block once a falling block fell.
+  const trapHits: ReactNode[] = [];
+  for (const t of traps) {
+    if (!t.onMap || t.block) continue;
+    const [tx, ty] = t.cell;
+    const cx = (tx + 0.5) * S;
+    const cy = (ty + 0.5) * S;
+    const selected = selection?.kind === 'trap' && selection.id === t.id;
+    into(fresh(keyOf(t.cell))).push(
+      <g key={`t${t.id}`} data-trap-mark={t.id}>
+        {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
+        {t.state === 'sprung' ? (
+          <>
+            <rect
+              x={tx * S + 3}
+              y={ty * S + 3}
+              width={S - 6}
+              height={S - 6}
+              fill={color.pit}
+              stroke={color.ink}
+              strokeWidth={1.5}
+            />
+            <rect
+              x={tx * S + 8}
+              y={ty * S + 8}
+              width={S - 16}
+              height={S - 16}
+              fill={color.pitDeep}
+            />
+          </>
+        ) : (
+          <>
+            <polygon
+              points={`${cx},${cy - 13} ${cx + 13},${cy + 10} ${cx - 13},${cy + 10}`}
+              fill={color.white}
+              stroke={color.ink}
+              strokeWidth={1.8}
+              strokeLinejoin="round"
+            />
+            <text
+              x={cx}
+              y={cy + 7}
+              textAnchor="middle"
+              fill={color.ink}
+              fontFamily="Bonum"
+              fontWeight={700}
+              fontSize={14}
+            >
+              ?
+            </text>
+          </>
+        )}
+      </g>,
+    );
+    trapHits.push(
       <rect
-        key={`c${k}`}
+        key={`th${t.id}`}
         className="hit"
         data-hit
-        data-cell={k}
-        x={x * S}
-        y={y * S}
-        width={S}
-        height={S}
-        {...press('Corridor square', () => onSelect({ kind: 'cell', at: [x, y] }))}
+        data-trap={t.id}
+        x={cx - 22}
+        y={cy - 22}
+        width={44}
+        height={44}
+        {...press(t.state === 'sprung' ? 'Pit' : 'Trap', () =>
+          onSelect({ kind: 'trap', id: t.id }),
+        )}
       />,
     );
   }
@@ -363,6 +454,24 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
     });
 
   const selCell = selection?.kind === 'cell' ? selection.at : null;
+  const selRoom: ReactNode[] = [];
+  if (selection?.kind === 'room')
+    for (const k of state.seenCells) {
+      const [x, y] = parseKey(k);
+      if (areaAt(board, x, y) === selection.room)
+        selRoom.push(
+          <rect
+            key={`sr${k}`}
+            x={x * S}
+            y={y * S}
+            width={S}
+            height={S}
+            fill={color.sel}
+            opacity={0.35}
+            pointerEvents="none"
+          />,
+        );
+    }
 
   let maxR = 0;
   if (ink)
@@ -459,9 +568,11 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
           className="selring"
         />
       )}
+      {selRoom}
       {eyes}
       {tokens}
       {cellHits}
+      {trapHits}
       {monsterHits}
       {doorHits}
     </svg>

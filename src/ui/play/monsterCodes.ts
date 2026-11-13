@@ -19,8 +19,13 @@ const LETTER: Readonly<Record<MonsterType, string>> = {
 };
 
 /** `seen` is the monster ids in the order they were first seen (`GameState.seenMonsters`). */
-export function monsterCodes(level: Level, seen: Iterable<string>): ReadonlyMap<string, string> {
-  const type = new Map(level.quest.monsters.map((m) => [m.id, m.type]));
+export function monsterCodes(
+  level: Level,
+  seen: Iterable<string>,
+  wanderers: Readonly<Record<string, { type: MonsterType }>> = {},
+): ReadonlyMap<string, string> {
+  const type = new Map<string, MonsterType>(level.quest.monsters.map((m) => [m.id, m.type]));
+  for (const [id, w] of Object.entries(wanderers)) type.set(id, w.type);
   const counters = new Map<MonsterType, number>();
   const out = new Map<string, string>();
   for (const id of seen) {

@@ -12,8 +12,10 @@ header .turn b {
   min-width: 1ch;
 }
 
-#board .hit:focus-visible {
+#board .hit:focus {
   outline: none;
+}
+#board .hit:focus-visible {
   stroke: var(--ink);
   stroke-width: 2px;
 }

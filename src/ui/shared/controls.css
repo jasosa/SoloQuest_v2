@@ -216,3 +216,21 @@
     animation: none !important;
   }
 }
+
+.callout .warn {
+  color: var(--ink);
+  font-style: italic;
+}
+.callout .small {
+  font-size: 13.5px;
+  margin: 8px 0 0;
+}
+.callout .result + .result {
+  border-top: 1px solid var(--paper-2);
+  padding-top: 6px;
+}
+.callout h4 {
+  font: 700 16px/1.2 'Bonum';
+  color: var(--ink);
+  margin: 2px 0 4px;
+}

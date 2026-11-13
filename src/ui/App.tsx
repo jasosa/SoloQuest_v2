@@ -7,7 +7,7 @@ import { DexieSaveStore, MemorySaveStore, type SaveStore } from '../persist/save
 import { BoardView } from './board/BoardView';
 import { knownFor, parseState } from './board/boardStates';
 import { PlayScreen } from './play/PlayScreen';
-import { levelOfNumber } from './quests';
+import { devTestLevel, levelOfNumber } from './quests';
 import { SelectScreen, type StartChoice } from './select/SelectScreen';
 import { createGameStore, type GameStore } from './store/gameStore';
 import { openSaved, SAVED_GAME_FAILED } from './store/openSaved';
@@ -30,15 +30,24 @@ function openGame(
   return createGameStore({ level, seed, team, events, saves });
 }
 
+/** `?quest=1` (a bundled quest). `?quest=test` (development only) loads asynchronously. */
+function levelFromParams(params: URLSearchParams): Level | undefined {
+  const n = Number(params.get('quest'));
+  return n ? levelOfNumber(n) : undefined;
+}
+
 /**
  * Jump straight into a game from the URL, for e2e tests and screenshots:
  * `?quest=1&team=dwarf,elf` plus optional `seed=7`, `open=d1,d2` (doors opened at the start),
  * `look=12:18` (squares looked from), `select=door:d3`, `nosave=1` (no IndexedDB), `resume=1`.
+ * In development `?quest=test` plays the engine test fixture.
  */
-function startFromUrl(params: URLSearchParams, saves: SaveStore): GameStore | 'resume' | null {
-  const n = Number(params.get('quest'));
-  const level = n ? levelOfNumber(n) : undefined;
-  if (!level) return null;
+function startFromUrl(
+  params: URLSearchParams,
+  saves: SaveStore,
+  level: Level | undefined = levelFromParams(params),
+): GameStore | 'resume' | 'dev' | null {
+  if (!level) return params.get('quest') === 'test' && import.meta.env.DEV ? 'dev' : null;
   if (params.has('resume')) return 'resume';
   const team = (params.get('team') ?? 'dwarf')
     .split(',')
@@ -85,13 +94,29 @@ function Game({ params }: { params: URLSearchParams }) {
     () => (params.has('nosave') ? new MemorySaveStore() : new DexieSaveStore()),
     [params],
   );
-  const [game, setGame] = useState<GameStore | null | 'resume'>(() => startFromUrl(params, saves));
+  const [game, setGame] = useState<GameStore | null | 'resume' | 'dev'>(() =>
+    startFromUrl(params, saves),
+  );
 
   const [notice, setNotice] = useState<string | undefined>();
 
+  // Development only: the engine test fixture is loaded on demand, never bundled in production.
+  useEffect(() => {
+    if (game !== 'dev') return;
+    let live = true;
+    void devTestLevel().then((level) => {
+      if (!live) return;
+      const next = level ? startFromUrl(params, saves, level) : null;
+      setGame(next === 'dev' ? null : next);
+    });
+    return () => {
+      live = false;
+    };
+  }, [game, params, saves]);
+
   useEffect(() => {
     if (game !== 'resume') return;
-    const level = levelOfNumber(Number(params.get('quest')));
+    const level = levelFromParams(params);
     if (!level) return;
     let live = true;
     void openSaved(saves, level).then((r) => {
@@ -122,7 +147,7 @@ function Game({ params }: { params: URLSearchParams }) {
     }
   };
 
-  if (game === 'resume') return <div className="app" />;
+  if (game === 'resume' || game === 'dev') return <div className="app" />;
   if (game)
     return (
       <PlayScreen store={game} onLeave={() => setGame(null)} initialSelect={params.get('select')} />

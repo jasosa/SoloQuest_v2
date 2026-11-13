@@ -21,6 +21,8 @@ import {
 } from '../../engine/game/reducer';
 import type { GameState } from '../../engine/game/state';
 import { autosave, type SaveStore } from '../../persist/saves';
+import type { Prompt } from '../../engine/game/prompts';
+import type { EventErrorCode } from '../../engine/game/errors';
 import { monsterCodes } from '../play/monsterCodes';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
@@ -49,6 +51,10 @@ export interface GameStoreState {
   readonly state: GameState;
   readonly fx: Fx | null;
   readonly toast: Toast | null;
+  /** Prompts of the last accepted event (search and trap results), for the result sheet. */
+  readonly prompts: readonly Prompt[];
+  /** Why the last event was refused, if it was. */
+  readonly error: { readonly code: EventErrorCode; readonly message: string } | null;
   /** False after an autosave failed (play goes on, the game is just not saved). */
   readonly saved: boolean;
   /** Returns false when the event was refused (the reason shows as a toast). */
@@ -98,6 +104,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
       state: events0.length ? replay(level, seed, events0) : initialState(level, seed),
       fx: null,
       toast: null,
+      prompts: [],
+      error: null,
       saved: true,
 
       dispatch(event) {
@@ -107,7 +115,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
           reduced = reduce(level, before, event);
         } catch (e) {
           if (e instanceof EventError) {
-            set({ toast: toastOf(e.message) });
+            set({ toast: toastOf(e.message), error: { code: e.code, message: e.message } });
             return false;
           }
           throw e;
@@ -131,18 +139,18 @@ export function createGameStore(init: GameStoreInit): GameStore {
                 .filter((m) => state.seenMonsters.has(m.id) && !before.seenMonsters.has(m.id))
                 .map((m) => m.id),
             };
-          } else toast = toastOf('Nothing new here.');
+          } else if (p.kind === 'nothingNew') toast = toastOf('Nothing new here.');
         }
         if (event.type === 'MONSTER_KILL')
           toast = toastOf(
-            `${monsterCodes(level, state.seenMonsters).get(event.monster) ?? 'Monster'} slain.`,
+            `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} slain.`,
             true,
           );
         // The real Zargon page (orders per monster) is milestone M5. For now the button only
         // ends the turn.
         if (event.type === 'ZARGON_TURN_END') toast = toastOf(`Heroes' turn ${state.turn}.`, true);
 
-        set({ events, state, fx, toast });
+        set({ events, state, fx, toast, prompts, error: null });
         persist(events);
         return true;
       },
@@ -151,7 +159,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
         const { events } = get();
         if (events.length === 0) return;
         const r = engineUndo(level, seed, events);
-        set({ events: r.events, state: r.state, fx: null, toast: null });
+        set({ events: r.events, state: r.state, fx: null, toast: null, prompts: [], error: null });
         persist(r.events);
       },
 

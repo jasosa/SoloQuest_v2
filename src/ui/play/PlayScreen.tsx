@@ -1,13 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from 'zustand';
-import { keyOf } from '../../engine/board/level';
+import { areaAt } from '../../engine/board/board';
+import { keyOf, parseKey } from '../../engine/board/level';
+import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
-import { monstersInPlay, type MonsterView } from '../../engine/game/view';
+import type { GameEvent } from '../../engine/game/events';
+import type { Prompt } from '../../engine/game/prompts';
+import { monstersInPlay, searchState, trapsInView, type MonsterView } from '../../engine/game/view';
 import { CELL } from '../board/BoardView';
 import { PlayBoard } from '../board/PlayBoard';
 import { MarginNote } from '../shared/MarginNote';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
+import {
+  headingOf,
+  PickHero,
+  ResultBody,
+  resultPrompts,
+  RoomMenu,
+  TrapMenu,
+  trapStepBody,
+} from './notes';
 import { parseSelection, type Selection } from './selection';
 
 const MAP_PAD_X = 28;
@@ -18,6 +31,27 @@ const toMap = (bx: number, by: number) => ({
   y: MAP_PAD_Y + 2 + by * CELL,
 });
 
+type Anchor = { x: number; y: number };
+type Step =
+  | { t: 'menu' }
+  | { t: 'pick'; what: 'treasure' | 'secret'; override: boolean; blocked?: boolean }
+  | { t: 'jump' | 'who' | 'dwarf' | 'kit' };
+interface Result {
+  prompts: readonly Prompt[];
+  anchor: Anchor;
+  hero?: Hero;
+  room?: string;
+}
+
+/** Small heading of a result sheet. */
+function resultKind(prompts: readonly Prompt[]): string {
+  const has = (...kinds: Prompt['kind'][]) => prompts.some((p) => kinds.includes(p.kind));
+  if (has('trapSprung', 'trapJumped', 'trapDisarmed')) return 'Trap';
+  if (has('wanderingMonster', 'wanderingText')) return 'Wandering monster';
+  if (has('secretDoorsFound', 'nothingFound')) return 'Secret doors';
+  return 'Treasure';
+}
+
 export interface PlayScreenProps {
   store: GameStore;
   onLeave(): void;
@@ -26,12 +60,25 @@ export interface PlayScreenProps {
 }
 
 export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenProps) {
-  const { level, state, events, fx, toast } = useStore(store);
+  const { level, state, events, fx, toast, team } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
-  const codes = useMemo(() => monsterCodes(level, state.seenMonsters), [level, state.seenMonsters]);
+  const codes = useMemo(
+    () => monsterCodes(level, state.seenMonsters, state.wanderers),
+    [level, state.seenMonsters, state.wanderers],
+  );
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
+  const traps = useMemo(() => trapsInView(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
+  const [step, setStep] = useState<Step>({ t: 'menu' });
+  const [res, setRes] = useState<Result | null>(null);
+
+  const choose = (next: Selection | null) => {
+    setSel(next);
+    setStep({ t: 'menu' });
+    setRes(null);
+  };
+  const closeNote = () => choose(null);
 
   // Toasts go away on their own.
   useEffect(() => {
@@ -46,19 +93,69 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   // A tap on the map (not on a tappable object or a note) closes the note.
   const onRootClick = (e: React.MouseEvent) => {
     if ((e.target as Element).closest('[data-hit],[data-keep]')) return;
-    setSel(null);
+    choose(null);
   };
 
-  const act = (event: Parameters<typeof dispatch>[0]) => {
-    setSel(null);
+  const act = (event: GameEvent) => {
+    choose(null);
     dispatch(event);
+  };
+
+  const roomAnchor = (room: string): Anchor => {
+    let x0 = 99;
+    let x1 = -1;
+    let y0 = 99;
+    for (const k of state.seenCells) {
+      const [x, y] = parseKey(k);
+      if (areaAt(level.board, x, y) !== room) continue;
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x);
+      y0 = Math.min(y0, y);
+    }
+    return toMap((x0 + x1 + 1) / 2, y0);
+  };
+
+  /** Run an event whose prompts are shown as a result sheet at `anchor`. */
+  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: Hero; room?: string } = {}) => {
+    const ok = dispatch(event);
+    if (!ok) return false;
+    setSel(null);
+    setStep({ t: 'menu' });
+    setRes({ prompts: store.getState().prompts, anchor, ...ctx });
+    return true;
+  };
+
+  /** A corridor search was refused because a monster is in sight: ask for the override. */
+  const refused = () => {
+    if (store.getState().error?.code === 'MONSTERS_IN_ROOM') {
+      dismissToast();
+      setStep((st) => (st.t === 'pick' ? { ...st, blocked: true } : st));
+    }
   };
 
   const alive = monsters.filter((m) => !m.dead);
   const wandering = quest.wandering;
 
   let note: React.ReactNode = null;
-  if (sel?.kind === 'door') {
+  if (res) {
+    const { hero, room } = res;
+    const askWandering =
+      hero && room && res.prompts.some((p) => p.kind === 'drawCard')
+        ? () => {
+            run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
+          }
+        : undefined;
+    note = (
+      <MarginNote
+        anchor={res.anchor}
+        kind={resultKind(res.prompts)}
+        title={resultPrompts(res.prompts).map(headingOf)[0] ?? 'Done'}
+        onClose={closeNote}
+      >
+        <ResultBody prompts={res.prompts} onDone={closeNote} onWandering={askWandering} />
+      </MarginNote>
+    );
+  } else if (sel?.kind === 'door') {
     const d = level.doors.get(sel.id);
     if (d && state.seenDoors.has(sel.id) && !state.openDoors.has(sel.id)) {
       const vertical = d.a[1] === d.b[1];
@@ -68,12 +165,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
       );
       const both = state.seenCells.has(keyOf(d.a)) && state.seenCells.has(keyOf(d.b));
       note = (
-        <MarginNote
-          anchor={anchor}
-          kind="Closed door"
-          title="Open this door?"
-          onClose={() => setSel(null)}
-        >
+        <MarginNote anchor={anchor} kind="Closed door" title="Open this door?" onClose={closeNote}>
           <p>{both ? 'Both sides are explored.' : 'Opening is free. You see what is behind it.'}</p>
           <button className="btn" onClick={() => act({ type: 'OPEN_DOOR', door: sel.id })}>
             Open the door
@@ -82,30 +174,156 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
       );
     }
   } else if (sel?.kind === 'cell') {
-    note = (
-      <MarginNote
-        anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
-        kind="Corridor"
-        title="A hero stands here"
-        onClose={() => setSel(null)}
-      >
-        <p>Show everything this hero can see along the corridors.</p>
-        <button className="btn" onClick={() => act({ type: 'LOOK_FROM', cell: sel.at })}>
-          Look from here
-        </button>
-      </MarginNote>
-    );
+    const anchor = toMap(sel.at[0] + 0.5, sel.at[1] + 0.5);
+    if (step.t === 'pick') {
+      note = (
+        <MarginNote
+          anchor={anchor}
+          kind="Search for secret doors"
+          title="Who searches?"
+          onClose={closeNote}
+        >
+          <PickHero
+            team={team}
+            searched={[]}
+            monsters={[]}
+            blocked={step.blocked === true}
+            override={step.override}
+            onOverride={() => setStep({ ...step, override: true })}
+            onPick={(hero) => {
+              const ok = run(
+                {
+                  type: 'SEARCH_SECRET_DOORS',
+                  hero,
+                  cell: sel.at,
+                  ...(step.override ? { override: true } : {}),
+                },
+                anchor,
+                { hero },
+              );
+              if (!ok) refused();
+            }}
+          />
+        </MarginNote>
+      );
+    } else {
+      note = (
+        <MarginNote anchor={anchor} kind="Corridor" title="A hero stands here" onClose={closeNote}>
+          <p>Show everything this hero can see along the corridors.</p>
+          <button className="btn" onClick={() => act({ type: 'LOOK_FROM', cell: sel.at })}>
+            Look from here
+          </button>
+          <button
+            className="btn alt"
+            onClick={() => setStep({ t: 'pick', what: 'secret', override: false })}
+          >
+            Search for secret doors
+          </button>
+        </MarginNote>
+      );
+    }
+  } else if (sel?.kind === 'room') {
+    const anchor = roomAnchor(sel.room);
+    const ss = searchState(level, state, sel.room);
+    const roomCodes = ss.monstersInRoom.map((id) => codes.get(id) ?? id);
+    if (step.t === 'pick') {
+      const treasure = step.what === 'treasure';
+      note = (
+        <MarginNote
+          anchor={anchor}
+          kind={treasure ? 'Search for treasure' : 'Search for secret doors'}
+          title="Who searches?"
+          onClose={closeNote}
+        >
+          <PickHero
+            team={team}
+            searched={treasure ? ss.searchedBy : []}
+            monsters={roomCodes}
+            blocked={false}
+            override={step.override}
+            onOverride={() => setStep({ ...step, override: true })}
+            onPick={(hero) => {
+              const override = step.override ? { override: true } : {};
+              run(
+                treasure
+                  ? { type: 'SEARCH_TREASURE', room: sel.room, hero, ...override }
+                  : { type: 'SEARCH_SECRET_DOORS', hero, area: sel.room, ...override },
+                anchor,
+                treasure ? { hero, room: sel.room } : { hero },
+              );
+            }}
+          />
+        </MarginNote>
+      );
+    } else {
+      note = (
+        <MarginNote anchor={anchor} kind="Room" title="Search this room" onClose={closeNote}>
+          <RoomMenu
+            onTreasure={() => setStep({ t: 'pick', what: 'treasure', override: false })}
+            onSecret={() => setStep({ t: 'pick', what: 'secret', override: false })}
+          />
+        </MarginNote>
+      );
+    }
+  } else if (sel?.kind === 'trap') {
+    const tv = traps.find((t) => t.id === sel.id);
+    if (tv && tv.onMap) {
+      const anchor = toMap(tv.cell[0] + 0.5, tv.cell[1] + 0.5);
+      const onFurniture = tv.furniture !== undefined;
+      const sprung = tv.state === 'sprung';
+      const spring = (event: GameEvent) => run(event, anchor);
+      if (step.t === 'jump' || step.t === 'who' || step.t === 'dwarf' || step.t === 'kit') {
+        const b = trapStepBody({
+          step: step.t,
+          hasDwarf: team.includes('dwarf'),
+          onJump: (result) => spring({ type: 'TRAP_JUMP', trap: tv.id, result }),
+          onWho: (who) => setStep({ t: who }),
+          onDisarm: (by, result) => spring({ type: 'TRAP_DISARM', trap: tv.id, by, result }),
+        });
+        note = (
+          <MarginNote anchor={anchor} kind={b.kind} title={b.title} onClose={closeNote}>
+            {b.body}
+          </MarginNote>
+        );
+      } else {
+        note = (
+          <MarginNote
+            anchor={anchor}
+            kind={sprung ? 'Pit' : 'Trap'}
+            title={sprung ? 'Someone fell in here' : 'Something is wrong here'}
+            onClose={closeNote}
+          >
+            <TrapMenu
+              sprung={sprung}
+              canJump={!onFurniture}
+              canDisarm={!sprung}
+              canStep={!onFurniture}
+              onJump={() => setStep({ t: 'jump' })}
+              onDisarm={() => setStep({ t: 'who' })}
+              onStep={() => spring({ type: 'TRAP_STEP', trap: tv.id })}
+            />
+          </MarginNote>
+        );
+      }
+    }
   } else if (sel?.kind === 'monster') {
     const m = monsterOf(sel.id);
     const c = cellOfMonster(sel.id);
-    if (m && !m.dead && c) {
+    if (m && !m.dead) {
       note = (
         <MarginNote
-          anchor={toMap(c[0] + 0.5, c[1] + 0.5)}
+          anchor={c ? toMap(c[0] + 0.5, c[1] + 0.5) : { x: 880, y: 120 }}
           kind={`${codes.get(m.id)} · ${m.name}`}
           title={`Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`}
-          onClose={() => setSel(null)}
+          onClose={closeNote}
         >
+          {m.wandering && (
+            <p className="warn">
+              {m.fresh
+                ? `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`
+                : 'Wandering monster'}
+            </p>
+          )}
           <p>
             Body {m.body} of {m.maxBody} · Mind {m.stats.mind}
           </p>
@@ -158,7 +376,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           fx={fx}
           codes={codes}
           selection={sel}
-          onSelect={setSel}
+          onSelect={choose}
         />
         {note}
       </div>
@@ -184,7 +402,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
                 code={codes.get(m.id) ?? ''}
                 fresh={fx?.freshMonsters.includes(m.id) ?? false}
                 selected={sel?.kind === 'monster' && sel.id === m.id}
-                onTap={() => setSel({ kind: 'monster', id: m.id })}
+                onTap={() => choose({ kind: 'monster', id: m.id })}
               />
             ))}
           </ul>
@@ -239,7 +457,9 @@ function RosterRow({
           <span className="nm">{m.name}</span>
           <br />
           <span className="st">
-            Move {m.stats.move} · Att {m.stats.att} · Def {m.stats.def}
+            {m.wandering && m.fresh
+              ? `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`
+              : `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`}
           </span>
         </span>
         <span className="bp">{m.dead ? 'Slain' : `${m.body}/${m.maxBody}`}</span>

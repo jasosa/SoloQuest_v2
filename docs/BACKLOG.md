@@ -39,13 +39,12 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M3 · Searches and traps
 
-- [ ] Treasure search: hero picker, once per hero per room, monsters-in-room guard + override, special note or "Draw a treasure card"
-- [ ] Wandering monster: card with placement rules (next to the searcher, attacks at once; else closest square, acts next turn), roster entry without a square
-- [ ] Secret door search (room / corridor line of sight), found doors appear closed, note overrides
-- [ ] Traps house rule: jump / disarm (Dwarf, tool kit) / step on, die result input, spring effects by kind, sprung pit tile, falling block = permanent block
-- [ ] Chest traps: spring before the search result
+- [x] Treasure search: hero picker, once per hero per room, monsters-in-room guard + override, special note or "Draw a treasure card"
+- [x] Wandering monster: card with placement rules (next to the searcher, attacks at once; else closest square, acts next turn), roster entry without a square
+- [x] Secret door search (room / corridor line of sight), found doors appear closed, note overrides
+- [x] Traps house rule: jump / disarm (Dwarf, tool kit) / step on, die result input, spring effects by kind, sprung pit tile, falling block = permanent block
+- [x] Chest traps: spring before the search result
 
-- [ ] Engine part done (searches, wandering monster, secret doors, traps; commit before UI). UI part: search sheets, trap menu, wandering monster card, roster entry, pit and falling block drawing
 
 ## M4 · Notes engine
 
