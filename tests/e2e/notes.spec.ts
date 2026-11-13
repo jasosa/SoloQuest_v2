@@ -256,3 +256,13 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
 });
+
+test.describe('false doors', () => {
+  test('a false door cannot be opened and the players are told so', async ({ page }) => {
+    await page.goto('/?quest=test&team=dwarf&nosave=1&seed=1');
+    await door(page, 'x1').click();
+    await page.getByRole('button', { name: 'Open the door', exact: true }).click();
+    await expect(page.getByText('This door cannot be opened.')).toBeVisible();
+    await expect(door(page, 'x1')).toHaveCount(1); // still closed and tappable
+  });
+});

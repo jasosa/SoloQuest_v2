@@ -18,7 +18,7 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 12 | 2026-11-13 | Quest note letters appear on the map where the note happened, once read; tap to read again. |
 | 13 | 2026-11-13 | Squares where "Look from here" can show more get an eye glyph, computed from board geometry only (rock is not leaked). |
 | 14 | 2026-11-13 | A room is all or nothing: the first time it is revealed (door opened, or sight reaches any square of it) the whole room is shown. No "hero enters" event is needed. |
-| 15 | 2026-11-13 | A false door can be opened by the players: nothing is revealed, and the wall stays. |
+| 15 | 2026-11-13 | A false door can be opened by the players: nothing is revealed, and the wall stays. (Superseded by 29.) |
 | 16 | 2026-11-13 | Furniture does not block sight (the rulebook only says figures block spells). A block you can see is drawn as a block and stops sight behind it. The "look from here" eye disappears from a square once the players looked from it. |
 | 17 | 2026-11-13 | Quest 1 notes A and B (empty rack, empty chest): the first hero to search gets nothing; later searchers draw a normal treasure card. Same pattern for other "nothing here" notes unless the quest says otherwise. |
 | 18 | 2026-11-13 | Quest 1 note C: the guardian mummy is the one next to letter C, at (6,2). It rolls 4 attack dice. |
@@ -32,3 +32,4 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 26 | 2026-11-13 | Ending a quest: objectives tick by themselves (monster slain, flag set, effect). When all are done the panel says to bring the heroes back to the stairs. An "End quest" button always works and asks "Heroes left by the stairs" or "All heroes fell". The end screen shows whether the goal was done and the rewards as text. |
 | 27 | 2026-11-13 | NPCs (for example Sir Ragnar) are text only: a chip with name, defend dice and who moves it. The app does not track NPC Body Points. |
 | 28 | 2026-11-13 | A dormant monster (a statue, as in quests 5 and 11) is furniture until the quest wakes it: it is not in the monster list, does not block searches, gets no Zargon orders and cannot be wounded. Once awake it is a normal monster. The app does not track whether it has moved or attacked. The "invulnerable until it acts" rule is dropped. |
+| 29 | 2026-11-13 | Supersedes 15. The players may try to open a false door (OPEN_DOOR is accepted and logged), but it never opens: it stays closed and blocks sight, no `doorOpened` note fires, and the app answers with a "door stuck" prompt (`doorStuck`). Trying again gives the same answer. |

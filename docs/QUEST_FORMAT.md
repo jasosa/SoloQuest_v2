@@ -39,6 +39,10 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 }
 ```
 
+### False doors
+
+`falseDoors` look like doors on the map, but they never open (decision 29). The players can try: the app logs the try and says the door is stuck (prompt `doorStuck`). The door stays closed, still blocks sight, and no `doorOpened` note fires for it. `openAllDoors` skips them.
+
 ### Furniture types
 
 `stairs`, `table`, `sorcerersTable`, `alchemistsBench`, `bookcase`, `cupboard`, `chest`, `throne`, `tomb`, `rack` (torture rack), `weaponsRack`, `fireplace`. Footprint = the `cells` list, read from the map (do not assume a standard size; rotation is implied by the cells).

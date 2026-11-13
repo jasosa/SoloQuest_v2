@@ -190,6 +190,8 @@ function openDoor(level: Level, state: GameState, doorId: string): Reduced {
   if (!door) throw new EventError('UNKNOWN_DOOR', `Unknown door ${doorId}`);
   if (!state.seenDoors.has(doorId))
     throw new EventError('DOOR_NOT_SEEN', `Door ${doorId} has not been seen yet`);
+  // A false door can be tried but never opens (decision 29): nothing changes, the players are told.
+  if (door.kind === 'false') return { state, prompts: [{ kind: 'doorStuck', door: doorId }] };
   if (state.openDoors.has(doorId))
     throw new EventError('ALREADY_OPEN', `Door ${doorId} is already open`);
 
@@ -204,10 +206,6 @@ function openDoor(level: Level, state: GameState, doorId: string): Reduced {
     runTriggers(level, d, [{ type: 'doorOpened', door: doorId }], {
       beforeRooms: new Set(state.revealedRooms),
     }).prompts;
-  // A false door looks like a door but nothing is behind it: it opens, shows nothing, still blocks.
-  if (door.kind === 'false')
-    return { state: d, prompts: withNotes([{ kind: 'nothingNew' }], notes()) };
-
   const cells = revealThroughDoor(level, d, door);
   const shown = finish(d, before, cells, origin, true);
   return { state: d, prompts: withNotes(shown.prompts, notes()) };

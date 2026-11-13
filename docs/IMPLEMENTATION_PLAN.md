@@ -258,7 +258,7 @@ Spell choice for casters: fear when the adjacent hero has high attack, ball of f
 | Q8 | Balur escape to XX, revealed only when door is opened | hidden placement linked to a door trigger |
 | Q10 | Teleport doors, numbered squares 2 to 12 | quest rule banner + numbered markers + "roll 2 red dice" helper |
 | Q11 | Bounty per kill; dormant gargoyle (B) | counter effect on `monsterKilled`; the gargoyle is a `dormant` statue (decision 28) woken by the chest trap note |
-| Q12 | False doors, falling block after last hero, Witch Lord wakes on entering | `kind:'false'` doors; scripted trap; `areaEntered` note |
+| Q12 | False doors, falling block after last hero, Witch Lord wakes on entering | `kind:'false'` doors (they never open: `doorStuck`, decision 29); scripted trap; `areaEntered` note |
 | Q13 | Different falling-block rule | `squareEntered` notes with `repeat: true` and a `showText` effect (not `fallingBlock` trap objects, which are the one-shot trap that leaves a permanent block); `rules.fallingBlock = 'q13'` for the text |
 | Q14 | Witch Lord only harmed by Spirit Blade, fear twice | override flags |
 

@@ -178,14 +178,16 @@ describe('OPEN_DOOR edge cases', () => {
     expect(r.prompts).toEqual([]);
   });
 
-  it('a false door opens, shows nothing and keeps blocking sight', () => {
-    const r = reduce(level, initialState(level, SEED), open('x1'));
-    expect(r.state.openDoors.has('x1')).toBe(true);
-    expect(r.state.seenCells.size).toBe(16);
-    expect(r.state.revealedRooms).toEqual(new Set(['R20']));
-    expect(r.prompts).toEqual([{ kind: 'nothingNew' }]);
-    // d1 then opens: sight from the corridor still cannot pass the false door
-    expect(seen(r.state, 1, 13)).toBe(false);
+  it('a false door cannot be opened: it stays closed, blocks sight, and can be tried again', () => {
+    const s0 = initialState(level, SEED);
+    const r = reduce(level, s0, open('x1'));
+    expect(r.state).toBe(s0);
+    expect(r.state.openDoors.has('x1')).toBe(false);
+    expect(r.prompts).toEqual([{ kind: 'doorStuck', door: 'x1' }]);
+    const again = reduce(level, r.state, open('x1'));
+    expect(again.prompts).toEqual([{ kind: 'doorStuck', door: 'x1' }]);
+    // d1 opens: sight from the corridor still cannot pass the false door
+    expect(seen(reduce(level, r.state, open('d1')).state, 1, 13)).toBe(false);
   });
 
   it('rejects unknown, unseen, secret and already open doors without touching the state', () => {

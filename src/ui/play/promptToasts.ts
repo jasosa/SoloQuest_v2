@@ -24,6 +24,9 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
       case 'doorsOpened':
         out.push(p.doors.length > 1 ? 'Doors open on the map.' : 'A door opens on the map.');
         break;
+      case 'doorStuck':
+        out.push('This door cannot be opened.');
+        break;
       case 'secretDoorAdded':
         out.push('A secret door is on the map now.');
         break;

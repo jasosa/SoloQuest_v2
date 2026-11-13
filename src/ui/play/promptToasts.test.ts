@@ -13,6 +13,7 @@ describe('prompt toasts and sheets', () => {
       { kind: 'monsterState', monster: 'm1', name: 'Verag', state: 'stone', turns: 2 },
       { kind: 'monsterState', monster: 'm1', name: 'Verag', state: 'active' },
       { kind: 'npcSpawned', npc: 'n', name: 'Sir Ragnar', cell: [1, 1], defend: 2, text: 'x' },
+      { kind: 'doorStuck', door: 'x1' },
       { kind: 'goalDone' },
       { kind: 'loopStopped' },
     ];
@@ -21,6 +22,7 @@ describe('prompt toasts and sheets', () => {
       'Verag turns to stone for 2 turns.',
       'Verag is awake.',
       'Sir Ragnar joins the heroes.',
+      'This door cannot be opened.',
       'Goal done. Bring the heroes back to the stairs.',
       'Too many notes in a row. The rest was skipped.',
     ]);
