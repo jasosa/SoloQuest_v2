@@ -4,7 +4,15 @@ import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
 import { lookHintCells } from '../../engine/game/hints';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
-import { chestsInView, monstersInPlay, trapsInView } from '../../engine/game/view';
+import {
+  chestsInView,
+  dormantFigures,
+  enterableAreas,
+  mapLetters,
+  monstersInPlay,
+  squareMarkers,
+  trapsInView,
+} from '../../engine/game/view';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
@@ -44,6 +52,10 @@ export interface PlayBoardProps {
   codes: ReadonlyMap<string, string>;
   selection: Selection | null;
   onSelect(sel: Selection): void;
+  /** Tap on a quest note letter: read it again. */
+  onLetter(note: string): void;
+  /** Squares to point out (a monster to put there). */
+  highlight?: readonly Cell[];
 }
 
 /** The ink wash: a growing white circle in a mask, from the door (650 ms, ease-out). */
@@ -65,7 +77,16 @@ function InkCircle({ fx, maxR }: { fx: Fx; maxR: number }) {
   return <circle ref={ref} cx={fx.origin[0] * S} cy={fx.origin[1] * S} r={0} fill="white" />;
 }
 
-export function PlayBoard({ level, state, fx, codes, selection, onSelect }: PlayBoardProps) {
+export function PlayBoard({
+  level,
+  state,
+  fx,
+  codes,
+  selection,
+  onSelect,
+  onLetter,
+  highlight = [],
+}: PlayBoardProps) {
   const { board } = level;
   const W = board.width;
   const H = board.height;
@@ -89,7 +110,10 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const monsterAt = new Map<string, string>();
   for (const m of level.quest.monsters)
-    if (m.cell && state.seenMonsters.has(m.id)) monsterAt.set(keyOf(m.cell), m.id);
+    if (state.seenMonsters.has(m.id)) {
+      const c = state.placedMonsterCells[m.id] ?? m.cell;
+      if (c) monsterAt.set(keyOf(c), m.id);
+    }
 
   // Everything that belongs to the board floor, split into "old" and "fresh" (inside the ink mask).
   const layers = { old: [] as ReactNode[], neu: [] as ReactNode[] };
@@ -397,8 +421,9 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
   const monsterHits: ReactNode[] = [];
   for (const m of monsters) {
     const def = level.quest.monsters.find((q) => q.id === m.id);
-    if (!def?.cell || m.dead) continue;
-    const [mx, my] = def.cell;
+    const at = def && (state.placedMonsterCells[m.id] ?? def.cell);
+    if (!at || m.dead) continue;
+    const [mx, my] = at;
     const cx = (mx + 0.5) * S;
     const cy = (my + 0.5) * S;
     const selected = selection?.kind === 'monster' && selection.id === m.id;
@@ -459,6 +484,152 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
       />,
     );
   }
+
+  // Dormant statues: neutral line art, never tappable as a monster (decision 28).
+  for (const f of dormantFigures(level, state)) {
+    const [sx, sy] = f.cell;
+    const cx = (sx + 0.5) * S;
+    const cy = (sy + 0.5) * S;
+    into(fresh(keyOf(f.cell))).push(
+      <g key={`st${f.id}`} data-statue={f.id} pointerEvents="none">
+        <rect
+          x={sx * S + 6}
+          y={sy * S + 24}
+          width={S - 12}
+          height={7}
+          fill={color.white}
+          stroke={color.ink}
+          strokeWidth={1.4}
+        />
+        <path
+          d={`M ${cx - 7} ${sy * S + 24} L ${cx - 5} ${cy - 2} L ${cx + 5} ${cy - 2} L ${cx + 7} ${sy * S + 24} Z`}
+          fill={color.white}
+          stroke={color.ink}
+          strokeWidth={1.4}
+        />
+        <circle cx={cx} cy={cy - 8} r={5} fill={color.white} stroke={color.ink} strokeWidth={1.4} />
+      </g>,
+    );
+  }
+
+  // Squares and rooms that wait for the players ("did a hero step here?", "a hero enters").
+  const markerMarks: ReactNode[] = [];
+  const markerHits: ReactNode[] = [];
+  for (const m of squareMarkers(level, state)) {
+    const cx = (m.cell[0] + 0.5) * S;
+    const cy = (m.cell[1] + 0.5) * S;
+    markerMarks.push(
+      <g key={`sq${m.cell[0]},${m.cell[1]}`} opacity={0.75} pointerEvents="none">
+        <circle
+          cx={cx}
+          cy={cy}
+          r={9}
+          fill="none"
+          stroke={color.ink}
+          strokeWidth={1.5}
+          strokeDasharray="3 2.5"
+        />
+        <circle cx={cx} cy={cy} r={2} fill={color.ink} />
+      </g>,
+    );
+    markerHits.push(
+      <rect
+        key={`sqh${m.cell[0]},${m.cell[1]}`}
+        className="hit"
+        data-hit
+        data-square={`${m.cell[0]},${m.cell[1]}`}
+        x={cx - 22}
+        y={cy - 22}
+        width={44}
+        height={44}
+        {...press('Square with a note', () =>
+          onSelect({ kind: 'square', at: [m.cell[0], m.cell[1]] }),
+        )}
+      />,
+    );
+  }
+  for (const room of enterableAreas(level, state)) {
+    let best: [number, number] | undefined;
+    for (const k of state.seenCells) {
+      const [x, y] = parseKey(k);
+      if (areaAt(board, x, y) !== room) continue;
+      if (!best || y < best[1] || (y === best[1] && x < best[0])) best = [x, y];
+    }
+    if (!best) continue;
+    const cx = (best[0] + 0.5) * S;
+    const cy = (best[1] + 0.5) * S;
+    markerMarks.push(
+      <g key={`en${room}`} opacity={0.7} pointerEvents="none" data-enter={room}>
+        <path
+          d={`M ${cx - 7} ${cy + 6} L ${cx - 7} ${cy - 6} L ${cx + 7} ${cy} Z`}
+          fill="none"
+          stroke={color.ink}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      </g>,
+    );
+  }
+
+  // Letters of notes that were read, where they happened (tap to read again).
+  const letterMarks: ReactNode[] = [];
+  const letterHits: ReactNode[] = [];
+  for (const l of mapLetters(level, state)) {
+    const cx = (l.at[0] + 0.5) * S;
+    const cy = (l.at[1] + 0.5) * S;
+    letterMarks.push(
+      <g key={`lt${l.note}`} pointerEvents="none">
+        <rect
+          x={cx - 11}
+          y={cy - 11}
+          width={22}
+          height={22}
+          fill={color.ink}
+          stroke={color.floor}
+          strokeWidth={1.5}
+        />
+        <text
+          x={cx}
+          y={cy + 5.5}
+          textAnchor="middle"
+          fill={color.tokenText}
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={15}
+        >
+          {l.letter}
+        </text>
+      </g>,
+    );
+    letterHits.push(
+      <rect
+        key={`lth${l.note}`}
+        className="hit"
+        data-hit
+        data-letter={l.note}
+        x={cx - 22}
+        y={cy - 22}
+        width={44}
+        height={44}
+        {...press(`Quest note ${l.letter}`, () => onLetter(l.note))}
+      />,
+    );
+  }
+
+  const highlights = highlight.map(([hx, hy]) => (
+    <rect
+      key={`hl${hx},${hy}`}
+      x={hx * S + 2}
+      y={hy * S + 2}
+      width={S - 4}
+      height={S - 4}
+      fill="none"
+      stroke={color.ink}
+      strokeWidth={3}
+      className="selring"
+      pointerEvents="none"
+    />
+  ));
 
   // The eye glyph on squares where "Look from here" can show more.
   const eyes = hints
@@ -596,11 +767,16 @@ export function PlayBoard({ level, state, fx, codes, selection, onSelect }: Play
       )}
       {selRoom}
       {eyes}
+      {markerMarks}
+      {letterMarks}
+      {highlights}
       {tokens}
       {cellHits}
       {chestHits}
+      {markerHits}
       {trapHits}
       {monsterHits}
+      {letterHits}
       {doorHits}
     </svg>
   );

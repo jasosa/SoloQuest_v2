@@ -5,7 +5,8 @@ export type Selection =
   | { readonly kind: 'monster'; readonly id: string }
   | { readonly kind: 'room'; readonly room: string }
   | { readonly kind: 'trap'; readonly id: string }
-  | { readonly kind: 'chest'; readonly id: string };
+  | { readonly kind: 'chest'; readonly id: string }
+  | { readonly kind: 'square'; readonly at: readonly [number, number] };
 
 /** Parse the `?select=` screenshot parameter: `door:d3`, `cell:12,18`, `monster:m1`, `room:R20`, `trap:t1`. */
 export function parseSelection(value: string | null): Selection | null {

@@ -48,11 +48,11 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M4 · Notes engine
 
-- [ ] Triggers, conditions, effects from `QUEST_FORMAT.md`
-- [ ] Read notes leave their letter on the map (tap to read again) and in the journal
-- [ ] Square markers (neutral glyph, "A hero is here") and "A hero enters" on areas with `areaEntered`
-- [ ] Objectives panel, end quest screen (goal check, rewards as text)
-- [ ] NPC chip (Sir Ragnar)
+- [x] Triggers, conditions, effects from `QUEST_FORMAT.md`
+- [x] Read notes leave their letter on the map (tap to read again) and in the journal
+- [x] Square markers (neutral glyph, "A hero is here") and "A hero enters" on areas with `areaEntered`
+- [x] Objectives panel, end quest screen (goal check, rewards as text)
+- [x] NPC chip (Sir Ragnar)
 
 ## M5 · Zargon's turn
 
@@ -77,6 +77,8 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
 
 ## M8 · Polish
+
+- [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 
 - [ ] Wake lock, settings (sound off, reduced motion), resume screen
 - [ ] Accessibility pass (labels, focus, contrast)

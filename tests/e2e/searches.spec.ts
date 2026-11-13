@@ -33,9 +33,9 @@ test.describe('treasure and wandering monster (quest 1)', () => {
     await btn(page, 'The room is clear, search anyway').click();
     await expect(btn(page, 'Dwarf')).toBeEnabled();
     await btn(page, 'Dwarf').click();
-    await expect(dialog(page)).toContainText('Quest note A');
+    await expect(page.getByRole('dialog', { name: 'Note A' })).toContainText('rusty');
     await shot(page, 'search-note');
-    await btn(page, 'Done').click();
+    await btn(page, 'Continue').click();
 
     // the next hero draws a card; the Dwarf cannot search this room again
     await roomCell(page, '9,13').click();

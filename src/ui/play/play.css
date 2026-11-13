@@ -69,10 +69,6 @@ aside {
 }
 .roster {
   list-style: none;
-  max-height: 330px;
-  overflow: auto;
-  margin-right: -8px;
-  padding-right: 8px;
 }
 .roster li {
   border-bottom: 1px solid var(--paper-2);
@@ -156,4 +152,106 @@ aside {
 }
 .zargon-btn:active {
   transform: translate(2px, 2px);
+}
+
+/* ---------- notes engine: goals, helpers, journal, quest actions ---------- */
+.aside-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  min-height: 0;
+  margin-right: -8px;
+  padding-right: 8px;
+}
+.goals {
+  list-style: none;
+}
+.goals li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-style: italic;
+  padding: 2px 0;
+}
+.goals .tick {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font: 700 15px/17px 'Bonum';
+  text-align: center;
+  font-style: normal;
+}
+.goals li.done {
+  color: var(--muted);
+}
+.goal-done {
+  margin-top: 6px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.npcs {
+  list-style: none;
+}
+.npcs li {
+  border-bottom: 1px solid var(--paper-2);
+  padding: 4px 0 8px;
+}
+.npcs .nm {
+  font-size: 16px;
+}
+.npcs .st {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.npcs p {
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.journal {
+  list-style: none;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.journal .jl {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  padding: 4px 0;
+  min-height: 44px;
+}
+.journal .jl b {
+  color: var(--ink);
+  font-family: 'Bonum';
+  margin-right: 8px;
+}
+.journal .jl:active {
+  color: var(--ink);
+}
+.aside-scroll > section > .empty {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 15px;
+}
+.aside-scroll .btn + .btn {
+  margin-top: 8px;
+}
+
+.end-goals {
+  margin-bottom: 14px;
 }

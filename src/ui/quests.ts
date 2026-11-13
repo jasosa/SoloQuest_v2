@@ -48,6 +48,76 @@ export async function devTestLevel(): Promise<Level | undefined> {
   return buildLevel(
     testQuest({
       traps: [...base.traps, { id: 't4', kind: 'fallingBlock', cell: [6, 18] }],
+      // A statue in the start room that wakes when door d3 opens (dormant monster, decision 28).
+      monsters: [
+        ...base.monsters,
+        { id: 'm-statue', type: 'gargoyle', name: 'The statue', cell: [4, 16], state: 'dormant' },
+      ],
+      npcs: [
+        {
+          id: 'n1',
+          name: 'Sir Test',
+          cell: [2, 16],
+          defend: 2,
+          body: 3,
+          text: 'Moves with the heroes. Zargon never attacks it.',
+        },
+      ],
+      notes: [
+        {
+          id: 'n-wake',
+          trigger: { type: 'doorOpened', door: 'd3' },
+          effects: [{ type: 'setMonsterState', monster: 'm-statue', state: 'active' }],
+        },
+        {
+          id: 'n-choice',
+          trigger: { type: 'doorOpened', door: 'd3' },
+          effects: [
+            {
+              type: 'promptChoice',
+              text: 'A lever hangs by the door. Pull it?',
+              options: [
+                {
+                  label: 'Pull the lever',
+                  effects: [{ type: 'showText', text: 'A far gate grinds open.' }],
+                },
+                { label: 'Leave it', effects: [{ type: 'showText', text: 'Nothing happens.' }] },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'n-sq',
+          letter: 'S',
+          at: [4, 18],
+          trigger: { type: 'squareEntered', cell: [4, 18] },
+          effects: [
+            {
+              type: 'showText',
+              title: 'A cold draft',
+              text: 'A cold draft comes from a crack in the wall.',
+            },
+          ],
+        },
+        {
+          id: 'n-area',
+          trigger: { type: 'areaEntered', area: 'R17' },
+          effects: [{ type: 'showText', title: 'The study', text: 'Dust covers every shelf.' }],
+        },
+        {
+          id: 'n-manual',
+          trigger: { type: 'manual', label: 'Call for help' },
+          effects: [
+            { type: 'showText', text: 'A knight steps out of the shadows.' },
+            { type: 'spawnNpc', npc: 'n1' },
+          ],
+        },
+        {
+          id: 'n-place',
+          trigger: { type: 'manual', label: 'Wake the guardian' },
+          effects: [{ type: 'placeMonster', monster: 'm3', cell: [3, 17] }],
+        },
+      ],
     }),
   );
 }

@@ -13,17 +13,19 @@ import type { Hero } from '../../engine/data/heroes';
 import type { GameEvent } from '../../engine/game/events';
 import {
   EventError,
-  initialState,
+  startGame,
   reduce,
   replay,
   undo as engineUndo,
   type Reduced,
 } from '../../engine/game/reducer';
+import { monstersInPlay } from '../../engine/game/view';
 import type { GameState } from '../../engine/game/state';
 import { autosave, type SaveStore } from '../../persist/saves';
 import type { Prompt } from '../../engine/game/prompts';
 import type { EventErrorCode } from '../../engine/game/errors';
 import { monsterCodes } from '../play/monsterCodes';
+import { promptToasts } from '../play/promptToasts';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
 export interface Fx {
@@ -53,6 +55,8 @@ export interface GameStoreState {
   readonly toast: Toast | null;
   /** Prompts of the last accepted event (search and trap results), for the result sheet. */
   readonly prompts: readonly Prompt[];
+  /** Counts up with every accepted event, undo and the start of a game: new prompts to show. */
+  readonly promptsSeq: number;
   /** Why the last event was refused, if it was. */
   readonly error: { readonly code: EventErrorCode; readonly message: string } | null;
   /** False after an autosave failed (play goes on, the game is just not saved). */
@@ -73,6 +77,9 @@ export interface GameStoreInit {
   team: readonly Hero[];
   /** A log to replay (resume). Throws if it does not replay on this quest. */
   events?: readonly GameEvent[];
+  /** A new game: the notes that fire at the start of the quest are shown once. A resumed game
+   *  is not fresh, so they are not replayed. */
+  fresh?: boolean;
   saves: SaveStore;
   now?: () => number;
 }
@@ -83,6 +90,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
   const { level, seed, team, saves } = init;
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];
+  const start = init.fresh ? startGame(level, seed) : undefined;
   let counter = 0;
   let queue: Promise<void> = Promise.resolve();
 
@@ -101,10 +109,13 @@ export function createGameStore(init: GameStoreInit): GameStore {
       seed,
       team,
       events: events0,
-      state: events0.length ? replay(level, seed, events0) : initialState(level, seed),
+      state: events0.length
+        ? replay(level, seed, events0)
+        : (start ?? startGame(level, seed)).state,
       fx: null,
       toast: null,
-      prompts: [],
+      prompts: start?.prompts ?? [],
+      promptsSeq: start ? 1 : 0,
       error: null,
       saved: true,
 
@@ -125,32 +136,35 @@ export function createGameStore(init: GameStoreInit): GameStore {
 
         let fx: Fx | null = null;
         let toast: Toast | null = null;
+        const shown = new Set(monstersInPlay(level, before).map((m) => m.id));
+        const freshMonsters = monstersInPlay(level, state)
+          .filter((m) => !shown.has(m.id) && level.quest.monsters.some((q) => q.id === m.id))
+          .map((m) => m.id);
         for (const p of prompts) {
           if (p.kind === 'revealed') {
             const cells = new Set(p.cells);
             for (const b of level.blocks)
               if (state.seenBlocks.has(b.id) && !before.seenBlocks.has(b.id))
                 for (const c of b.cells) cells.add(keyOf(c));
-            fx = {
-              id: ++counter,
-              origin: p.origin,
-              cells,
-              freshMonsters: level.quest.monsters
-                .filter((m) => state.seenMonsters.has(m.id) && !before.seenMonsters.has(m.id))
-                .map((m) => m.id),
-            };
+            fx = { id: ++counter, origin: p.origin, cells, freshMonsters };
           } else if (p.kind === 'nothingNew') toast = toastOf('Nothing new here.');
         }
+        // A monster that woke or was placed by a note stamps in even with no reveal.
+        if (!fx && freshMonsters.length > 0)
+          fx = { id: ++counter, origin: [0, 0], cells: new Set(), freshMonsters };
+        const lines = promptToasts(prompts);
+        if (lines.length > 0) toast = toastOf(lines.join(' '));
         if (event.type === 'MONSTER_KILL')
           toast = toastOf(
             `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} slain.`,
             true,
           );
         // The real Zargon page (orders per monster) is milestone M5. For now the button only
-        // ends the turn.
-        if (event.type === 'ZARGON_TURN_END') toast = toastOf(`Heroes' turn ${state.turn}.`, true);
+        // ends the turn; notes that fire on a turn come back as prompts and show as sheets.
+        if (event.type === 'ZARGON_TURN_END')
+          toast = toastOf([`Heroes' turn ${state.turn}.`, ...lines].join(' '), true);
 
-        set({ events, state, fx, toast, prompts, error: null });
+        set({ events, state, fx, toast, prompts, promptsSeq: get().promptsSeq + 1, error: null });
         persist(events);
         return true;
       },
@@ -159,7 +173,15 @@ export function createGameStore(init: GameStoreInit): GameStore {
         const { events } = get();
         if (events.length === 0) return;
         const r = engineUndo(level, seed, events);
-        set({ events: r.events, state: r.state, fx: null, toast: null, prompts: [], error: null });
+        set({
+          events: r.events,
+          state: r.state,
+          fx: null,
+          toast: null,
+          prompts: [],
+          promptsSeq: get().promptsSeq + 1,
+          error: null,
+        });
         persist(r.events);
       },
 

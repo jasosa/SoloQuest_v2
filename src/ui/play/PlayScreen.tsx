@@ -8,7 +8,14 @@ import type { GameEvent } from '../../engine/game/events';
 import type { Prompt } from '../../engine/game/prompts';
 import {
   chestsInView,
+  endSummary,
+  enterableAreas,
+  journal,
+  manualTriggers,
   monstersInPlay,
+  npcsInPlay,
+  objectivesStatus,
+  pendingChoice,
   searchState,
   trapsInView,
   type MonsterView,
@@ -16,8 +23,11 @@ import {
 import { CELL } from '../board/BoardView';
 import { PlayBoard } from '../board/PlayBoard';
 import { MarginNote } from '../shared/MarginNote';
+import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
+import { sheetsOf } from './promptToasts';
+import { Helpers, Journal, Objectives, QuestActions } from './sidebar';
 import {
   ChestBody,
   headingOf,
@@ -69,7 +79,7 @@ export interface PlayScreenProps {
 }
 
 export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenProps) {
-  const { level, state, events, fx, toast, team } = useStore(store);
+  const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
   const codes = useMemo(
@@ -81,6 +91,22 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
   const [res, setRes] = useState<Result | null>(null);
+  const [sheetPos, setSheetPos] = useState({ seq: -1, i: 0 });
+  const [reread, setReread] = useState<string | null>(null);
+  const [endOpen, setEndOpen] = useState(false);
+
+  // Sheets from the last event (notes, monsters to place), shown one after the other.
+  const sheets = useMemo(() => sheetsOf(prompts), [prompts]);
+  const sheetI = sheetPos.seq === promptsSeq ? sheetPos.i : 0;
+  const sheet = sheets[sheetI];
+  const nextSheet = () => setSheetPos({ seq: promptsSeq, i: sheetI + 1 });
+  const pending = pendingChoice(state);
+  const end = endSummary(level, state);
+  const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
+  const journalEntries = useMemo(() => journal(level, state), [level, state]);
+  const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
+  const manual = useMemo(() => manualTriggers(level, state), [level, state]);
+  const enterable = useMemo(() => enterableAreas(level, state), [level, state]);
 
   const choose = (next: Selection | null) => {
     setSel(next);
@@ -97,7 +123,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   }, [toast, dismissToast]);
 
   const monsterOf = (id: string) => monsters.find((m) => m.id === id);
-  const cellOfMonster = (id: string) => level.quest.monsters.find((m) => m.id === id)?.cell;
+  const cellOfMonster = (id: string) =>
+    state.placedMonsterCells[id] ?? level.quest.monsters.find((m) => m.id === id)?.cell;
 
   // A tap on the map (not on a tappable object or a note) closes the note.
   const onRootClick = (e: React.MouseEvent) => {
@@ -130,7 +157,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
     if (!ok) return false;
     setSel(null);
     setStep({ t: 'menu' });
-    setRes({ prompts: store.getState().prompts, anchor, ...ctx });
+    const shown = store.getState().prompts;
+    if (resultPrompts(shown).length > 0) setRes({ prompts: shown, anchor, ...ctx });
     return true;
   };
 
@@ -270,10 +298,31 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           <RoomMenu
             onTreasure={() => setStep({ t: 'pick', what: 'treasure', override: false })}
             onSecret={() => setStep({ t: 'pick', what: 'secret', override: false })}
+            onEnter={
+              enterable.includes(sel.room)
+                ? () => act({ type: 'AREA_ENTER', area: sel.room })
+                : undefined
+            }
           />
         </MarginNote>
       );
     }
+  } else if (sel?.kind === 'square') {
+    note = (
+      <MarginNote
+        anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
+        kind="Square with a note"
+        title="Did a hero step here?"
+        onClose={closeNote}
+      >
+        <button className="btn" onClick={() => act({ type: 'SQUARE_TRIGGER', cell: sel.at })}>
+          Yes
+        </button>
+        <button className="btn alt" onClick={closeNote}>
+          No
+        </button>
+      </MarginNote>
+    );
   } else if (sel?.kind === 'trap') {
     const tv = traps.find((t) => t.id === sel.id);
     if (tv && tv.onMap) {
@@ -373,6 +422,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
                 : 'Wandering monster'}
             </p>
           )}
+          {m.state === 'stone' && (
+            <p className="warn">
+              {m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone'}. It does not
+              act.
+            </p>
+          )}
+          {m.placeAt && <p className="warn">Placed by a quest note.</p>}
           <p>
             Body {m.body} of {m.maxBody} · Mind {m.stats.mind}
           </p>
@@ -413,6 +469,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
         <button className="link" disabled={events.length === 0} onClick={() => undo()}>
           Undo
         </button>
+        <button className="link" onClick={() => setEndOpen(true)}>
+          End quest
+        </button>
         <button className="link" onClick={onLeave}>
           Quests
         </button>
@@ -426,36 +485,53 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           codes={codes}
           selection={sel}
           onSelect={choose}
+          onLetter={(id) => setReread(id)}
+          highlight={sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []}
         />
-        {note}
+        {sheet?.t === 'place' && sheet.p.cell ? (
+          <MarginNote
+            anchor={toMap(sheet.p.cell[0] + 0.5, sheet.p.cell[1] + 0.5)}
+            kind="New monster"
+            title={`Put ${sheet.p.name} here`}
+            onClose={nextSheet}
+          >
+            <p>Put the {MONSTER_NAMES[sheet.p.monsterType]} on the marked square.</p>
+            <button className="btn" onClick={nextSheet}>
+              Done
+            </button>
+          </MarginNote>
+        ) : (
+          note
+        )}
       </div>
 
       <aside>
-        <section className="goal">
-          <div className="lbl">Your goal</div>
-          {quest.objectives.length > 0 ? (
-            quest.objectives.map((o) => <p key={o.id}>{o.text}.</p>)
-          ) : (
-            <p>{quest.intro.summary}</p>
-          )}
-        </section>
-        {quest.zargonInfo && <p className="zinfo">{quest.zargonInfo}</p>}
-        <section>
-          <div className="lbl">Monsters in play</div>
-          <ul className="roster">
-            {monsters.length === 0 && <li className="empty">No monster in sight.</li>}
-            {monsters.map((m) => (
-              <RosterRow
-                key={m.id}
-                m={m}
-                code={codes.get(m.id) ?? ''}
-                fresh={fx?.freshMonsters.includes(m.id) ?? false}
-                selected={sel?.kind === 'monster' && sel.id === m.id}
-                onTap={() => choose({ kind: 'monster', id: m.id })}
-              />
-            ))}
-          </ul>
-        </section>
+        <Objectives view={objectives} intro={quest.intro.summary} />
+        <div className="aside-scroll">
+          {quest.zargonInfo && <p className="zinfo">{quest.zargonInfo}</p>}
+          <Helpers npcs={npcs} />
+          <section>
+            <div className="lbl">Monsters in play</div>
+            <ul className="roster">
+              {monsters.length === 0 && <li className="empty">No monster in sight.</li>}
+              {monsters.map((m) => (
+                <RosterRow
+                  key={m.id}
+                  m={m}
+                  code={codes.get(m.id) ?? ''}
+                  fresh={fx?.freshMonsters.includes(m.id) ?? false}
+                  selected={sel?.kind === 'monster' && sel.id === m.id}
+                  onTap={() => choose({ kind: 'monster', id: m.id })}
+                />
+              ))}
+            </ul>
+          </section>
+          <Journal entries={journalEntries} onRead={(id) => setReread(id)} />
+          <QuestActions
+            actions={manual}
+            onPress={(note) => dispatch({ type: 'MANUAL_TRIGGER', note })}
+          />
+        </div>
         {wandering && (
           <p className="wander">
             Wandering monster:{' '}
@@ -472,6 +548,54 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           </small>
         </button>
       </aside>
+
+      {end ? (
+        <EndScreen end={end} title={quest.title} onLeave={onLeave} onUndo={() => undo()} />
+      ) : sheet?.t === 'note' ? (
+        <NoteSheet p={sheet.p} onClose={nextSheet} />
+      ) : pending ? (
+        <NoteCard kind="Quest note" title="Choose">
+          <p>{pending.text}</p>
+          {pending.options.map((o, i) => (
+            <button
+              key={i}
+              className={i === 0 ? 'btn' : 'btn alt'}
+              onClick={() => dispatch({ type: 'CHOOSE', note: pending.note, option: i })}
+            >
+              {o.label}
+            </button>
+          ))}
+        </NoteCard>
+      ) : reread ? (
+        <RereadSheet
+          entry={journalEntries.find((e) => e.id === reread)}
+          onClose={() => setReread(null)}
+        />
+      ) : endOpen ? (
+        <NoteCard kind="End quest" title="How did the quest end?" onClose={() => setEndOpen(false)}>
+          <button
+            className="btn"
+            onClick={() => {
+              setEndOpen(false);
+              dispatch({ type: 'END_QUEST', outcome: 'stairs' });
+            }}
+          >
+            Heroes left by the stairs
+          </button>
+          <button
+            className="btn alt"
+            onClick={() => {
+              setEndOpen(false);
+              dispatch({ type: 'END_QUEST', outcome: 'fell' });
+            }}
+          >
+            All heroes fell
+          </button>
+          <button className="btn alt" onClick={() => setEndOpen(false)}>
+            Keep playing
+          </button>
+        </NoteCard>
+      ) : null}
 
       {toast && (
         <div className="toast" role="status" key={toast.id}>
@@ -505,14 +629,107 @@ function RosterRow({
         <span>
           <span className="nm">{m.name}</span>
           <br />
-          <span className="st">
-            {m.wandering && m.fresh
-              ? `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`
-              : `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`}
-          </span>
+          <span className="st">{rosterLine(m)}</span>
         </span>
         <span className="bp">{m.dead ? 'Slain' : `${m.body}/${m.maxBody}`}</span>
       </button>
     </li>
+  );
+}
+
+function rosterLine(m: MonsterView): string {
+  if (m.state === 'stone')
+    return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
+  if (m.wandering && m.fresh) return `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`;
+  if (m.placeAt) return 'Placed by a quest note';
+  return `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`;
+}
+
+function NoteSheet({ p, onClose }: { p: Extract<Prompt, { kind: 'note' }>; onClose(): void }) {
+  return (
+    <NoteCard
+      letter={p.letter}
+      kind="Quest note"
+      title={p.title ?? (p.letter ? `Note ${p.letter}` : 'Quest note')}
+      onClose={onClose}
+    >
+      {p.texts.map((t, i) => (
+        <p key={i}>{t}</p>
+      ))}
+      <button className="btn" onClick={onClose}>
+        Continue
+      </button>
+    </NoteCard>
+  );
+}
+
+function RereadSheet({
+  entry,
+  onClose,
+}: {
+  entry: ReturnType<typeof journal>[number] | undefined;
+  onClose(): void;
+}) {
+  if (!entry) return null;
+  return (
+    <NoteCard
+      letter={entry.letter}
+      kind="Quest note"
+      title={entry.title ?? 'Read again'}
+      onClose={onClose}
+    >
+      {entry.texts.map((t, i) => (
+        <p key={i}>{t}</p>
+      ))}
+      {entry.choices.map((c, i) => (
+        <p key={i} className="extra">
+          {c.text} You chose: {c.picked}.{c.texts.length > 0 ? ` ${c.texts.join(' ')}` : ''}
+        </p>
+      ))}
+      <button className="btn" onClick={onClose}>
+        Close
+      </button>
+    </NoteCard>
+  );
+}
+
+function EndScreen({
+  end,
+  title,
+  onLeave,
+  onUndo,
+}: {
+  end: NonNullable<ReturnType<typeof endSummary>>;
+  title: string;
+  onLeave(): void;
+  onUndo(): void;
+}) {
+  return (
+    <NoteCard kind={title} title={end.won ? 'Quest complete' : 'Quest over, goal not reached'}>
+      <p>
+        {end.outcome === 'fell' ? 'All the heroes fell.' : 'The heroes left by the stairs.'}{' '}
+        {end.goalDone ? 'The goal was done.' : 'The goal was not done.'}
+      </p>
+      <ul className="goals end-goals">
+        {end.objectives.map((o) => (
+          <li key={o.id} className={o.done ? 'done' : ''}>
+            <span className="tick" aria-hidden="true">
+              {o.done ? '✓' : ''}
+            </span>
+            <span>
+              {o.text}
+              <span className="sr"> {o.done ? '(done)' : '(not done)'}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {end.rewards && <p className="extra">Rewards: {end.rewards}</p>}
+      <button className="btn" onClick={onLeave}>
+        Back to the quests
+      </button>
+      <button className="btn alt" onClick={onUndo}>
+        Undo the ending
+      </button>
+    </NoteCard>
   );
 }

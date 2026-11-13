@@ -24,10 +24,24 @@ export function HeroChips({
   );
 }
 
-export function RoomMenu({ onTreasure, onSecret }: { onTreasure(): void; onSecret(): void }) {
+export function RoomMenu({
+  onTreasure,
+  onSecret,
+  onEnter,
+}: {
+  onTreasure(): void;
+  onSecret(): void;
+  /** Present when a note waits for a hero to enter this room. */
+  onEnter: (() => void) | undefined;
+}) {
   return (
     <>
       <p>One hero, one search, on their own turn.</p>
+      {onEnter && (
+        <button className="btn" onClick={onEnter}>
+          A hero enters
+        </button>
+      )}
       <button className="btn" onClick={onTreasure}>
         Search for treasure
       </button>
@@ -287,12 +301,26 @@ function lines(p: Prompt): string[] {
   }
 }
 
-/** Prompts that make a result sheet (reveal and nothing-new prompts do not). */
+/**
+ * Prompts for the margin-note result sheet (searches and traps). Quest notes, choices and
+ * monsters to place have their own sheets, and other prompts are short toasts.
+ */
+const RESULT_KINDS: readonly Prompt['kind'][] = [
+  'trapSprung',
+  'trapJumped',
+  'trapDisarmed',
+  'drawCard',
+  'wanderingMonster',
+  'wanderingText',
+  'secretDoorsFound',
+  'nothingFound',
+  'trapFound',
+  'noTrap',
+];
 export const resultPrompts = (prompts: readonly Prompt[]) =>
   prompts.filter(
     (p, i) =>
-      p.kind !== 'revealed' &&
-      p.kind !== 'nothingNew' &&
+      RESULT_KINDS.includes(p.kind) &&
       // two traps on one chest read as one "you found a trap"
       !(p.kind === 'trapFound' && prompts.findIndex((q) => q.kind === 'trapFound') !== i),
   );

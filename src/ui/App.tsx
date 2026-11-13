@@ -26,8 +26,9 @@ function openGame(
   seed: number,
   team: readonly Hero[],
   events: readonly GameEvent[] = [],
+  fresh = false,
 ): GameStore {
-  return createGameStore({ level, seed, team, events, saves });
+  return createGameStore({ level, seed, team, events, saves, fresh });
 }
 
 /** `?quest=1` (a bundled quest). `?quest=test` (development only) loads asynchronously. */
@@ -65,7 +66,7 @@ function startFromUrl(
     if (x !== undefined && y !== undefined) events.push({ type: 'LOOK_FROM', cell: [x, y] });
   }
   const seed = params.has('seed') ? Number(params.get('seed')) : freshSeed();
-  const store = openGame(saves, level, seed, team.length ? team : ['dwarf'], events);
+  const store = openGame(saves, level, seed, team.length ? team : ['dwarf'], events, true);
   void store.getState().save();
   return store;
 }
@@ -146,7 +147,7 @@ function Game({ params }: { params: URLSearchParams }) {
         setNotice(SAVED_GAME_FAILED);
       }
     } else {
-      const store = openGame(saves, choice.level, freshSeed(), choice.team);
+      const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true);
       void store.getState().save(); // a new game replaces the old save at once
       setGame(store);
     }
