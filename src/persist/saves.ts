@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { z } from 'zod';
+import { HEROES, type Hero } from '../engine/data/heroes';
 import type { Level } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
 import { replay } from '../engine/game/reducer';
@@ -16,6 +17,18 @@ const CellSchema = z.tuple([z.number().int(), z.number().int()]);
 export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
   z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
+  z.object({
+    type: z.literal('MONSTER_DAMAGE'),
+    monster: z.string(),
+    amount: z.number().int().min(1),
+  }),
+  z.object({
+    type: z.literal('MONSTER_HEAL'),
+    monster: z.string(),
+    amount: z.number().int().min(1),
+  }),
+  z.object({ type: z.literal('MONSTER_KILL'), monster: z.string() }),
+  z.object({ type: z.literal('ZARGON_TURN_END') }),
 ]);
 
 // Compile-time guard: every GameEvent type needs an entry in EventSchema, or a save that holds
@@ -31,11 +44,18 @@ export const SavedGameSchema = z.object({
   questId: z.string(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
+  /** The heroes at the table: 1 to 4, all different. Not part of the engine state. */
+  team: z
+    .array(z.enum(HEROES))
+    .min(1)
+    .max(4)
+    .refine((t) => new Set(t).size === t.length, { message: 'heroes must be different' }),
   events: z.array(EventSchema),
   /** Milliseconds since the epoch, given by the caller. */
   updatedAt: z.number(),
 });
-export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events'> & {
+export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events' | 'team'> & {
+  team: Hero[];
   events: GameEvent[];
 };
 
@@ -100,11 +120,19 @@ export async function autosave(
   store: SaveStore,
   questId: string,
   seed: number,
+  team: readonly Hero[],
   events: readonly GameEvent[],
   now: number,
 ): Promise<boolean> {
   try {
-    await store.save({ questId, version: SAVE_VERSION, seed, events: [...events], updatedAt: now });
+    await store.save({
+      questId,
+      version: SAVE_VERSION,
+      seed,
+      team: [...team],
+      events: [...events],
+      updatedAt: now,
+    });
     return true;
   } catch {
     return false;
@@ -112,7 +140,13 @@ export async function autosave(
 }
 
 export type Resumed =
-  | { ok: true; seed: number; events: readonly GameEvent[]; state: GameState }
+  | {
+      ok: true;
+      seed: number;
+      team: readonly Hero[];
+      events: readonly GameEvent[];
+      state: GameState;
+    }
   | { ok: false; reason: 'none' | 'corrupt' | 'invalid' | 'unavailable'; message: string };
 
 /**
@@ -136,7 +170,13 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
     return { ok: false, reason: 'corrupt', message: 'The saved game could not be read.' };
   try {
     const state = replay(level, parsed.data.seed, parsed.data.events);
-    return { ok: true, seed: parsed.data.seed, events: parsed.data.events, state };
+    return {
+      ok: true,
+      seed: parsed.data.seed,
+      team: parsed.data.team,
+      events: parsed.data.events,
+      state,
+    };
   } catch (e) {
     return {
       ok: false,

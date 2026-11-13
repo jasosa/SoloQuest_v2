@@ -12,8 +12,9 @@
 import { inBoard, areaAt, type Cell } from '../board/board';
 import { keyOf, type CellKey, type Level } from '../board/level';
 import type { GameEvent } from './events';
+import { statsOf } from '../data/monsters';
 import { progress, revealFrom, revealRoom } from './reveal';
-import { draftOf, emptyState, type Draft, type GameState } from './state';
+import { draftOf, emptyState, type Draft, type GameState, type MonsterRecord } from './state';
 
 /** Messages for the UI, produced by the reducer. */
 export type Prompt =
@@ -33,7 +34,15 @@ export interface Reduced {
 }
 
 export type EventErrorCode =
-  'UNKNOWN_DOOR' | 'DOOR_NOT_SEEN' | 'ALREADY_OPEN' | 'BAD_CELL' | 'NOT_A_SEEN_CORRIDOR_CELL';
+  | 'UNKNOWN_DOOR'
+  | 'DOOR_NOT_SEEN'
+  | 'ALREADY_OPEN'
+  | 'BAD_CELL'
+  | 'NOT_A_SEEN_CORRIDOR_CELL'
+  | 'UNKNOWN_MONSTER'
+  | 'MONSTER_NOT_SEEN'
+  | 'MONSTER_DEAD'
+  | 'BAD_AMOUNT';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;
@@ -57,6 +66,23 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
       return openDoor(level, state, event.door);
     case 'LOOK_FROM':
       return lookFrom(level, state, event.cell);
+    case 'MONSTER_DAMAGE':
+      return monsterChange(level, state, event.monster, (r) => {
+        const body = Math.max(0, r.body - checkAmount(event.amount));
+        return { body, dead: body === 0 };
+      });
+    case 'MONSTER_HEAL':
+      return monsterChange(level, state, event.monster, (r, max) => ({
+        body: Math.min(max, r.body + checkAmount(event.amount)),
+        dead: false,
+      }));
+    case 'MONSTER_KILL':
+      return monsterChange(level, state, event.monster, () => ({ body: 0, dead: true }));
+    case 'ZARGON_TURN_END': {
+      const d = draftOf(state);
+      d.turn += 1;
+      return { state: d, prompts: [] };
+    }
     default: {
       const never: never = event;
       throw new Error(`Unhandled event ${JSON.stringify(never)}`);
@@ -148,4 +174,28 @@ function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
   d.looked.add(keyOf(cell));
   const { cells } = revealFrom(level, d, cell);
   return finish(d, before, cells, [x + 0.5, y + 0.5], false);
+}
+
+function checkAmount(n: number): number {
+  if (!Number.isInteger(n) || n < 1)
+    throw new EventError('BAD_AMOUNT', `Amount must be a whole number of 1 or more, got ${n}`);
+  return n;
+}
+
+/** Change the Body Points record of a seen, living monster. */
+function monsterChange(
+  level: Level,
+  state: GameState,
+  id: string,
+  change: (r: MonsterRecord, maxBody: number) => MonsterRecord,
+): Reduced {
+  const def = level.quest.monsters.find((m) => m.id === id);
+  if (!def) throw new EventError('UNKNOWN_MONSTER', `Unknown monster ${id}`);
+  const rec = state.monsters[id];
+  if (!state.seenMonsters.has(id) || !rec)
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} has not been seen yet`);
+  if (rec.dead) throw new EventError('MONSTER_DEAD', `Monster ${id} is already dead`);
+  const d = draftOf(state);
+  d.monsters[id] = change(rec, statsOf(def).body);
+  return { state: d, prompts: [] };
 }

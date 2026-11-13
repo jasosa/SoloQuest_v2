@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { board } from '../../engine/board/board';
 import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
+import { statsOf } from '../../engine/data/monsters';
 import { initialState, replay } from '../../engine/game/reducer';
+import { monstersInPlay } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -225,5 +227,28 @@ describe('quest 1: notes', () => {
     expect(roomOf('f-chest-b')).toBe('R19');
     expect(roomOf('f-chest-d')).toBe('R03');
     expect(roomOf('f-chest-e')).toBe('R11');
+  });
+});
+
+describe('quest 1: monsters in play', () => {
+  it('shows none at the start, and the orcs of the first room after the doors', () => {
+    expect(monstersInPlay(level, initialState(level, 1))).toEqual([]);
+    const s = run(open('d1'), open('d2'));
+    const list = monstersInPlay(level, s);
+    expect(list.map((m) => m.id)).toEqual(['m15', 'm16']);
+    expect(list.map((m) => [m.name, m.body, m.dead])).toEqual([
+      ['Orc', 1, false],
+      ['Orc', 1, false],
+    ]);
+    expect(list.map((m) => m.id)).not.toContain('m-verag');
+  });
+
+  it('Verag is a gargoyle with the base gargoyle stats (no overrides)', () => {
+    const verag = quest.monsters.find((m) => m.id === 'm-verag')!;
+    expect(statsOf(verag)).toEqual({ move: 6, att: 4, def: 5, body: 3, mind: 4 });
+  });
+
+  it('mummy C has 4 attack dice and keeps its other stats', () => {
+    expect(statsOf(monsterAt('m4')!)).toEqual({ move: 4, att: 4, def: 4, body: 2, mind: 0 });
   });
 });

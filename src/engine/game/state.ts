@@ -1,5 +1,7 @@
 import type { AreaId } from '../board/board';
 import type { CellKey } from '../board/level';
+import { statsOf } from '../data/monsters';
+import type { MonsterDef } from '../quest/schema';
 import { createRng, type Rng } from './rng';
 
 /**
@@ -8,6 +10,12 @@ import { createRng, type Rng } from './rng';
  *
  * It does NOT hold hero or monster positions, hero Body Points, gold or equipment.
  */
+/** Optional Body Point tracking for a monster that was seen. Nothing else about it. */
+export interface MonsterRecord {
+  readonly body: number;
+  readonly dead: boolean;
+}
+
 export interface GameState {
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
@@ -25,6 +33,8 @@ export interface GameState {
   /** Block ids (see Level.blocks) that were seen. */
   readonly seenBlocks: ReadonlySet<string>;
   readonly seenMonsters: ReadonlySet<string>;
+  /** One record per seen monster id. */
+  readonly monsters: Readonly<Record<string, MonsterRecord>>;
   readonly seenFurniture: ReadonlySet<string>;
   /** Trap ids shown as "?". Their kind is not part of the state. */
   readonly seenTraps: ReadonlySet<string>;
@@ -41,6 +51,7 @@ export function emptyState(seed: number): GameState {
     seenDoors: new Set(),
     seenBlocks: new Set(),
     seenMonsters: new Set(),
+    monsters: {},
     seenFurniture: new Set(),
     seenTraps: new Set(),
   };
@@ -50,8 +61,17 @@ export function emptyState(seed: number): GameState {
 export type Draft = {
   -readonly [K in keyof GameState]: GameState[K] extends ReadonlySet<infer T>
     ? Set<T>
-    : GameState[K];
+    : K extends 'monsters'
+      ? Record<string, MonsterRecord>
+      : GameState[K];
 };
+
+/** A monster is seen for the first time: remember it and start its Body Points. */
+export function seeMonster(d: Draft, m: MonsterDef): void {
+  if (d.seenMonsters.has(m.id)) return;
+  d.seenMonsters.add(m.id);
+  d.monsters[m.id] = { body: statsOf(m).body, dead: false };
+}
 
 export function draftOf(s: GameState): Draft {
   return {
@@ -63,6 +83,7 @@ export function draftOf(s: GameState): Draft {
     seenDoors: new Set(s.seenDoors),
     seenBlocks: new Set(s.seenBlocks),
     seenMonsters: new Set(s.seenMonsters),
+    monsters: { ...s.monsters },
     seenFurniture: new Set(s.seenFurniture),
     seenTraps: new Set(s.seenTraps),
   };

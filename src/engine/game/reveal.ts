@@ -8,6 +8,7 @@
  *   partly revealed: if line of sight reaches any square of a room, the whole room is revealed.
  * - Rock is never revealed. Figures do not block sight.
  */
+import { seeMonster } from './state';
 import { areaAt, cellsOf, type AreaId } from '../board/board';
 import { cellKey, parseKey, sightMap, type CellKey, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
@@ -52,7 +53,7 @@ function markCell(level: Level, d: Draft, x: number, y: number): boolean {
       for (const t of q.traps) if (t.furniture === f.id) d.seenTraps.add(t.id);
     }
   for (const m of q.monsters)
-    if (!m.hidden && m.cell && m.cell[0] === x && m.cell[1] === y) d.seenMonsters.add(m.id);
+    if (!m.hidden && m.cell && m.cell[0] === x && m.cell[1] === y) seeMonster(d, m);
   for (const t of q.traps) if (t.cell && t.cell[0] === x && t.cell[1] === y) d.seenTraps.add(t.id);
   for (const door of level.doorsAt.get(k) ?? [])
     if (door.kind !== 'secret') d.seenDoors.add(door.id);
