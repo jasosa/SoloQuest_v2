@@ -60,6 +60,10 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 }
 ```
 
+`traits` is a list of short, paraphrased special rule lines (for example "Only the Spirit Blade can harm him"); they are shown first on the monster's Zargon order. Non-empty strings. Overrides for `att`, `def`, `move` and `body` are also shown as lines whenever the key is present, even if it equals the base value.
+
+`spells` uses the keys `escape`, `summon`, `fear`, `sleep`, `ballOfFlame`, `firestorm`, `tempest`, `command` (the validator rejects others). Each listed spell can be cast once per quest. To allow a spell more than once, list it more than once: Witch Lord Q14 has `"spells": ["fear", "fear"]`. `spellLimit: "onePerTurn"` needs a `spells` list; it is the explicit form of a rule that holds for every caster anyway (a monster attacks or casts one spell per turn). Casts are tracked with the `SPELL_CAST` event. The app shows the spell name and "read the Dread spell card", never the spell text.
+
 ### Trap kinds
 
 `pit`, `fallingBlock`, `spear`, `chest` (on furniture: `"furniture": "f3"` instead of `"cell"`), `scripted` (only by effects, e.g. Q12 C). Optional `"effect"` text for chest traps (paraphrased).
@@ -90,6 +94,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 | `trapSprung` / `trapDisarmed` | `trap` | trap state changes |
 | `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
 | `allKilled` | `monsters` (ids) | the last of them is slain |
+| `spellCast` | `monster?`, `spell?` | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him dormant, a door note places him again. |
 | `zargonTurn` | `n?`, `every?` | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k) |
 | `manual` | `label` | a button on the quest panel |
 

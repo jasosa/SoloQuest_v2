@@ -55,6 +55,8 @@ export interface ChoiceMade {
 }
 
 export interface GameState {
+  /** The quest seed (never changes). Zargon's orders are derived from it, not from `rng`. */
+  readonly seed: number;
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
   readonly turn: number;
@@ -105,12 +107,19 @@ export interface GameState {
   /** Choices waiting for an answer, oldest first. */
   readonly pendingChoices: readonly PendingChoice[];
   readonly choicesMade: readonly ChoiceMade[];
+  /** Dread spells cast so far, per monster id, in order. A spell listed twice in the quest may be cast twice. */
+  readonly spellsCast: Readonly<Record<string, readonly string[]>>;
+  /** Monsters that cast a spell this Zargon turn (for `onePerTurn`). Cleared on ZARGON_TURN_END. */
+  readonly castThisTurn: readonly string[];
+  /** Monsters whose order was carried out this Zargon turn. Cleared on ZARGON_TURN_END. */
+  readonly doneThisTurn: readonly string[];
   /** Set once by END_QUEST. After that every event is rejected. */
   readonly ended: { readonly outcome: 'stairs' | 'fell' } | undefined;
 }
 
 export function emptyState(seed: number): GameState {
   return {
+    seed: seed >>> 0,
     rng: createRng(seed),
     turn: 1,
     seenCells: new Set(),
@@ -138,6 +147,9 @@ export function emptyState(seed: number): GameState {
     spawnedNpcs: [],
     pendingChoices: [],
     choicesMade: [],
+    spellsCast: {},
+    castThisTurn: [],
+    doneThisTurn: [],
     ended: undefined,
   };
 }

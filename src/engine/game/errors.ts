@@ -29,7 +29,12 @@ export type EventErrorCode =
   | 'CELL_NOT_SEEN'
   | 'UNKNOWN_NOTE'
   | 'NO_PENDING_CHOICE'
-  | 'BAD_OPTION';
+  | 'BAD_OPTION'
+  | 'UNKNOWN_SPELL'
+  | 'SPELL_USED'
+  | 'SPELL_LIMIT'
+  | 'MONSTER_INACTIVE'
+  | 'ALREADY_DONE';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

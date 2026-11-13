@@ -155,7 +155,7 @@ export function wanderingMonster(
   while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
   const id = `w${n}`;
   d.wanderCount = n;
-  d.wanderers[id] = { type: w.monster, room, wanderAt: hero, fresh: true };
+  d.wanderers[id] = { type: w.monster, room, wanderAt: hero, fresh: event.adjacent !== false };
   d.seenMonsters.add(id);
   d.monsters[id] = { body: statsOf({ type: w.monster }).body, dead: false };
   return {

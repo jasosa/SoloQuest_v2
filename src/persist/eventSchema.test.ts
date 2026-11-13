@@ -7,6 +7,7 @@ describe('EventSchema covers the search, trap and notes events', () => {
     { type: 'SEARCH_TREASURE', room: 'R17', hero: 'elf' },
     { type: 'SEARCH_TREASURE', room: 'R17', hero: 'dwarf', override: true },
     { type: 'WANDERING_MONSTER', room: 'R17', hero: 'wizard' },
+    { type: 'WANDERING_MONSTER', room: 'R17', hero: 'wizard', adjacent: false },
     { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', area: 'R17' },
     { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', cell: [3, 18], override: false },
     { type: 'SEARCH_TRAPS', furniture: 'f1' },
@@ -18,6 +19,8 @@ describe('EventSchema covers the search, trap and notes events', () => {
     { type: 'SQUARE_TRIGGER', cell: [3, 16] },
     { type: 'MANUAL_TRIGGER', note: 'n-A' },
     { type: 'CHOOSE', note: 'n-A', option: 1 },
+    { type: 'SPELL_CAST', monster: 'm1', spell: 'fear' },
+    { type: 'MONSTER_DONE', monster: 'm1' },
     { type: 'END_QUEST', outcome: 'stairs' },
     { type: 'END_QUEST', outcome: 'fell' },
   ];
@@ -31,6 +34,11 @@ describe('EventSchema covers the search, trap and notes events', () => {
     expect(EventSchema.safeParse({ type: 'CHOOSE', note: 'n', option: -1 }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'SQUARE_TRIGGER', cell: [1.5, 2] }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'AREA_ENTER' }).success).toBe(false);
+  });
+
+  it('rejects bad Zargon events', () => {
+    expect(EventSchema.safeParse({ type: 'SPELL_CAST', monster: 'm1' }).success).toBe(false);
+    expect(EventSchema.safeParse({ type: 'MONSTER_DONE' }).success).toBe(false);
   });
 
   it('rejects bad values', () => {

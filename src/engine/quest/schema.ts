@@ -76,6 +76,8 @@ const MonsterSchema = z
     state: MonsterState.optional(),
     spells: z.array(nonEmpty).optional(),
     spellLimit: z.enum(['onePerTurn']).optional(),
+    /** Paraphrased special rules of a named monster, shown first on its Zargon order. */
+    traits: z.array(nonEmpty).optional(),
     hidden: z.boolean().optional(),
   })
   .refine((m) => m.hidden === true || m.cell !== undefined, {
@@ -129,6 +131,11 @@ const TriggerSchema = z.discriminatedUnion('type', [
     monsterType: MonsterType.optional(),
   }),
   z.strictObject({ type: z.literal('allKilled'), monsters: z.array(id).min(1) }),
+  z.strictObject({
+    type: z.literal('spellCast'),
+    monster: id.optional(),
+    spell: nonEmpty.optional(),
+  }),
   z.strictObject({
     type: z.literal('zargonTurn'),
     n: z.number().int().min(1).optional(),

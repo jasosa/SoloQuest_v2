@@ -3,6 +3,7 @@
  * Returns a list of readable problems; empty means ok.
  */
 import { areaAt, inBoard, roomIds, type Board } from '../board/board';
+import { SPELL_KEYS, isSpellKey } from '../zargon/spells';
 import { forEachEffect } from './effects';
 import type { Condition, Effect, Quest } from './schema';
 
@@ -139,6 +140,11 @@ export function validateQuest(quest: Quest, board: Board): string[] {
   for (const m of quest.monsters) {
     inside(`monster ${m.id}`, m.cell);
     if (m.cell && !m.hidden) occupy(`monster ${m.id}`, m.cell);
+    for (const sp of m.spells ?? [])
+      if (!isSpellKey(sp))
+        err(`monster ${m.id}: unknown spell "${sp}" (known: ${SPELL_KEYS.join(', ')})`);
+    if (m.spellLimit && (m.spells ?? []).length === 0)
+      err(`monster ${m.id}: spellLimit needs a spells list`);
   }
   for (const t of quest.traps) {
     inside(`trap ${t.id}`, t.cell);
@@ -273,6 +279,15 @@ export function validateQuest(quest: Quest, board: Board): string[] {
         if (t.monster && !monsterIds.has(t.monster)) err(`${where}: unknown monster ${t.monster}`);
         if (t.monster && t.monsterType)
           err(`${where}: monsterKilled takes a monster or a monsterType, not both`);
+        break;
+      case 'spellCast':
+        if (t.monster && !monsterIds.has(t.monster)) err(`${where}: unknown monster ${t.monster}`);
+        if (t.spell && !isSpellKey(t.spell)) err(`${where}: unknown spell "${t.spell}"`);
+        if (t.monster && t.spell) {
+          const m = quest.monsters.find((x) => x.id === t.monster);
+          if (m && !(m.spells ?? []).includes(t.spell))
+            err(`${where}: monster ${t.monster} has no spell ${t.spell}`);
+        }
         break;
       case 'zargonTurn':
         if (t.n !== undefined && t.every !== undefined)

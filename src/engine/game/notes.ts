@@ -35,6 +35,7 @@ export type TriggerEvent =
   | { readonly type: 'trapSprung'; readonly trap: string }
   | { readonly type: 'trapDisarmed'; readonly trap: string }
   | { readonly type: 'monsterKilled'; readonly monster: string; readonly monsterType: MonsterType }
+  | { readonly type: 'spellCast'; readonly monster: string; readonly spell: string }
   /** `turn` is the Zargon turn that just ended. */
   | { readonly type: 'zargonTurn'; readonly turn: number }
   | { readonly type: 'manual'; readonly note: string };
@@ -85,6 +86,8 @@ export function repeats(note: Note): boolean {
       return t.repeat === true;
     case 'monsterKilled':
       return t.monster === undefined;
+    case 'spellCast':
+      return t.monster === undefined || t.spell === undefined;
     case 'zargonTurn':
       return t.n === undefined;
     default:
@@ -127,6 +130,13 @@ function matches(note: Note, t: TriggerEvent, d: GameState): boolean {
       return (
         (n.monster === undefined || n.monster === tt.monster) &&
         (n.monsterType === undefined || n.monsterType === tt.monsterType)
+      );
+    }
+    case 'spellCast': {
+      const tt = t as Extract<TriggerEvent, { type: 'spellCast' }>;
+      return (
+        (n.monster === undefined || n.monster === tt.monster) &&
+        (n.spell === undefined || n.spell === tt.spell)
       );
     }
     case 'zargonTurn': {

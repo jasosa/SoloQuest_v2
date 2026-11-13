@@ -62,18 +62,22 @@ A seeded shuffle of the team, drawn each turn per monster. Always shown, even wh
 
 ## Casters
 
-Each spell once per quest unless the quest says otherwise (Grak: one per turn; Witch Lord Q14: fear twice). Suggestion order:
+Each spell listing in the quest is one cast (a spell listed twice, as the Witch Lord of Q14 has fear, can be cast twice). Every caster attacks or casts one spell per turn, so a second cast in the same turn is refused (`spellLimit: onePerTurn` is the explicit form of the same rule). Suggestion order:
 1. escape (Balur) when it has 1 Body Point left;
 2. summon (orcs / undead) when 3 or more heroes are in sight;
 3. fear on the hero with most attack dice next to it;
 4. sleep on the hero with most attack dice in sight;
 5. ball of flame / firestorm on the Wizard or Elf in sight;
-6. tempest, command: on the hero closest to the quest objective.
+6. tempest, command: on the hero in sight who is closest to the quest objective.
+
+"Next to it" for fear is a heuristic (fear is a good opener against a hero who is already in melee), not a rule. A spell that does not fit the team (summon with fewer than 3 heroes, ball of flame or firestorm with no Wizard or Elf) is not dropped: it moves to the end of the list, with a condition that says so.
 The app shows the suggested spell and a short paraphrased effect; players read the Dread spell card.
 
 ## Determinism
 
-`rng(seed | turn | monsterId)`: same turn, same order, also after undo and reload. The quest seed is set when the game starts. Grudges are stored in game state.
+`rng(seed | turn | monsterId)`: same turn, same order, also after undo and reload. The quest seed is set when the game starts. The seed is kept in the game state. The grudge hero is a pure function of (seed, monster id, team), so nothing else is stored. The draw never uses `state.rng`.
+
+The grudge hero and the tie lists assume the team is fixed for the whole quest. If the team changes, they change too.
 
 ## "Who can it reach?" mode
 

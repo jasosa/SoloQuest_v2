@@ -17,7 +17,8 @@ import type { Prompt } from './prompts';
 import { searchSecretDoors, searchTraps, searchTreasure, wanderingMonster } from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
-import { isDormant } from './monstersIn';
+import type { MonsterDef } from '../quest/schema';
+import { isDormant, monsterStateOf } from './monstersIn';
 import { areaEnter, choose, manualTrigger, runTriggers, squareTrigger, tickStone } from './notes';
 import { objectivesStatus } from './noteView';
 import { progress, revealFrom, revealRoom, revealThroughDoor } from './reveal';
@@ -94,6 +95,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       const d = draftOf(state);
       const ended = d.turn;
       d.turn += 1;
+      d.castThisTurn = [];
+      d.doneThisTurn = [];
       // A wandering monster that attacked at once is no longer "fresh" after Zargon's turn.
       for (const [id, w] of Object.entries(d.wanderers))
         if (w.fresh) d.wanderers[id] = { ...w, fresh: false };
@@ -133,6 +136,10 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       const d = draftOf(state);
       return { state: d, prompts: choose(level, state, d, event.note, event.option).prompts };
     }
+    case 'SPELL_CAST':
+      return spellCast(level, state, event.monster, event.spell);
+    case 'MONSTER_DONE':
+      return monsterDone(level, state, event.monster);
     case 'END_QUEST': {
       if (event.outcome !== 'stairs' && event.outcome !== 'fell')
         throw new EventError('BAD_RESULT', `Bad outcome ${String(event.outcome)}`);
@@ -270,4 +277,62 @@ function monsterChange(
     beforeRooms: new Set(state.revealedRooms),
   });
   return { state: d, prompts: r.prompts };
+}
+
+/** A seen, living, active quest monster, or an error. Wanderers are returned without a def. */
+function actingMonster(level: Level, state: GameState, id: string): MonsterDef | undefined {
+  const w = state.wanderers[id];
+  const def = level.quest.monsters.find((m) => m.id === id);
+  if (!w && !def) throw new EventError('UNKNOWN_MONSTER', `Unknown monster ${id}`);
+  const rec = state.monsters[id];
+  if (!state.seenMonsters.has(id) || !rec)
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} has not been seen yet`);
+  if (rec.dead) throw new EventError('MONSTER_DEAD', `Monster ${id} is dead`);
+  if (def && isDormant(def, state))
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} is a statue until the quest wakes it`);
+  if (def && monsterStateOf(def, state).state === 'stone')
+    throw new EventError('MONSTER_INACTIVE', `Monster ${id} is stone and does nothing`);
+  return def;
+}
+
+/**
+ * A caster casts one of the Dread spells of its quest data. A spell listed twice may be cast
+ * twice. A second cast in the same Zargon turn is refused for every caster (SPELL_LIMIT), and a
+ * monster already marked done cannot cast (ALREADY_DONE). Fires the `spellCast` notes.
+ */
+function spellCast(level: Level, state: GameState, id: string, spell: string): Reduced {
+  const def = actingMonster(level, state, id);
+  if (!def)
+    throw new EventError('UNKNOWN_SPELL', `Monster ${id} is a wandering monster and has no spells`);
+  if (!def.spells?.includes(spell))
+    throw new EventError('UNKNOWN_SPELL', `Monster ${id} has no spell ${spell}`);
+  if (state.doneThisTurn.includes(id))
+    throw new EventError('ALREADY_DONE', `Monster ${id} is already done this turn`);
+  const used = state.spellsCast[id] ?? [];
+  const listed = def.spells.filter((s) => s === spell).length;
+  if (used.filter((s) => s === spell).length >= listed)
+    throw new EventError('SPELL_USED', `Monster ${id} already cast ${spell}`);
+  // A monster attacks or casts one spell per turn, so this holds for every caster.
+  // `spellLimit: onePerTurn` is the explicit form of the same rule.
+  if (state.castThisTurn.includes(id))
+    throw new EventError('SPELL_LIMIT', `Monster ${id} already cast a spell this turn`);
+  const d = draftOf(state);
+  d.spellsCast = { ...state.spellsCast, [id]: [...used, spell] };
+  d.castThisTurn = [...state.castThisTurn, id];
+  const r = runTriggers(level, d, [{ type: 'spellCast', monster: id, spell }], {
+    beforeRooms: new Set(state.revealedRooms),
+  });
+  return { state: d, prompts: r.prompts };
+}
+
+/** The order of a monster was carried out this turn. A second MONSTER_DONE is refused. */
+function monsterDone(level: Level, state: GameState, id: string): Reduced {
+  actingMonster(level, state, id);
+  if (state.wanderers[id]?.fresh)
+    throw new EventError('MONSTER_INACTIVE', `Monster ${id} already attacked and acts next turn`);
+  if (state.doneThisTurn.includes(id))
+    throw new EventError('ALREADY_DONE', `Monster ${id} is already done this turn`);
+  const d = draftOf(state);
+  d.doneThisTurn = [...state.doneThisTurn, id];
+  return { state: d, prompts: [] };
 }

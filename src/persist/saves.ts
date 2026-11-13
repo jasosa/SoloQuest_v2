@@ -35,7 +35,12 @@ export const EventSchema = z.discriminatedUnion('type', [
     hero: z.enum(HEROES),
     override: z.boolean().optional(),
   }),
-  z.object({ type: z.literal('WANDERING_MONSTER'), room: z.string(), hero: z.enum(HEROES) }),
+  z.object({
+    type: z.literal('WANDERING_MONSTER'),
+    room: z.string(),
+    hero: z.enum(HEROES),
+    adjacent: z.boolean().optional(),
+  }),
   z.object({
     type: z.literal('SEARCH_SECRET_DOORS'),
     hero: z.enum(HEROES),
@@ -60,6 +65,8 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SQUARE_TRIGGER'), cell: CellSchema }),
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
+  z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
+  z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),
   z.object({ type: z.literal('END_QUEST'), outcome: z.enum(['stairs', 'fell']) }),
 ]);
 

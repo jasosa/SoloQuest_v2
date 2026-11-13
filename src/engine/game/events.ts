@@ -30,7 +30,15 @@ export type GameEvent =
       readonly override?: boolean | undefined;
     }
   /** A treasure card said "wandering monster": the quest's wandering monster joins the roster. */
-  | { readonly type: 'WANDERING_MONSTER'; readonly room: string; readonly hero: Hero }
+  | {
+      readonly type: 'WANDERING_MONSTER';
+      readonly room: string;
+      readonly hero: Hero;
+      /** Default true: it was placed next to the hero and attacked at once (fresh until the Zargon
+       *  turn ends). False: no free square next to the hero, so it stands as close as possible
+       *  and acts in the coming Zargon turn. */
+      readonly adjacent?: boolean | undefined;
+    }
   /** Search for secret doors in a room (`area`) or in a corridor in sight of `cell`. */
   | {
       readonly type: 'SEARCH_SECRET_DOORS';
@@ -65,6 +73,10 @@ export type GameEvent =
   | { readonly type: 'MANUAL_TRIGGER'; readonly note: string }
   /** The players picked option number `option` (0-based) of a pending `promptChoice`. */
   | { readonly type: 'CHOOSE'; readonly note: string; readonly option: number }
+  /** A named monster cast one of its Dread spells (once per quest per listing; `onePerTurn` limits a turn). */
+  | { readonly type: 'SPELL_CAST'; readonly monster: string; readonly spell: string }
+  /** The players carried out the order of a monster this Zargon turn. Once per monster per turn. */
+  | { readonly type: 'MONSTER_DONE'; readonly monster: string }
   /** The quest is over: the heroes left by the stairs, or all of them fell. Only once. */
   | { readonly type: 'END_QUEST'; readonly outcome: 'stairs' | 'fell' };
 
