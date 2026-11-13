@@ -20,3 +20,5 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 14 | 2026-11-13 | A room is all or nothing: the first time it is revealed (door opened, or sight reaches any square of it) the whole room is shown. No "hero enters" event is needed. |
 | 15 | 2026-11-13 | A false door can be opened by the players: nothing is revealed, and the wall stays. |
 | 16 | 2026-11-13 | Furniture does not block sight (the rulebook only says figures block spells). A block you can see is drawn as a block and stops sight behind it. The "look from here" eye disappears from a square once the players looked from it. |
+| 17 | 2026-11-13 | Quest 1 notes A and B (empty rack, empty chest): the first hero to search gets nothing; later searchers draw a normal treasure card. Same pattern for other "nothing here" notes unless the quest says otherwise. |
+| 18 | 2026-11-13 | Quest 1 note C: the guardian mummy is the one next to letter C, at (6,2). It rolls 4 attack dice. |
