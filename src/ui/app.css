@@ -1,0 +1,40 @@
+.app {
+  width: 1194px;
+  height: 834px;
+  display: grid;
+  grid-template-columns: 920px 1fr;
+  grid-template-rows: 64px 1fr;
+  position: relative;
+  overflow: hidden;
+}
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  margin: 0 28px;
+  padding-top: 16px;
+  border-bottom: 2px solid var(--ink);
+}
+header .qn {
+  font:
+    700 15px 'Bonum',
+    serif;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+header h1 {
+  font:
+    700 30px/1 'Bonum',
+    serif;
+  color: var(--ink);
+}
+.map {
+  position: relative;
+  padding: 18px 0 0 28px;
+}
+#board {
+  display: block;
+  touch-action: manipulation;
+}

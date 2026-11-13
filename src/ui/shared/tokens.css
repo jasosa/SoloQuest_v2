@@ -1,0 +1,68 @@
+@font-face {
+  font-family: 'Bonum';
+  src: url('./fonts/texgyrebonum-bold.otf');
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'Pagella';
+  src: url('./fonts/texgyrepagella-regular.otf');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Pagella';
+  src: url('./fonts/texgyrepagella-italic.otf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Pagella';
+  src: url('./fonts/texgyrepagella-bold.otf');
+  font-weight: 700;
+}
+
+:root {
+  --paper: #efe6d2;
+  --paper-2: #e6dac0;
+  --paper-3: #f6f0e3;
+  --floor: #f7f2e8;
+  --corridor: #e4d8c2;
+  --rock: #b98a8f;
+  --rock-line: #a87479;
+  --ink: #6e1f2a;
+  --ink-2: #8e3a45;
+  --text: #2b1d17;
+  --muted: #6d5a4e;
+  --green: #3f6b3a;
+  --sel: #d9c49a;
+  --off: #b9ae98;
+  --gap: 18px;
+  --ease-ink: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: var(--paper);
+  color: var(--text);
+  font:
+    16px/1.45 'Pagella',
+    Georgia,
+    serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:disabled {
+  cursor: default;
+}
