@@ -29,13 +29,13 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M2 · Play loop v1
 
-- [ ] Quest select + team select (1 to 4 heroes)
-- [ ] Play screen layout (title band, board, right column) as in the prototype
-- [ ] Margin note component (beside in the upper half, above in the lower half)
-- [ ] Open door with ink reveal animation; look from here; stamp-in tokens; roster
-- [ ] Monster callout: stats, wound/heal (Body > 1), slain
-- [ ] Undo, toasts, reduced motion
-- [ ] Quest 1 fully encoded by hand (needed to test M2..M5)
+- [x] Quest select + team select (1 to 4 heroes)
+- [x] Play screen layout (title band, board, right column) as in the prototype
+- [x] Margin note component (beside in the upper half, above in the lower half)
+- [x] Open door with ink reveal animation; look from here; stamp-in tokens; roster
+- [x] Monster callout: stats, wound/heal (Body > 1), slain
+- [x] Undo, toasts, reduced motion
+- [x] Quest 1 fully encoded by hand (needed to test M2..M5)
 
 ## M3 · Searches and traps
 

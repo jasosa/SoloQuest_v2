@@ -1,0 +1,157 @@
+/* Play screen: title band, map, right column. Ported from design/play-a/play.css. */
+
+header .turn {
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--muted);
+}
+header .turn b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  min-width: 1ch;
+}
+
+#board .hit:focus-visible {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 2px;
+}
+#board .hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.tok {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tok.stamp {
+  animation: stamp 0.32s var(--ease-ink) both;
+}
+@keyframes stamp {
+  0% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.selring {
+  animation: pulse 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+aside {
+  padding: 18px 28px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+.goal p {
+  font-style: italic;
+}
+.zinfo {
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.roster {
+  list-style: none;
+  max-height: 330px;
+  overflow: auto;
+  margin-right: -8px;
+  padding-right: 8px;
+}
+.roster li {
+  border-bottom: 1px solid var(--paper-2);
+}
+.roster li button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  min-height: 48px;
+}
+.roster li.new {
+  animation: slidein 0.35s var(--ease-ink) 0.45s both;
+}
+@keyframes slidein {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+.roster li.sel button {
+  background: linear-gradient(90deg, var(--sel), transparent);
+}
+.roster li.dead .nm,
+.roster li.dead .st,
+.roster li.dead .bp {
+  color: var(--off);
+}
+.roster li.dead .nm {
+  text-decoration: line-through;
+}
+.roster .nm {
+  font-size: 16px;
+}
+.roster .st {
+  font-size: 13.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.roster .bp {
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.roster .empty {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 15px;
+  padding: 6px 0;
+  border-bottom: 0;
+}
+.wander {
+  font-size: 15px;
+  color: var(--muted);
+}
+.wander b {
+  color: var(--text);
+}
+.zargon-btn {
+  margin-top: auto;
+  min-height: 60px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 700 19px 'Bonum';
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  transition: transform 0.08s;
+}
+.zargon-btn small {
+  font: italic 14px 'Pagella';
+  color: var(--on-ink-2);
+}
+.zargon-btn:active {
+  transform: translate(2px, 2px);
+}

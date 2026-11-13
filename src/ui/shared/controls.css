@@ -1,0 +1,218 @@
+/* Shared controls (Direction A): square, 2 px ink outline, press = 2 px shift. Ported from design/play-a/play.css. */
+
+.lbl {
+  font:
+    700 13px 'Bonum',
+    serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.link {
+  background: none;
+  border: 0;
+  font-style: italic;
+  color: var(--ink);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link:disabled {
+  color: var(--off);
+  text-decoration-color: var(--off);
+}
+.link:active:not(:disabled) {
+  color: var(--ink-2);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 700 16px 'Bonum';
+  padding: 8px 12px;
+  text-align: center;
+  transition:
+    transform 0.08s,
+    background 0.15s;
+}
+.btn + .btn {
+  margin-top: 8px;
+}
+.btn.alt {
+  background: none;
+  color: var(--ink);
+}
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+}
+.btn:disabled {
+  border-color: var(--off);
+  background: none;
+  color: var(--off);
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+.row .btn {
+  margin-top: 0;
+}
+.row + .row,
+.row + .btn,
+.btn + .row {
+  margin-top: 8px;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.chip {
+  min-height: 44px;
+  border: 1.5px solid var(--ink);
+  background: none;
+  color: var(--ink);
+  font: 700 15px 'Bonum';
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.chip[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.chip:disabled {
+  border-color: var(--off);
+  color: var(--off);
+  text-decoration: line-through;
+}
+.chip:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+/* Monster token in lists: green circle with the type letter and counter. */
+.coin {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--token-text);
+  display: grid;
+  place-items: center;
+  font: 700 12px 'Bonum';
+}
+.coin.off {
+  background: var(--off);
+}
+
+/* Margin note: sits beside the tapped object (upper half) or above it (lower half). */
+.note-slot {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.note-slot.beside {
+  display: flex;
+  align-items: center;
+}
+.callout {
+  pointer-events: auto;
+  position: relative;
+  width: 252px;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  padding: 12px 14px 14px;
+  box-shadow: 4px 4px 0 var(--sel);
+  transform-origin: var(--ox, 0) var(--oy, 50%);
+  animation: pop 0.2s var(--ease-ink) both;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.callout .kind {
+  font: 700 12px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.callout h3 {
+  font: 700 18px/1.2 'Bonum';
+  color: var(--ink);
+  margin: 2px 0 4px;
+}
+.callout p {
+  font-size: 14.5px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.callout p b {
+  color: var(--text);
+}
+.callout .close {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.toast {
+  position: absolute;
+  left: 28px;
+  bottom: 18px;
+  background: var(--text);
+  color: var(--paper);
+  padding: 4px 6px 4px 14px;
+  font-size: 15px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  animation: rise 0.25s var(--ease-ink) both;
+}
+.toast button {
+  margin-left: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  background: none;
+  border: 0;
+  color: var(--sel);
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+  .selring {
+    animation: none !important;
+  }
+}

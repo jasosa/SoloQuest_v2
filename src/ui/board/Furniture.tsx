@@ -1,0 +1,165 @@
+import type { FurnitureDef } from '../../engine/quest/schema';
+import { CELL } from './BoardView';
+import { color } from '../shared/tokens';
+
+const S = CELL;
+const INK = color.ink;
+const WHITE = color.white;
+
+/** Furniture footprint as simple line art (ported from the prototype). Rooms are never partly drawn. */
+export function Furniture({ f }: { f: FurnitureDef }) {
+  const xs = f.cells.map((c) => c[0]);
+  const ys = f.cells.map((c) => c[1]);
+  const cx0 = Math.min(...xs);
+  const cy0 = Math.min(...ys);
+  const w = (Math.max(...xs) - cx0 + 1) * S;
+  const h = (Math.max(...ys) - cy0 + 1) * S;
+  const x = cx0 * S;
+  const y = cy0 * S;
+
+  if (f.type === 'stairs') {
+    const n = Math.round(Math.min(w, h) / 10.5);
+    const step = (Math.min(w, h) - 4) / Math.max(1, n);
+    return (
+      <g>
+        <rect
+          x={x + 2}
+          y={y + 2}
+          width={w - 4}
+          height={h - 4}
+          fill={WHITE}
+          stroke={INK}
+          strokeWidth={1.5}
+        />
+        {Array.from({ length: n - 1 }, (_, i) => {
+          const r = (i + 1) * step;
+          return (
+            <path
+              key={i}
+              d={`M ${x + 2} ${y + 2 + r} A ${r} ${r} 0 0 0 ${x + 2 + r} ${y + 2}`}
+              fill="none"
+              stroke={INK}
+              strokeWidth={1.2}
+            />
+          );
+        })}
+      </g>
+    );
+  }
+  if (f.type === 'chest') {
+    return (
+      <g>
+        <rect
+          x={x + 6}
+          y={y + 8}
+          width={w - 12}
+          height={h - 16}
+          fill={WHITE}
+          stroke={INK}
+          strokeWidth={1.5}
+        />
+        <line x1={x + 6} y1={y + 14} x2={x + w - 6} y2={y + 14} stroke={INK} strokeWidth={1} />
+      </g>
+    );
+  }
+
+  const lines: React.ReactNode[] = [];
+  if (f.type === 'rack' || f.type === 'weaponsRack') {
+    const n = (Math.max(w, h) / S) * 2;
+    for (let i = 1; i < n; i++)
+      lines.push(
+        h > w ? (
+          <line
+            key={i}
+            x1={x + 8}
+            y1={y + 4 + (i * (h - 8)) / n}
+            x2={x + w - 8}
+            y2={y + 4 + (i * (h - 8)) / n}
+            stroke={INK}
+            strokeWidth={0.9}
+          />
+        ) : (
+          <line
+            key={i}
+            x1={x + 4 + (i * (w - 8)) / n}
+            y1={y + 8}
+            x2={x + 4 + (i * (w - 8)) / n}
+            y2={y + h - 8}
+            stroke={INK}
+            strokeWidth={0.9}
+          />
+        ),
+      );
+  } else if (f.type === 'bookcase') {
+    for (let i = 1; i < 9; i++)
+      lines.push(
+        <line
+          key={i}
+          x1={x + 4 + (i * (w - 8)) / 9}
+          y1={y + 8}
+          x2={x + 4 + (i * (w - 8)) / 9}
+          y2={y + h - 8}
+          stroke={INK}
+          strokeWidth={0.9}
+        />,
+      );
+  } else if (f.type === 'tomb') {
+    lines.push(
+      <rect
+        key="in"
+        x={x + 9}
+        y={y + 9}
+        width={w - 18}
+        height={h - 18}
+        fill="none"
+        stroke={INK}
+        strokeWidth={0.8}
+      />,
+      <line
+        key="v"
+        x1={x + w / 2}
+        y1={y + 14}
+        x2={x + w / 2}
+        y2={y + h - 14}
+        stroke={INK}
+        strokeWidth={0.9}
+      />,
+      <line
+        key="h"
+        x1={x + w / 2 - 8}
+        y1={y + 24}
+        x2={x + w / 2 + 8}
+        y2={y + 24}
+        stroke={INK}
+        strokeWidth={0.9}
+      />,
+    );
+  } else {
+    lines.push(
+      <rect
+        key="in"
+        x={x + 8}
+        y={y + 8}
+        width={w - 16}
+        height={h - 16}
+        fill="none"
+        stroke={INK}
+        strokeWidth={0.8}
+      />,
+    );
+  }
+  return (
+    <g>
+      <rect
+        x={x + 4}
+        y={y + 4}
+        width={w - 8}
+        height={h - 8}
+        fill={WHITE}
+        stroke={INK}
+        strokeWidth={1.5}
+      />
+      {lines}
+    </g>
+  );
+}

@@ -34,6 +34,10 @@
   --green: #3f6b3a;
   --sel: #d9c49a;
   --off: #b9ae98;
+  --on-ink: #f4ecdd;
+  --on-ink-2: #e6cfc0;
+  --token-text: #f2ebdd;
+  --white: #ffffff;
   --gap: 18px;
   --ease-ink: cubic-bezier(0.22, 0.8, 0.3, 1);
 }

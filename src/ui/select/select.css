@@ -1,0 +1,88 @@
+/* Quest and team select, in the same language as the play screen. */
+
+.pick {
+  position: relative;
+  padding: 24px 0 0 28px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: 132px;
+  gap: 12px;
+  align-content: start;
+  width: 920px;
+}
+.qcard {
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--text);
+  text-align: left;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 44px;
+  transition: transform 0.08s;
+}
+.qcard:active:not(:disabled) {
+  transform: translate(2px, 2px);
+}
+.qcard .qnum {
+  font: 700 13px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.qcard .qtitle {
+  font: 700 19px/1.2 'Bonum';
+  color: var(--ink);
+  margin-top: 4px;
+}
+.qcard .qnote {
+  margin-top: auto;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+}
+.qcard[aria-pressed='true'] {
+  background: var(--sel);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.qcard:disabled {
+  border-color: var(--off);
+  background: none;
+}
+.qcard:disabled .qnum,
+.qcard:disabled .qtitle,
+.qcard:disabled .qnote {
+  color: var(--off);
+}
+
+.side h2 {
+  font: 700 26px/1.15 'Bonum';
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.side .summary {
+  font-size: 15px;
+  color: var(--muted);
+}
+.side .saved {
+  border: 1.5px solid var(--ink);
+  background: var(--paper-3);
+  padding: 12px 14px;
+}
+.side .saved p {
+  font-size: 14.5px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.side .hint {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: -4px;
+}
+.side .actions {
+  margin-top: auto;
+}
+.side .heroes .chips {
+  margin-bottom: 6px;
+}

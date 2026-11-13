@@ -9,4 +9,6 @@ export const color = {
   text: '#2B1D17',
   sel: '#D9C49A',
   cellLine: '#CDBBA6',
+  white: '#FFFFFF',
+  tokenText: '#F2EBDD',
 } as const;
