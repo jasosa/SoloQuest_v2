@@ -62,16 +62,14 @@ A seeded shuffle of the team, drawn each turn per monster. Always shown, even wh
 
 ## Casters
 
-Each spell listing in the quest is one cast (a spell listed twice, as the Witch Lord of Q14 has fear, can be cast twice). Every caster attacks or casts one spell per turn, so a second cast in the same turn is refused (`spellLimit: onePerTurn` is the explicit form of the same rule). Suggestion order:
-1. escape (Balur) when it has 1 Body Point left;
-2. summon (orcs / undead) when 3 or more heroes are in sight;
-3. fear on the hero with most attack dice next to it;
-4. sleep on the hero with most attack dice in sight;
-5. ball of flame / firestorm on the Wizard or Elf in sight;
-6. tempest, command: on the hero in sight who is closest to the quest objective.
+The app does not model spells in detail (decision 31). Each spell listing in the quest is one cast (a spell listed twice, as the Witch Lord of Q14 has fear, can be cast twice). Every caster attacks or casts one spell per turn, so a second cast in the same turn is refused (`spellLimit: onePerTurn` is the explicit form of the same rule).
 
-"Next to it" for fear is a heuristic (fear is a good opener against a hero who is already in melee), not a rule. A spell that does not fit the team (summon with fewer than 3 heroes, ball of flame or firestorm with no Wizard or Elf) is not dropped: it moves to the end of the list, with a condition that says so.
-The app shows the suggested spell and a short paraphrased effect; players read the Dread spell card.
+For a caster with at least one spell left that has not cast this turn, the order shows ONE spell, picked at random among the spells it still has (seeded: a hash of seed, turn and monster id, so the same pick after undo and reload; never the game rng). The players answer "Could it cast it?":
+- **Yes**: `SPELL_CAST` records it. The players apply the effect on the board themselves (the app only says "Read the Dread spell card"). Casting was its action, so no plan is shown.
+- **No**: `SPELL_FAILED` records that this spell could not be cast this turn. The order then shows the next spell of the same seeded shuffle (the pick is element k of the shuffle of the spells left, k = declined count, so it never repeats). Declined spells are forgotten at the end of the Zargon turn.
+- When no spell is left (or all were declined), the order says there is no spell this turn and shows the plan of a duelist, as for a non-caster.
+
+Before any answer, the order shows the spell and the plan as a fallback line ("If it cannot cast: ...").
 
 ## Determinism
 

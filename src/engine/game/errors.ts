@@ -34,7 +34,8 @@ export type EventErrorCode =
   | 'SPELL_USED'
   | 'SPELL_LIMIT'
   | 'MONSTER_INACTIVE'
-  | 'ALREADY_DONE';
+  | 'ALREADY_DONE'
+  | 'SPELL_DECLINED';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

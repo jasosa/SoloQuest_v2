@@ -96,6 +96,7 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       const ended = d.turn;
       d.turn += 1;
       d.castThisTurn = [];
+      d.spellsFailed = {};
       d.doneThisTurn = [];
       // A wandering monster that attacked at once is no longer "fresh" after Zargon's turn.
       for (const [id, w] of Object.entries(d.wanderers))
@@ -138,6 +139,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
     }
     case 'SPELL_CAST':
       return spellCast(level, state, event.monster, event.spell);
+    case 'SPELL_FAILED':
+      return spellFailed(level, state, event.monster, event.spell);
     case 'MONSTER_DONE':
       return monsterDone(level, state, event.monster);
     case 'END_QUEST': {
@@ -316,6 +319,8 @@ function spellCast(level: Level, state: GameState, id: string, spell: string): R
   // `spellLimit: onePerTurn` is the explicit form of the same rule.
   if (state.castThisTurn.includes(id))
     throw new EventError('SPELL_LIMIT', `Monster ${id} already cast a spell this turn`);
+  if ((state.spellsFailed[id] ?? []).includes(spell))
+    throw new EventError('SPELL_DECLINED', `${spell} was declined for ${id} this turn`);
   const d = draftOf(state);
   d.spellsCast = { ...state.spellsCast, [id]: [...used, spell] };
   d.castThisTurn = [...state.castThisTurn, id];
@@ -334,5 +339,27 @@ function monsterDone(level: Level, state: GameState, id: string): Reduced {
     throw new EventError('ALREADY_DONE', `Monster ${id} is already done this turn`);
   const d = draftOf(state);
   d.doneThisTurn = [...state.doneThisTurn, id];
+  return { state: d, prompts: [] };
+}
+
+/** The players said the offered spell could not be cast: the order offers the next one. */
+function spellFailed(level: Level, state: GameState, id: string, spell: string): Reduced {
+  const def = actingMonster(level, state, id);
+  if (!def)
+    throw new EventError('UNKNOWN_SPELL', `Monster ${id} is a wandering monster and has no spells`);
+  if (!def.spells?.includes(spell))
+    throw new EventError('UNKNOWN_SPELL', `Monster ${id} has no spell ${spell}`);
+  if (state.doneThisTurn.includes(id))
+    throw new EventError('ALREADY_DONE', `Monster ${id} is already done this turn`);
+  if (state.castThisTurn.includes(id))
+    throw new EventError('SPELL_LIMIT', `Monster ${id} already cast a spell this turn`);
+  const used = (state.spellsCast[id] ?? []).filter((s) => s === spell).length;
+  if (used >= def.spells.filter((s) => s === spell).length)
+    throw new EventError('SPELL_USED', `Monster ${id} already cast ${spell}`);
+  const failed = state.spellsFailed[id] ?? [];
+  if (failed.includes(spell))
+    throw new EventError('SPELL_DECLINED', `${spell} was declined for ${id} this turn`);
+  const d = draftOf(state);
+  d.spellsFailed = { ...state.spellsFailed, [id]: [...failed, spell] };
   return { state: d, prompts: [] };
 }

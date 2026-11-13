@@ -19,6 +19,9 @@ import {
   turnProgress,
   type Order,
 } from './orders';
+import { PLAN_TEXT } from './texts';
+import { SPELL_NAMES, type SpellKey } from './spells';
+import { pickSpell } from './spellPick';
 import { RULE_KEYS, WEIGHTS, profileOf, weightsOf } from './weights';
 
 const SEED = 7;
@@ -366,7 +369,7 @@ describe('grouping', () => {
       { ...o, monster: 'a', tie: [...o.tie].reverse() },
       { ...o, monster: 'b', plan: 'other' },
       { ...o, monster: 'c', special: ['Moves 1 square'] },
-      { ...o, monster: 'd', spells: [] },
+      { ...o, monster: 'd', fallbackPlan: 'x' },
     ];
     expect(groupOrders([o, ...variants]).length).toBe(5);
   });
@@ -386,7 +389,7 @@ describe('grouping', () => {
   });
 });
 
-describe('casters, spell tracking and suggestions', () => {
+describe('casters, random spell and tracking', () => {
   const grak = {
     id: 'g',
     type: 'gargoyle',
@@ -405,93 +408,156 @@ describe('casters, spell tracking and suggestions', () => {
   const orderOf = (events: GameEvent[], team: Hero[] = TEAM) =>
     ordersFor(l, replay(l, SEED, events), team).find((o) => o.monster === 'g')!;
 
-  it('uses the caster profile and suggests spells in the ZARGON_AI order', () => {
+  const failed = (spell: string, monster = 'g'): GameEvent => ({
+    type: 'SPELL_FAILED',
+    monster,
+    spell,
+  });
+
+  it('uses the caster profile and shows ONE random spell plus the fallback plan', () => {
     const o = orderOf(seen);
     expect(o.profile).toBe('caster');
-    expect(o.spells!.map((s) => s.spell)).toEqual(['fear', 'sleep', 'tempest']);
-    expect(o.spells![0]).toMatchObject({
-      name: 'Fear',
-      effect: 'Read the Dread spell card.',
-      left: 1,
-    });
-    expect(o.spells![0]!.condition).toContain('attack dice');
-    // normal monsters have no spell list
-    expect(
-      ordersFor(l, replay(l, SEED, seen), TEAM).find((x) => x.monster === 'm1')!.spells,
-    ).toBeUndefined();
+    expect(['fear', 'sleep', 'tempest']).toContain(o.spell!.spell);
+    expect(o.spell).toMatchObject({ effect: 'Read the Dread spell card.', left: 1 });
+    expect(o.spell!.name).toBe(SPELL_NAMES[o.spell!.spell as SpellKey]);
+    expect(o.declined).toEqual([]);
+    expect(o.fallbackPlan).toBe(PLAN_TEXT.caster);
+    expect(o.plan).toBeUndefined();
+    expect(o.spellNote).toBeUndefined();
+    // no condition texts, no priority list
+    expect(JSON.stringify(o)).not.toMatch(/condition|fits/);
+    // normal monsters have no spell part
+    const m1 = ordersFor(l, replay(l, SEED, seen), TEAM).find((x) => x.monster === 'm1')!;
+    expect(m1.spell).toBeUndefined();
+    expect(m1.declined).toBeUndefined();
+    expect(m1.fallbackPlan).toBeUndefined();
   });
 
-  it('orders the full list: escape, summon, fear, sleep, fire, tempest, command', () => {
-    const all = levelWith([
-      {
-        ...grak,
-        spells: [
-          'command',
-          'tempest',
-          'firestorm',
-          'ballOfFlame',
-          'sleep',
-          'fear',
-          'summon',
-          'escape',
-        ],
-        spellLimit: undefined,
-      },
-    ]);
-    const o = ordersFor(all, replay(all, SEED, seen), TEAM).find((x) => x.monster === 'g')!;
-    expect(o.spells!.map((s) => s.spell)).toEqual([
-      'escape',
-      'summon',
-      'fear',
-      'sleep',
-      'ballOfFlame',
-      'firestorm',
-      'tempest',
-      'command',
-    ]);
+  it('the pick is deterministic (same after undo and replay), changes with turn and seed', () => {
+    expect(orderOf(seen).spell).toEqual(orderOf(seen).spell);
+    const events = [...seen, failed('fear'), failed('sleep')];
+    const back = undo(l, SEED, [...events, turnEnd]);
+    expect(ordersFor(l, back.state, TEAM)).toEqual(ordersFor(l, replay(l, SEED, events), TEAM));
+    const picks = new Set<string>();
+    for (let seed = 1; seed <= 60; seed++)
+      picks.add(
+        ordersFor(l, replay(l, seed, seen), TEAM).find((x) => x.monster === 'g')!.spell!.spell,
+      );
+    expect(picks.size).toBe(3);
+    const perTurn = new Set<string>();
+    for (let t = 0; t < 30; t++)
+      perTurn.add(orderOf([...seen, ...Array<GameEvent>(t).fill(turnEnd)]).spell!.spell);
+    expect(perTurn.size).toBeGreaterThan(1);
   });
 
-  it('sorts spells that do not fit the team last instead of dropping them', () => {
-    const all = levelWith([
-      { ...grak, spells: ['summon', 'firestorm', 'fear'], spellLimit: undefined },
-    ]);
-    const o = ordersFor(all, replay(all, SEED, seen), ['barbarian', 'dwarf']).find(
-      (x) => x.monster === 'g',
-    )!;
-    expect(o.spells!.map((s) => [s.spell, s.fits])).toEqual([
-      ['fear', true],
-      ['summon', false],
-      ['firestorm', false],
-    ]);
-    expect(o.spells![1]!.condition).toContain('fewer than 3 heroes');
-    expect(o.spells![2]!.condition).toContain('no Wizard or Elf in this team');
-    // a team that fits keeps the normal order
-    const full = ordersFor(all, replay(all, SEED, seen), TEAM).find((x) => x.monster === 'g')!;
-    expect(full.spells!.map((s) => s.spell)).toEqual(['summon', 'fear', 'firestorm']);
-    expect(full.spells!.every((s) => s.fits)).toBe(true);
+  it('does not use state.rng', () => {
+    const s = replay(l, SEED, seen);
+    expect(ordersFor(l, { ...s, rng: 99 }, TEAM)).toEqual(ordersFor(l, s, TEAM));
   });
 
-  it('says in sight for tempest and command', () => {
-    const all = levelWith([{ ...grak, spells: ['tempest', 'command'], spellLimit: undefined }]);
-    const o = ordersFor(all, replay(all, SEED, seen), TEAM).find((x) => x.monster === 'g')!;
-    for (const s of o.spells!) expect(s.condition).toContain('in its sight');
+  it('SPELL_FAILED offers the next spell, never a repeat, then the plan when none is left', () => {
+    const offered: string[] = [];
+    let events: GameEvent[] = [...seen];
+    for (let i = 0; i < 3; i++) {
+      const o = orderOf(events);
+      expect(o.declined).toEqual(offered);
+      offered.push(o.spell!.spell);
+      events = [...events, failed(o.spell!.spell)];
+    }
+    expect(new Set(offered).size).toBe(3);
+    const last = orderOf(events);
+    expect(last.spell).toBeUndefined();
+    expect(last.spellNote).toBe('No spell this turn.');
+    expect(last.plan).toBe(PLAN_TEXT.caster);
+    expect(last.fallbackPlan).toBeUndefined();
+    expect(last.declined).toEqual(offered);
   });
 
-  it('filters to spells left and tracks casts', () => {
+  it('the k-th offer is the k-th of the same shuffle whatever was declined', () => {
+    const first = orderOf(seen).spell!.spell;
+    const second = orderOf([...seen, failed(first)]).spell!.spell;
+    expect(second).not.toBe(first);
+    expect(pickSpell(SEED, 1, 'g', ['fear', 'sleep', 'tempest'], [first])).toBe(second);
+  });
+
+  it('declined spells clear at turn end, undo removes a decline', () => {
+    const s = replay(l, SEED, [...seen, failed('fear'), turnEnd]);
+    expect(s.spellsFailed).toEqual({});
+    const back = undo(l, SEED, [...seen, failed('fear')]);
+    expect(back.state.spellsFailed).toEqual({});
+  });
+
+  it('a cast shows the note and no plan, no spell', () => {
+    const o = orderOf([...seen, cast('fear')]);
+    expect(o.spellNote).toBe('It already cast a spell this turn.');
+    expect(o.spell).toBeUndefined();
+    expect(o.plan).toBeUndefined();
+    expect(o.fallbackPlan).toBeUndefined();
+  });
+
+  it('picks only among spells left and tracks casts', () => {
     const s = replay(l, SEED, [...seen, cast('fear'), turnEnd]);
     expect(spellsLeft(grak as never, s, 'g')).toEqual({ sleep: 1, tempest: 1 });
-    const o = ordersFor(l, s, TEAM).find((x) => x.monster === 'g')!;
-    expect(o.spells!.map((x) => x.spell)).toEqual(['sleep', 'tempest']);
+    for (let i = 0; i < 20; i++) {
+      const o = ordersFor(
+        l,
+        replay(l, SEED, [...seen, cast('fear'), ...Array<GameEvent>(i + 1).fill(turnEnd)]),
+        TEAM,
+      ).find((x) => x.monster === 'g')!;
+      expect(['sleep', 'tempest']).toContain(o.spell?.spell ?? 'sleep');
+    }
   });
 
-  it('says so when no spells are left or one was cast this turn', () => {
+  it('says no spells left with the plan, once everything was cast', () => {
     let evs: GameEvent[] = [...seen];
     for (const sp of ['fear', 'sleep', 'tempest']) evs = [...evs, cast(sp), turnEnd];
-    expect(orderOf(evs).spells).toEqual([]);
-    expect(orderOf(evs).spellNote).toBe('No spells left.');
-    const blocked = orderOf([...seen, cast('fear')]);
-    expect(blocked.spells).toEqual([]);
-    expect(blocked.spellNote).toBe('It already cast a spell this turn.');
+    const o = orderOf(evs);
+    expect(o.spell).toBeUndefined();
+    expect(o.spellNote).toBe('No spells left.');
+    expect(o.plan).toBe(PLAN_TEXT.caster);
+  });
+
+  it('does not filter by team (summon with one hero is still picked)', () => {
+    const all = levelWith([{ ...grak, spells: ['summon', 'firestorm'], spellLimit: undefined }]);
+    const picks = new Set<string>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const o = ordersFor(all, replay(all, seed, seen), ['dwarf']).find((x) => x.monster === 'g')!;
+      picks.add(o.spell!.spell);
+    }
+    expect([...picks].sort()).toEqual(['firestorm', 'summon']);
+  });
+
+  it('a spell listed twice has left 2 and is one element of the pick list', () => {
+    const wl = levelWith([{ ...grak, spells: ['fear', 'fear'], spellLimit: undefined }]);
+    const o = ordersFor(wl, replay(wl, SEED, seen), TEAM).find((x) => x.monster === 'g')!;
+    expect(o.spell).toMatchObject({ spell: 'fear', left: 2 });
+  });
+
+  it('SPELL_FAILED rules: unknown, used, declined twice, cast, done, dead, wanderer', () => {
+    const run =
+      (...e: GameEvent[]) =>
+      () =>
+        replay(l, SEED, [...seen, ...e]);
+    expect(code(run(failed('ballOfFlame')))).toBe('UNKNOWN_SPELL');
+    expect(code(run(failed('fear', 'm1')))).toBe('UNKNOWN_SPELL');
+    expect(code(run(failed('fear', 'zz')))).toBe('UNKNOWN_MONSTER');
+    expect(code(run(failed('fear'), failed('fear')))).toBe('SPELL_DECLINED');
+    expect(code(run(failed('fear'), cast('fear')))).toBe('SPELL_DECLINED');
+    expect(code(run(failed('fear'), cast('sleep')))).toBeUndefined();
+    expect(code(run(cast('fear'), failed('sleep')))).toBe('SPELL_LIMIT');
+    expect(code(run(cast('fear'), turnEnd, failed('fear')))).toBe('SPELL_USED');
+    expect(code(run({ type: 'MONSTER_DONE', monster: 'g' }, failed('fear')))).toBe('ALREADY_DONE');
+    expect(code(run({ type: 'MONSTER_KILL', monster: 'g' }, failed('fear')))).toBe('MONSTER_DEAD');
+    expect(code(run(failed('fear'), turnEnd, failed('fear')))).toBeUndefined();
+    const w = levelWith([], { wandering: { monster: 'skeleton' } });
+    expect(
+      code(() =>
+        replay(w, SEED, [
+          { type: 'WANDERING_MONSTER', room: 'R20', hero: 'elf' },
+          failed('fear', 'w1'),
+        ]),
+      ),
+    ).toBe('UNKNOWN_SPELL');
   });
 
   it('rejects unknown, used, limited, dead, dormant, stone and unknown monsters', () => {
@@ -522,7 +588,7 @@ describe('casters, spell tracking and suggestions', () => {
     const o = ordersFor(wl, replay(wl, SEED, [...seen, c, turnEnd]), TEAM).find(
       (x) => x.monster === 'g',
     )!;
-    expect(o.spells![0]!.left).toBe(1);
+    expect(o.spell!.left).toBe(1);
   });
 
   it('undo removes a cast', () => {

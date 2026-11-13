@@ -111,6 +111,8 @@ export interface GameState {
   readonly spellsCast: Readonly<Record<string, readonly string[]>>;
   /** Monsters that cast a spell this Zargon turn (for `onePerTurn`). Cleared on ZARGON_TURN_END. */
   readonly castThisTurn: readonly string[];
+  /** Spells the players said could not be cast this turn, per monster, in order. Cleared on ZARGON_TURN_END. */
+  readonly spellsFailed: Readonly<Record<string, readonly string[]>>;
   /** Monsters whose order was carried out this Zargon turn. Cleared on ZARGON_TURN_END. */
   readonly doneThisTurn: readonly string[];
   /** Set once by END_QUEST. After that every event is rejected. */
@@ -149,6 +151,7 @@ export function emptyState(seed: number): GameState {
     choicesMade: [],
     spellsCast: {},
     castThisTurn: [],
+    spellsFailed: {},
     doneThisTurn: [],
     ended: undefined,
   };

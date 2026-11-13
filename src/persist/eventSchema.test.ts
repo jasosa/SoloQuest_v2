@@ -20,6 +20,7 @@ describe('EventSchema covers the search, trap and notes events', () => {
     { type: 'MANUAL_TRIGGER', note: 'n-A' },
     { type: 'CHOOSE', note: 'n-A', option: 1 },
     { type: 'SPELL_CAST', monster: 'm1', spell: 'fear' },
+    { type: 'SPELL_FAILED', monster: 'm1', spell: 'fear' },
     { type: 'MONSTER_DONE', monster: 'm1' },
     { type: 'END_QUEST', outcome: 'stairs' },
     { type: 'END_QUEST', outcome: 'fell' },
@@ -38,6 +39,7 @@ describe('EventSchema covers the search, trap and notes events', () => {
 
   it('rejects bad Zargon events', () => {
     expect(EventSchema.safeParse({ type: 'SPELL_CAST', monster: 'm1' }).success).toBe(false);
+    expect(EventSchema.safeParse({ type: 'SPELL_FAILED', monster: 'm1' }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'MONSTER_DONE' }).success).toBe(false);
   });
 

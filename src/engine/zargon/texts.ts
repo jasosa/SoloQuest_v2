@@ -19,7 +19,8 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
   brute: 'Move in and attack. Never falls back.',
   duelist: 'Move in and attack. No hero in reach: block the nearest doorway.',
   relentless: 'Move in and attack. Never falls back.',
-  caster: 'Cast a spell if a target is in sight and a spell is left; otherwise as duelist.',
+  // The plan of a caster that has no spell to cast: as a duelist.
+  caster: 'Move in and attack. No hero in reach: block the nearest doorway.',
 };
 
 /** Plan once the target is chosen and the monster is already next to it. */

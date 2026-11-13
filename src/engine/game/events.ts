@@ -75,6 +75,8 @@ export type GameEvent =
   | { readonly type: 'CHOOSE'; readonly note: string; readonly option: number }
   /** A named monster cast one of its Dread spells (once per quest per listing; `onePerTurn` limits a turn). */
   | { readonly type: 'SPELL_CAST'; readonly monster: string; readonly spell: string }
+  /** The players said this spell could not be cast this turn. The order offers the next one. */
+  | { readonly type: 'SPELL_FAILED'; readonly monster: string; readonly spell: string }
   /** The players carried out the order of a monster this Zargon turn. Once per monster per turn. */
   | { readonly type: 'MONSTER_DONE'; readonly monster: string }
   /** The quest is over: the heroes left by the stairs, or all of them fell. Only once. */

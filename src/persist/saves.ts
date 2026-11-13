@@ -66,6 +66,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
+  z.object({ type: z.literal('SPELL_FAILED'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),
   z.object({ type: z.literal('END_QUEST'), outcome: z.enum(['stairs', 'fell']) }),
 ]);

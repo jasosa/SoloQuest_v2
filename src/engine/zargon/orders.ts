@@ -10,30 +10,20 @@ import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
 import type { MonsterDef, MonsterType } from '../quest/schema';
 import { rngFor, shuffled } from './hash';
-import {
-  SPELL_KEYS,
-  SPELL_EFFECT_TEXT,
-  SPELL_NAMES,
-  SPELL_RULES,
-  SPELL_UNFIT_TEXT,
-  isSpellKey,
-  type SpellKey,
-} from './spells';
+import { SPELL_EFFECT_TEXT, SPELL_NAMES, isSpellKey } from './spells';
+import { pickSpell } from './spellPick';
 import { PLAN_TEXT, RULE_TEXT } from './texts';
 import { isCaster, profileOf, weightsOf, type Profile, type RuleKey } from './weights';
 
-export interface SpellSuggestion {
+/** The one spell picked for a caster this turn. The app does not describe spells. */
+export interface SpellPick {
   readonly spell: string;
   /** Display name. */
   readonly name: string;
-  /** Plain words: when to cast it. The players check, the app does not know who is in sight. */
-  readonly condition: string;
-  /** Always "Read the Dread spell card." (the app has no spell texts). */
-  readonly effect: string;
-  /** False when the team cannot use it well (listed last, with a condition that says so). */
-  readonly fits: boolean;
-  /** Casts left for this spell (a spell listed twice in the quest has 2). */
+  /** Casts left for this spell, this one included (a spell listed twice in the quest has 2). */
   readonly left: number;
+  /** Always "Read the Dread spell card." */
+  readonly effect: string;
 }
 
 export type OrderStatus = 'act' | 'stone' | 'fresh';
@@ -55,9 +45,13 @@ export interface Order {
   readonly plan?: string;
   /** Rules from the quest data that apply now (stat overrides, spell limit). */
   readonly special: readonly string[];
-  /** Casters only: suggestions in order, restricted to spells left. */
-  readonly spells?: readonly SpellSuggestion[];
-  /** Casters only: why `spells` is empty, when it is. */
+  /** Casters with a spell to try: the random pick. Ask "Could it cast it?" (SPELL_CAST / SPELL_FAILED). */
+  readonly spell?: SpellPick;
+  /** Casters only: spells declined this turn (SPELL_FAILED), in the order they were offered. */
+  readonly declined?: readonly string[];
+  /** Shown with `spell`: "If it cannot cast: <plan>". */
+  readonly fallbackPlan?: string;
+  /** Casters only: why there is no spell (none left, all declined, already cast). */
   readonly spellNote?: string;
   /** A sentence for the UI (stone countdown, fresh wanderer). */
   readonly note?: string;
@@ -137,41 +131,6 @@ export function spellsLeft(
   return left;
 }
 
-/**
- * Spells left, in suggestion order. A spell that does not fit the team is not dropped: it goes to
- * the end, with a condition that says so.
- */
-function suggestSpells(
-  left: Readonly<Record<string, number>>,
-  team: readonly Hero[],
-): SpellSuggestion[] {
-  const hasCaster = team.includes('wizard') || team.includes('elf');
-  const fits = (k: SpellKey): boolean => {
-    const need = SPELL_RULES[k].need;
-    return need === 'none' || (need === 'threeHeroes' ? team.length >= 3 : hasCaster);
-  };
-  return Object.keys(left)
-    .filter(isSpellKey)
-    .sort(
-      (a, b) =>
-        Number(!fits(a)) - Number(!fits(b)) ||
-        SPELL_RULES[a].priority - SPELL_RULES[b].priority ||
-        SPELL_KEYS.indexOf(a) - SPELL_KEYS.indexOf(b),
-    )
-    .map((k: SpellKey) => {
-      const need = SPELL_RULES[k].need;
-      const ok = fits(k);
-      return {
-        spell: k,
-        name: SPELL_NAMES[k],
-        condition: ok || need === 'none' ? SPELL_RULES[k].condition : SPELL_UNFIT_TEXT[need],
-        fits: ok,
-        effect: SPELL_EFFECT_TEXT,
-        left: left[k]!,
-      };
-    });
-}
-
 function buildOrder(
   state: GameState,
   team: readonly Hero[],
@@ -225,15 +184,33 @@ function buildOrder(
   if (profile !== 'caster' || !isCaster(caps)) return order;
 
   const left = def ? spellsLeft(def, state, id) : {};
-  // Every caster attacks or casts one spell per turn.
-  const blocked = !fresh && state.castThisTurn.includes(id);
-  const suggestions = blocked ? [] : suggestSpells(left, t);
-  const spellNote = blocked
-    ? 'It already cast a spell this turn.'
-    : Object.keys(left).length === 0
-      ? 'No spells left.'
-      : undefined;
-  return { ...order, spells: suggestions, ...(spellNote ? { spellNote } : {}) };
+  // Casting was its action for the turn: no plan then.
+  if (!fresh && state.castThisTurn.includes(id)) {
+    const { plan: _plan, ...rest } = order;
+    void _plan;
+    return { ...rest, declined: [], spellNote: 'It already cast a spell this turn.' };
+  }
+  const declined = state.spellsFailed[id] ?? [];
+  const pick = pickSpell(seed, turn, id, Object.keys(left), declined);
+  if (pick === undefined)
+    return {
+      ...order,
+      declined: [...declined],
+      spellNote: Object.keys(left).length === 0 ? 'No spells left.' : 'No spell this turn.',
+    };
+  const { plan: _plan, ...rest } = order;
+  void _plan;
+  return {
+    ...rest,
+    declined: [...declined],
+    spell: {
+      spell: pick,
+      name: isSpellKey(pick) ? SPELL_NAMES[pick] : pick,
+      left: left[pick]!,
+      effect: SPELL_EFFECT_TEXT,
+    },
+    fallbackPlan: PLAN_TEXT.caster,
+  };
 }
 
 /**
@@ -280,7 +257,9 @@ export function orderKey(o: Order): string {
     o.grudgeHero ?? null,
     o.tie,
     o.plan ?? null,
-    o.spells ?? null,
+    o.spell ?? null,
+    o.declined ?? null,
+    o.fallbackPlan ?? null,
     o.spellNote ?? null,
     o.special,
     o.note ?? null,
