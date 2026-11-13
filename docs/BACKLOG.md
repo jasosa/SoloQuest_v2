@@ -64,9 +64,9 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## Small changes (owner requests, 2026-11-13)
 
-- [ ] "Look from here" is offered only on squares with the eye symbol (the `lookHintCells` squares). Other seen corridor squares get no look option; the engine should refuse `LOOK_FROM` elsewhere too, with a test
-- [ ] "Search for secret doors" does not ask for a hero (same as the chest trap search): drop `hero` from `SEARCH_SECRET_DOORS` in the engine, the event schema and the UI sheet
-- [ ] Furniture shows a note with its name (for example "Weapons rack"). It must work by tap on touch screens and phones, not only by hover; on a desktop, hover shows it too. Keyboard: focus shows it. The chest note already exists, so it gets the name too. Names come from the furniture type, no book text
+- [x] "Look from here" is offered only on squares with the eye symbol (the `lookHintCells` squares). Other seen corridor squares get no look option; the engine should refuse `LOOK_FROM` elsewhere too, with a test
+- [x] "Search for secret doors" does not ask for a hero (same as the chest trap search): drop `hero` from `SEARCH_SECRET_DOORS` in the engine, the event schema and the UI sheet
+- [x] Furniture shows a note with its name (for example "Weapons rack"). It must work by tap on touch screens and phones, not only by hover; on a desktop, hover shows it too. Keyboard: focus shows it. The chest note already exists, so it gets the name too. Names come from the furniture type, no book text
 
 ## M6 · Editor
 
@@ -84,7 +84,9 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M8 · Polish
 
-- [ ] Polish from the M5 review: Esc closes both the Zargon page and an open note card (should close only the top one); clear reach selections on undo or page close; closing the wandering monster question card without a choice loses the draw-card result, so return to the result sheet instead; the Zargon page should move focus to its heading when it opens; check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
+- [ ] Polish from the M5b review: NoteCard Esc stack should use a ref for `onClose` and a stable id, and margin notes should join the stack (Esc can close both a margin note and a card today); check that the all-heroes-fallen card does not reappear after every new event
+
+- [ ] Polish from the M5 review: the Zargon dialog should move focus to its heading when it opens; check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
 
 - [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 

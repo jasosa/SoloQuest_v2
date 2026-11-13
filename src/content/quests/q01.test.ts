@@ -6,6 +6,7 @@ import { board } from '../../engine/board/board';
 import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { statsOf } from '../../engine/data/monsters';
+import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
 import { journal, mapLetters, monstersInPlay, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
@@ -17,8 +18,17 @@ const quest = parseQuest(
 const level = buildLevel(quest);
 const open = (door: string): GameEvent => ({ type: 'OPEN_DOOR', door });
 const run = (...events: GameEvent[]) => replay(level, 1, events);
+// A look is only allowed from a hint square (decision 13), so a square that shows nothing new is
+// skipped: the later door check proves the walk still works.
+const extend = (events: GameEvent[], ...cells: [number, number][]): GameEvent[] => {
+  const out = [...events];
+  for (const [x, y] of cells)
+    if (lookHintCells(level, run(...out)).some((c) => c[0] === x && c[1] === y))
+      out.push({ type: 'LOOK_FROM', cell: [x, y] });
+  return out;
+};
 const looks = (...cells: [number, number][]): GameEvent[] =>
-  cells.map(([x, y]) => ({ type: 'LOOK_FROM', cell: [x, y] }));
+  extend([{ type: 'OPEN_DOOR', door: 'd1' }], ...cells).slice(1);
 // Corridor squares to look from, in order, to see a door from outside (checked by the engine:
 // a look from a square that was not seen yet throws).
 const toD5 = looks([13, 18]);
@@ -156,24 +166,15 @@ describe('quest 1: walk-through', () => {
   });
 
   it('never reveals rock rooms', () => {
-    const all = run(
-      open('d1'),
-      open('d2'),
-      open('d3'),
-      open('d4'),
-      ...toD6,
-      open('d6'),
-      ...toD5,
-      open('d5'),
-      ...toD7,
-      open('d7'),
-      ...toRow9,
-      open('d8'),
-      open('d9'),
-      open('d10'),
-      open('d11'),
-      open('d12'),
-    );
+    let ev: GameEvent[] = [open('d1'), open('d2'), open('d3'), open('d4')];
+    ev = extend(ev, [13, 18], [13, 12], [16, 12]);
+    ev.push(open('d6'));
+    ev = extend(ev, [13, 18]);
+    ev.push(open('d5'));
+    ev = extend(ev, [0, 18]);
+    ev.push(open('d7'));
+    ev = extend(ev, [2, 18], [4, 18], [1, 18], [5, 18], [0, 17], [0, 9]);
+    const all = run(...ev, open('d8'), open('d9'), open('d10'), open('d11'), open('d12'));
     for (const k of all.seenCells) expect(level.rock.has(k)).toBe(false);
     for (const r of ['R04', 'R05', 'R06', 'R09', 'R10', 'R13', 'R14', 'R15', 'R16', 'R21', 'R22'])
       expect(all.revealedRooms.has(r)).toBe(false);

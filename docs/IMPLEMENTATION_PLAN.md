@@ -38,7 +38,7 @@ From the rulebook, the parts that matter for the app:
 | Line of sight | Straight line between square centers. Visible if it does not cross a wall or closed door, even if it touches a corner. | Ray cast center-to-center on the wall-edge grid. Corner touch = visible. Blocked squares count as wall. Monsters and heroes do not block reveal (they only block spells). |
 | Doors | All start closed. Once opened they never close. Opening is free (not an action). | Doors can only go from closed to open. |
 | Search treasure | Rooms only. No monsters in the room. Each hero once per room. Special treasure only for the first searcher; otherwise draw a treasure card. Wandering monster from a card is placed next to the searcher and attacks them at once. | Search dialog: pick hero, check room has no living revealed monsters, per-hero-per-room tracking, special note or "Draw a treasure card" + "I drew a Wandering Monster" button. |
-| Search secret doors | No monsters visible. Zargon reveals secret doors in the room or corridor where the hero is. Door must still be opened later. | Search dialog: pick hero and area (room, or corridor cell for line of sight). Places found secret doors as closed doors. |
+| Search secret doors | No monsters visible. Zargon reveals secret doors in the room or corridor where the hero is. Door must still be opened later. | Search dialog: pick the area (room, or corridor cell for line of sight); no hero. Places found secret doors as closed doors. |
 | Traps (official) | Pit, falling block, spear, chest/furniture. Hidden until searched. Jump: 2 moves left, 1 combat die, skull = sprung. Disarm: tool kit (fail on skull) or Dwarf (fail on black shield). | Replaced by the house rule below. |
 | Monsters | Move then act, or act then move. Never move part way, act, and move again. No diagonal. Max one attack. Spellcasters cast instead of attacking, each spell once per quest. | Zargon turn assistant: action plan per monster ("advance and attack", "attack and retreat", "hold", "cast X"). |
 | Ending | Goal done and back to stairway, or retreat to stairway, or all heroes dead. | End quest screen with objectives check and reward. |
@@ -99,7 +99,7 @@ SoloQuest_v2/
 **Engine pattern: event sourcing**
 
 - `GameState = reduce(questDefinition, events[])`.
-- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`.
+- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`.
 - The reducer returns new state plus a list of **prompts** (texts, choices) for the UI.
 - Benefits: full undo (very important at the table, mis-taps happen), autosave is just the event list, deterministic tests, replay for debugging.
 - Randomness (AI tie breaks) uses a seeded RNG stored in state, so undo/redo is stable.
@@ -222,7 +222,7 @@ Explored area stays visible. Fog covers the rest. Rock is never shown as playabl
 
 ### 5.4 Zargon's turn assistant
 
-Hero and monster positions are not tracked, so the app cannot compute reach. The design gives a **priority list** that players apply on the board, plus an optional detailed mode.
+Hero and monster positions are not tracked, so the app cannot compute reach. The design gives an **order per monster** that players apply on the board. The page shows one monster at a time in a dialog (decision 34); there is no reach mode.
 
 For each active monster, in reveal order, one card:
 
@@ -237,14 +237,14 @@ For each active monster, in reveal order, one card:
 
 How the order is built (full spec: `docs/ZARGON_AI.md`): each Zargon turn, each monster draws a **target rule** from weights for its type (closest, last attacker, fewest or most Body Points left, fewest defend dice, most attack dice, a spellcaster, or a grudge against one named hero kept for the whole quest). Players apply it with their character sheets. A **tie list** (seeded shuffle of the team) is always shown. The **plan** comes from the monster profile (skirmisher, soldier, brute, duelist, relentless, caster). Same seed + turn + monster gives the same order, also after undo.
 
-Hero Body Points are not tracked (decided); rules that need them are applied by the players. In priority mode, monsters with the same order this turn share one entry. **Detailed mode** ("Who can it reach?" toggle): per monster the players tap the heroes it can reach; the app names the target when it can, otherwise shows the rule on the reachable heroes plus the tie list.
+Hero Body Points are not tracked (decided); rules that need them are applied by the players. The app tracks only whether a hero died (decision 32): dead heroes leave the tie list and cannot be named in events.
 
-Spell choice for casters: fear when the adjacent hero has high attack, ball of flame / firestorm on the Wizard or Elf when in sight, sleep on the strongest melee hero, summon when outnumbered, escape (Balur) when body is 1, tempest on a hero about to finish the objective. Each spell once per quest (Grak: one per turn).
+Spell choice for casters (decision 31): one random spell the monster still has; the players say whether it could be cast; if not, the next random one; when none is left, the normal plan. Each spell listing once per quest, one spell per turn.
 
 ### 5.5 Searches
 
 - **Treasure**: hero picker (greyed if this hero searched this room), room check (warn if living revealed monsters in room; players can confirm a "the monster is in fact gone" override). Order: armed chest trap in the room springs first (note effect), then special treasure (first searcher only), else "Draw a treasure card". Result card offers **"Wandering monster"**: adds the quest's wandering monster to the roster, marked "attacks the searcher now".
-- **Secret doors**: hero + area. In a room: all secret doors on its walls. In a corridor: secret doors in line of sight of the tapped cell. Found doors appear closed. Notes like Q5 E can override ("nothing found").
+- **Secret doors**: area (no hero). In a room: all secret doors on its walls. In a corridor: secret doors in line of sight of the tapped cell. Found doors appear closed. Notes like Q5 E can override ("nothing found").
 
 ### 5.6 Special quest mechanics in the 14 quests
 
@@ -372,7 +372,7 @@ Process: the `oil-ui` skill. Three directions were rendered (`design/explore/sty
 
 1. Failed jump or failed disarm: the trap springs with the normal rules of its type.
 2. Hero Body Points: not tracked.
-3. Zargon assistant: priority list by default, "Who can it reach?" as an option. Target rules are dynamic and always come with a tie list (`docs/ZARGON_AI.md`).
+3. Zargon assistant: one monster at a time in a dialog. Target rules are dynamic and always come with a tie list (`docs/ZARGON_AI.md`).
 4. Gold, equipment, artifacts between quests: not tracked.
 5. UI direction: **A · Quest Book Map**. Prototype and design note in `design/play-a/`.
 6. Wandering monster placement card, quest note letters on the map, "Look from here" eye hints. Full list: `docs/DECISIONS.md`.

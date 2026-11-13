@@ -114,6 +114,11 @@ export async function devTestLevel(): Promise<Level | undefined> {
           ],
         },
         {
+          id: 'n-stone',
+          trigger: { type: 'manual', label: 'Turn the guardian to stone' },
+          effects: [{ type: 'setMonsterState', monster: 'm3', state: 'stone', turns: 2 }],
+        },
+        {
           id: 'n-place',
           trigger: { type: 'manual', label: 'Wake the guardian' },
           effects: [{ type: 'placeMonster', monster: 'm3', cell: [3, 17] }],

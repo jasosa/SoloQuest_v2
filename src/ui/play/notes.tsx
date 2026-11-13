@@ -213,11 +213,8 @@ export function ResultBody({
   prompts,
   onDone,
   onWandering,
-  adjacent = true,
 }: {
   prompts: readonly Prompt[];
-  /** The answer to "was there a free square?" for a wandering monster. */
-  adjacent?: boolean;
   onDone(): void;
   /** Present when a wandering monster can be asked for (after a treasure search). */
   onWandering: (() => void) | undefined;
@@ -228,7 +225,7 @@ export function ResultBody({
     <>
       {shown.map((p, i) => (
         <section key={i} className="result">
-          <Section p={p} heading={i > 0} adjacent={adjacent} />
+          <Section p={p} heading={i > 0} />
         </section>
       ))}
       <button className="btn" onClick={onDone}>
@@ -244,7 +241,7 @@ export function ResultBody({
 }
 
 /** The big heading of a prompt, used as the note title for the first one. */
-export function headingOf(p: Prompt, adjacent = true): string {
+export function headingOf(p: Prompt): string {
   switch (p.kind) {
     case 'trapSprung':
       return sprungTitle(p.trapKind);
@@ -257,7 +254,7 @@ export function headingOf(p: Prompt, adjacent = true): string {
     case 'drawCard':
       return 'Draw a treasure card';
     case 'wanderingMonster':
-      return adjacent ? `It attacks the ${HERO_NAMES[p.hero]}!` : 'It acts next turn';
+      return `It attacks the ${HERO_NAMES[p.hero]}!`;
     case 'wanderingText':
       return 'Wandering monster';
     case 'secretDoorsFound':
@@ -273,7 +270,7 @@ export function headingOf(p: Prompt, adjacent = true): string {
   }
 }
 
-function lines(p: Prompt, adjacent: boolean): string[] {
+function lines(p: Prompt): string[] {
   switch (p.kind) {
     case 'trapSprung':
       return sprungLines(p);
@@ -286,7 +283,7 @@ function lines(p: Prompt, adjacent: boolean): string[] {
     case 'drawCard':
       return ['No quest treasure here. Read the card aloud.'];
     case 'wanderingMonster':
-      return wanderingLines(p, adjacent);
+      return wanderingLines(p);
     case 'wanderingText':
       return [p.text];
     case 'secretDoorsFound':
@@ -328,11 +325,11 @@ export const resultPrompts = (prompts: readonly Prompt[]) =>
       !(p.kind === 'trapFound' && prompts.findIndex((q) => q.kind === 'trapFound') !== i),
   );
 
-function Section({ p, heading, adjacent }: { p: Prompt; heading: boolean; adjacent: boolean }) {
+function Section({ p, heading }: { p: Prompt; heading: boolean }) {
   return (
     <>
-      {heading && <h4>{headingOf(p, adjacent)}</h4>}
-      {lines(p, adjacent).map((l, i) => (
+      {heading && <h4>{headingOf(p)}</h4>}
+      {lines(p).map((l, i) => (
         <p key={i}>{l}</p>
       ))}
     </>
@@ -380,6 +377,26 @@ export function ChestBody(props: {
           The room is clear, search anyway
         </button>
       )}
+    </>
+  );
+}
+
+/** The secret door search needs no hero. Only the guard is left: monsters in the way. */
+export function SecretGuard(props: {
+  /** Codes of living monsters in the way (may be empty when the engine only says "in sight"). */
+  monsters: readonly string[];
+  onOverride(): void;
+}) {
+  return (
+    <>
+      <p className="warn">
+        {props.monsters.length > 0
+          ? `${props.monsters.join(', ')} still here. A search needs a clear room.`
+          : 'A monster is in sight. A search needs a clear corridor.'}
+      </p>
+      <button className="btn alt" onClick={props.onOverride}>
+        The room is clear, search anyway
+      </button>
     </>
   );
 }

@@ -57,27 +57,12 @@ export function sprungLines(p: Sprung): string[] {
   return lines;
 }
 
-/** Before the monster is added: where to put it, and the question. */
-export function wanderAskLines(type: MonsterType, hero: Hero): string[] {
-  const h = HERO_NAMES[hero];
-  return [
-    `Put the ${MONSTER_NAMES[type]} on a free square next to the ${h}. It attacks the ${h} at once with ${MONSTER_STATS[type].att} attack dice. This round it attacks nobody else.`,
-    `Was there a free square next to the ${h}?`,
-  ];
-}
-
-/** After the answer. `adjacent` false: no free square, it acts in the coming Zargon turn. */
-export function wanderingLines(
-  p: Extract<Prompt, { kind: 'wanderingMonster' }>,
-  adjacent = true,
-): string[] {
+/** The wandering monster card (decision 33): always next to the hero, attacks at once. */
+export function wanderingLines(p: Extract<Prompt, { kind: 'wanderingMonster' }>): string[] {
   const hero = HERO_NAMES[p.hero];
-  if (!adjacent)
-    return [
-      `Put the ${MONSTER_NAMES[p.monsterType as MonsterType]} in the room as close to the ${hero} as you can. It does not attack now: it acts in Zargon's next turn.`,
-    ];
+  const name = MONSTER_NAMES[p.monsterType as MonsterType];
   return [
-    `It attacks the ${hero} at once with ${MONSTER_STATS[p.monsterType].att} attack dice. This round it attacks nobody else.`,
+    `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${MONSTER_STATS[p.monsterType].att} attack dice. This round it attacks nobody else.`,
   ];
 }
 

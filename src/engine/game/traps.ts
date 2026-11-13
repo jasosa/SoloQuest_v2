@@ -95,6 +95,8 @@ export function trapEvent(
         throw new EventError('BAD_RESULT', `Bad disarm tool ${String(event.by)}`);
       if (!['skull', 'blackShield', 'other'].includes(event.result))
         throw new EventError('BAD_RESULT', `Bad disarm result ${String(event.result)}`);
+      if (event.by === 'dwarf' && state.deadHeroes.includes('dwarf'))
+        throw new EventError('HERO_DEAD', 'The dwarf is dead and cannot disarm');
       const trap = checkUsable(level, state, event.trap, 'disarm');
       const d = draftOf(state);
       const fails =

@@ -10,15 +10,7 @@ import { parseQuest } from '../quest/loader';
 import { MONSTER_TYPES } from '../quest/schema';
 import { testQuest } from '../quest/testQuest';
 import { validateQuest } from '../quest/validate';
-import {
-  availableRules,
-  grudgeHero,
-  groupOrders,
-  ordersFor,
-  spellsLeft,
-  turnProgress,
-  type Order,
-} from './orders';
+import { availableRules, grudgeHero, ordersFor, spellsLeft, turnProgress } from './orders';
 import { PLAN_TEXT } from './texts';
 import { SPELL_NAMES, type SpellKey } from './spells';
 import { pickSpell } from './spellPick';
@@ -346,46 +338,6 @@ describe('special rules', () => {
       'Moves 1 square',
       'Has 5 Body Points',
     ]);
-  });
-});
-
-describe('grouping', () => {
-  it('merges identical orders and keeps the reveal order', () => {
-    const base = ordersFor(levelWith(), replay(levelWith(), SEED, [open('d2')]), TEAM)[0]!;
-    const other: Order = { ...base, monster: 'a', name: 'Other', done: true };
-    const odd: Order = { ...base, monster: 'b', rule: 'highestDef', ruleText: 'x' };
-    const third: Order = { ...base, monster: 'c' };
-    const groups = groupOrders([base, odd, other, third]);
-    expect(groups.map((g) => g.monsters)).toEqual([[base.monster, 'a', 'c'], ['b']]);
-    expect(groups[0]!.doneIds).toEqual(['a']);
-    expect(groups[0]!.done).toBe(false);
-    expect(groups[0]!.order).toBe(base);
-  });
-
-  it('separates different tie lists, plans, spells and special rules', () => {
-    const l = levelWith();
-    const o = ordersFor(l, replay(l, SEED, [open('d2')]), TEAM)[0]!;
-    const variants: Order[] = [
-      { ...o, monster: 'a', tie: [...o.tie].reverse() },
-      { ...o, monster: 'b', plan: 'other' },
-      { ...o, monster: 'c', special: ['Moves 1 square'] },
-      { ...o, monster: 'd', fallbackPlan: 'x' },
-    ];
-    expect(groupOrders([o, ...variants]).length).toBe(5);
-  });
-
-  it('really groups monsters of one team of one hero (same rule, same tie list)', () => {
-    const l = levelWith([
-      { id: 'a', type: 'orc', cell: [5, 16] },
-      { id: 'b', type: 'orc', cell: [5, 17] },
-      { id: 'c', type: 'orc', cell: [6, 16] },
-    ]);
-    let grouped = false;
-    for (let seed = 1; seed < 30 && !grouped; seed++) {
-      const g = groupOrders(ordersFor(l, replay(l, seed, [open('d2')]), ['dwarf']));
-      grouped = g.some((x) => x.monsters.length > 1);
-    }
-    expect(grouped).toBe(true);
   });
 });
 
@@ -779,34 +731,22 @@ describe('spellCast notes', () => {
   });
 });
 
-describe('wandering monster that found no free square', () => {
+describe('wandering monster is always placed (decision 33)', () => {
   const w = levelWith([], { wandering: { monster: 'skeleton' } });
-  const wander = (adjacent?: boolean): GameEvent => ({
-    type: 'WANDERING_MONSTER',
-    room: 'R20',
-    hero: 'elf',
-    ...(adjacent !== undefined ? { adjacent } : {}),
+  const wander: GameEvent = { type: 'WANDERING_MONSTER', room: 'R20', hero: 'elf' };
+
+  it('is fresh until the Zargon turn ends, then acts', () => {
+    const s = replay(w, SEED, [wander]);
+    expect(s.wanderers.w1).toMatchObject({ fresh: true, wanderAt: 'elf' });
+    expect(ordersFor(w, s, TEAM)[0]!.status).toBe('fresh');
+    expect(turnProgress(w, s).remaining).not.toContain('w1');
+    const s2 = replay(w, SEED, [wander, turnEnd]);
+    expect(ordersFor(w, s2, TEAM)[0]!.status).toBe('act');
+    expect(turnProgress(w, s2).remaining).toContain('w1');
   });
 
-  it('adjacent defaults to true: fresh, no order this turn', () => {
-    for (const a of [undefined, true]) {
-      const s = replay(w, SEED, [wander(a)]);
-      expect(s.wanderers.w1!.fresh).toBe(true);
-      expect(ordersFor(w, s, TEAM)[0]!.status).toBe('fresh');
-      expect(turnProgress(w, s).remaining).not.toContain('w1');
-    }
-  });
-
-  it('adjacent false: normal order for the coming Zargon turn, counted in progress', () => {
-    const s = replay(w, SEED, [wander(false)]);
-    expect(s.wanderers.w1).toMatchObject({ fresh: false, wanderAt: 'elf' });
-    const o = ordersFor(w, s, TEAM)[0]!;
-    expect(o.status).toBe('act');
-    expect(o.turn).toBe(s.turn);
-    expect(o.note).toBeUndefined();
-    expect(turnProgress(w, s)).toMatchObject({ total: 1, remaining: ['w1'] });
-    expect(
-      code(() => replay(w, SEED, [wander(false), { type: 'MONSTER_DONE', monster: 'w1' }])),
-    ).toBeUndefined();
+  it('ignores an old `adjacent` key in the event', () => {
+    const old = { ...wander, adjacent: false } as GameEvent;
+    expect(replay(w, SEED, [old]).wanderers.w1!.fresh).toBe(true);
   });
 });

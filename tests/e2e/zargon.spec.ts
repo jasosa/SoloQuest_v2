@@ -1,132 +1,107 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const shot = async (page: Page, name: string) => {
-  await page.waitForTimeout(450); // let the slide finish
+  await page.waitForTimeout(450); // let the card settle
   await page.screenshot({ path: `test-results/${name}.png` });
 };
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 const zbutton = (page: Page) => page.locator('.zargon-btn');
-const zpage = (page: Page) => page.locator('.zpage');
-const orders = (page: Page) => page.locator('.zpage .orders li.order');
+const dlg = (page: Page) => page.getByRole('dialog');
 
 const quest1 = (page: Page, open: string, team = 'dwarf,elf,wizard', seed = 5) =>
   page.goto(`/?quest=1&team=${team}&nosave=1&seed=${seed}&open=${open}`);
+const fixture = (page: Page, open = '', team = 'dwarf,elf,wizard') =>
+  page.goto(`/?quest=test&team=${team}&nosave=1&seed=3&open=${open}`);
 
-test.describe("Zargon's turn page", () => {
-  test('slides in over the column, with orders, tie list and plan', async ({ page }) => {
+test.describe("Zargon's turn, one monster at a time", () => {
+  test('the first dialog shows the order, the figure is highlighted', async ({ page }) => {
     await quest1(page, 'd1,d2');
     await expect(zbutton(page)).toContainText('2 monsters to act');
-    await expect(zpage(page)).not.toHaveClass(/open/);
     await zbutton(page).click();
-    await expect(zpage(page)).toHaveClass(/open/);
-    await expect(zpage(page).locator('h2')).toHaveText("Zargon's turn");
-    await expect(zpage(page)).toContainText('Turn 1');
-    await expect(zpage(page).locator('.seg-help')).toContainText('character sheets');
-    await expect(orders(page).first().locator('dt', { hasText: 'Target' })).toBeVisible();
-    await expect(orders(page).first().locator('dt', { hasText: 'Tie' })).toBeVisible();
-    await expect(orders(page).first().locator('dt', { hasText: 'Plan' })).toBeVisible();
-    await expect(orders(page).first().locator('.tgt')).toContainText('›');
-    // the coins match the tokens on the map
-    await expect(orders(page).first().locator('.coin').first()).toHaveText(/^O\d$/);
-    await shot(page, 'zargon-priority');
-    await page.getByRole('button', { name: 'Back to the map' }).click();
-    await expect(zpage(page)).not.toHaveClass(/open/);
+    await expect(dlg(page)).toContainText('Monster 1 of 2');
+    await expect(dlg(page)).toContainText('Orc');
+    await expect(dlg(page)).toContainText('Move 8 · Att 3 · Def 2');
+    await expect(dlg(page).locator('dt', { hasText: 'Target' })).toBeVisible();
+    await expect(dlg(page).locator('dt', { hasText: 'Tie' })).toBeVisible();
+    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toBeVisible();
+    await expect(dlg(page).locator('.tgt')).toContainText('›');
+    await expect(dlg(page).locator('.letter')).toHaveText(/^O\d$/);
+    // the figure has the selection ring, and so has its roster row
+    await expect(page.locator('#board .selring')).toHaveCount(1);
+    await expect(page.locator('.roster li.sel')).toHaveCount(1);
+    await shot(page, 'zargon-dialog');
   });
 
-  test('no monsters: a friendly empty state', async ({ page }) => {
+  test('Done goes to the next monster, then the last dialog ends the turn', async ({ page }) => {
+    await quest1(page, 'd1,d2');
+    await zbutton(page).click();
+    await btn(page, 'Done').click();
+    await expect(dlg(page)).toContainText('Monster 2 of 2');
+    await expect(page.locator('.roster .tickdone')).toHaveCount(1);
+    await btn(page, 'Done').click();
+    await expect(dlg(page)).toContainText('All monsters have acted');
+    await shot(page, 'zargon-final');
+    await btn(page, "End Zargon's turn").click();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.locator('header .turn')).toContainText('Turn 2');
+    await expect(page.locator('.toast')).toContainText("Heroes' turn 2");
+    // done marks are cleared for the new turn
+    await expect(zbutton(page)).toContainText('2 monsters to act');
+    await expect(page.locator('.roster .tickdone')).toHaveCount(0);
+  });
+
+  test('close the dialog, press the button again: it resumes at the first monster not done', async ({
+    page,
+  }) => {
+    await quest1(page, 'd1,d2');
+    await zbutton(page).click();
+    await btn(page, 'Done').click();
+    await btn(page, 'Back to the map').click();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(zbutton(page)).toContainText('1 monster to act');
+    await zbutton(page).click();
+    await expect(dlg(page)).toContainText('Monster 2 of 2');
+    await page.keyboard.press('Escape');
+    await expect(dlg(page)).toHaveCount(0);
+    // undo of the Done brings the first monster back
+    await btn(page, 'Undo').first().click();
+    await zbutton(page).click();
+    await expect(dlg(page)).toContainText('Monster 1 of 2');
+  });
+
+  test('you can end the turn from the last dialog even if you skipped monsters', async ({
+    page,
+  }) => {
+    await quest1(page, 'd1,d2');
+    await zbutton(page).click();
+    await btn(page, 'Done').click();
+    await btn(page, 'Done').click();
+    await btn(page, "End Zargon's turn").click();
+    await expect(page.locator('header .turn')).toContainText('Turn 2');
+  });
+
+  test('no monsters: the last dialog comes first', async ({ page }) => {
     await quest1(page, '');
     await expect(zbutton(page)).toContainText('no monster to act');
     await zbutton(page).click();
-    await expect(zpage(page)).toContainText('No monster in sight. Zargon waits.');
+    await expect(dlg(page)).toContainText('No monster to act');
+    await expect(btn(page, "End Zargon's turn")).toBeVisible();
   });
 
   test('the same seed gives the same orders after a reload', async ({ page }) => {
     const read = async () => {
       await quest1(page, 'd1,d2', 'dwarf,elf,wizard', 7);
       await zbutton(page).click();
-      return orders(page).allInnerTexts();
+      const first = await dlg(page).innerText();
+      await btn(page, 'Done').click();
+      return [first, await dlg(page).innerText()];
     };
     const a = await read();
     const b = await read();
-    expect(a.length).toBeGreaterThan(0);
     expect(b).toEqual(a);
   });
 
-  test('Done marks an entry, moves it down, ticks the roster; undo restores', async ({ page }) => {
-    await quest1(page, 'd1,d2');
-    await zbutton(page).click();
-    const before = await orders(page).count();
-    await orders(page).first().getByRole('button', { name: /^Done/ }).click();
-    await expect(page.locator('.zpage .order.done').first()).toBeVisible();
-    await expect(orders(page).last()).toHaveClass(/done/);
-    await expect(page.locator('.roster .tickdone').first()).toBeVisible();
-    await shot(page, 'zargon-done');
-    // the right column button counts what is left
-    await page.getByRole('button', { name: 'Back to the map' }).click();
-    await expect(zbutton(page)).not.toContainText('2 monsters to act');
-    await btn(page, 'Undo').first().click();
-    await expect(page.locator('.zpage .order.done')).toHaveCount(0);
-    await expect(page.locator('.roster .tickdone')).toHaveCount(0);
-    await expect(zbutton(page)).toContainText('2 monsters to act');
-    expect(await orders(page).count()).toBe(before);
-  });
-
-  test('"Who can it reach?" gives a result that changes with the taps', async ({ page }) => {
-    await quest1(page, 'd1,d2');
-    await zbutton(page).click();
-    await page.getByRole('button', { name: 'Who can it reach?', exact: true }).click();
-    await expect(zpage(page).locator('.seg')).toHaveAttribute('data-mode', 'reach');
-    await expect(zpage(page).locator('.seg-help')).toContainText('Tap the heroes');
-    const first = orders(page).first();
-    await expect(first.locator('.verdict')).toContainText('It can reach no hero.');
-    await first.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await expect(first.locator('.verdict')).toContainText('Target: Dwarf');
-    await first.getByRole('button', { name: 'Elf', exact: true }).click();
-    await first.getByRole('button', { name: 'Wizard', exact: true }).click();
-    await expect(first.locator('.verdict')).not.toContainText('It can reach no hero.');
-    await first.getByRole('button', { name: /Already next to the Dwarf/ }).click();
-    await expect(first.getByRole('button', { name: /Already next to the Dwarf/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await shot(page, 'zargon-reach');
-  });
-
-  test("End Zargon's turn: turn counter, page closes, done and reach are cleared", async ({
-    page,
-  }) => {
-    await quest1(page, 'd1,d2');
-    await zbutton(page).click();
-    await orders(page).first().getByRole('button', { name: /^Done/ }).click();
-    await page.getByRole('button', { name: 'Who can it reach?', exact: true }).click();
-    // reach mode keeps the reveal order: the first monster is the one marked done, use the second
-    await orders(page).nth(1).getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await btn(page, "End Zargon's turn").click();
-    await expect(page.locator('header .turn')).toContainText('Turn 2');
-    await expect(zpage(page)).not.toHaveClass(/open/);
-    await expect(page.locator('.toast')).toContainText("Heroes' turn 2");
-    await zbutton(page).click();
-    await expect(zpage(page)).toContainText('Turn 2');
-    await expect(page.locator('.zpage .order.done')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Who can it reach?', exact: true }).click();
-    await expect(
-      orders(page).nth(1).getByRole('button', { name: 'Dwarf', exact: true }),
-    ).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  test('the page can be ended with monsters not done, and closes with Esc', async ({ page }) => {
-    await quest1(page, 'd1,d2');
-    await zbutton(page).click();
-    await page.keyboard.press('Escape');
-    await expect(zpage(page)).not.toHaveClass(/open/);
-    await zbutton(page).click();
-    await btn(page, "End Zargon's turn").click();
-    await expect(page.locator('header .turn')).toContainText('Turn 2');
-  });
-
-  test('a fresh wanderer shows its note and no Done; it joins the orders next turn', async ({
-    page,
-  }) => {
+  test('a fresh wanderer is an info dialog with Next and no Done', async ({ page }) => {
     await quest1(page, 'd1,d2,d3');
     await page.waitForTimeout(900);
     await page.locator('[data-room-cell="9,13"]').click();
@@ -140,56 +115,132 @@ test.describe("Zargon's turn page", () => {
       }
     }
     await btn(page, 'It was a wandering monster').click();
-    await btn(page, 'Placed next to the Elf').click();
+    await expect(dlg(page)).toContainText('attacks the Elf at once');
+    await expect(btn(page, 'Placed next to the Elf')).toHaveCount(0); // no choices (decision 33)
     await btn(page, 'Done').click();
     await zbutton(page).click();
-    const note = page.locator('.zpage .order', { hasText: 'already attacked this round' });
-    await expect(note).toHaveCount(1);
-    await expect(note.getByRole('button', { name: /^Done/ })).toHaveCount(0);
+    // walk through the acting monsters, the wanderer shows as an info dialog
+    for (let i = 0; i < 6; i++) {
+      if ((await dlg(page).innerText()).includes('already attacked this round')) break;
+      const done = btn(page, 'Done');
+      if (await done.count()) await done.click();
+      else await btn(page, 'Next').click();
+    }
+    await expect(dlg(page)).toContainText('Not acting this turn');
+    await expect(dlg(page)).toContainText('already attacked this round');
+    await expect(btn(page, 'Done')).toHaveCount(0);
     await shot(page, 'zargon-fresh');
-    await btn(page, "End Zargon's turn").click();
-    await zbutton(page).click();
-    await expect(
-      page.locator('.zpage .order', { hasText: 'already attacked this round' }),
-    ).toHaveCount(0);
+    await btn(page, 'Next').click();
+    await expect(dlg(page)).toContainText('All monsters have acted');
   });
 
   test('a caster asks "Could it cast it?": No shows the next spell, Yes ends its casting', async ({
     page,
   }) => {
-    await page.goto('/?quest=test&team=dwarf,elf,wizard&nosave=1&seed=3&open=d1');
+    await fixture(page, 'd1');
     await btn(page, 'Wake the guardian').click();
     await btn(page, 'Done').click();
     await zbutton(page).click();
-    const caster = orders(page).first(); // the placed guardian is the only monster in sight
-    await expect(orders(page)).toHaveCount(1);
-    await expect(caster.locator('.spell')).toContainText('Read the Dread spell card.');
-    await expect(caster.locator('.spell')).toContainText('If it cannot cast:');
-    await expect(caster.locator('.spell')).toContainText('Could it cast it?');
-    // no spell effect text is shown, only the name and the pointer to the card
-    const first = await caster.locator('.sname b').innerText();
+    const spell = dlg(page).locator('.spell');
+    await expect(spell).toContainText('Read the Dread spell card.');
+    await expect(spell).toContainText('If it cannot cast:');
+    await expect(spell).toContainText('Could it cast it?');
+    const first = await spell.locator('.sname b').innerText();
     await shot(page, 'zargon-spell');
-
     await btn(page, 'No').click();
-    const second = await caster.locator('.sname b').innerText();
+    const second = await spell.locator('.sname b').innerText();
     expect(second).not.toBe(first);
     await btn(page, 'No').click();
-    // both spells declined: no spell this turn, and the normal plan
-    await expect(caster).toContainText('No spell this turn.');
-    await expect(caster.locator('.spell')).toHaveCount(0);
-    await expect(caster.locator('dt', { hasText: 'Plan' })).toBeVisible();
-    await shot(page, 'zargon-no-spell');
+    await expect(dlg(page)).toContainText('No spell this turn.');
+    await expect(spell).toHaveCount(0);
+    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toBeVisible();
     // undo brings the question back
     await btn(page, 'Back to the map').click();
     await btn(page, 'Undo').first().click();
     await zbutton(page).click();
-    await expect(caster.locator('.spell')).toHaveCount(1);
-
+    await expect(spell).toHaveCount(1);
     await btn(page, 'Yes, it cast it').click();
-    await expect(caster).toContainText('It already cast a spell this turn.');
-    await expect(caster.locator('dt', { hasText: 'Plan' })).toHaveCount(0);
-    // Done is still there
-    await caster.getByRole('button', { name: /^Done/ }).click();
-    await expect(page.locator('.zpage .order.done')).toHaveCount(1);
+    await expect(dlg(page)).toContainText('It already cast a spell this turn.');
+    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toHaveCount(0);
+    await btn(page, 'Done').click();
+    await expect(dlg(page)).toContainText('All monsters have acted');
+  });
+
+  test('a stone monster is an info dialog with its countdown', async ({ page }) => {
+    await fixture(page, 'd1');
+    await btn(page, 'Wake the guardian').click();
+    await btn(page, 'Done').click();
+    await btn(page, 'Turn the guardian to stone').click();
+    await expect(page.locator('.roster')).toContainText('Stone: 2 turns');
+    await zbutton(page).click();
+    await expect(dlg(page)).toContainText('Not acting this turn');
+    await expect(dlg(page)).toContainText('Stone: 2 turns left');
+    await expect(btn(page, 'Done')).toHaveCount(0);
+    await shot(page, 'zargon-stone');
+    await btn(page, 'Next').click();
+    await expect(dlg(page)).toContainText('All monsters have acted');
+  });
+});
+
+test.describe('heroes who fell (decision 32)', () => {
+  test('tap a hero, confirm, the hero is struck through and leaves the tie list; undo works', async ({
+    page,
+  }) => {
+    await quest1(page, 'd1,d2');
+    const chip = page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ });
+    await expect(page.locator('.hero-chips .chip')).toHaveCount(3);
+    await chip.click();
+    await expect(dlg(page)).toContainText('Dwarf fell?');
+    await shot(page, 'heroes-confirm');
+    await btn(page, 'No').click();
+    await expect(chip).toBeEnabled();
+    await chip.click();
+    await btn(page, 'Yes, fell').click();
+    await expect(chip).toBeDisabled();
+    await expect(chip).toHaveClass(/fallen/);
+    await shot(page, 'heroes-block');
+    // the dead hero is not in any tie list, and is not offered for a search
+    await zbutton(page).click();
+    await expect(dlg(page).locator('.tgt')).not.toContainText('Dwarf');
+    await btn(page, 'Back to the map').click();
+    // undo takes the death back
+    await btn(page, 'Undo').first().click();
+    await expect(chip).toBeEnabled();
+  });
+
+  test('a dead hero cannot search for treasure', async ({ page }) => {
+    await quest1(page, 'd1');
+    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await btn(page, 'Yes, fell').click();
+    await page.locator('[data-room-cell="2,17"]').click();
+    await btn(page, 'Search for treasure').click();
+    await expect(btn(page, 'Dwarf')).toHaveCount(0);
+    await expect(btn(page, 'Elf')).toBeVisible();
+  });
+
+  test('when the last hero falls: "All heroes have fallen" with End quest', async ({ page }) => {
+    await quest1(page, 'd1,d2', 'dwarf,elf');
+    for (const name of [/Dwarf/, /Elf/]) {
+      await page.locator('.hero-chips').getByRole('button', { name }).click();
+      await btn(page, 'Yes, fell').click();
+    }
+    const card = page.getByRole('dialog', { name: 'All heroes have fallen' });
+    await expect(card).toBeVisible();
+    await shot(page, 'heroes-all-fallen');
+    await dlg(page).getByRole('button', { name: 'End quest' }).click();
+    await expect(dlg(page)).toContainText('How did the quest end?');
+    await btn(page, 'All heroes fell').click();
+    await expect(dlg(page)).toContainText('Quest over, goal not reached');
+  });
+
+  test("Zargon's turn with every hero fallen offers End quest", async ({ page }) => {
+    await quest1(page, 'd1,d2', 'dwarf');
+    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await btn(page, 'Yes, fell').click();
+    await btn(page, 'Back to the map').click();
+    await zbutton(page).click();
+    await expect(dlg(page)).toContainText('All heroes have fallen');
+    await dlg(page).getByRole('button', { name: 'End quest' }).click();
+    await expect(dlg(page)).toContainText('How did the quest end?');
   });
 });

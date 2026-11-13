@@ -17,6 +17,8 @@ import type { Prompt } from './prompts';
 import { searchSecretDoors, searchTraps, searchTreasure, wanderingMonster } from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
+import { HEROES } from '../data/heroes';
+import { lookHintCells } from './hints';
 import type { MonsterDef } from '../quest/schema';
 import { isDormant, monsterStateOf } from './monstersIn';
 import { areaEnter, choose, manualTrigger, runTriggers, squareTrigger, tickStone } from './notes';
@@ -137,6 +139,15 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       const d = draftOf(state);
       return { state: d, prompts: choose(level, state, d, event.note, event.option).prompts };
     }
+    case 'HERO_DIED': {
+      if (!(HEROES as readonly string[]).includes(event.hero))
+        throw new EventError('UNKNOWN_HERO', `Unknown hero ${String(event.hero)}`);
+      if (state.deadHeroes.includes(event.hero))
+        throw new EventError('ALREADY_DEAD', `The ${event.hero} is already dead`);
+      const d = draftOf(state);
+      d.deadHeroes = [...state.deadHeroes, event.hero];
+      return { state: d, prompts: [{ kind: 'heroDied', hero: event.hero }] };
+    }
     case 'SPELL_CAST':
       return spellCast(level, state, event.monster, event.spell);
     case 'SPELL_FAILED':
@@ -229,6 +240,10 @@ function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
       'NOT_A_SEEN_CORRIDOR_CELL',
       `Cell ${x},${y} is not a seen corridor square`,
     );
+
+  // Only the squares with the eye symbol (decision 13) can be looked from.
+  if (!lookHintCells(level, state).some((c) => c[0] === x && c[1] === y))
+    throw new EventError('NOT_A_LOOK_SQUARE', `Nothing new can be seen from ${x},${y}`);
 
   const d = draftOf(state);
   const before = progress(d);

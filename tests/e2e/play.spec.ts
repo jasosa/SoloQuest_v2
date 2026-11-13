@@ -14,6 +14,20 @@ async function startQuest1(page: Page, heroes: string[]) {
   await page.getByRole('button', { name: 'Start the quest' }).click();
 }
 
+/** Walk through Zargon's dialogs (Done, Next) and end the turn. */
+async function endTheTurn(page: Page) {
+  await page.getByRole('button', { name: /^Zargon's turn/ }).click();
+  for (let i = 0; i < 12; i++) {
+    const end = page.getByRole('button', { name: "End Zargon's turn", exact: true });
+    if (await end.count()) {
+      await end.click();
+      return;
+    }
+    const next = page.getByRole('button', { name: /^(Done|Next)$/ });
+    await next.first().click();
+  }
+}
+
 test.describe('quest and team select', () => {
   test('quests that are not encoded are disabled; start needs a hero', async ({ page }) => {
     await page.goto('/?nosave=1');
@@ -69,19 +83,27 @@ test.describe('play quest 1', () => {
     await expect(door(page, 'd2')).toHaveCount(1); // seen and closed again
   });
 
-  test('look from here shows the margin note and a toast when nothing is new', async ({ page }) => {
+  test('look from here is offered only on squares with an eye', async ({ page }) => {
     await startQuest1(page, ['Dwarf']);
     await door(page, 'd1').click();
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
     await page.waitForTimeout(800);
-    await page.locator('[data-cell="3,18"]').click();
+    // only the squares with an eye offer "Look from here"
+    const eye = await page.locator('[data-eye]').first().getAttribute('data-eye');
+    await page.locator(`[data-cell="${eye}"]`).click();
     await expect(page.getByRole('dialog', { name: 'A hero stands here' })).toBeVisible();
     await page.waitForTimeout(350); // let the pop animation finish
     await shot(page, 'note-look');
     await page.getByRole('button', { name: 'Look from here', exact: true }).click();
-    await expect(page.locator('.toast')).toHaveText(/Nothing new here/);
-    // Escape closes a note
+    await expect(page.locator(`[data-eye="${eye}"]`)).toHaveCount(0); // looked from: no eye now
+    // a seen square without an eye has no look button, only the secret door search
     await page.locator('[data-cell="4,18"]').click();
+    await expect(page.getByRole('dialog')).toContainText('Nothing new can be seen from here.');
+    await expect(page.getByRole('button', { name: 'Look from here', exact: true })).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Search for secret doors', exact: true }),
+    ).toBeVisible();
+    // Escape closes a note
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -144,8 +166,7 @@ test.describe('play quest 1', () => {
 
   test("Zargon's turn button advances the turn counter", async ({ page }) => {
     await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
-    await page.getByRole('button', { name: /Zargon's turn/ }).click();
-    await page.getByRole('button', { name: "End Zargon's turn" }).click();
+    await endTheTurn(page);
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
 
@@ -203,8 +224,7 @@ async function startQuestWithSave(page: Page) {
     await door(page, d).click();
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
   }
-  await page.getByRole('button', { name: /Zargon's turn/ }).click();
-  await page.getByRole('button', { name: "End Zargon's turn" }).click();
+  await endTheTurn(page);
   await expect(page.locator('header .turn')).toContainText('Turn 2');
   await page.waitForTimeout(300); // let the autosave finish
 }

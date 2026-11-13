@@ -22,7 +22,7 @@ Owner: Juanan. Write code comments, docs and UI text in plain, short English. **
 ## Hard rules
 
 1. **No verbatim book text.** Never copy text from the Quest Book or rulebook into the repo (notes, parchment text, card text). Paraphrase in your own words, keep the game effect exact. Quest map images and PDFs never go into git (`reference/` is git-ignored).
-2. **The app does not track**: hero or monster positions and movement, hero Body/Mind Points, gold, equipment, artifacts between quests. No digital dice, no digital treasure deck. Do not add these "to help".
+2. **The app does not track**: hero or monster positions and movement, hero Body/Mind Points, gold, equipment, artifacts between quests (the one exception: whether a hero has died, decision 32). No digital dice, no digital treasure deck. Do not add these "to help".
 3. **Engine is pure TypeScript** in `src/engine/`: no React, no DOM, no `Date.now()`, no `Math.random()`. All randomness goes through the seeded RNG in the game state. All changes to game state are events through the reducer (event sourcing, undo = drop last event).
 4. **Tests with every engine change.** Vitest unit tests next to the code (`*.test.ts`). Line of sight and reveal changes need a test case drawn on a small ASCII map.
 5. **Quests are data only** (`src/content/quests/qNN-*.json`), validated by the Zod schema. Quest-specific logic goes in notes/effects or `rules` overrides, never `if (quest === 7)` in the engine.
@@ -101,5 +101,5 @@ Source PDFs (owner's copy, read-only, outside the repo):
 - **Line of sight**: straight line between square centers. Blocked by walls, closed doors, rock and blocked squares. A line that only touches a corner still sees (either way round the corner is enough). Figures do not block reveal.
 - **Reveal**: opening a door into a room reveals the whole room (furniture, monsters, closed doors on its walls, trap "?" markers). Into a corridor: line of sight from the square beyond the door. "Look from here" reveals line of sight from a corridor square. Secret doors and treasure are never revealed by sight.
 - **Traps (house rule)**: visible as "?" as soon as their square is seen; type hidden. Jump (1 combat die, skull springs), disarm (Dwarf fails on black shield, tool kit fails on skull), or step on. A failed jump or disarm springs the trap with its normal rules. No "search for traps".
-- **Wandering monster**: placed by the players next to the searching hero, attacks that hero at once; if no free square, closest square in the room and it acts next Zargon turn.
-- **Monster orders**: positions are unknown, so orders are rules players apply with their character sheets, always with a tie list. See `docs/ZARGON_AI.md`.
+- **Wandering monster**: always placed by the players next to the searching hero, and it attacks that hero at once (decision 33). It joins the roster without a square.
+- **Monster orders**: positions are unknown, so orders are rules players apply with their character sheets, always with a tie list. Zargon's turn shows one monster at a time in a dialog (decision 34). The app tracks only whether a hero died (decision 32). See `docs/ZARGON_AI.md`.

@@ -48,12 +48,12 @@ test.describe('treasure and wandering monster (quest 1)', () => {
 
     // it was a wandering monster
     await btn(page, 'It was a wandering monster').click();
-    // the question comes first: nothing is added until one of the two buttons is pressed
-    await expect(dialog(page)).toContainText('Was there a free square next to the Elf?');
-    await expect(rows(page)).toHaveCount(4);
-    await shot(page, 'wandering-card');
-    await btn(page, 'Placed next to the Elf').click();
+    // no questions (decision 33): the card says where to put it and that it attacks at once
+    await expect(dialog(page)).toContainText('free square next to the Elf');
     await expect(dialog(page)).toContainText('attacks the Elf at once');
+    await expect(dialog(page)).not.toContainText('Was there a free square');
+    await expect(rows(page)).toHaveCount(5);
+    await shot(page, 'wandering-card');
     await btn(page, 'Done').click();
     const wanderer = rows(page).filter({ hasText: 'Wandering · next to the Elf' });
     await expect(wanderer).toHaveCount(1);
@@ -62,25 +62,6 @@ test.describe('treasure and wandering monster (quest 1)', () => {
     // the wanderer has a callout but no token
     await wanderer.click();
     await expect(dialog(page)).toContainText('Wandering');
-  });
-
-  test('no free square: the wanderer joins the roster and acts next turn', async ({ page }) => {
-    await quest1(page, 'd1,d2,d3');
-    await page.waitForTimeout(900);
-    await roomCell(page, '9,13').click();
-    await btn(page, 'Search for treasure').click();
-    await btn(page, 'The room is clear, search anyway').click();
-    await btn(page, 'Dwarf').click();
-    await btn(page, 'Continue').click();
-    await roomCell(page, '9,13').click();
-    await btn(page, 'Search for treasure').click();
-    await btn(page, 'The room is clear, search anyway').click();
-    await btn(page, 'Elf').click();
-    await btn(page, 'It was a wandering monster').click();
-    await btn(page, 'No free square next to the Elf').click();
-    await expect(dialog(page)).toContainText("acts in Zargon's next turn");
-    await btn(page, 'Done').click();
-    await expect(rows(page)).toHaveCount(5);
   });
 
   test('a search in a room without monsters needs no override', async ({ page }) => {
@@ -97,15 +78,14 @@ test.describe('secret doors', () => {
   test('quest 1: nothing found from a room and from a corridor square', async ({ page }) => {
     await quest1(page, 'd1');
     await roomCell(page, '2,17').click();
-    await btn(page, 'Search for secret doors').click();
-    await btn(page, 'Elf').click();
+    await btn(page, 'Search for secret doors').click(); // no hero to pick
     await expect(dialog(page)).toContainText('Nothing found');
     await shot(page, 'secret-nothing');
     await btn(page, 'Done').click();
 
     await page.locator('[data-cell="4,18"]').click();
+    await expect(btn(page, 'Look from here')).toHaveCount(0); // not an eye square
     await btn(page, 'Search for secret doors').click();
-    await btn(page, 'Dwarf').click();
     await expect(dialog(page)).toContainText('Nothing found');
   });
 
@@ -118,7 +98,6 @@ test.describe('secret doors', () => {
     await roomCell(page, '5,17').click();
     await btn(page, 'Search for secret doors').click();
     await btn(page, 'The room is clear, search anyway').click();
-    await btn(page, 'Elf').click();
     await expect(dialog(page)).toContainText('A secret door!');
     await shot(page, 'secret-found');
     await btn(page, 'Done').click();

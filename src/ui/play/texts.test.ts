@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildLevel } from '../../engine/board/level';
 import { testQuest } from '../../engine/quest/testQuest';
 import { monsterCodes } from './monsterCodes';
-import { sprungLines, sprungTitle, wanderAskLines, wanderingLines } from './texts';
+import { sprungLines, sprungTitle, wanderingLines } from './texts';
 
 describe('result texts', () => {
   it('names each trap kind and says what happens', () => {
@@ -19,11 +19,7 @@ describe('result texts', () => {
     expect(sprungLines(base).join(' ')).toMatch(/quest notes/);
   });
 
-  it('the wandering monster card asks the placement question, then answers it', () => {
-    const ask = wanderAskLines('orc', 'elf');
-    expect(ask[0]).toMatch(/free square next to the Elf.*3 attack dice/);
-    expect(ask[1]).toBe('Was there a free square next to the Elf?');
-
+  it('the wandering monster card puts it next to the hero and attacks at once', () => {
     const p = {
       kind: 'wanderingMonster',
       monster: 'w1',
@@ -36,8 +32,12 @@ describe('result texts', () => {
         ifNoFreeSquare: { closestInRoom: 'R18', actsNextZargonTurn: true },
       },
     } as const;
-    expect(wanderingLines(p, true)[0]).toMatch(/attacks the Elf at once with 3 attack dice/);
-    expect(wanderingLines(p, false)[0]).toMatch(/as close to the Elf.*Zargon's next turn/);
+    const lines = wanderingLines(p);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(
+      /free square next to the Elf.*attacks the Elf at once with 3 attack dice/,
+    );
+    expect(lines[0]).not.toMatch(/no free square/i);
   });
 
   it('monster codes include wanderers in the order they appeared', () => {

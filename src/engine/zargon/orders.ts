@@ -57,7 +57,7 @@ export interface Order {
   readonly note?: string;
   /** The Zargon turn this order is for (next turn for a fresh wanderer). */
   readonly turn: number;
-  /** The order of this monster was carried out this turn. Not part of the grouping key. */
+  /** The order of this monster was carried out this turn. */
   readonly done: boolean;
 }
 
@@ -76,22 +76,33 @@ export function grudgeHero(seed: number, monsterId: string, team: readonly Hero[
 
 type Caps = Pick<MonsterDef, 'type' | 'spells'>;
 
-/** Rule keys that can be drawn for this monster and team, with their weights. */
-export function availableRules(def: Caps, team: readonly Hero[]): [RuleKey, number][] {
-  const hasCaster = team.includes('wizard') || team.includes('elf');
+/**
+ * Rule keys that can be drawn for this monster, with their weights. `living` are the heroes still
+ * alive. `caster` needs a living Wizard or Elf; `grudge` needs a living grudge hero (`grudgeAlive`).
+ */
+export function availableRules(
+  def: Caps,
+  living: readonly Hero[],
+  grudgeAlive = true,
+): [RuleKey, number][] {
+  const hasCaster = living.includes('wizard') || living.includes('elf');
   return (Object.entries(weightsOf(def)) as [RuleKey, number][]).filter(
-    ([k, w]) => w > 0 && (k !== 'caster' || hasCaster) && (k !== 'grudge' || team.length >= 1),
+    ([k, w]) =>
+      w > 0 &&
+      (k !== 'caster' || hasCaster) &&
+      (k !== 'grudge' || (living.length >= 1 && grudgeAlive)),
   );
 }
 
 function drawRule(
   def: Caps,
-  team: readonly Hero[],
+  living: readonly Hero[],
+  grudgeAlive: boolean,
   seed: number,
   turn: number,
   id: string,
 ): RuleKey {
-  const entries = availableRules(def, team);
+  const entries = availableRules(def, living, grudgeAlive);
   if (entries.length === 0) return 'closest';
   const total = entries.reduce((s, [, w]) => s + w, 0);
   const [v] = next(rngFor(seed, turn, id, 'rule'));
@@ -141,8 +152,8 @@ function buildOrder(
   const id = view.id;
   const done = state.doneThisTurn.includes(id);
   const base = { monster: id, type: view.type, name: view.name };
-  const t = canon(team);
-  if (t.length === 0) throw new Error('The team needs at least one hero');
+  const full = canon(team);
+  const living = full.filter((h) => !state.deadHeroes.includes(h));
   const caps: Caps = def ?? view;
   const profile = profileOf(caps);
 
@@ -152,7 +163,7 @@ function buildOrder(
       ...base,
       status: 'stone',
       profile,
-      tie: t,
+      tie: living,
       special: [],
       note:
         n === undefined
@@ -165,8 +176,10 @@ function buildOrder(
 
   const fresh = view.wandering === true && view.fresh === true;
   const turn = fresh ? state.turn + 1 : state.turn;
-  const rule = drawRule(caps, t, seed, turn, id);
-  const grudge = rule === 'grudge' ? grudgeHero(seed, id, t) : undefined;
+  // The grudge hero comes from the FULL team; once he is dead the rule is no longer offered.
+  const grudgeHeroOfMonster = grudgeHero(seed, id, full);
+  const rule = drawRule(caps, living, living.includes(grudgeHeroOfMonster), seed, turn, id);
+  const grudge = rule === 'grudge' ? grudgeHeroOfMonster : undefined;
   const order: Order = {
     ...base,
     status: fresh ? 'fresh' : 'act',
@@ -174,7 +187,8 @@ function buildOrder(
     rule,
     ruleText: grudge ? `The ${HERO_NAMES[grudge]}, whatever it costs` : RULE_TEXT[rule],
     ...(grudge ? { grudgeHero: grudge } : {}),
-    tie: shuffled(t, rngFor(seed, turn, id, 'tie')),
+    // The shuffle is of the full team, so the relative order stays the same after a death.
+    tie: shuffled(full, rngFor(seed, turn, id, 'tie')).filter((h) => living.includes(h)),
     plan: PLAN_TEXT[profile],
     special: specialRules(def),
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
@@ -217,7 +231,8 @@ function buildOrder(
  * One order per ACTIVE monster seen by the heroes, in reveal order, for `state.turn`.
  * Dormant monsters (furniture, decision 28) and slain monsters never appear. Stone monsters get an
  * entry without a rule. A wandering monster that is still fresh gets a note and next turn's order.
- * `seed` defaults to the quest seed kept in the state. An empty team gives an empty list.
+ * `seed` defaults to the quest seed kept in the state. An empty team, or a team that is all dead, gives an empty list. `team` is the FULL team: dead
+ * heroes (state.deadHeroes) are taken out of the tie list and the rules.
  * The grudge hero and the tie lists assume the team is fixed for the whole quest.
  */
 export function ordersFor(
@@ -227,62 +242,13 @@ export function ordersFor(
   seed: number = state.seed,
 ): Order[] {
   if (team.length === 0) return [];
+  // All heroes dead: nobody to order against.
+  if (team.every((h) => state.deadHeroes.includes(h))) return [];
   seed = seed >>> 0;
   const defs = new Map(level.quest.monsters.map((m) => [m.id, m]));
   return monstersInPlay(level, state)
     .filter((v) => !v.dead)
     .map((view) => buildOrder(state, team, seed, view, defs.get(view.id)));
-}
-
-export interface OrderGroup {
-  /** Same key = same entry. */
-  readonly key: string;
-  /** Member monster ids, in reveal order. */
-  readonly monsters: readonly string[];
-  readonly names: readonly string[];
-  /** The shared order (that of the first member). */
-  readonly order: Order;
-  /** Ids of members already done. */
-  readonly doneIds: readonly string[];
-  /** Every member is done. */
-  readonly done: boolean;
-}
-
-/** What makes two orders "the same": everything except the monster and its done flag. */
-export function orderKey(o: Order): string {
-  return JSON.stringify([
-    o.status,
-    o.type,
-    o.rule ?? null,
-    o.grudgeHero ?? null,
-    o.tie,
-    o.plan ?? null,
-    o.spell ?? null,
-    o.declined ?? null,
-    o.fallbackPlan ?? null,
-    o.spellNote ?? null,
-    o.special,
-    o.note ?? null,
-  ]);
-}
-
-/** Merge identical orders into one entry (first appearance decides the position). */
-export function groupOrders(orders: readonly Order[]): OrderGroup[] {
-  const groups: { key: string; members: Order[] }[] = [];
-  for (const o of orders) {
-    const key = orderKey(o);
-    const g = groups.find((x) => x.key === key);
-    if (g) g.members.push(o);
-    else groups.push({ key, members: [o] });
-  }
-  return groups.map(({ key, members }) => ({
-    key,
-    monsters: members.map((m) => m.monster),
-    names: members.map((m) => m.name),
-    order: members[0]!,
-    doneIds: members.filter((m) => m.done).map((m) => m.monster),
-    done: members.every((m) => m.done),
-  }));
 }
 
 export interface TurnProgress {

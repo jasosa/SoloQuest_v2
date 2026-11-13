@@ -27,13 +27,11 @@ Margin notes sit beside the object in the upper half of the map and above it in 
 
 **Wandering monster.** After "It was a wandering monster", a card tells the players to put the monster on a free square next to the searching hero; it attacks that hero at once and nobody else this round. If no square is free: put it in the room as close as possible, and it acts on Zargon's next turn. The monster is added to the list (not drawn on the map, its square is not known).
 
-**Zargon's turn** is a page sliding in from the right over the column. Two modes:
-- *Priority list* (default): no input. Each monster gets a **target rule drawn every turn** from weights that depend on its type (closest, last attacker, fewest Body Points left, most Body Points, fewest defend dice, most attack dice, a spellcaster, or a grudge against one named hero that stays for the whole quest), **always with a tie list**, plus a plan. Players use their character sheets to apply the rule. Monsters with the same order this turn share one entry. See `docs/ZARGON_AI.md`.
-- *Who can it reach?*: players tap reachable heroes per monster (and "already next to that hero"); the app names one target and the plan.
+**Zargon's turn** is a sequence of cards, one monster at a time (see "Zargon's turn: one monster at a time" below). Each card has a target rule drawn every turn from weights that depend on the type, **always with a tie list**, plus a plan. Players use their character sheets to apply the rule. See `docs/ZARGON_AI.md`.
 
 **Motion.**
 1. Main action feedback: opening a door spreads the revealed area like ink from the door (650 ms, ease-out); new monster tokens stamp in (320 ms, 70 ms stagger); they slide into the roster.
-2. State change with a source: margin note grows from the tapped object; Zargon page slides in from the right (340 ms); mode switch uses one moving thumb.
+2. State change with a source: margin note grows from the tapped object; Zargon cards rise in one after the other.
 3. First entry: none beyond the margin note (the board is the content; no splash).
 Reduced motion: everything lands at once.
 
@@ -56,8 +54,18 @@ Same shell as the play screen (title band, 920 px left area, right column). Left
 - **Helpers**: an NPC is a text chip (name, defend dice, text) above the monsters. No Body Points.
 - **Statues**: a dormant monster is drawn as a small statue figure (line art, ink on white), not in the roster, not tappable. When a note wakes it, it stamps in like any monster. A monster placed by a note shows its token on the named square, a margin note "Put X here" and a pulsing ring on the square. Roster lines: "Stone: n turns", "Placed by a quest note".
 
-## Zargon's turn page (built in M5)
+## Zargon's turn: one monster at a time (decision 34)
 
-As in the prototype: a 500 px page slides in from the right over the column (340 ms, instant with reduced motion), header with the turn and "Back to the map", a segmented switch with one moving thumb, a help line, the entries, and "End Zargon's turn" in the foot (ends the turn even when monsters are not marked done). Esc closes the page. Entries use the roster coins (same letters as the map tokens). Done entries move to the bottom, greyed with a tick, and the roster shows a small tick for monsters done this turn. Stone monsters and fresh wanderers show a note and no Done button. A caster entry has a boxed spell block: the one picked spell (name, "Read the Dread spell card.", "If it cannot cast: ..."), the question "Could it cast it?" and the buttons "Yes, it cast it" and "No" (one pair per monster when several share the entry). "Who can it reach?" lists every monster on its own, with hero chips, an "Already next to the <Hero>" toggle per tapped hero and a result box; the taps are forgotten when the turn ends.
+The page of the prototype is gone: no list, no grouping, no "Who can it reach?" mode. The button "Zargon's turn" (right column, "n monsters to act") starts a sequence of cards over the map, one monster per card, in reveal order: small caps "Monster 2 of 7", a letter chip with the monster code (same letters as the map tokens), the name, a stats line (Move, Att, Def, Body, Mind), then Target, Tie (always), Plan and Special rules. The card has no dim veil and sits in the empty upper right of the map, so the figures stay in sight: the monster's token gets the selection ring and its roster row is brought into view. A caster shows a boxed spell block: the one picked spell (name, "Read the Dread spell card.", "If it cannot cast: ..."), "Could it cast it?" with "Yes, it cast it" and "No". "Done" sends the order done and the next card rises in (instant with reduced motion). Stone monsters and fresh wanderers get a short card with "Next" (no event). After the last one: "All monsters have acted" with "End Zargon's turn" (no monsters: "No monster to act"). "Back to the map" or Esc closes only the top card; pressing the button again resumes at the first monster not done. If every hero fell the card says "All heroes have fallen" with "End quest".
 
-Wandering monster card: after "It was a wandering monster" the card asks "Was there a free square next to the <Hero>?" with two buttons, "Placed next to the <Hero>" and "No free square next to the <Hero>". The monster joins the roster only after one of them is pressed.
+## Heroes block (decision 32)
+
+Right column, above the monsters: one square chip per hero of the team. A tap asks "<Hero> fell?" (margin note, "Yes, fell" or "No"). A fallen hero is struck through and cannot be tapped; undo takes it back. Nothing else about heroes is shown. When the last hero falls a card says "All heroes have fallen" with "End quest".
+
+## Furniture names
+
+Furniture has a tap area (its footprint). Hover or keyboard focus shows a small dark label with its name (Stairway, Table, Chest ...), drawn above the piece. A tap opens the room note headed by the name; a chest opens the chest note.
+
+## Wandering monster card (decision 33)
+
+After "It was a wandering monster" the card says: put the monster on a free square next to the <Hero>, it attacks that hero at once with n attack dice, nobody else this round. No choices.

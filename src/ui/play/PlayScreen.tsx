@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import type { GameEvent } from '../../engine/game/events';
+import { lookHintCells } from '../../engine/game/hints';
 import type { Prompt } from '../../engine/game/prompts';
 import {
   chestsInView,
   endSummary,
   enterableAreas,
   journal,
+  livingHeroes,
   manualTriggers,
   monstersInPlay,
   npcsInPlay,
@@ -21,18 +23,19 @@ import {
   type MonsterView,
 } from '../../engine/game/view';
 import { CELL } from '../board/BoardView';
+import { furnitureName } from '../board/furnitureNames';
 import { PlayBoard } from '../board/PlayBoard';
 import { MarginNote } from '../shared/MarginNote';
 import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
-import { wanderAskLines } from './texts';
-import { Helpers, Journal, Objectives, QuestActions } from './sidebar';
+import { Helpers, Heroes, Journal, Objectives, QuestActions } from './sidebar';
 import {
   ChestBody,
   headingOf,
   PickHero,
+  SecretGuard,
   ResultBody,
   resultPrompts,
   RoomMenu,
@@ -41,8 +44,9 @@ import {
 } from './notes';
 import { parseSelection, type Selection } from './selection';
 import { progressLabel } from './zargonView';
-import { ZargonPage } from './ZargonPage';
-import { turnProgress } from '../../engine/zargon';
+import { ZargonDialog } from './ZargonDialog';
+import { turnSequence } from './zargonView';
+import { ordersFor, turnProgress } from '../../engine/zargon';
 
 const MAP_PAD_X = 28;
 const MAP_PAD_Y = 18;
@@ -63,10 +67,6 @@ interface Result {
   anchor: Anchor;
   hero?: Hero;
   room?: string;
-  /** Showing the question "was there a free square?" for a wandering monster. */
-  ask?: boolean;
-  /** The answer, for the result card. */
-  adjacent?: boolean;
 }
 
 /** Small heading of a result sheet. */
@@ -96,6 +96,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   );
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
   const traps = useMemo(() => trapsInView(level, state), [level, state]);
+  const living = useMemo(() => livingHeroes(team, state), [team, state]);
+  const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
   const [res, setRes] = useState<Result | null>(null);
@@ -104,6 +106,17 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const [endOpen, setEndOpen] = useState(false);
   const [zOpen, setZOpen] = useState(false);
   const progress = useMemo(() => turnProgress(level, state), [level, state]);
+  // Info dialogs (stone, fresh wanderer) that were read this turn. UI-local, no event.
+  const [read, setRead] = useState<{ turn: number; ids: readonly string[] }>({ turn: 0, ids: [] });
+  const readIds = useMemo(
+    () => new Set(read.turn === state.turn ? read.ids : []),
+    [read, state.turn],
+  );
+  const orders = useMemo(() => ordersFor(level, state, team), [level, state, team]);
+  const seq = useMemo(() => turnSequence(orders, readIds), [orders, readIds]);
+  // Every hero fell (decision 32).
+  const allFallen = team.length > 0 && livingHeroes(team, state).length === 0;
+  const [fallenSeenAt, setFallenSeenAt] = useState(-1);
 
   // Sheets from the last event (notes, monsters to place), shown one after the other.
   const sheets = useMemo(() => sheetsOf(prompts), [prompts]);
@@ -111,7 +124,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const sheet = sheets[sheetI];
   const nextSheet = () => setSheetPos({ seq: promptsSeq, i: sheetI + 1 });
   const pending = pendingChoice(state);
+  const zMonster = seq.current?.order.monster;
   const end = endSummary(level, state);
+  const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen;
   const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
   const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
@@ -162,11 +177,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   };
 
   /** Run an event whose prompts are shown as a result sheet at `anchor`. */
-  const run = (
-    event: GameEvent,
-    anchor: Anchor,
-    ctx: { hero?: Hero; room?: string; adjacent?: boolean } = {},
-  ) => {
+  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: Hero; room?: string } = {}) => {
     const ok = dispatch(event);
     if (!ok) return false;
     setSel(null);
@@ -187,64 +198,23 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const wandering = quest.wandering;
 
   let note: React.ReactNode = null;
-  if (res?.ask && res.hero && res.room) {
+  if (res) {
     const { hero, room } = res;
-    const w = quest.wandering;
-    const type = w && 'monster' in w ? w.monster : undefined;
-    note = (
-      <MarginNote
-        anchor={res.anchor}
-        kind="Wandering monster"
-        title={type ? `A ${MONSTER_NAMES[type]} arrives` : 'A wandering monster'}
-        onClose={closeNote}
-      >
-        {type && wanderAskLines(type, hero).map((l, i) => <p key={i}>{l}</p>)}
-        <button
-          className="btn"
-          onClick={() =>
-            run({ type: 'WANDERING_MONSTER', room, hero, adjacent: true }, res.anchor, {
-              adjacent: true,
-            })
-          }
-        >
-          Placed next to the {HERO_NAMES[hero]}
-        </button>
-        <button
-          className="btn alt"
-          onClick={() =>
-            run({ type: 'WANDERING_MONSTER', room, hero, adjacent: false }, res.anchor, {
-              adjacent: false,
-            })
-          }
-        >
-          No free square next to the {HERO_NAMES[hero]}
-        </button>
-      </MarginNote>
-    );
-  } else if (res) {
-    const { hero, room } = res;
-    const w = quest.wandering;
+    // A wandering monster (decision 33): placed next to the hero, attacks at once. No questions.
     const askWandering =
       hero && room && res.prompts.some((p) => p.kind === 'drawCard')
         ? () => {
-            // A monster asks the placement question first; a text-only wanderer is just shown.
-            if (w && 'monster' in w) setRes({ ...res, prompts: [], ask: true });
-            else run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
+            run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
           }
         : undefined;
     note = (
       <MarginNote
         anchor={res.anchor}
         kind={resultKind(res.prompts)}
-        title={resultPrompts(res.prompts).map((p) => headingOf(p, res.adjacent))[0] ?? 'Done'}
+        title={resultPrompts(res.prompts).map(headingOf)[0] ?? 'Done'}
         onClose={closeNote}
       >
-        <ResultBody
-          prompts={res.prompts}
-          onDone={closeNote}
-          onWandering={askWandering}
-          adjacent={res.adjacent ?? true}
-        />
+        <ResultBody prompts={res.prompts} onDone={closeNote} onWandering={askWandering} />
       </MarginNote>
     );
   } else if (sel?.kind === 'door') {
@@ -267,48 +237,48 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
     }
   } else if (sel?.kind === 'cell') {
     const anchor = toMap(sel.at[0] + 0.5, sel.at[1] + 0.5);
+    const canLook = hints.some((c) => c[0] === sel.at[0] && c[1] === sel.at[1]);
+    const search = (override: boolean) => {
+      const ok = run(
+        {
+          type: 'SEARCH_SECRET_DOORS',
+          cell: sel.at,
+          ...(override ? { override: true } : {}),
+        },
+        anchor,
+      );
+      if (!ok) refused();
+    };
     if (step.t === 'pick') {
       note = (
         <MarginNote
           anchor={anchor}
           kind="Search for secret doors"
-          title="Who searches?"
+          title="A monster is in the way"
           onClose={closeNote}
         >
-          <PickHero
-            team={team}
-            searched={[]}
-            monsters={[]}
-            blocked={step.blocked === true}
-            override={step.override}
-            onOverride={() => setStep({ ...step, override: true })}
-            onPick={(hero) => {
-              const ok = run(
-                {
-                  type: 'SEARCH_SECRET_DOORS',
-                  hero,
-                  cell: sel.at,
-                  ...(step.override ? { override: true } : {}),
-                },
-                anchor,
-                { hero },
-              );
-              if (!ok) refused();
-            }}
-          />
+          <SecretGuard monsters={[]} onOverride={() => search(true)} />
         </MarginNote>
       );
     } else {
       note = (
-        <MarginNote anchor={anchor} kind="Corridor" title="A hero stands here" onClose={closeNote}>
-          <p>Show everything this hero can see along the corridors.</p>
-          <button className="btn" onClick={() => act({ type: 'LOOK_FROM', cell: sel.at })}>
-            Look from here
-          </button>
-          <button
-            className="btn alt"
-            onClick={() => setStep({ t: 'pick', what: 'secret', override: false })}
-          >
+        <MarginNote
+          anchor={anchor}
+          kind="Corridor"
+          title={canLook ? 'A hero stands here' : 'Corridor square'}
+          onClose={closeNote}
+        >
+          {canLook ? (
+            <>
+              <p>Show everything a hero can see along the corridors from here.</p>
+              <button className="btn" onClick={() => act({ type: 'LOOK_FROM', cell: sel.at })}>
+                Look from here
+              </button>
+            </>
+          ) : (
+            <p>Nothing new can be seen from here.</p>
+          )}
+          <button className={canLook ? 'btn alt' : 'btn'} onClick={() => search(false)}>
             Search for secret doors
           </button>
         </MarginNote>
@@ -318,41 +288,67 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
     const anchor = roomAnchor(sel.room);
     const ss = searchState(level, state, sel.room);
     const roomCodes = ss.monstersInRoom.map((id) => codes.get(id) ?? id);
-    if (step.t === 'pick') {
-      const treasure = step.what === 'treasure';
+    const searchSecret = (override: boolean) =>
+      run(
+        { type: 'SEARCH_SECRET_DOORS', area: sel.room, ...(override ? { override: true } : {}) },
+        anchor,
+      );
+    if (step.t === 'pick' && step.what === 'secret') {
       note = (
         <MarginNote
           anchor={anchor}
-          kind={treasure ? 'Search for treasure' : 'Search for secret doors'}
+          kind="Search for secret doors"
+          title="A monster is in the way"
+          onClose={closeNote}
+        >
+          <SecretGuard monsters={roomCodes} onOverride={() => searchSecret(true)} />
+        </MarginNote>
+      );
+    } else if (step.t === 'pick') {
+      note = (
+        <MarginNote
+          anchor={anchor}
+          kind="Search for treasure"
           title="Who searches?"
           onClose={closeNote}
         >
           <PickHero
-            team={team}
-            searched={treasure ? ss.searchedBy : []}
+            team={living}
+            searched={ss.searchedBy}
             monsters={roomCodes}
             blocked={false}
             override={step.override}
             onOverride={() => setStep({ ...step, override: true })}
-            onPick={(hero) => {
-              const override = step.override ? { override: true } : {};
+            onPick={(hero) =>
               run(
-                treasure
-                  ? { type: 'SEARCH_TREASURE', room: sel.room, hero, ...override }
-                  : { type: 'SEARCH_SECRET_DOORS', hero, area: sel.room, ...override },
+                {
+                  type: 'SEARCH_TREASURE',
+                  room: sel.room,
+                  hero,
+                  ...(step.override ? { override: true } : {}),
+                },
                 anchor,
-                treasure ? { hero, room: sel.room } : { hero },
-              );
-            }}
+                { hero, room: sel.room },
+              )
+            }
           />
         </MarginNote>
       );
     } else {
       note = (
-        <MarginNote anchor={anchor} kind="Room" title="Search this room" onClose={closeNote}>
+        <MarginNote
+          anchor={anchor}
+          kind={sel.furniture ? furnitureName(sel.furniture) : 'Room'}
+          title="Search this room"
+          onClose={closeNote}
+        >
           <RoomMenu
             onTreasure={() => setStep({ t: 'pick', what: 'treasure', override: false })}
-            onSecret={() => setStep({ t: 'pick', what: 'secret', override: false })}
+            onSecret={() =>
+              roomCodes.length > 0
+                ? setStep({ t: 'pick', what: 'secret', override: false })
+                : searchSecret(false)
+            }
             onEnter={
               enterable.includes(sel.room)
                 ? () => act({ type: 'AREA_ENTER', area: sel.room })
@@ -362,6 +358,23 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
         </MarginNote>
       );
     }
+  } else if (sel?.kind === 'hero') {
+    note = (
+      <MarginNote
+        anchor={{ x: 880, y: 420 }}
+        kind="Heroes"
+        title={`${HERO_NAMES[sel.hero]} fell?`}
+        onClose={closeNote}
+      >
+        <p>Only the fact is kept. The hero leaves every tie list.</p>
+        <button className="btn" onClick={() => act({ type: 'HERO_DIED', hero: sel.hero })}>
+          Yes, fell
+        </button>
+        <button className="btn alt" onClick={closeNote}>
+          No
+        </button>
+      </MarginNote>
+    );
   } else if (sel?.kind === 'square') {
     note = (
       <MarginNote
@@ -388,7 +401,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
       if (step.t === 'jump' || step.t === 'who' || step.t === 'dwarf' || step.t === 'kit') {
         const b = trapStepBody({
           step: step.t,
-          hasDwarf: team.includes('dwarf'),
+          hasDwarf: living.includes('dwarf'),
           onJump: (result) => spring({ type: 'TRAP_JUMP', trap: tv.id, result }),
           onWho: (who) => setStep({ t: who }),
           onDisarm: (by, result) => spring({ type: 'TRAP_DISARM', trap: tv.id, by, result }),
@@ -538,7 +551,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           state={state}
           fx={fx}
           codes={codes}
-          selection={sel}
+          selection={zActive && zMonster ? { kind: 'monster', id: zMonster } : sel}
           onSelect={choose}
           onLetter={(id) => setReread(id)}
           highlight={sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []}
@@ -564,6 +577,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
         <Objectives view={objectives} intro={quest.intro.summary} />
         <div className="aside-scroll">
           {quest.zargonInfo && <p className="zinfo">{quest.zargonInfo}</p>}
+          <Heroes
+            team={team}
+            dead={state.deadHeroes}
+            onTap={(hero) => choose({ kind: 'hero', hero })}
+          />
           <Helpers npcs={npcs} />
           <section>
             <div className="lbl">Monsters in play</div>
@@ -576,7 +594,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
                   code={codes.get(m.id) ?? ''}
                   fresh={fx?.freshMonsters.includes(m.id) ?? false}
                   acted={state.doneThisTurn.includes(m.id)}
-                  selected={sel?.kind === 'monster' && sel.id === m.id}
+                  selected={
+                    (sel?.kind === 'monster' && sel.id === m.id) || (zActive && zMonster === m.id)
+                  }
+                  focus={zActive && zMonster === m.id}
                   onTap={() => choose({ kind: 'monster', id: m.id })}
                 />
               ))}
@@ -599,20 +620,6 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           <small>{progressLabel(progress)}</small>
         </button>
       </aside>
-
-      <ZargonPage
-        open={zOpen && !end}
-        level={level}
-        state={state}
-        team={team}
-        codes={codes}
-        dispatch={dispatch}
-        onClose={() => setZOpen(false)}
-        onEndTurn={() => {
-          setZOpen(false);
-          dispatch({ type: 'ZARGON_TURN_END' });
-        }}
-      />
 
       {end ? (
         <EndScreen end={end} title={quest.title} onLeave={onLeave} onUndo={() => undo()} />
@@ -660,6 +667,41 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
             Keep playing
           </button>
         </NoteCard>
+      ) : allFallen && !endOpen && fallenSeenAt !== events.length ? (
+        <NoteCard
+          kind="The heroes"
+          title="All heroes have fallen"
+          onClose={() => setFallenSeenAt(events.length)}
+        >
+          <p>There is nobody left to play. End the quest, or undo the last fall.</p>
+          <button className="btn" onClick={() => setEndOpen(true)}>
+            End quest
+          </button>
+          <button className="btn alt" onClick={() => setFallenSeenAt(events.length)}>
+            Back to the map
+          </button>
+        </NoteCard>
+      ) : zActive ? (
+        <ZargonDialog
+          seq={seq}
+          turn={state.turn}
+          codes={codes}
+          monsters={monsters}
+          allFallen={allFallen}
+          dispatch={dispatch}
+          onRead={(id) =>
+            setRead({ turn: state.turn, ids: [...(read.turn === state.turn ? read.ids : []), id] })
+          }
+          onClose={() => setZOpen(false)}
+          onEnd={() => {
+            setZOpen(false);
+            dispatch({ type: 'ZARGON_TURN_END' });
+          }}
+          onEndQuest={() => {
+            setZOpen(false);
+            setEndOpen(true);
+          }}
+        />
       ) : null}
 
       {toast && (
@@ -678,18 +720,26 @@ function RosterRow({
   fresh,
   acted,
   selected,
+  focus,
   onTap,
 }: {
   m: MonsterView;
   code: string;
   fresh: boolean;
-  /** Marked done on the Zargon page this turn. */
+  /** Marked done in Zargon's turn. */
   acted: boolean;
   selected: boolean;
+  /** Zargon's turn is on this monster: bring the row into view. */
+  focus: boolean;
   onTap(): void;
 }) {
+  const ref = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (focus) ref.current?.scrollIntoView({ block: 'nearest' });
+  }, [focus]);
   return (
     <li
+      ref={ref}
       className={[fresh ? 'new' : '', selected ? 'sel' : '', m.dead ? 'dead' : ''].join(' ').trim()}
     >
       <button data-hit disabled={m.dead} onClick={onTap}>

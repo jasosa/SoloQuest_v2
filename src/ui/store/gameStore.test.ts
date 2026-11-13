@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { lookHintCells } from '../../engine/game/hints';
 import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { testQuest } from '../../engine/quest/testQuest';
@@ -28,13 +29,26 @@ describe('game store', () => {
     expect(s.fx?.freshMonsters.length).toBeGreaterThan(0);
   });
 
-  it('shows "Nothing new here" when a look finds nothing, with no fx', () => {
+  it('refuses a look from a square without the eye, with a toast and no fx', () => {
     const store = make();
     store.getState().dispatch({ type: 'OPEN_DOOR', door: 'd1' });
-    store.getState().dispatch({ type: 'LOOK_FROM', cell: [3, 18] });
-    store.getState().dispatch({ type: 'LOOK_FROM', cell: [3, 18] });
-    expect(store.getState().toast?.text).toBe('Nothing new here.');
-    expect(store.getState().fx).toBeNull();
+    const { state } = store.getState();
+    const hints = new Set(lookHintCells(level, state).map((c) => c.join(',')));
+    const bad = [...state.seenCells].find((k) => k.endsWith(',18') && !hints.has(k));
+    expect(bad).toBeDefined();
+    const [x, y] = bad!.split(',').map(Number);
+    expect(store.getState().dispatch({ type: 'LOOK_FROM', cell: [x!, y!] })).toBe(false);
+    expect(store.getState().error?.code).toBe('NOT_A_LOOK_SQUARE');
+    expect(store.getState().toast?.text).toMatch(/Nothing new can be seen/);
+  });
+
+  it('a look from an eye square reveals and sets the fx', () => {
+    const store = make();
+    store.getState().dispatch({ type: 'OPEN_DOOR', door: 'd1' });
+    const hint = lookHintCells(level, store.getState().state)[0];
+    expect(hint).toBeDefined();
+    expect(store.getState().dispatch({ type: 'LOOK_FROM', cell: hint! })).toBe(true);
+    expect(store.getState().state.looked.has(hint!.join(','))).toBe(true);
   });
 
   it('refuses an invalid event with a toast and leaves the log alone', () => {

@@ -22,16 +22,3 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
   // The plan of a caster that has no spell to cast: as a duelist.
   caster: 'Move in and attack. No hero in reach: block the nearest doorway.',
 };
-
-/** Plan once the target is chosen and the monster is already next to it. */
-export const ADJACENT_PLAN: Readonly<Record<Profile, string>> = {
-  skirmisher: 'Already next to it: attack, then run back out of reach.',
-  soldier: 'Already next to it: attack and stay.',
-  brute: 'Already next to it: attack and stay. Never falls back.',
-  duelist: 'Already next to it: attack and stay.',
-  relentless: 'Already next to it: attack and stay. Never falls back.',
-  caster: 'Already next to it: cast a spell if one is left, otherwise attack and stay.',
-};
-
-export const NOBODY_PLAN =
-  'It can reach nobody: move toward the heroes, or hold the nearest doorway.';

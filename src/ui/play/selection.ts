@@ -1,12 +1,17 @@
+import type { Hero } from '../../engine/data/heroes';
+import type { FurnitureDef } from '../../engine/quest/schema';
+
 /** What the player tapped on the map (it gets a margin note). */
 export type Selection =
   | { readonly kind: 'door'; readonly id: string }
   | { readonly kind: 'cell'; readonly at: readonly [number, number] }
   | { readonly kind: 'monster'; readonly id: string }
-  | { readonly kind: 'room'; readonly room: string }
+  /** `furniture` is set when the tap was on a piece of furniture: its name leads the note. */
+  | { readonly kind: 'room'; readonly room: string; readonly furniture?: FurnitureDef['type'] }
   | { readonly kind: 'trap'; readonly id: string }
   | { readonly kind: 'chest'; readonly id: string }
-  | { readonly kind: 'square'; readonly at: readonly [number, number] };
+  | { readonly kind: 'square'; readonly at: readonly [number, number] }
+  | { readonly kind: 'hero'; readonly hero: Hero };
 
 /** Parse the `?select=` screenshot parameter: `door:d3`, `cell:12,18`, `monster:m1`, `room:R20`, `trap:t1`. */
 export function parseSelection(value: string | null): Selection | null {

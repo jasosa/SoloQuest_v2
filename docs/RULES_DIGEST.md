@@ -29,7 +29,7 @@ Draw a straight line from the center of one square to the center of the other. I
 - Each hero searches a room once, on their own turn. The figure does not move.
 - Special treasure in the quest notes goes to the **first** hero who searches; later searches in that room get nothing special.
 - No special treasure: draw a treasure card. About half the cards are wandering monsters or hazards.
-- **Wandering monster card**: the quest names the monster. Place it next to the searching hero; it attacks that hero at once (and only that hero this round). If no square next to the hero is free, place it in the room as close as possible; it acts on Zargon's next turn. The hero defends normally, then goes on with the turn.
+- **Wandering monster card**: the quest names the monster. Place it next to the searching hero; it attacks that hero at once (and only that hero this round). The hero defends normally, then goes on with the turn.
 - Chest trap not found and disarmed: searching for treasure springs it first (effect from the quest note), then the search goes on (decision 22).
 
 ## Search for secret doors (p. 16-17)
@@ -67,6 +67,7 @@ Quest overrides exist (Quest 12 note C scripted falling block; Quest 13 falling-
 - Monsters may not: search, move or attack diagonally, pass over heroes, go through walls, open or close doors, share a square.
 - A monster may move then act, or act then move.
 - Dread spells: only on a hero the monster can see; each spell once per quest unless the quest says otherwise.
+- **In the app**: Zargon's turn shows one monster at a time in a dialog, with a target rule, a tie list of the living heroes and a plan (`docs/ZARGON_AI.md`). The app tracks only whether a hero died (decision 32); a dead hero is out of every tie list and cannot search or disarm. A caster gets one random spell it still has; the players say whether it could be cast.
 
 ## Combat (p. 13, 20-21), for reference only
 

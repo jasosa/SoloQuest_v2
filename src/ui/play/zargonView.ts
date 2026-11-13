@@ -1,24 +1,37 @@
-/** Pure helpers for the Zargon's turn page: ordering, labels. No React. */
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
-import type { OrderGroup, TurnProgress } from '../../engine/zargon';
+/** Pure helpers for Zargon's turn: the sequence of dialogs, labels. No React. */
+import type { Hero } from '../../engine/data/heroes';
+import { HERO_NAMES } from '../../engine/data/heroes';
+import type { Order, TurnProgress } from '../../engine/zargon';
 
-export interface DisplayGroup {
-  readonly group: OrderGroup;
-  /** 1-based position among the entries still to do; undefined for a done entry. */
+export interface TurnItem {
+  readonly order: Order;
+  /** `act`: carry out the order. `info`: stone or fresh wanderer, a short dialog with "Next". */
+  readonly kind: 'act' | 'info';
+  /** 1-based position among the acting monsters (undefined for `info`). */
   readonly number: number | undefined;
-  /** Members that are not done yet. */
-  readonly open: readonly string[];
+  /** Still to show: an acting monster not done, an info monster not read yet. */
+  readonly pending: boolean;
 }
 
-/** Entries in reveal order, the done ones moved to the bottom (still in reveal order). */
-export function displayGroups(groups: readonly OrderGroup[]): DisplayGroup[] {
-  const todo = groups.filter((g) => !g.done);
-  const done = groups.filter((g) => g.done);
-  return [...todo, ...done].map((group) => ({
-    group,
-    number: group.done ? undefined : todo.indexOf(group) + 1,
-    open: group.monsters.filter((m) => !group.doneIds.includes(m)),
-  }));
+export interface TurnSequence {
+  readonly items: readonly TurnItem[];
+  /** Monsters that act this turn. */
+  readonly actingTotal: number;
+  /** The first item still pending, in order (resume point). */
+  readonly current: TurnItem | undefined;
+}
+
+/** One dialog per monster, in the order of `ordersFor` (reveal order). `read`: info ids shown. */
+export function turnSequence(orders: readonly Order[], read: ReadonlySet<string>): TurnSequence {
+  let n = 0;
+  const items = orders.map<TurnItem>((order) => {
+    if (order.status === 'act') {
+      n += 1;
+      return { order, kind: 'act', number: n, pending: !order.done };
+    }
+    return { order, kind: 'info', number: undefined, pending: !read.has(order.monster) };
+  });
+  return { items, actingTotal: n, current: items.find((i) => i.pending) };
 }
 
 /** "Dwarf › Elf › Wizard" */
@@ -33,9 +46,3 @@ export function progressLabel(p: TurnProgress): string {
 }
 
 export const leftLabel = (left: number): string => (left === 1 ? '1 left' : `${left} left`);
-
-export const MODE_HELP = {
-  priority:
-    'Each monster goes for the first hero that fits its rule and that it can reach. Use your character sheets. If the rule does not decide, use the tie list.',
-  reach: 'Tap the heroes each monster can reach. The app chooses the target when it can.',
-} as const;

@@ -26,7 +26,6 @@ const wander = (room: string, hero: Hero): GameEvent => ({
 });
 const secrets = (area?: string, cell?: [number, number], override?: boolean): GameEvent => ({
   type: 'SEARCH_SECRET_DOORS',
-  hero: 'elf',
   ...(area !== undefined ? { area } : {}),
   ...(cell !== undefined ? { cell } : {}),
   ...(override !== undefined ? { override } : {}),
@@ -324,7 +323,6 @@ describe('WANDERING_MONSTER', () => {
         placement: {
           nextToHero: 'elf',
           attacksAtOnce: true,
-          ifNoFreeSquare: { closestInRoom: 'R17', actsNextZargonTurn: true },
         },
       },
     ]);

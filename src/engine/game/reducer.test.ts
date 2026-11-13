@@ -3,6 +3,7 @@ import { board, cellsOf } from '../board/board';
 import { buildLevel } from '../board/level';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
+import { lookHintCells } from './hints';
 import { EventError, initialState, reduce, replay, undo } from './reducer';
 import { nextInt } from './rng';
 import { draftOf, type GameState } from './state';
@@ -232,11 +233,25 @@ describe('LOOK_FROM', () => {
     expect(s.looked.has('12,0')).toBe(true);
   });
 
-  it('shows "nothing new" when there is nothing to reveal', () => {
+  it('is refused from a seen square that is not a look hint (nothing new to see)', () => {
     const s = run(open('d1'));
-    const r = reduce(level, s, look(7, 18));
-    expect(r.prompts).toEqual([{ kind: 'nothingNew' }]);
-    expect(r.state.looked.has('7,18')).toBe(true);
+    expect(() => reduce(level, s, look(7, 18))).toThrow(
+      expect.objectContaining({ code: 'NOT_A_LOOK_SQUARE' }),
+    );
+    expect(lookHintCells(level, s).some((c) => c[0] === 7 && c[1] === 18)).toBe(false);
+    const hint = lookHintCells(level, s)[0]!;
+    expect(reduce(level, s, look(hint[0], hint[1])).state.looked.has(`${hint[0]},${hint[1]}`)).toBe(
+      true,
+    );
+  });
+
+  it('is refused a second time from the same square', () => {
+    const s = run(open('d1'));
+    const hint = lookHintCells(level, s)[0]!;
+    const s2 = reduce(level, s, look(hint[0], hint[1])).state;
+    expect(() => reduce(level, s2, look(hint[0], hint[1]))).toThrow(
+      expect.objectContaining({ code: 'NOT_A_LOOK_SQUARE' }),
+    );
   });
 
   it('only works from a seen corridor square', () => {

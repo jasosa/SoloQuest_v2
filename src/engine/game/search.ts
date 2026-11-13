@@ -20,9 +20,11 @@ export { liveMonstersInRoom };
 
 type Reduced = { readonly state: GameState; readonly prompts: readonly Prompt[] };
 
-function checkHero(hero: string): Hero {
+function checkHero(hero: string, state: GameState): Hero {
   if (!(HEROES as readonly string[]).includes(hero))
     throw new EventError('UNKNOWN_HERO', `Unknown hero ${hero}`);
+  if (state.deadHeroes.includes(hero as Hero))
+    throw new EventError('HERO_DEAD', `The ${hero} is dead and cannot act`);
   return hero as Hero;
 }
 
@@ -68,7 +70,7 @@ export function searchTreasure(
   state: GameState,
   event: Extract<GameEvent, { type: 'SEARCH_TREASURE' }>,
 ): Reduced {
-  const hero = checkHero(event.hero);
+  const hero = checkHero(event.hero, state);
   const room = checkRoom(level, state, event.room);
   const before = state.treasureSearched[room] ?? [];
   if (before.includes(hero))
@@ -144,7 +146,7 @@ export function wanderingMonster(
   state: GameState,
   event: Extract<GameEvent, { type: 'WANDERING_MONSTER' }>,
 ): Reduced {
-  const hero = checkHero(event.hero);
+  const hero = checkHero(event.hero, state);
   const room = checkRoom(level, state, event.room);
   const w = level.quest.wandering;
   if (!w) throw new EventError('NO_WANDERING', 'This quest has no wandering monster');
@@ -155,7 +157,7 @@ export function wanderingMonster(
   while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
   const id = `w${n}`;
   d.wanderCount = n;
-  d.wanderers[id] = { type: w.monster, room, wanderAt: hero, fresh: event.adjacent !== false };
+  d.wanderers[id] = { type: w.monster, room, wanderAt: hero, fresh: true };
   d.seenMonsters.add(id);
   d.monsters[id] = { body: statsOf({ type: w.monster }).body, dead: false };
   return {
@@ -170,7 +172,6 @@ export function wanderingMonster(
         placement: {
           nextToHero: hero,
           attacksAtOnce: true,
-          ifNoFreeSquare: { closestInRoom: room, actsNextZargonTurn: true },
         },
       },
     ],
@@ -184,7 +185,6 @@ export function searchSecretDoors(
   state: GameState,
   event: Extract<GameEvent, { type: 'SEARCH_SECRET_DOORS' }>,
 ): Reduced {
-  checkHero(event.hero);
   const { board, quest } = level;
   let areaForNote: AreaId = 'C';
   let doorIds: string[];

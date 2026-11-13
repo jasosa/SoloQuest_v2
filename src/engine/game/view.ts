@@ -75,6 +75,11 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
   return out;
 }
 
+/** The heroes of the team that are still alive, in team order (decision 32). */
+export function livingHeroes(team: readonly Hero[], state: Pick<GameState, 'deadHeroes'>): Hero[] {
+  return team.filter((h) => !state.deadHeroes.includes(h));
+}
+
 export interface DormantFigure {
   readonly id: string;
   readonly type: MonsterType;

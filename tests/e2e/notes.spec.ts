@@ -12,11 +12,25 @@ const rows = (page: Page) => page.locator('.roster li:not(.empty)');
 const journalRows = (page: Page) => page.locator('.journal li');
 
 // Quest 1: corridor squares to look from, in order, to see the doors of the north-west rooms.
-const ROW9 = 'look@2:18,look@4:18,look@1:18,look@5:18,look@0:17,look@0:9';
+const ROW9 = 'look@1:18,look@0:17,look@0:9';
 const quest1 = (page: Page, open: string, team = 'dwarf,elf') =>
   page.goto(`/?quest=1&team=${team}&nosave=1&seed=1&open=${open}`);
 const fixture = (page: Page, open = '') =>
   page.goto(`/?quest=test&team=dwarf,elf&nosave=1&seed=1&open=${open}`);
+
+/** Walk through Zargon's dialogs (Done, Next) and end the turn. */
+async function endTheTurn(page: Page) {
+  await page.getByRole('button', { name: /^Zargon's turn/ }).click();
+  for (let i = 0; i < 12; i++) {
+    const end = page.getByRole('button', { name: "End Zargon's turn", exact: true });
+    if (await end.count()) {
+      await end.click();
+      return;
+    }
+    const next = page.getByRole('button', { name: /^(Done|Next)$/ });
+    await next.first().click();
+  }
+}
 
 test.describe('quest 1 notes', () => {
   test('note C shows when R02 opens, leaves a letter on the map and a line in the journal', async ({
@@ -252,8 +266,7 @@ test.describe('notes engine on the dev fixture', () => {
 
   test("Zargon's turn still just ends the turn", async ({ page }) => {
     await fixture(page);
-    await page.getByRole('button', { name: /Zargon's turn/ }).click();
-    await page.getByRole('button', { name: "End Zargon's turn" }).click();
+    await endTheTurn(page);
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
 });

@@ -7,9 +7,9 @@ describe('EventSchema covers the search, trap and notes events', () => {
     { type: 'SEARCH_TREASURE', room: 'R17', hero: 'elf' },
     { type: 'SEARCH_TREASURE', room: 'R17', hero: 'dwarf', override: true },
     { type: 'WANDERING_MONSTER', room: 'R17', hero: 'wizard' },
-    { type: 'WANDERING_MONSTER', room: 'R17', hero: 'wizard', adjacent: false },
-    { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', area: 'R17' },
-    { type: 'SEARCH_SECRET_DOORS', hero: 'barbarian', cell: [3, 18], override: false },
+    { type: 'HERO_DIED', hero: 'dwarf' },
+    { type: 'SEARCH_SECRET_DOORS', area: 'R17' },
+    { type: 'SEARCH_SECRET_DOORS', cell: [3, 18], override: false },
     { type: 'SEARCH_TRAPS', furniture: 'f1' },
     { type: 'SEARCH_TRAPS', furniture: 'f1', override: true },
     { type: 'TRAP_JUMP', trap: 't1', result: 'skull' },
@@ -35,6 +35,22 @@ describe('EventSchema covers the search, trap and notes events', () => {
     expect(EventSchema.safeParse({ type: 'CHOOSE', note: 'n', option: -1 }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'SQUARE_TRIGGER', cell: [1.5, 2] }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'AREA_ENTER' }).success).toBe(false);
+  });
+
+  it('still parses old saves with the dropped keys (ignored)', () => {
+    const w = EventSchema.parse({
+      type: 'WANDERING_MONSTER',
+      room: 'R17',
+      hero: 'elf',
+      adjacent: false,
+    });
+    expect(w).toEqual({ type: 'WANDERING_MONSTER', room: 'R17', hero: 'elf' });
+    const s = EventSchema.parse({ type: 'SEARCH_SECRET_DOORS', hero: 'elf', area: 'R17' });
+    expect(s).toEqual({ type: 'SEARCH_SECRET_DOORS', area: 'R17' });
+  });
+
+  it('rejects an unknown hero in HERO_DIED', () => {
+    expect(EventSchema.safeParse({ type: 'HERO_DIED', hero: 'knight' }).success).toBe(false);
   });
 
   it('rejects bad Zargon events', () => {

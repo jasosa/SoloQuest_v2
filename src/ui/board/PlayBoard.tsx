@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { areaAt, isWallBetween, type Cell } from '../../engine/board/board';
 import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
 import { lookHintCells } from '../../engine/game/hints';
@@ -18,6 +18,7 @@ import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
 import { Furniture } from './Furniture';
+import { furnitureName } from './furnitureNames';
 
 const EDGES = [
   [0, -1, 0, 0, 1, 0],
@@ -90,6 +91,15 @@ export function PlayBoard({
   const { board } = level;
   const W = board.width;
   const H = board.height;
+
+  // The name label of the furniture under the pointer or keyboard focus.
+  const [hoverF, setHoverF] = useState<string | null>(null);
+  const hoverProps = (id: string) => ({
+    onMouseEnter: () => setHoverF(id),
+    onMouseLeave: () => setHoverF((h) => (h === id ? null : h)),
+    onFocus: () => setHoverF(id),
+    onBlur: () => setHoverF((h) => (h === id ? null : h)),
+  });
 
   const ink = fx !== null && fx.cells.size > 0 && !reducedMotion() ? fx : null;
   const fresh = (k: string) => ink !== null && ink.cells.has(k);
@@ -318,6 +328,40 @@ export function PlayBoard({
     }
   }
 
+  // Furniture (not chests): tap opens the room note, headed by its name. Hover or focus shows the name.
+  const furnitureHits: ReactNode[] = [];
+  const bbox = (cells: readonly Cell[]) => {
+    const xs = cells.map((q) => q[0]);
+    const ys = cells.map((q) => q[1]);
+    return {
+      x: Math.min(...xs) * S,
+      y: Math.min(...ys) * S,
+      w: (Math.max(...xs) - Math.min(...xs) + 1) * S,
+      h: (Math.max(...ys) - Math.min(...ys) + 1) * S,
+    };
+  };
+  for (const f of level.quest.furniture) {
+    if (f.type === 'chest' || !state.seenFurniture.has(f.id)) continue;
+    const first = f.cells[0];
+    const room = first ? areaAt(board, first[0], first[1]) : undefined;
+    if (!first || room === undefined || room === 'C') continue;
+    const b = bbox(f.cells);
+    furnitureHits.push(
+      <rect
+        key={`fh${f.id}`}
+        className="hit"
+        data-hit
+        data-furniture={f.id}
+        x={b.x}
+        y={b.y}
+        width={b.w}
+        height={b.h}
+        {...press(furnitureName(f.type), () => onSelect({ kind: 'room', room, furniture: f.type }))}
+        {...hoverProps(f.id)}
+      />,
+    );
+  }
+
   // Chests: tappable (Search for traps). The hit area is the chest, at least 44 px.
   const chestHits: ReactNode[] = [];
   for (const c of chestsInView(level, state)) {
@@ -340,6 +384,7 @@ export function PlayBoard({
         width={hw}
         height={hh}
         {...press('Chest', () => onSelect({ kind: 'chest', id: c.id }))}
+        {...hoverProps(c.id)}
       />,
     );
   }
@@ -697,6 +742,31 @@ export function PlayBoard({
         />,
       );
 
+  let hoverLabel: ReactNode = null;
+  const hf = hoverF ? level.quest.furniture.find((f) => f.id === hoverF) : undefined;
+  if (hf && state.seenFurniture.has(hf.id)) {
+    const b = bbox(hf.cells);
+    const text = furnitureName(hf.type);
+    const w = text.length * 7.4 + 16;
+    const lx = Math.max(2, Math.min(b.x + b.w / 2 - w / 2, W * S - w - 2));
+    const ly = Math.max(2, b.y - 24);
+    hoverLabel = (
+      <g pointerEvents="none" data-furniture-label={hf.id}>
+        <rect x={lx} y={ly} width={w} height={20} fill={color.text} />
+        <text
+          x={lx + w / 2}
+          y={ly + 14}
+          textAnchor="middle"
+          fill={color.paper}
+          fontFamily="Pagella"
+          fontSize={13}
+        >
+          {text}
+        </text>
+      </g>
+    );
+  }
+
   return (
     <svg
       id="board"
@@ -772,12 +842,14 @@ export function PlayBoard({
       {highlights}
       {tokens}
       {cellHits}
+      {furnitureHits}
       {chestHits}
       {markerHits}
       {trapHits}
       {monsterHits}
       {letterHits}
       {doorHits}
+      {hoverLabel}
     </svg>
   );
 }

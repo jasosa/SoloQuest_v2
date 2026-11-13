@@ -35,7 +35,10 @@ export type EventErrorCode =
   | 'SPELL_LIMIT'
   | 'MONSTER_INACTIVE'
   | 'ALREADY_DONE'
-  | 'SPELL_DECLINED';
+  | 'SPELL_DECLINED'
+  | 'ALREADY_DEAD'
+  | 'HERO_DEAD'
+  | 'NOT_A_LOOK_SQUARE';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

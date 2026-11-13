@@ -35,15 +35,11 @@ export const EventSchema = z.discriminatedUnion('type', [
     hero: z.enum(HEROES),
     override: z.boolean().optional(),
   }),
+  // An old save may carry `adjacent`: z.object drops unknown keys, so it still parses.
+  z.object({ type: z.literal('WANDERING_MONSTER'), room: z.string(), hero: z.enum(HEROES) }),
   z.object({
-    type: z.literal('WANDERING_MONSTER'),
-    room: z.string(),
-    hero: z.enum(HEROES),
-    adjacent: z.boolean().optional(),
-  }),
-  z.object({
+    // An old save may carry `hero`: unknown keys are dropped when parsing.
     type: z.literal('SEARCH_SECRET_DOORS'),
-    hero: z.enum(HEROES),
     area: z.string().optional(),
     cell: CellSchema.optional(),
     override: z.boolean().optional(),
@@ -65,6 +61,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SQUARE_TRIGGER'), cell: CellSchema }),
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
+  z.object({ type: z.literal('HERO_DIED'), hero: z.enum(HEROES) }),
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('SPELL_FAILED'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),

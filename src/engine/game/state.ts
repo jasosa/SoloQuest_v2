@@ -111,6 +111,8 @@ export interface GameState {
   readonly spellsCast: Readonly<Record<string, readonly string[]>>;
   /** Monsters that cast a spell this Zargon turn (for `onePerTurn`). Cleared on ZARGON_TURN_END. */
   readonly castThisTurn: readonly string[];
+  /** Heroes that died, in order of death. Only the fact is tracked: no wounds, no Body Points. */
+  readonly deadHeroes: readonly Hero[];
   /** Spells the players said could not be cast this turn, per monster, in order. Cleared on ZARGON_TURN_END. */
   readonly spellsFailed: Readonly<Record<string, readonly string[]>>;
   /** Monsters whose order was carried out this Zargon turn. Cleared on ZARGON_TURN_END. */
@@ -152,6 +154,7 @@ export function emptyState(seed: number): GameState {
     spellsCast: {},
     castThisTurn: [],
     spellsFailed: {},
+    deadHeroes: [],
     doneThisTurn: [],
     ended: undefined,
   };

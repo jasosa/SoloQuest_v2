@@ -18,6 +18,8 @@ export type Prompt =
   | { readonly kind: 'doorStuck'; readonly door: string }
   /** The action showed nothing new. */
   | { readonly kind: 'nothingNew' }
+  /** A hero died (decision 32). */
+  | { readonly kind: 'heroDied'; readonly hero: Hero }
   /** A quest note fired. `texts` are its showText and giveItem texts. `title` is the title of
    *  its first showText that has one. Sent when the note has texts, a letter, or takes the
    *  treasure. */
@@ -109,10 +111,6 @@ export type Prompt =
       readonly placement: {
         readonly nextToHero: Hero;
         readonly attacksAtOnce: true;
-        readonly ifNoFreeSquare: {
-          readonly closestInRoom: AreaId;
-          readonly actsNextZargonTurn: true;
-        };
       };
     }
   /** The quest's wandering monster is a text, not a monster. */

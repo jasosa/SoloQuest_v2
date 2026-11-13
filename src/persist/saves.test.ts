@@ -12,7 +12,7 @@ const SEED = 7;
 const TEAM: Hero[] = ['dwarf', 'wizard'];
 const log: GameEvent[] = [
   { type: 'OPEN_DOOR', door: 'd1' },
-  { type: 'LOOK_FROM', cell: [3, 18] },
+  { type: 'LOOK_FROM', cell: [0, 18] },
 ];
 
 let n = 0;

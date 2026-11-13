@@ -30,19 +30,10 @@ export type GameEvent =
       readonly override?: boolean | undefined;
     }
   /** A treasure card said "wandering monster": the quest's wandering monster joins the roster. */
-  | {
-      readonly type: 'WANDERING_MONSTER';
-      readonly room: string;
-      readonly hero: Hero;
-      /** Default true: it was placed next to the hero and attacked at once (fresh until the Zargon
-       *  turn ends). False: no free square next to the hero, so it stands as close as possible
-       *  and acts in the coming Zargon turn. */
-      readonly adjacent?: boolean | undefined;
-    }
+  | { readonly type: 'WANDERING_MONSTER'; readonly room: string; readonly hero: Hero }
   /** Search for secret doors in a room (`area`) or in a corridor in sight of `cell`. */
   | {
       readonly type: 'SEARCH_SECRET_DOORS';
-      readonly hero: Hero;
       readonly area?: string | undefined;
       readonly cell?: Cell | undefined;
       readonly override?: boolean | undefined;
@@ -75,6 +66,8 @@ export type GameEvent =
   | { readonly type: 'CHOOSE'; readonly note: string; readonly option: number }
   /** A named monster cast one of its Dread spells (once per quest per listing; `onePerTurn` limits a turn). */
   | { readonly type: 'SPELL_CAST'; readonly monster: string; readonly spell: string }
+  /** A hero died (decision 32). Only the fact is tracked. Once per hero; undo to take it back. */
+  | { readonly type: 'HERO_DIED'; readonly hero: Hero }
   /** The players said this spell could not be cast this turn. The order offers the next one. */
   | { readonly type: 'SPELL_FAILED'; readonly monster: string; readonly spell: string }
   /** The players carried out the order of a monster this Zargon turn. Once per monster per turn. */

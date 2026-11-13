@@ -667,7 +667,7 @@ describe('other effects', () => {
       ],
     });
     const s = replay(lv, SEED, [open('d2'), kill('m1')]);
-    const r = reduce(lv, s, { type: 'SEARCH_SECRET_DOORS', hero: 'elf', area: 'R17' });
+    const r = reduce(lv, s, { type: 'SEARCH_SECRET_DOORS', area: 'R17' });
     expect(kinds(r.prompts)).toEqual(['note', 'secretDoorAdded', 'nothingFound']);
     expect(r.state.seenDoors.has('s1')).toBe(true);
   });
