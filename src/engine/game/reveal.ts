@@ -4,12 +4,12 @@
  *
  * - A room is revealed whole: every cell, its furniture, monsters, blocked squares, doors on its
  *   walls, and trap "?" markers. Secret doors and treasure are never revealed by sight.
- * - Corridors are revealed by line of sight, center to center, from one square. Through an
- *   open door only the cells in sight are revealed, not the whole room.
+ * - Corridors are revealed by line of sight, center to center, from one square. A room is never
+ *   partly revealed: if line of sight reaches any square of a room, the whole room is revealed.
  * - Rock is never revealed. Figures do not block sight.
  */
-import { cellsOf, type AreaId } from '../board/board';
-import { cellKey, sightMap, type CellKey, type Level } from '../board/level';
+import { areaAt, cellsOf, type AreaId } from '../board/board';
+import { cellKey, parseKey, sightMap, type CellKey, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
 import type { Cell } from '../board/board';
 import type { Draft } from './state';
@@ -86,5 +86,9 @@ export function revealFrom(level: Level, d: Draft, from: Cell): RevealResult {
       if (level.blockAt.has(cellKey(x, y))) markBlock(level, d, x, y);
       else if (markCell(level, d, x, y)) cells.push(cellKey(x, y));
     }
+  // A room is never partly revealed: a room square in sight shows the whole room.
+  for (const room of new Set(cells.map((k) => areaAt(level.board, ...parseKey(k)))))
+    if (room !== undefined && room !== 'C' && !d.revealedRooms.has(room))
+      cells.push(...revealRoom(level, d, room).cells);
   return { cells };
 }

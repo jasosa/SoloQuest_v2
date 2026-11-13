@@ -21,7 +21,7 @@ The parts of the HeroQuest 2021 rules the app implements, in our own words. Page
 
 Draw a straight line from the center of one square to the center of the other. If it crosses a wall or closed door (or a figure, for spells only), there is no sight. A line that only touches a corner or a wall edge still sees.
 
-**App**: walls, closed doors, rock and blocked squares stop reveal. Figures do not stop reveal.
+**App**: walls, closed doors, rock and blocked squares stop reveal. Figures and furniture do not stop reveal. A room is never partly revealed: when sight reaches any square of a room, the whole room is shown.
 
 ## Search for treasure (p. 14-15)
 

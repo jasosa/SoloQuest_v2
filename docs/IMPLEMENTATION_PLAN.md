@@ -214,7 +214,7 @@ Explored area stays visible. Fog covers the rest. Rock is never shown as playabl
 ### 5.3 Reveal engine
 
 - `revealArea(areaId)`: all cells of the room + furniture + monsters + doors on its walls (closed). Traps shown as "?". Secret doors not shown.
-- `revealLineOfSight(fromCell)`: for every cell in the corridor network and the open rooms, cast a ray center to center, stop on walls, closed doors and blocks. Reveal the visible corridor cells, their doors, blocks, monsters, trap "?". Rooms seen through an **open** door are not fully revealed by sight (only the visible cells), same as a real Zargon would do with figures.
+- `revealLineOfSight(fromCell)`: for every cell in the corridor network and the open rooms, cast a ray center to center, stop on walls, closed doors and blocks. Reveal the visible corridor cells, their doors, blocks, monsters, trap "?". A room is never partly revealed: if line of sight reaches any square of a room (for example through an open door), the whole room is revealed.
 - Door into a corridor: line of sight from the corridor cell in front of the door, looking out.
 - Door between two known areas: only flips the door to open.
 

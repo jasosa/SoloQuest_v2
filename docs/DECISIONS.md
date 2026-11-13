@@ -17,3 +17,6 @@ Taken with the owner. Do not change them without asking. Add new ones at the bot
 | 11 | 2026-11-13 | Wandering monster: the app shows the placement rule (next to the searching hero, attacks at once; else closest square in the room, acts next Zargon turn) and adds it to the roster without a square. |
 | 12 | 2026-11-13 | Quest note letters appear on the map where the note happened, once read; tap to read again. |
 | 13 | 2026-11-13 | Squares where "Look from here" can show more get an eye glyph, computed from board geometry only (rock is not leaked). |
+| 14 | 2026-11-13 | A room is all or nothing: the first time it is revealed (door opened, or sight reaches any square of it) the whole room is shown. No "hero enters" event is needed. |
+| 15 | 2026-11-13 | A false door can be opened by the players: nothing is revealed, and the wall stays. |
+| 16 | 2026-11-13 | Furniture does not block sight (the rulebook only says figures block spells). A block you can see is drawn as a block and stops sight behind it. The "look from here" eye disappears from a square once the players looked from it. |

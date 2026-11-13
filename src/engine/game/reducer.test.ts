@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { board, cellsOf } from '../board/board';
 import { buildLevel } from '../board/level';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
 import { EventError, initialState, reduce, replay, undo } from './reducer';
+import { nextInt } from './rng';
 import { draftOf, type GameState } from './state';
 
 const level = buildLevel(testQuest());
@@ -106,18 +108,53 @@ describe('OPEN_DOOR into a corridor', () => {
     expect(u.revealedRooms.has('R12')).toBe(true);
   });
 
-  it('looking through an already open door shows only the cells in sight, not the whole room', () => {
+  it('seeing a room square through an open door reveals the whole room', () => {
     // Hand-made state: d4 is open, R18 is not revealed, a hero stands at (12,14).
     const d = draftOf(initialState(level, SEED));
     d.seenCells.add('12,14');
     d.openDoors.add('d4');
     const s = reduce(level, d, look(12, 14)).state;
-    expect(seen(s, 11, 14)).toBe(true);
-    expect(seen(s, 10, 14)).toBe(true);
-    expect(seen(s, 10, 15)).toBe(true);
-    expect(s.seenMonsters.has('m2')).toBe(true); // the goblin at (10,15) is in sight
-    expect(seen(s, 11, 17)).toBe(false);
-    expect(s.revealedRooms.has('R18')).toBe(false);
+    expect(s.revealedRooms.has('R18')).toBe(true);
+    expect(seen(s, 11, 17)).toBe(true); // not in line of sight, but the room is whole
+    expect(s.seenMonsters.has('m2')).toBe(true);
+  });
+
+  it('a room is never partly revealed, whatever the order of events', () => {
+    const doors = [...level.doors.keys()];
+    const rooms = new Set(board.cells.flat().filter((a) => a !== 'C'));
+    const corridorCells: [number, number][] = [];
+    for (let y = 0; y < board.height; y++)
+      for (let x = 0; x < board.width; x++)
+        if (board.cells[y]![x] === 'C') corridorCells.push([x, y]);
+    for (let trial = 0; trial < 60; trial++) {
+      let s = initialState(level, trial);
+      let rng = s.rng;
+      const pick = (n: number): number => {
+        const [v, next] = nextInt(rng, n);
+        rng = next;
+        return v;
+      };
+      for (let i = 0; i < 25; i++) {
+        try {
+          s = reduce(
+            level,
+            s,
+            pick(2) === 0
+              ? open(doors[pick(doors.length)]!)
+              : look(...corridorCells[pick(corridorCells.length)]!),
+          ).state;
+        } catch {
+          // invalid events (door not seen, square not seen) are simply skipped
+        }
+        for (const room of rooms) {
+          const floor = cellsOf(board, room).filter(([x, y]) => !level.rock.has(`${x},${y}`));
+          const seenCount = floor.filter(([x, y]) => seen(s, x, y)).length;
+          if (floor.length === 0) continue;
+          expect(seenCount === 0 || seenCount === floor.length, `${room} partly seen`).toBe(true);
+          expect(s.revealedRooms.has(room), room).toBe(seenCount > 0);
+        }
+      }
+    }
   });
 });
 
