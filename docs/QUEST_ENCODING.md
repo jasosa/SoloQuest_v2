@@ -10,7 +10,7 @@ Goal: each quest of the core Quest Book becomes `src/content/quests/qNN-<slug>.j
 ## Tools
 
 - Source PDF: `C:\Users\Juanan\Documents\Games\Heroquest\01_Rules\Official\HEROQUEST_CORE_QUEST_BOOK.pdf` (19 PDF pages; quest N is on PDF page N + 2, e.g. quest 1 on page 3, quest 14 on page 16).
-- Rendering needs Poppler (`pdftoppm`). On Windows: `winget install oschwartz10612.Poppler` or `scoop install poppler`, then `npm run render:maps` (if `pdftoppm` is not found, add `%LOCALAPPDATA%MicrosoftWinGetPackagesoschwartz10612.Poppler_Microsoft.Winget.Source_8wekyb3d8bbwepoppler-25.07.0ibrarybin` to path and restart the terminal) (writes `reference/maps/qNN.png` at 300 dpi and a crop of the map frame).
+- Rendering needs Poppler (`pdftoppm`). On Windows: `winget install oschwartz10612.Poppler` or `scoop install poppler`, then `npm run render:maps` (if `pdftoppm` is not found, add `%LOCALAPPDATA%MicrosoftWinGetPackagesoschwartz10612.Poppler_Microsoft.Winget.Source_8wekyb3d8bbwepoppler-25.07.0ibrarybin` to path and restart the terminal) (`npm run overlay -- N [--grid]` draws the quest on the scan; writes `reference/maps/qNN.png` at 300 dpi and a crop of the map frame).
 - Board geometry is already extracted: `src/content/board.json` (from the blank map, PDF page 17). Map frame on a 150 dpi page render: about x 200..1310, y 120..920; a cell is about 41.3 px at 150 dpi.
 - Notes text: `pdftotext -layout` on the quest book gives the note text to paraphrase.
 
@@ -33,7 +33,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
 |---|---|---|---|---|---|---|---|
-| 1 | The Trial | partial (prototype, SW part) | A, B | | | | |
+| 1 | The Trial | done | A to E | ok | ok | ok (src/content/quests/q01.test.ts) | |
 | 2 | The Rescue of Sir Ragnar | | | | | | |
 | 3 | Lair of the Orc Warlord | | | | | | |
 | 4 | Prince Magnus' Gold | | | | | | |
