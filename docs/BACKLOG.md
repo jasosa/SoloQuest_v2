@@ -62,6 +62,12 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [ ] Casters: spell suggestion and spell use tracking
 - [ ] Turn counter effects (`zargonTurn` triggers, stone countdown)
 
+## Small changes (owner requests, 2026-11-13)
+
+- [ ] "Look from here" is offered only on squares with the eye symbol (the `lookHintCells` squares). Other seen corridor squares get no look option; the engine should refuse `LOOK_FROM` elsewhere too, with a test
+- [ ] "Search for secret doors" does not ask for a hero (same as the chest trap search): drop `hero` from `SEARCH_SECRET_DOORS` in the engine, the event schema and the UI sheet
+- [ ] Furniture shows a note with its name (for example "Weapons rack"). It must work by tap on touch screens and phones, not only by hover; on a desktop, hover shows it too. Keyboard: focus shows it. The chest note already exists, so it gets the name too. Names come from the furniture type, no book text
+
 ## M6 · Editor
 
 - [ ] Editor layout: tools left, board center, inspector right
