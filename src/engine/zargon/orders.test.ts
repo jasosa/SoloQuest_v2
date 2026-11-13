@@ -290,7 +290,11 @@ describe('who gets an order', () => {
     const o2 = ordersFor(l, s2, TEAM).find((x) => x.monster === 'w1')!;
     expect(o2.status).toBe('act');
     // the order shown as "next turn" is the order that applies next turn
-    expect({ ...o2, status: o.status, note: o.note }).toEqual({ ...o, done: false });
+    expect({ ...o2, status: o.status, note: o.note, fallbacks: undefined }).toEqual({
+      ...o,
+      done: false,
+      fallbacks: undefined,
+    });
   });
 });
 

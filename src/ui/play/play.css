@@ -275,7 +275,7 @@ aside {
 }
 .note .zdl {
   display: grid;
-  grid-template-columns: 58px 1fr;
+  grid-template-columns: 86px 1fr;
   gap: 4px 10px;
   margin-bottom: 10px;
   font-size: 15.5px;

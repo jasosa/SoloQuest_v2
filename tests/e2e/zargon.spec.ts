@@ -21,10 +21,12 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await expect(dlg(page)).toContainText('Monster 1 of 2');
     await expect(dlg(page)).toContainText('Orc');
     await expect(dlg(page)).toContainText('Move 8 · Att 3 · Def 2');
-    await expect(dlg(page).locator('dt', { hasText: 'Target' })).toBeVisible();
-    await expect(dlg(page).locator('dt', { hasText: 'Tie' })).toBeVisible();
-    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toBeVisible();
+    await expect(dlg(page).getByText('Target', { exact: true })).toBeVisible();
+    await expect(dlg(page).getByText('Tie', { exact: true })).toBeVisible();
+    await expect(dlg(page).getByText('Plan', { exact: true })).toBeVisible();
     await expect(dlg(page).locator('.tgt')).toContainText('›');
+    await expect(dlg(page).getByText('No target', { exact: true })).toBeVisible();
+    await expect(dlg(page).getByText('No reach', { exact: true })).toBeVisible();
     await expect(dlg(page).locator('.letter')).toHaveText(/^O\d$/);
     // the figure has the selection ring, and so has its roster row
     await expect(page.locator('#board .selring')).toHaveCount(1);
@@ -153,7 +155,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await btn(page, 'No').click();
     await expect(dlg(page)).toContainText('No spell this turn.');
     await expect(spell).toHaveCount(0);
-    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toBeVisible();
+    await expect(dlg(page).getByText('Plan', { exact: true })).toBeVisible();
     // undo brings the question back
     await btn(page, 'Back to the map').click();
     await btn(page, 'Undo').first().click();
@@ -161,7 +163,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await expect(spell).toHaveCount(1);
     await btn(page, 'Yes, it cast it').click();
     await expect(dlg(page)).toContainText('It already cast a spell this turn.');
-    await expect(dlg(page).locator('dt', { hasText: 'Plan' })).toHaveCount(0);
+    await expect(dlg(page).getByText('Plan', { exact: true })).toHaveCount(0);
     await btn(page, 'Done').click();
     await expect(dlg(page)).toContainText('All monsters have acted');
   });
