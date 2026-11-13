@@ -1,11 +1,12 @@
 /**
- * `npm run validate`: schema and board checks.
- * M0: checks the board file. Quest files (src/content/quests) are checked once the quest
- * schema exists (M1).
+ * `npm run validate`: board check, then parse + semantic check of every quest file
+ * in src/content/quests (none yet is fine).
  */
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { board, roomIds } from '../src/engine/board/board';
+import { parseQuest } from '../src/engine/quest/loader';
+import { validateQuest } from '../src/engine/quest/validate';
 
 const rooms = roomIds(board);
 if (rooms.length !== 22) {
@@ -15,9 +16,26 @@ if (rooms.length !== 22) {
 console.log(`board: ${board.width} x ${board.height}, ${rooms.length} rooms: ok`);
 
 const dir = resolve('src', 'content', 'quests');
-const quests = existsSync(dir) ? readdirSync(dir).filter((f) => /^q\d\d-.*\.json$/.test(f)) : [];
-if (quests.length)
-  console.log(
-    `quests: ${quests.length} file(s) found, quest schema arrives in M1 (not checked yet)`,
-  );
-else console.log('quests: none yet');
+const files = existsSync(dir)
+  ? readdirSync(dir)
+      .filter((f) => /^q\d\d-.*\.json$/.test(f))
+      .sort()
+  : [];
+
+let failed = 0;
+for (const f of files) {
+  try {
+    const quest = parseQuest(JSON.parse(readFileSync(resolve(dir, f), 'utf8')));
+    const problems = validateQuest(quest, board);
+    if (problems.length) {
+      failed++;
+      console.error(`${f}: ${problems.length} problem(s)`);
+      for (const p of problems) console.error(`  - ${p}`);
+    } else console.log(`${f}: ok`);
+  } catch (e) {
+    failed++;
+    console.error(`${f}: ${(e as Error).message}`);
+  }
+}
+if (files.length === 0) console.log('quests: none yet');
+if (failed) process.exit(1);

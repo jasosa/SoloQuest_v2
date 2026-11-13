@@ -16,12 +16,15 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 
 ## M1 · Engine core
 
-- [ ] Quest schema (Zod) + loader + migrations stub (`QUEST_FORMAT.md`)
-- [ ] Board model: areas, edges, walls, doors on edges, rock, blocks
-- [ ] Line of sight (center to center, corner rule) with ASCII-map tests, incl. the corner-through-open-door case
-- [ ] Game state + events + reducer + undo (drop last event) + seeded RNG
-- [ ] Reveal: open door (room / corridor), look from square; doors, blocks, monsters, trap "?" revealed
-- [ ] "Look from here" hint: squares where board geometry (ignoring rock) shows unseen corridor squares
+- [x] Quest schema (Zod) + loader + migrations stub (`QUEST_FORMAT.md`)
+- [x] Board model: areas, edges, walls, doors on edges, rock, blocks
+- [x] Line of sight (center to center, corner rule) with ASCII-map tests, incl. the corner-through-open-door case
+- [x] Game state + events + reducer + undo (drop last event) + seeded RNG
+- [x] Reveal: open door (room / corridor), look from square; doors, blocks, monsters, trap "?" revealed
+- [x] "Look from here" hint: squares where board geometry (ignoring rock) shows unseen corridor squares
+- [ ] Follow-ups from the M1 review (before M7): validator checks for `noEquipmentUntil`, objective monster ids, `trigger.monsterType`, trap/door overlaps with blocks and furniture; block id collision with generated `bN` ids; test for a door touched only by a block in `revealRoom`
+- [ ] Secret doors: the search event must add the door to `seenDoors` (M3); `addSecretDoor` effect too (M4)
+- [ ] **Owner decision before M2**: a room seen only partly through an open door is never completed by sight. Add an "A hero enters this room" reveal event?
 - [ ] Autosave of the event log (IndexedDB) and resume
 
 ## M2 · Play loop v1
