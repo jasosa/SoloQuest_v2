@@ -5,6 +5,7 @@ import { migrateQuest, QuestVersionError } from './migrate';
 import { testQuest, testQuestData } from './testQuest';
 import { validateQuest } from './validate';
 
+const m3 = testQuestData.monsters[2]; // the hidden gargoyle, placed by a note of the fixture
 const withPatch = (patch: Record<string, unknown>) => testQuest(patch);
 
 describe('parseQuest', () => {
@@ -56,6 +57,12 @@ describe('parseQuest', () => {
             },
           ],
           consumesTreasure: true,
+        },
+        { ...testQuestData.notes[0] },
+        {
+          id: 'n-B',
+          trigger: { type: 'manual', label: 'Alarm' },
+          effects: [{ type: 'setFlag', flag: 'alarm', value: true }],
         },
       ],
     });
@@ -137,6 +144,7 @@ describe('validateQuest', () => {
         monsters: [
           { id: 'm1', type: 'orc', cell: [6, 15] },
           { id: 'm1', type: 'orc', cell: [6, 16] },
+          m3,
         ],
       }),
     ).toEqual([expect.stringContaining('duplicate id m1')]);
@@ -152,13 +160,13 @@ describe('validateQuest', () => {
 
   it('furniture, monsters, blocks must be inside the board and not in rock', () => {
     // R04 is rock (x14-16, y1-4); (13,0) is a rock cell
-    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [15, 2] }] })).toEqual([
+    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [15, 2] }, m3] })).toEqual([
       expect.stringContaining('in rock'),
     ]);
-    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [13, 0] }] })).toEqual([
+    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [13, 0] }, m3] })).toEqual([
       expect.stringContaining('in rock'),
     ]);
-    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [30, 2] }] })).toEqual([
+    expect(problems({ monsters: [{ id: 'm1', type: 'orc', cell: [30, 2] }, m3] })).toEqual([
       expect.stringContaining('outside the board'),
     ]);
     expect(
@@ -202,6 +210,6 @@ describe('validateQuest', () => {
         },
       ],
     });
-    expect(out).toHaveLength(3);
+    expect(out).toHaveLength(4); // the fixture note n-m3 is gone, so m3 is never placed
   });
 });

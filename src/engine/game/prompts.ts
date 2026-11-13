@@ -16,14 +16,73 @@ export type Prompt =
     }
   /** The action showed nothing new. */
   | { readonly kind: 'nothingNew' }
-  /** A quest note fired (search notes for now). `texts` are its showText and giveItem texts. */
+  /** A quest note fired. `texts` are its showText and giveItem texts. `title` is the title of
+   *  its first showText that has one. Sent when the note has texts, a letter, or takes the
+   *  treasure. */
   | {
       readonly kind: 'note';
       readonly noteId: string;
       readonly letter?: string | undefined;
+      readonly at?: readonly [number, number] | undefined;
+      readonly title?: string | undefined;
       readonly texts: readonly string[];
       readonly consumesTreasure: boolean;
     }
+  /** A note asks the players to choose. Answer with CHOOSE {note, option}. */
+  | {
+      readonly kind: 'choice';
+      readonly noteId: string;
+      readonly text: string;
+      readonly options: readonly string[];
+    }
+  /** A hidden monster joined the roster. `cell` is the square the quest names, if any. */
+  | {
+      readonly kind: 'monsterPlaced';
+      readonly monster: string;
+      readonly monsterType: MonsterType;
+      readonly name: string;
+      readonly cell?: readonly [number, number] | undefined;
+    }
+  /** A seen monster changed state (woke up, turned to stone, stone wore off). */
+  | {
+      readonly kind: 'monsterState';
+      readonly monster: string;
+      readonly name: string;
+      readonly state: 'active' | 'dormant' | 'stone';
+      readonly turns?: number | undefined;
+    }
+  /** A note opened doors on the map. */
+  | { readonly kind: 'doorsOpened'; readonly doors: readonly string[] }
+  /** A note put a secret door on the map (closed). */
+  | { readonly kind: 'secretDoorAdded'; readonly door: string }
+  /** A note put blocked squares on the map. */
+  | { readonly kind: 'blockPlaced'; readonly cells: readonly (readonly [number, number])[] }
+  /** A quest counter changed (shown as text, for example a bounty). */
+  | {
+      readonly kind: 'counter';
+      readonly counter: string;
+      readonly by: number;
+      readonly value: number;
+    }
+  /** A quest NPC appeared. Text only. */
+  | {
+      readonly kind: 'npcSpawned';
+      readonly npc: string;
+      readonly name: string;
+      readonly cell: readonly [number, number];
+      readonly defend: number;
+      readonly text: string;
+    }
+  | { readonly kind: 'objectiveDone'; readonly objective: string; readonly text: string }
+  /** Every objective is done: bring the heroes back to the stairs. */
+  | { readonly kind: 'goalDone' }
+  | {
+      readonly kind: 'questEnded';
+      readonly outcome: 'stairs' | 'fell';
+      readonly goalDone: boolean;
+    }
+  /** The notes engine stopped a chain of notes that went on too long. */
+  | { readonly kind: 'loopStopped' }
   /** The search gave no special treasure: the players draw a treasure card. */
   | { readonly kind: 'drawCard' }
   /** A trap sprung. The kind is told now. `effect` is the quest's text for it, if any. */

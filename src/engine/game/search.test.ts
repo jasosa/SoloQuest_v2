@@ -236,7 +236,7 @@ describe('SEARCH_TREASURE: notes', () => {
 
   it('first-only notes fire for the first searcher only; others fire for everyone', () => {
     const a = reduce(lv, replay(lv, SEED, []), treasure('R20', 'elf'));
-    // consumed: no card. Unknown conditions are ignored, not a crash.
+    // consumed: no card. The note with flag and counter conditions does not fire yet.
     expect(a.prompts).toEqual([
       {
         kind: 'note',
@@ -246,17 +246,15 @@ describe('SEARCH_TREASURE: notes', () => {
         consumesTreasure: true,
       },
       { kind: 'note', noteId: 'always', texts: ['A draught.', 'a key'], consumesTreasure: false },
-      { kind: 'note', noteId: 'conditional', texts: ['Conditional.'], consumesTreasure: false },
     ]);
-    expect(a.state.notesFired).toEqual(['first-empty', 'always', 'conditional']);
+    expect(a.state.notesFired).toEqual(['first-empty', 'always']);
 
     const b = reduce(lv, a.state, treasure('R20', 'dwarf'));
     expect(b.prompts.map((p) => (p.kind === 'note' ? p.noteId : p.kind))).toEqual([
       'always',
-      'conditional',
       'drawCard',
     ]);
-    expect(b.state.notesFired).toEqual(['first-empty', 'always', 'conditional']); // each id once
+    expect(b.state.notesFired).toEqual(['first-empty', 'always']); // each id once
   });
 
   it('first means the first search by anyone', () => {

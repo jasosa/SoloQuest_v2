@@ -5,10 +5,8 @@ import type { Hero } from '../data/heroes';
  * Every change to the game is one of these events. The event log is the save file:
  * state = replay(level, seed, events). Events are plain JSON.
  *
- * Later milestones add: SQUARE_TRIGGER, AREA_ENTER,
- * ZARGON_TURN_START, NOTE_ACK, END_QUEST. Add them to this union and handle
- * them in reducer.ts, and add them to EventSchema in src/persist/saves.ts (it will not compile
- * until you do).
+ * To add an event: add it to this union, handle it in reducer.ts, and add it to EventSchema in
+ * src/persist/saves.ts (it will not compile until you do).
  */
 export type GameEvent =
   /** Open a door that was seen. `door` is a door id from the quest (normal, secret or false). */
@@ -58,6 +56,16 @@ export type GameEvent =
       readonly result: 'skull' | 'blackShield' | 'other';
     }
   /** A hero steps on a seen trap: it springs. */
-  | { readonly type: 'TRAP_STEP'; readonly trap: string };
+  | { readonly type: 'TRAP_STEP'; readonly trap: string }
+  /** A hero entered a revealed room that has an `areaEntered` note. */
+  | { readonly type: 'AREA_ENTER'; readonly area: string }
+  /** A hero is on a seen square that has a `squareEntered` note. */
+  | { readonly type: 'SQUARE_TRIGGER'; readonly cell: Cell }
+  /** The players pressed the button of a `manual` note. */
+  | { readonly type: 'MANUAL_TRIGGER'; readonly note: string }
+  /** The players picked option number `option` (0-based) of a pending `promptChoice`. */
+  | { readonly type: 'CHOOSE'; readonly note: string; readonly option: number }
+  /** The quest is over: the heroes left by the stairs, or all of them fell. Only once. */
+  | { readonly type: 'END_QUEST'; readonly outcome: 'stairs' | 'fell' };
 
 export type EventType = GameEvent['type'];

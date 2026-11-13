@@ -8,6 +8,7 @@ import { keyOf, type Level } from '../board/level';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
+import { runTriggers, type TriggerEvent } from './notes';
 import { draftOf, type Draft, type GameState } from './state';
 
 type Use = 'jump' | 'disarm' | 'step' | 'search';
@@ -48,6 +49,28 @@ function checkUsable(level: Level, state: GameState, id: string, use: Use): Trap
   return trap;
 }
 
+/**
+ * Fire the notes for a trap whose state changed (armed to sprung or disarmed). A sprung pit that
+ * springs again is not a change. The note prompts follow the trap prompt.
+ */
+function withNotes(
+  level: Level,
+  before: GameState,
+  d: Draft,
+  trapId: string,
+  prompt: Prompt,
+): Reduced {
+  const now = d.trapStates[trapId];
+  if (now === undefined || now === before.trapStates[trapId])
+    return { state: d, prompts: [prompt] };
+  const trigger: TriggerEvent =
+    now === 'sprung'
+      ? { type: 'trapSprung', trap: trapId }
+      : { type: 'trapDisarmed', trap: trapId };
+  const r = runTriggers(level, d, [trigger], { beforeRooms: new Set(before.revealedRooms) });
+  return { state: d, prompts: [prompt, ...r.prompts] };
+}
+
 export function trapEvent(
   level: Level,
   state: GameState,
@@ -60,12 +83,12 @@ export function trapEvent(
       const trap = checkUsable(level, state, event.trap, 'jump');
       if (event.result === 'ok') return { state, prompts: [{ kind: 'trapJumped', trap: trap.id }] };
       const d = draftOf(state);
-      return { state: d, prompts: [springTrap(level, d, trap, 'jump')] };
+      return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'jump'));
     }
     case 'TRAP_STEP': {
       const trap = checkUsable(level, state, event.trap, 'step');
       const d = draftOf(state);
-      return { state: d, prompts: [springTrap(level, d, trap, 'step')] };
+      return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'step'));
     }
     case 'TRAP_DISARM': {
       if (event.by !== 'dwarf' && event.by !== 'toolkit')
@@ -76,9 +99,13 @@ export function trapEvent(
       const d = draftOf(state);
       const fails =
         event.by === 'dwarf' ? event.result === 'blackShield' : event.result === 'skull';
-      if (fails) return { state: d, prompts: [springTrap(level, d, trap, 'disarm')] };
+      if (fails) return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'disarm'));
       d.trapStates[trap.id] = 'disarmed';
-      return { state: d, prompts: [{ kind: 'trapDisarmed', trap: trap.id, trapKind: trap.kind }] };
+      return withNotes(level, state, d, trap.id, {
+        kind: 'trapDisarmed',
+        trap: trap.id,
+        trapKind: trap.kind,
+      });
     }
   }
 }

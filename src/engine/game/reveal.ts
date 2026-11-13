@@ -9,8 +9,16 @@
  * - Rock is never revealed. Figures do not block sight.
  */
 import { seeMonster } from './state';
-import { areaAt, cellsOf, type AreaId } from '../board/board';
-import { cellKey, parseKey, sightMap, type CellKey, type Level } from '../board/level';
+import { areaAt, cellsOf, roomIds, type AreaId } from '../board/board';
+import {
+  cellKey,
+  keyOf,
+  parseKey,
+  sightMap,
+  type CellKey,
+  type DoorInfo,
+  type Level,
+} from '../board/level';
 import { lineOfSight } from '../board/los';
 import type { Cell } from '../board/board';
 import type { Draft } from './state';
@@ -93,5 +101,48 @@ export function revealFrom(level: Level, d: Draft, from: Cell): RevealResult {
   for (const room of new Set(cells.map((k) => areaAt(level.board, ...parseKey(k)))))
     if (room !== undefined && room !== 'C' && !d.revealedRooms.has(room))
       cells.push(...revealRoom(level, d, room).cells);
+  return { cells };
+}
+
+/**
+ * Reveal what an opened door shows (normal doors only). A room on either side that is not
+ * revealed whole is revealed now. A corridor square is looked from when the other side is a room
+ * the heroes already know (the square beyond the door), unless it was looked from before.
+ * Call it after the door was added to `openDoors`.
+ */
+export function revealThroughDoor(level: Level, d: Draft, door: DoorInfo): CellKey[] {
+  const sides = [door.a, door.b];
+  const roomSeenBefore = sides.map((c) => {
+    const area = areaAt(level.board, c[0], c[1]);
+    return area !== undefined && area !== 'C' && d.revealedRooms.has(area);
+  });
+  const cells: CellKey[] = [];
+  sides.forEach((c, i) => {
+    const area = areaAt(level.board, c[0], c[1]);
+    if (area === undefined) return;
+    if (area !== 'C') {
+      if (!d.revealedRooms.has(area)) cells.push(...revealRoom(level, d, area).cells);
+    } else if (roomSeenBefore[1 - i] && !d.looked.has(keyOf(c))) {
+      d.looked.add(keyOf(c));
+      cells.push(...revealFrom(level, d, c).cells);
+    }
+  });
+  return cells;
+}
+
+/**
+ * Reveal the whole map except rock: every room, every corridor square, all blocks, and with them
+ * the monsters, furniture, normal and false doors and trap "?" markers on those squares.
+ * Hidden monsters, secret doors and chest traps stay hidden.
+ */
+export function revealEverything(level: Level, d: Draft): RevealResult {
+  const cells: CellKey[] = [];
+  for (const room of roomIds(level.board)) cells.push(...revealRoom(level, d, room).cells);
+  for (let y = 0; y < level.board.height; y++)
+    for (let x = 0; x < level.board.width; x++) {
+      if (areaAt(level.board, x, y) !== 'C' || level.rock.has(cellKey(x, y))) continue;
+      if (level.blockAt.has(cellKey(x, y))) markBlock(level, d, x, y);
+      else if (markCell(level, d, x, y)) cells.push(cellKey(x, y));
+    }
   return { cells };
 }

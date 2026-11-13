@@ -50,8 +50,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 ```jsonc
 { "id": "m-verag", "type": "gargoyle", "cell": [x, y], "name": "Verag",
   "overrides": { "att": 4 },                  // stat changes
-  "state": "dormant",                         // starts asleep (Q5 B); woken by an effect
-  "invulnerableUntilActs": true,              // Q5 B, Q11 B
+  "state": "dormant",                         // a statue (Q5 B, Q11 B): furniture until an effect sets it active (decision 28)
   "spells": ["fear", "sleep", "tempest"], "spellLimit": "onePerTurn",
   "hidden": true                              // not placed by sight; placed by an effect (Q8 Balur at XX)
 }
@@ -82,13 +81,15 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 | `doorOpened` | `door` | that door is opened |
 | `areaEntered` | `area` | players tap "A hero enters" on the area (only shown for areas with this trigger) |
 | `squareEntered` | `cell`, `repeat?` | players tap the square marker ("A hero is here") |
-| `treasureSearch` | `area`, `first?` | a hero searches the area for treasure |
+| `treasureSearch` | `area`, `first?` | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search. |
 | `secretDoorSearch` | `area` | a hero searches the area for secret doors |
 | `trapSprung` / `trapDisarmed` | `trap` | trap state changes |
 | `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
 | `allKilled` | `monsters` (ids) | the last of them is slain |
-| `zargonTurn` | `n?`, `every?` | at the start of Zargon's turn |
+| `zargonTurn` | `n?`, `every?` | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k) |
 | `manual` | `label` | a button on the quest panel |
+
+Falling-block squares in the Q13 style (a block may fall each time a hero enters) are modeled with `squareEntered` notes with `repeat: true` and a `showText` effect, NOT with `fallingBlock` trap objects. The trap kind `fallingBlock` is the one-shot official trap that leaves a permanent block.
 
 ### Conditions (`when`)
 
@@ -99,7 +100,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 | `type` | Params |
 |---|---|
 | `showText` | `text`, `title?` |
-| `revealArea` | `area` |
+| `revealArea` | `area` (rooms only, never `C`) |
 | `revealAll` | | (Q2 alarm: all monsters, doors, furniture) |
 | `openAllDoors` | |
 | `placeMonster` | `monster` (an id with `hidden: true`), `cell?` |

@@ -52,7 +52,14 @@ export const testQuestData = {
     { id: 't2', kind: 'chest', furniture: 'f1' },
     { id: 't3', kind: 'spear', cell: [5, 18] },
   ],
-  notes: [],
+  // Places the hidden gargoyle m3 (the validator wants every hidden monster placed by a note).
+  notes: [
+    {
+      id: 'n-m3',
+      trigger: { type: 'manual', label: 'Place the gargoyle' },
+      effects: [{ type: 'placeMonster', monster: 'm3', cell: [10, 16] }],
+    },
+  ],
 } as const;
 
 export function testQuest(patch: Record<string, unknown> = {}): Quest {

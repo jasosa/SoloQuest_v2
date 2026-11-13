@@ -23,7 +23,13 @@ export type EventErrorCode =
   | 'BAD_RESULT'
   | 'UNKNOWN_FURNITURE'
   | 'NOT_A_CHEST'
-  | 'FURNITURE_NOT_SEEN';
+  | 'FURNITURE_NOT_SEEN'
+  | 'QUEST_ENDED'
+  | 'NOT_A_TRIGGER'
+  | 'CELL_NOT_SEEN'
+  | 'UNKNOWN_NOTE'
+  | 'NO_PENDING_CHOICE'
+  | 'BAD_OPTION';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

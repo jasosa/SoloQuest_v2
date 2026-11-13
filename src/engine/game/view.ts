@@ -5,8 +5,10 @@ import type { Level } from '../board/level';
 import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
 import type { TrapKindName } from './prompts';
-import { liveMonstersInRoom } from './search';
+import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
 import type { GameState } from './state';
+
+export * from './noteView';
 
 export interface MonsterView {
   readonly id: string;
@@ -17,6 +19,12 @@ export interface MonsterView {
   readonly body: number;
   readonly maxBody: number;
   readonly dead: boolean;
+  /** Dormant and stone monsters are in the roster but do not act. */
+  readonly state: 'active' | 'dormant' | 'stone';
+  /** Zargon turns of stone left, when the quest says so. */
+  readonly stoneTurns?: number;
+  /** The square the quest names for a monster placed by a note. Text for the players. */
+  readonly placeAt?: Cell;
   /** Wandering monster: in the roster, no square. */
   readonly wandering?: boolean;
   readonly wanderAt?: Hero;
@@ -29,8 +37,10 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
   const out: MonsterView[] = [];
   for (const m of level.quest.monsters) {
     const rec = state.monsters[m.id];
-    if (!state.seenMonsters.has(m.id) || !rec) continue;
+    if (!state.seenMonsters.has(m.id) || !rec || isDormant(m, state)) continue;
     const stats = statsOf(m);
+    const st = monsterStateOf(m, state);
+    const placeAt = state.placedMonsterCells[m.id];
     out.push({
       id: m.id,
       type: m.type,
@@ -39,6 +49,9 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       body: rec.body,
       maxBody: stats.body,
       dead: rec.dead,
+      state: st.state,
+      ...(st.turns !== undefined ? { stoneTurns: st.turns } : {}),
+      ...(placeAt ? { placeAt } : {}),
     });
   }
   for (const [id, w] of Object.entries(state.wanderers)) {
@@ -53,10 +66,32 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       body: rec.body,
       maxBody: stats.body,
       dead: rec.dead,
+      state: 'active',
       wandering: true,
       wanderAt: w.wanderAt,
       fresh: w.fresh,
     });
+  }
+  return out;
+}
+
+export interface DormantFigure {
+  readonly id: string;
+  readonly type: MonsterType;
+  readonly cell: Cell;
+}
+
+/**
+ * Dormant monsters whose square the heroes have seen (decision 28). They are furniture until a
+ * note wakes them: draw a neutral statue figure. They are never in `monstersInPlay`.
+ */
+export function dormantFigures(level: Level, state: GameState): DormantFigure[] {
+  const out: DormantFigure[] = [];
+  for (const m of level.quest.monsters) {
+    const cell = state.placedMonsterCells[m.id] ?? m.cell;
+    if (!cell || !state.seenMonsters.has(m.id) || !isDormant(m, state)) continue;
+    if (state.monsters[m.id]?.dead) continue;
+    out.push({ id: m.id, type: m.type, cell });
   }
   return out;
 }

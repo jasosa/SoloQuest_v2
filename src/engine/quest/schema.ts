@@ -74,7 +74,6 @@ const MonsterSchema = z
       })
       .optional(),
     state: MonsterState.optional(),
-    invulnerableUntilActs: z.boolean().optional(),
     spells: z.array(nonEmpty).optional(),
     spellLimit: z.enum(['onePerTurn']).optional(),
     hidden: z.boolean().optional(),

@@ -8,12 +8,15 @@ import { keyOf, sightMap, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
 import { HEROES, type Hero } from '../data/heroes';
 import { statsOf } from '../data/monsters';
-import type { Note } from '../quest/schema';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
+import { runTriggers, type TriggerEvent } from './notes';
 import { springTrap } from './traps';
-import { draftOf, type Draft, type GameState } from './state';
+import { draftOf, type GameState } from './state';
+import { isDormant, liveMonstersInRoom } from './monstersIn';
+
+export { liveMonstersInRoom };
 
 type Reduced = { readonly state: GameState; readonly prompts: readonly Prompt[] };
 
@@ -33,26 +36,6 @@ function checkRoom(level: Level, state: GameState, room: string): AreaId {
   return room;
 }
 
-/**
- * Ids of seen, living monsters in `room`: quest monsters whose start square is there, and living
- * wanderers that came to this room (they have no square, so their room stands in for it).
- */
-export function liveMonstersInRoom(level: Level, state: GameState, room: AreaId): string[] {
-  const quest = level.quest.monsters
-    .filter(
-      (m) =>
-        m.cell !== undefined &&
-        areaAt(level.board, m.cell[0], m.cell[1]) === room &&
-        state.seenMonsters.has(m.id) &&
-        state.monsters[m.id]?.dead === false,
-    )
-    .map((m) => m.id);
-  const wanderers = Object.entries(state.wanderers)
-    .filter(([id, w]) => w.room === room && state.monsters[id]?.dead === false)
-    .map(([id]) => id);
-  return [...quest, ...wanderers];
-}
-
 function liveMonstersInSight(level: Level, state: GameState, from: Cell): string[] {
   const map = sightMap(level, state.openDoors, state.placedBlocks);
   const quest = level.quest.monsters
@@ -60,6 +43,7 @@ function liveMonstersInSight(level: Level, state: GameState, from: Cell): string
       (m) =>
         m.cell !== undefined &&
         state.seenMonsters.has(m.id) &&
+        !isDormant(m, state) &&
         state.monsters[m.id]?.dead === false &&
         lineOfSight(map, from, m.cell),
     )
@@ -75,38 +59,6 @@ function liveMonstersInSight(level: Level, state: GameState, from: Cell): string
     )
     .map(([id]) => id);
   return [...quest, ...wanderers];
-}
-
-// ---- notes
-
-/**
- * TODO(M4 notes engine): `when` conditions (flag, counter, monster alive, monstersAliveIn) and
- * the effects other than showText and giveItem. For now only `firstTime` is understood; every
- * other condition is treated as true.
- */
-function conditionsHold(note: Note, d: Draft): boolean {
-  for (const c of note.when ?? [])
-    if ('firstTime' in c && d.notesFired.includes(note.id)) return false;
-  return true;
-}
-
-/** Text of the effects we understand in M3: showText and giveItem. */
-function noteTexts(note: Note): string[] {
-  const out: string[] = [];
-  for (const e of note.effects)
-    if (e.type === 'showText' || e.type === 'giveItem') out.push(e.text);
-  return out;
-}
-
-function fireNote(d: Draft, note: Note): Prompt {
-  if (!d.notesFired.includes(note.id)) d.notesFired = [...d.notesFired, note.id];
-  return {
-    kind: 'note',
-    noteId: note.id,
-    ...(note.letter !== undefined ? { letter: note.letter } : {}),
-    texts: noteTexts(note),
-    consumesTreasure: note.consumesTreasure === true,
-  };
 }
 
 // ---- treasure
@@ -126,30 +78,27 @@ export function searchTreasure(
 
   const d = draftOf(state);
   const prompts: Prompt[] = [];
+  const triggers: TriggerEvent[] = [];
 
   // (a) A chest or furniture trap that is still armed springs first, then the search goes on.
   // This order is an interpretation of the digest ("searching springs it first").
   for (const trap of level.quest.traps) {
     if (trap.kind !== 'chest' || d.trapStates[trap.id] !== undefined) continue;
     const furniture = level.quest.furniture.find((f) => f.id === trap.furniture);
-    if (furniture?.cells.some((c) => areaAt(level.board, c[0], c[1]) === room))
+    if (furniture?.cells.some((c) => areaAt(level.board, c[0], c[1]) === room)) {
       prompts.push(springTrap(level, d, trap, 'search'));
+      triggers.push({ type: 'trapSprung', trap: trap.id });
+    }
   }
 
   // (b) Notes for this room. `first` notes fire only for the first search of the room.
-  let consumed = false;
-  for (const note of level.quest.notes) {
-    const t = note.trigger;
-    if (t.type !== 'treasureSearch' || t.area !== room) continue;
-    if (t.first === true && before.length > 0) continue;
-    if (!conditionsHold(note, d)) continue;
-    prompts.push(fireNote(d, note));
-    if (note.consumesTreasure === true) consumed = true;
-  }
+  triggers.push({ type: 'treasureSearch', area: room, first: before.length === 0 });
+  const notes = runTriggers(level, d, triggers, { beforeRooms: new Set(state.revealedRooms) });
+  prompts.push(...notes.prompts);
 
   d.treasureSearched[room] = [...before, hero];
   // (c) No note took the treasure: a card is drawn.
-  if (!consumed) prompts.push({ kind: 'drawCard' });
+  if (!notes.consumed) prompts.push({ kind: 'drawCard' });
   return { state: d, prompts };
 }
 
@@ -272,17 +221,18 @@ export function searchSecretDoors(
 
   const d = draftOf(state);
   const prompts: Prompt[] = [];
-  // A note that only shows text replaces the result ("nothing found" style).
-  // TODO(M4 notes engine): notes with other effects (addSecretDoor, ...) run through the engine.
-  let replaced = false;
-  for (const note of quest.notes) {
-    const t = note.trigger;
-    if (t.type !== 'secretDoorSearch' || t.area !== areaForNote) continue;
-    if (!conditionsHold(note, d)) continue;
-    prompts.push(fireNote(d, note));
-    if (note.effects.length > 0 && note.effects.every((e) => e.type === 'showText'))
-      replaced = true;
-  }
+  // A note that only shows text replaces the result ("nothing found" style). Other notes
+  // (addSecretDoor, ...) run through the notes engine and the search goes on.
+  const notes = runTriggers(level, d, [{ type: 'secretDoorSearch', area: areaForNote }], {
+    beforeRooms: new Set(state.revealedRooms),
+  });
+  prompts.push(...notes.prompts);
+  const replaced = notes.fired.some(
+    (f) =>
+      f.by === 'secretDoorSearch' &&
+      f.note.effects.length > 0 &&
+      f.note.effects.every((e) => e.type === 'showText'),
+  );
   if (replaced) return { state: d, prompts };
 
   const found = doorIds.filter((id) => !d.seenDoors.has(id));

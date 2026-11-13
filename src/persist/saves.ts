@@ -56,6 +56,11 @@ export const EventSchema = z.discriminatedUnion('type', [
     result: z.enum(['skull', 'blackShield', 'other']),
   }),
   z.object({ type: z.literal('TRAP_STEP'), trap: z.string() }),
+  z.object({ type: z.literal('AREA_ENTER'), area: z.string() }),
+  z.object({ type: z.literal('SQUARE_TRIGGER'), cell: CellSchema }),
+  z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
+  z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
+  z.object({ type: z.literal('END_QUEST'), outcome: z.enum(['stairs', 'fell']) }),
 ]);
 
 // Compile-time guard: every GameEvent type needs an entry in EventSchema, or a save that holds

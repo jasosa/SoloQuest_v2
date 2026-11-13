@@ -2,7 +2,7 @@ import type { AreaId } from '../board/board';
 import type { CellKey } from '../board/level';
 import { statsOf } from '../data/monsters';
 import type { Hero } from '../data/heroes';
-import type { MonsterDef, MonsterType } from '../quest/schema';
+import type { Effect, MonsterDef, MonsterType } from '../quest/schema';
 import { createRng, type Rng } from './rng';
 
 /**
@@ -31,6 +31,29 @@ export interface WandererRecord {
 /** A trap that is not armed any more. An armed trap has no entry. */
 export type TrapState = 'sprung' | 'disarmed';
 
+/** The state of a monster set by the quest notes. Without a record, the quest data decides. */
+export interface MonsterStateRecord {
+  readonly state: 'active' | 'dormant' | 'stone';
+  /** Zargon turns left as stone (counts down on ZARGON_TURN_END). Only for `stone`. */
+  readonly turns?: number | undefined;
+}
+
+/** A `promptChoice` waiting for the players. Plain quest data, so replay is exact. */
+export interface PendingChoice {
+  readonly note: string;
+  readonly text: string;
+  readonly options: readonly { readonly label: string; readonly effects: readonly Effect[] }[];
+}
+
+/** A choice that was made, kept for the journal. */
+export interface ChoiceMade {
+  readonly note: string;
+  readonly text: string;
+  readonly picked: string;
+  /** showText and giveItem texts of the chosen option. */
+  readonly texts: readonly string[];
+}
+
 export interface GameState {
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
@@ -55,7 +78,7 @@ export interface GameState {
   readonly seenTraps: ReadonlySet<string>;
   /** Traps that sprung or were disarmed. Armed traps are not listed. */
   readonly trapStates: Readonly<Record<string, TrapState>>;
-  /** Squares where a falling block trap left a permanent block (stops sight and movement). */
+  /** Squares where a falling block trap or a note left a permanent block (stops sight and movement). */
   readonly placedBlocks: ReadonlySet<CellKey>;
   /** Heroes that searched a room for treasure, in order. A hero searches a room once. */
   readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
@@ -65,8 +88,25 @@ export interface GameState {
   readonly wanderers: Readonly<Record<string, WandererRecord>>;
   /** How many wandering monsters appeared (next id is w<count + 1>). */
   readonly wanderCount: number;
-  /** Ids of notes that fired, in order, each once. The notes engine (M4) builds the journal. */
+  /** Ids of notes that fired, in order, each once (a note that repeats is listed once). */
   readonly notesFired: readonly string[];
+  /** Quest flags set by notes. Unset means false. */
+  readonly flags: Readonly<Record<string, boolean>>;
+  /** Quest counters changed by notes (for example a bounty). Unset means 0. */
+  readonly counters: Readonly<Record<string, number>>;
+  /** Objectives completed by a `completeObjective` effect. */
+  readonly objectivesDone: readonly string[];
+  /** Monster states set by notes (dormant, stone, active). */
+  readonly monsterStates: Readonly<Record<string, MonsterStateRecord>>;
+  /** Where a hidden monster was placed, when the quest names a square. Text for the players. */
+  readonly placedMonsterCells: Readonly<Record<string, readonly [number, number]>>;
+  /** NPCs that appeared by a `spawnNpc` effect. */
+  readonly spawnedNpcs: readonly string[];
+  /** Choices waiting for an answer, oldest first. */
+  readonly pendingChoices: readonly PendingChoice[];
+  readonly choicesMade: readonly ChoiceMade[];
+  /** Set once by END_QUEST. After that every event is rejected. */
+  readonly ended: { readonly outcome: 'stairs' | 'fell' } | undefined;
 }
 
 export function emptyState(seed: number): GameState {
@@ -90,6 +130,15 @@ export function emptyState(seed: number): GameState {
     wanderers: {},
     wanderCount: 0,
     notesFired: [],
+    flags: {},
+    counters: {},
+    objectivesDone: [],
+    monsterStates: {},
+    placedMonsterCells: {},
+    spawnedNpcs: [],
+    pendingChoices: [],
+    choicesMade: [],
+    ended: undefined,
   };
 }
 
@@ -105,7 +154,15 @@ export type Draft = {
           ? Record<string, TrapState>
           : K extends 'treasureSearched'
             ? Record<AreaId, readonly Hero[]>
-            : GameState[K];
+            : K extends 'flags'
+              ? Record<string, boolean>
+              : K extends 'counters'
+                ? Record<string, number>
+                : K extends 'monsterStates'
+                  ? Record<string, MonsterStateRecord>
+                  : K extends 'placedMonsterCells'
+                    ? Record<string, readonly [number, number]>
+                    : GameState[K];
 };
 
 /** A monster is seen for the first time: remember it and start its Body Points. */
@@ -132,5 +189,9 @@ export function draftOf(s: GameState): Draft {
     placedBlocks: new Set(s.placedBlocks),
     treasureSearched: { ...s.treasureSearched },
     wanderers: { ...s.wanderers },
+    flags: { ...s.flags },
+    counters: { ...s.counters },
+    monsterStates: { ...s.monsterStates },
+    placedMonsterCells: { ...s.placedMonsterCells },
   };
 }

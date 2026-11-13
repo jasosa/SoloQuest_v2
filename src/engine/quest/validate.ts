@@ -3,7 +3,8 @@
  * Returns a list of readable problems; empty means ok.
  */
 import { areaAt, inBoard, roomIds, type Board } from '../board/board';
-import type { Effect, Quest } from './schema';
+import { forEachEffect } from './effects';
+import type { Condition, Effect, Quest } from './schema';
 
 type C = readonly [number, number];
 const key = (c: C) => `${c[0]},${c[1]}`;
@@ -74,6 +75,10 @@ export function validateQuest(quest: Quest, board: Board): string[] {
   );
   const blockIds = quest.blocks.flatMap((b) => (b.id ? [b.id] : []));
   unique('blocks', blockIds);
+  // Blocks without an id get b1, b2... by position: an explicit id must not collide with them.
+  const generated = new Set(quest.blocks.flatMap((b, i) => (b.id ? [] : [`b${i + 1}`])));
+  for (const i of blockIds)
+    if (generated.has(i)) err(`blocks: id ${i} collides with a generated block id`);
   const secretIds = new Set(quest.secretDoors.map((d) => d.id));
 
   // ---- doors
@@ -140,31 +145,94 @@ export function validateQuest(quest: Quest, board: Board): string[] {
     if (t.furniture && !furnitureIds.has(t.furniture))
       err(`trap ${t.id}: unknown furniture ${t.furniture}`);
   }
+  // Traps sit on bare floor: not under a block or furniture, one trap per square.
+  const solid = new Map<string, string>();
+  quest.blocks.forEach((b, i) => b.cells.forEach((c) => solid.set(key(c), `block ${b.id ?? i}`)));
+  for (const f of quest.furniture)
+    if (f.type !== 'stairs') f.cells.forEach((c) => solid.set(key(c), `furniture ${f.id}`));
+  const trapCells = new Map<string, string>();
+  for (const t of quest.traps) {
+    if (!t.cell) continue;
+    const other = solid.get(key(t.cell));
+    if (other) err(`trap ${t.id}: cell ${key(t.cell)} is under ${other}`);
+    const twin = trapCells.get(key(t.cell));
+    if (twin) err(`trap ${t.id}: same cell as trap ${twin}`);
+    else trapCells.set(key(t.cell), t.id);
+  }
+  // A door cell must be walkable: no block or furniture on either side.
+  for (const [label, list] of [
+    ['door', quest.doors],
+    ['secret door', quest.secretDoors],
+    ['false door', quest.falseDoors],
+  ] as const)
+    for (const d of list)
+      for (const c of [d.a, d.b]) {
+        const other = solid.get(key(c));
+        if (other) err(`${label} ${d.id}: cell ${key(c)} is under ${other}`);
+      }
   quest.markers.forEach((m) => inside(`marker ${m.id}`, m.cell));
-  quest.npcs.forEach((n) => inside(`npc ${n.id}`, n.cell));
+  quest.npcs.forEach((n) => {
+    inside(`npc ${n.id}`, n.cell);
+    const other = solid.get(key(n.cell));
+    if (other?.startsWith('block')) err(`npc ${n.id}: cell ${key(n.cell)} is under ${other}`);
+  });
   quest.notes.forEach((n) => inside(`note ${n.id}`, n.at, true));
 
   // ---- references in notes
+  const flagsSet = new Set<string>();
+  const countersAdded = new Set<string>();
+  const completed = new Set<string>();
+  const placed = new Set<string>();
+  forEachEffect(quest, (e) => {
+    if (e.type === 'setFlag') flagsSet.add(e.flag);
+    else if (e.type === 'addCounter') countersAdded.add(e.counter);
+    else if (e.type === 'completeObjective') completed.add(e.objective);
+    else if (e.type === 'placeMonster') placed.add(e.monster);
+  });
   const needArea = (where: string, a: string) => {
     if (!areas.has(a)) err(`${where}: unknown area ${a}`);
+  };
+  const needRoom = (where: string, a: string) => {
+    if (!rooms.has(a)) err(`${where}: ${a} is not a room`);
+  };
+  const checkCondition = (where: string, c: Condition) => {
+    if ('monster' in c && !monsterIds.has(c.monster)) err(`${where}: unknown monster ${c.monster}`);
+    if ('monstersAliveIn' in c) needArea(where, c.monstersAliveIn);
+    if ('flag' in c && c.is && !flagsSet.has(c.flag)) err(`${where}: flag ${c.flag} is never set`);
+    if ('counter' in c && c.gte > 0 && !countersAdded.has(c.counter))
+      err(`${where}: counter ${c.counter} is never changed`);
   };
   const checkEffect = (where: string, e: Effect) => {
     switch (e.type) {
       case 'revealArea':
-        needArea(where, e.area);
+        needRoom(where, e.area);
         break;
-      case 'placeMonster':
-        if (!monsterIds.has(e.monster)) err(`${where}: unknown monster ${e.monster}`);
+      case 'placeMonster': {
+        const m = quest.monsters.find((x) => x.id === e.monster);
+        if (!m) err(`${where}: unknown monster ${e.monster}`);
+        else {
+          if (m.hidden !== true)
+            err(`${where}: placeMonster needs a hidden monster, ${m.id} is not`);
+          if (!m.cell && !e.cell)
+            err(`${where}: monster ${m.id} has no cell, give one in the effect`);
+        }
         inside(where, e.cell);
         break;
+      }
       case 'setMonsterState':
         if (!monsterIds.has(e.monster)) err(`${where}: unknown monster ${e.monster}`);
+        if (e.turns !== undefined && e.state !== 'stone')
+          err(`${where}: turns only makes sense for state stone`);
         break;
       case 'addSecretDoor':
         if (!secretIds.has(e.door)) err(`${where}: unknown secret door ${e.door}`);
         break;
       case 'placeBlock':
-        e.cells.forEach((c) => inside(where, c));
+        e.cells.forEach((c) => {
+          inside(where, c);
+          const other = solid.get(key(c));
+          if (other) err(`${where}: placeBlock cell ${key(c)} is under ${other}`);
+        });
         break;
       case 'completeObjective':
         if (!objectiveIds.has(e.objective)) err(`${where}: unknown objective ${e.objective}`);
@@ -186,8 +254,10 @@ export function validateQuest(quest: Quest, board: Board): string[] {
       case 'areaRevealed':
       case 'areaEntered':
       case 'treasureSearch':
+        needRoom(where, t.area);
+        break;
       case 'secretDoorSearch':
-        needArea(where, t.area);
+        needArea(where, t.area); // a corridor search counts as area C
         break;
       case 'doorOpened':
         if (!doorIds.has(t.door)) err(`${where}: unknown door ${t.door}`);
@@ -201,6 +271,12 @@ export function validateQuest(quest: Quest, board: Board): string[] {
         break;
       case 'monsterKilled':
         if (t.monster && !monsterIds.has(t.monster)) err(`${where}: unknown monster ${t.monster}`);
+        if (t.monster && t.monsterType)
+          err(`${where}: monsterKilled takes a monster or a monsterType, not both`);
+        break;
+      case 'zargonTurn':
+        if (t.n !== undefined && t.every !== undefined)
+          err(`${where}: zargonTurn takes n or every, not both`);
         break;
       case 'allKilled':
         t.monsters.forEach((m) => {
@@ -210,7 +286,30 @@ export function validateQuest(quest: Quest, board: Board): string[] {
       default:
         break;
     }
+    if (n.consumesTreasure && t.type !== 'treasureSearch')
+      err(`${where}: consumesTreasure only makes sense for a treasureSearch trigger`);
+    (n.when ?? []).forEach((c) => checkCondition(where, c));
     n.effects.forEach((e) => checkEffect(where, e));
+  }
+
+  // ---- hidden monsters, objectives, rules
+  for (const m of quest.monsters)
+    if (m.hidden && !placed.has(m.id)) err(`monster ${m.id}: hidden but no note places it`);
+  const noteIds = new Set(quest.notes.map((n) => n.id));
+  if (quest.rules.noEquipmentUntil && !noteIds.has(quest.rules.noEquipmentUntil))
+    err(`rules.noEquipmentUntil: unknown note ${quest.rules.noEquipmentUntil}`);
+  for (const o of quest.objectives) {
+    const where = `objective ${o.id}`;
+    const d = o.done;
+    if (!d) {
+      if (!completed.has(o.id)) err(`${where}: no done rule and no completeObjective effect`);
+      continue;
+    }
+    if ('monsterKilled' in d && !monsterIds.has(d.monsterKilled))
+      err(`${where}: unknown monster ${d.monsterKilled}`);
+    if ('allKilled' in d)
+      for (const m of d.allKilled) if (!monsterIds.has(m)) err(`${where}: unknown monster ${m}`);
+    if ('flag' in d && !flagsSet.has(d.flag)) err(`${where}: flag ${d.flag} is never set`);
   }
   return errors;
 }

@@ -164,7 +164,9 @@ Triggers:
 
 Conditions: flags, counters, monster alive/dead, "first time", hero chosen.
 
-Effects: `showText`, `revealArea`, `revealAll` (Q2 alarm), `openAllDoors`, `placeMonster`, `setMonsterState` (dormant, invulnerable, stone n turns), `addDoor` / `convertToSecretDoor` (Q5 E throne), `placeBlock` (Q12 C falling block), `giveItem` / `giveArtifact`, `setFlag`, `addCounter` (bounty gold), `completeObjective`, `spawnNpc`, `promptChoice`.
+Effects: `showText`, `revealArea`, `revealAll` (Q2 alarm), `openAllDoors`, `placeMonster`, `setMonsterState` (dormant, active, stone n turns), `addDoor` / `convertToSecretDoor` (Q5 E throne), `placeBlock` (Q12 C falling block), `giveItem` / `giveArtifact`, `setFlag`, `addCounter` (bounty gold), `completeObjective`, `spawnNpc`, `promptChoice`.
+
+**Engine API notes**: the UI must call `startGame(level, seed)` (not only `initialState`) to get the questStart and start-room prompts. A pending `promptChoice` does not block other events; the UI shows it until `CHOOSE` answers it.
 
 **Square triggers** (the hard case in the brief): a marker is drawn on the cell once the cell is revealed. It uses a neutral glyph (not the effect), so it does not spoil the content. Tapping it asks "Did a hero step here?" and fires the note. Notes can be `once` or `every time`.
 
@@ -250,14 +252,14 @@ Spell choice for casters: fear when the adjacent hero has high attack, ball of f
 |---|---|---|
 | Q2 | Sir Ragnar alarm, escort NPC 2 BP | `revealAll` + `openAllDoors` + NPC chip with BP and "moved by the hero who opened the door, 1 red die" |
 | Q4 | Carry chests, 1 red die move | items on the objective panel, reminder text |
-| Q5 | Dormant gargoyle, throne secret door | monster `dormant` + `invulnerableUntilActs`; `convertToSecretDoor` effect |
+| Q5 | Dormant gargoyle, throne secret door | monster `dormant` = statue, furniture until a note sets it `active` (decision 28: not in the roster, not counted by search guards, no orders, cannot be wounded; `dormantFigures` lets the UI draw it); `addSecretDoor` effect |
 | Q6 | No equipment until room A | quest-start condition banner; cleared by treasure note |
 | Q7 | Stone Dread warriors +1 defend; purple potion turns hero to stone 5 turns | overrides; hero status timer |
 | Q8 | Balur escape to XX, revealed only when door is opened | hidden placement linked to a door trigger |
 | Q10 | Teleport doors, numbered squares 2 to 12 | quest rule banner + numbered markers + "roll 2 red dice" helper |
-| Q11 | Bounty per kill | counter effect on `monsterKilled` |
+| Q11 | Bounty per kill; dormant gargoyle (B) | counter effect on `monsterKilled`; the gargoyle is a `dormant` statue (decision 28) woken by the chest trap note |
 | Q12 | False doors, falling block after last hero, Witch Lord wakes on entering | `kind:'false'` doors; scripted trap; `areaEntered` note |
-| Q13 | Different falling-block rule | `rules.fallingBlock = 'q13'` |
+| Q13 | Different falling-block rule | `squareEntered` notes with `repeat: true` and a `showText` effect (not `fallingBlock` trap objects, which are the one-shot trap that leaves a permanent block); `rules.fallingBlock = 'q13'` for the text |
 | Q14 | Witch Lord only harmed by Spirit Blade, fear twice | override flags |
 
 ---

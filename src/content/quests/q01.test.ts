@@ -6,8 +6,8 @@ import { board } from '../../engine/board/board';
 import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { statsOf } from '../../engine/data/monsters';
-import { initialState, replay } from '../../engine/game/reducer';
-import { monstersInPlay } from '../../engine/game/view';
+import { initialState, reduce, replay } from '../../engine/game/reducer';
+import { journal, mapLetters, monstersInPlay, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -216,6 +216,32 @@ describe('quest 1: notes', () => {
     expect(note('C')?.trigger).toEqual({ type: 'areaRevealed', area: 'R02' });
     const e = note('C')?.effects[0];
     expect(e?.type === 'showText' && e.text.includes('4')).toBe(true);
+  });
+
+  it('C really fires when R02 is revealed, and shows in the journal and on the map', () => {
+    const before = run(open('d1'), ...toRow9, open('d8'), open('d10'));
+    expect(before.notesFired).toEqual([]);
+    expect(mapLetters(level, before)).toEqual([]);
+    const r = reduce(level, before, open('d11'));
+    expect(r.state.notesFired).toEqual(['n-C']);
+    expect(r.prompts.filter((p) => p.kind === 'note')).toEqual([
+      expect.objectContaining({ noteId: 'n-C', letter: 'C', at: [7, 2], consumesTreasure: false }),
+    ]);
+    expect(journal(level, r.state).map((j) => [j.id, j.letter, j.at])).toEqual([
+      ['n-C', 'C', [7, 2]],
+    ]);
+    expect(mapLetters(level, r.state)).toEqual([{ note: 'n-C', letter: 'C', at: [7, 2] }]);
+  });
+
+  it('killing Verag completes the objective', () => {
+    const s = run(open('d1'), ...toD6, open('d6'));
+    expect(objectivesStatus(level, s).goalDone).toBe(false);
+    const r = reduce(level, s, { type: 'MONSTER_KILL', monster: 'm-verag' });
+    expect(r.prompts.map((p) => p.kind)).toEqual(['objectiveDone', 'goalDone']);
+    expect(objectivesStatus(level, r.state)).toEqual({
+      items: [{ id: 'o1', text: 'Find and destroy Verag', done: true }],
+      goalDone: true,
+    });
   });
 
   it('every treasure note sits in the room of its furniture', () => {

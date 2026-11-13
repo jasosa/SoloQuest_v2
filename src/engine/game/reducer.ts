@@ -17,7 +17,10 @@ import type { Prompt } from './prompts';
 import { searchSecretDoors, searchTraps, searchTreasure, wanderingMonster } from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
-import { progress, revealFrom, revealRoom } from './reveal';
+import { isDormant } from './monstersIn';
+import { areaEnter, choose, manualTrigger, runTriggers, squareTrigger, tickStone } from './notes';
+import { objectivesStatus } from './noteView';
+import { progress, revealFrom, revealRoom, revealThroughDoor } from './reveal';
 import { draftOf, emptyState, type Draft, type GameState, type MonsterRecord } from './state';
 
 export { EventError, type EventErrorCode } from './errors';
@@ -28,14 +31,48 @@ export interface Reduced {
   readonly prompts: readonly Prompt[];
 }
 
-/** State at the start of the quest: the start room is revealed. */
-export function initialState(level: Level, seed: number): GameState {
+/**
+ * The start of the quest: the start room is revealed, then the `questStart` notes and the
+ * `areaRevealed` notes of the start room fire. The prompts are the ones to show at the start.
+ */
+export function startGame(level: Level, seed: number): Reduced {
   const d = draftOf(emptyState(seed));
   revealRoom(level, d, level.quest.start.area);
-  return d;
+  const r = runTriggers(level, d, [{ type: 'questStart' }], { beforeRooms: new Set() });
+  return { state: d, prompts: r.prompts };
 }
 
+/**
+ * State at the start of the quest (see `startGame`). The UI must call `startGame` to also get
+ * the questStart and start-room prompts; this only gives the state.
+ */
+export function initialState(level: Level, seed: number): GameState {
+  return startGame(level, seed).state;
+}
+
+/** Apply one event. After END_QUEST every event is rejected with QUEST_ENDED. */
 export function reduce(level: Level, state: GameState, event: GameEvent): Reduced {
+  if (state.ended) throw new EventError('QUEST_ENDED', 'The quest is over');
+  const r = reduceEvent(level, state, event);
+  // Objectives that became done by this event are told to the players.
+  const before = objectivesStatus(level, state);
+  const after = objectivesStatus(level, r.state);
+  const extra: Prompt[] = [];
+  after.items.forEach((o, i) => {
+    if (o.done && !before.items[i]?.done)
+      extra.push({ kind: 'objectiveDone', objective: o.id, text: o.text });
+  });
+  if (after.goalDone && !before.goalDone) extra.push({ kind: 'goalDone' });
+  return extra.length > 0 ? { state: r.state, prompts: [...r.prompts, ...extra] } : r;
+}
+
+/** Add the prompts of notes after the prompts of the event. "Nothing new" gives way to them. */
+function withNotes(base: readonly Prompt[], notes: readonly Prompt[]): Prompt[] {
+  if (notes.length === 0) return [...base];
+  return [...base.filter((p) => p.kind !== 'nothingNew'), ...notes];
+}
+
+function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced {
   switch (event.type) {
     case 'OPEN_DOOR':
       return openDoor(level, state, event.door);
@@ -55,11 +92,17 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
       return monsterChange(level, state, event.monster, () => ({ body: 0, dead: true }));
     case 'ZARGON_TURN_END': {
       const d = draftOf(state);
+      const ended = d.turn;
       d.turn += 1;
       // A wandering monster that attacked at once is no longer "fresh" after Zargon's turn.
       for (const [id, w] of Object.entries(d.wanderers))
         if (w.fresh) d.wanderers[id] = { ...w, fresh: false };
-      return { state: d, prompts: [] };
+      // Stone counts down first, so a stone set by this turn's note keeps all its turns.
+      const stone = tickStone(level, d);
+      const r = runTriggers(level, d, [{ type: 'zargonTurn', turn: ended }], {
+        beforeRooms: new Set(state.revealedRooms),
+      });
+      return { state: d, prompts: [...stone, ...r.prompts] };
     }
     case 'SEARCH_TREASURE':
       return searchTreasure(level, state, event);
@@ -73,6 +116,39 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
     case 'TRAP_DISARM':
     case 'TRAP_STEP':
       return trapEvent(level, state, event);
+    case 'AREA_ENTER': {
+      const d = draftOf(state);
+      return { state: d, prompts: areaEnter(level, state, d, event.area).prompts };
+    }
+    case 'SQUARE_TRIGGER': {
+      checkCell(level, event.cell);
+      const d = draftOf(state);
+      return { state: d, prompts: squareTrigger(level, state, d, event.cell).prompts };
+    }
+    case 'MANUAL_TRIGGER': {
+      const d = draftOf(state);
+      return { state: d, prompts: manualTrigger(level, state, d, event.note).prompts };
+    }
+    case 'CHOOSE': {
+      const d = draftOf(state);
+      return { state: d, prompts: choose(level, state, d, event.note, event.option).prompts };
+    }
+    case 'END_QUEST': {
+      if (event.outcome !== 'stairs' && event.outcome !== 'fell')
+        throw new EventError('BAD_RESULT', `Bad outcome ${String(event.outcome)}`);
+      const d = draftOf(state);
+      d.ended = { outcome: event.outcome };
+      return {
+        state: d,
+        prompts: [
+          {
+            kind: 'questEnded',
+            outcome: event.outcome,
+            goalDone: objectivesStatus(level, state).goalDone,
+          },
+        ],
+      };
+    }
     default: {
       const never: never = event;
       throw new Error(`Unhandled event ${JSON.stringify(never)}`);
@@ -124,35 +200,22 @@ function openDoor(level: Level, state: GameState, doorId: string): Reduced {
   ];
   const before = progress(d);
   d.openDoors.add(doorId);
+  const notes = () =>
+    runTriggers(level, d, [{ type: 'doorOpened', door: doorId }], {
+      beforeRooms: new Set(state.revealedRooms),
+    }).prompts;
   // A false door looks like a door but nothing is behind it: it opens, shows nothing, still blocks.
-  if (door.kind === 'false') return { state: d, prompts: [{ kind: 'nothingNew' }] };
+  if (door.kind === 'false')
+    return { state: d, prompts: withNotes([{ kind: 'nothingNew' }], notes()) };
 
-  // A room on either side that is not revealed whole is revealed now. A corridor square is
-  // looked from when the other side is a room the heroes already stand in (the square beyond
-  // the door), unless it was looked from before.
-  const sides = [door.a, door.b];
-  const roomSeenBefore = sides.map((c) => {
-    const area = areaAt(level.board, c[0], c[1]);
-    return area !== undefined && area !== 'C' && d.revealedRooms.has(area);
-  });
-  const cells: CellKey[] = [];
-  sides.forEach((c, i) => {
-    const area = areaAt(level.board, c[0], c[1]);
-    if (area === undefined) return;
-    if (area !== 'C') {
-      if (!d.revealedRooms.has(area)) cells.push(...revealRoom(level, d, area).cells);
-    } else if (roomSeenBefore[1 - i] && !d.looked.has(keyOf(c))) {
-      d.looked.add(keyOf(c));
-      cells.push(...revealFrom(level, d, c).cells);
-    }
-  });
-  return finish(d, before, cells, origin, true);
+  const cells = revealThroughDoor(level, d, door);
+  const shown = finish(d, before, cells, origin, true);
+  return { state: d, prompts: withNotes(shown.prompts, notes()) };
 }
 
 function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
   const [x, y] = cell;
-  if (!Number.isInteger(x) || !Number.isInteger(y) || !inBoard(level.board, x, y))
-    throw new EventError('BAD_CELL', `Cell ${x},${y} is outside the board`);
+  checkCell(level, cell);
   if (areaAt(level.board, x, y) !== 'C' || !state.seenCells.has(keyOf(cell)))
     throw new EventError(
       'NOT_A_SEEN_CORRIDOR_CELL',
@@ -163,7 +226,16 @@ function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
   const before = progress(d);
   d.looked.add(keyOf(cell));
   const { cells } = revealFrom(level, d, cell);
-  return finish(d, before, cells, [x + 0.5, y + 0.5], false);
+  const shown = finish(d, before, cells, [x + 0.5, y + 0.5], false);
+  // Rooms that the look revealed fire their `areaRevealed` notes.
+  const notes = runTriggers(level, d, [], { beforeRooms: new Set(state.revealedRooms) }).prompts;
+  return { state: d, prompts: withNotes(shown.prompts, notes) };
+}
+
+function checkCell(level: Level, cell: Cell): void {
+  const [x, y] = cell;
+  if (!Number.isInteger(x) || !Number.isInteger(y) || !inBoard(level.board, x, y))
+    throw new EventError('BAD_CELL', `Cell ${x},${y} is outside the board`);
 }
 
 function checkAmount(n: number): number {
@@ -172,7 +244,10 @@ function checkAmount(n: number): number {
   return n;
 }
 
-/** Change the Body Points record of a seen, living monster. */
+/**
+ * Change the Body Points record of a seen, living monster. A monster that dies fires the
+ * `monsterKilled` and `allKilled` notes. A dormant monster is refused with MONSTER_NOT_SEEN.
+ */
 function monsterChange(
   level: Level,
   state: GameState,
@@ -186,7 +261,15 @@ function monsterChange(
   if (!state.seenMonsters.has(id) || !rec)
     throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} has not been seen yet`);
   if (rec.dead) throw new EventError('MONSTER_DEAD', `Monster ${id} is already dead`);
+  // A dormant monster is a statue: it cannot be wounded, healed or slain (decision 28).
+  if ('id' in def && isDormant(def, state))
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} is a statue until the quest wakes it`);
   const d = draftOf(state);
-  d.monsters[id] = change(rec, statsOf(def).body);
-  return { state: d, prompts: [] };
+  const next = change(rec, statsOf(def).body);
+  d.monsters[id] = next;
+  if (!next.dead) return { state: d, prompts: [] };
+  const r = runTriggers(level, d, [{ type: 'monsterKilled', monster: id, monsterType: def.type }], {
+    beforeRooms: new Set(state.revealedRooms),
+  });
+  return { state: d, prompts: r.prompts };
 }
