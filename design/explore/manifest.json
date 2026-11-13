@@ -1,0 +1,31 @@
+{
+  "title": "SoloQuest v2 · first screen directions",
+  "round": "Round 1",
+  "nativeViewport": "1194x834",
+  "candidates": [
+    {
+      "source": "a-quest-book.html",
+      "name": "A · Quest Book Map",
+      "concept": "The app is Zargon's own quest map, coming alive as the heroes explore.",
+      "typography": "TeX Gyre Bonum Bold for titles, TeX Gyre Pagella for text",
+      "palette": ["#EFE6D2", "#6E1F2A", "#B98A8F", "#3F6B3A", "#2B1D17", "#D9C49A"],
+      "traits": ["Book page: title band, map left, notes column right", "Unexplored = red-rock hatching like the printed maps", "Green monster tokens, door callout like a margin note", "Light screen: strong glare in a dim room"]
+    },
+    {
+      "source": "b-lantern.html",
+      "name": "B · Lantern",
+      "concept": "Only what the lantern touches exists.",
+      "typography": "Instrument Serif for titles, Inter for interface text",
+      "palette": ["#0B0908", "#2A2421", "#3B332D", "#E8A23A", "#C8452F", "#EDE3D6"],
+      "traits": ["Full-bleed board, floating controls on the darkness", "Unexplored is black with a faint memory of the room walls", "Last revealed room carries a warm glow", "Dark screen does not compete with the physical board"]
+    },
+    {
+      "source": "c-field-slate.html",
+      "name": "C · Field Slate",
+      "concept": "A tactical plan readable from one meter; the fantasy lives on the table.",
+      "typography": "TeX Gyre Heros Condensed for labels, Liberation Mono for codes and numbers",
+      "palette": ["#1F2A2E", "#24333A", "#E9EEF0", "#A9B6BB", "#FF5A3C", "#34444A"],
+      "traits": ["Status strip on top, control column left, board right", "Dotted grid with chess-like coordinates (I16)", "Monsters as orange code tags O1, O2", "No fantasy decoration at all"]
+    }
+  ]
+}

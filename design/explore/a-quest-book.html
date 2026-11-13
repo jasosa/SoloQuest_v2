@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A · Quest Book Map</title>
+<meta name="viewport" content="width=1194, initial-scale=1">
+<style>
+@font-face { font-family: "Bonum"; src: url(fonts/texgyrebonum-bold.otf); font-weight: 700; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-regular.otf); font-weight: 400; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-italic.otf); font-style: italic; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-bold.otf); font-weight: 700; }
+:root {
+  --paper: #EFE6D2;
+  --paper-2: #E6DAC0;
+  --floor: #F7F2E8;
+  --corridor: #E4D8C2;
+  --rock: #B98A8F;
+  --rock-line: #A87479;
+  --ink: #6E1F2A;
+  --text: #2B1D17;
+  --muted: #6D5A4E;
+  --green: #3F6B3A;
+  --sel: #D9C49A;
+  --off: #B9AE98;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1194px; height: 834px; overflow: hidden; }
+body {
+  background: var(--paper);
+  color: var(--text);
+  font: 16px/1.4 "Pagella", Georgia, serif;
+  display: grid;
+  grid-template-columns: 920px 1fr;
+  grid-template-rows: 64px 1fr;
+}
+header {
+  grid-column: 1 / -1;
+  display: flex; align-items: baseline; gap: 18px;
+  padding: 16px 28px 0;
+  border-bottom: 2px solid var(--ink);
+  margin: 0 28px;
+  padding-left: 0; padding-right: 0;
+}
+header .qn { font: 700 15px "Bonum", serif; color: var(--ink); letter-spacing: .08em; text-transform: uppercase; }
+header h1 { font: 700 30px/1 "Bonum", serif; color: var(--ink); }
+header .turn { margin-left: auto; font-size: 16px; color: var(--muted); }
+header .turn b { color: var(--text); font-variant-numeric: tabular-nums; }
+header .undo { margin-left: 18px; font: italic 16px "Pagella"; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--ink); }
+
+.map { padding: 18px 0 0 28px; }
+svg { display: block; }
+
+aside { padding: 18px 28px 22px 24px; display: flex; flex-direction: column; gap: 18px; }
+.goal { font-style: italic; font-size: 16px; color: var(--text); border-left: 0; }
+.goal span { display: block; font: 700 13px "Bonum"; font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-bottom: 4px; }
+h2 { font: 700 13px "Bonum", serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-bottom: 8px; }
+.roster li { list-style: none; display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--paper-2); }
+.tok { width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: #F2EBDD; display: grid; place-items: center; font: 700 14px "Bonum"; }
+.roster .st { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.roster button { font: italic 15px "Pagella"; background: none; border: 0; color: var(--ink); border-bottom: 1px solid var(--ink); }
+.heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; font-size: 15px; }
+.heroes div { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--off); padding: 3px 0; }
+.heroes b { font-variant-numeric: tabular-nums; }
+.wander { font-size: 15px; color: var(--muted); }
+.wander b { color: var(--text); font-weight: 700; }
+.zargon { margin-top: auto; height: 56px; border: 2px solid var(--ink); background: var(--ink); color: #F4ECDD; font: 700 18px "Bonum"; letter-spacing: .04em; }
+
+/* door callout */
+.callout { position: absolute; left: 0; top: 0; width: 236px; background: var(--floor); border: 2px solid var(--ink); padding: 12px 14px 14px; box-shadow: 4px 4px 0 var(--sel); }
+.callout h3 { font: 700 17px "Bonum"; color: var(--ink); margin-bottom: 4px; }
+.callout p { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+.callout button { width: 100%; height: 44px; background: var(--ink); color: #F4ECDD; border: 0; font: 700 16px "Bonum"; }
+.callout::before { content: ""; position: absolute; left: -11px; top: 136px; width: 18px; height: 18px; background: var(--floor); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
+.map { position: relative; }
+</style>
+</head>
+<body>
+<header>
+  <span class="qn">Quest 1</span>
+  <h1>The Trial</h1>
+  <span class="turn">Turn <b>3</b></span>
+  <button class="undo">Undo</button>
+</header>
+
+<div class="map">
+  <svg id="board"></svg>
+  <div class="callout" id="callout">
+    <h3>Closed door</h3>
+    <p>East wall of the alchemist's room. Opening is free and reveals what is behind.</p>
+    <button>Open the door</button>
+  </div>
+</div>
+
+<aside>
+  <p class="goal"><span>Your goal</span>Find and destroy Verag, the gargoyle of the catacombs.</p>
+  <section>
+    <h2>Monsters in play</h2>
+    <ul class="roster" id="roster"></ul>
+  </section>
+  <section>
+    <h2>Heroes · body</h2>
+    <div class="heroes" id="heroes"></div>
+  </section>
+  <p class="wander">Wandering monster: <b>Orc</b></p>
+  <button class="zargon">Zargon's turn</button>
+</aside>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  const { W, H, area, state, isRevealed, walls, doorEdge } = window.HQ;
+  const S = 34; // cell size
+  const svg = document.getElementById('board');
+  svg.setAttribute('width', W * S + 4); svg.setAttribute('height', H * S + 4);
+  svg.setAttribute('viewBox', `-2 -2 ${W * S + 4} ${H * S + 4}`);
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = (t, a, p = svg) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const css = getComputedStyle(document.documentElement); const v = n => css.getPropertyValue(n).trim();
+
+  // hatch pattern for unexplored rock
+  const defs = el('defs', {});
+  const pat = el('pattern', { id: 'hatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+  el('rect', { width: 6, height: 6, fill: v('--rock') }, pat);
+  el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: v('--rock-line'), 'stroke-width': 2 }, pat);
+
+  // cells
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const rev = isRevealed(x, y);
+    const fill = !rev ? 'url(#hatch)' : (area(x, y) === 'C' ? v('--corridor') : v('--floor'));
+    el('rect', { x: x * S, y: y * S, width: S, height: S, fill, stroke: rev ? '#CDBBA6' : v('--rock-line'), 'stroke-width': rev ? .8 : .6 });
+  }
+  // frame
+  el('rect', { x: 0, y: 0, width: W * S, height: H * S, fill: 'none', stroke: v('--ink'), 'stroke-width': 3 });
+  // walls
+  for (const w of walls()) el('line', { x1: w.x1 * S, y1: w.y1 * S, x2: w.x2 * S, y2: w.y2 * S, stroke: v('--ink'), 'stroke-width': 3.2, 'stroke-linecap': 'square' });
+
+  // furniture
+  for (const f of state.furniture) {
+    const g = el('g', {});
+    if (f.type === 'stairs') {
+      el('rect', { x: f.x * S + 2, y: f.y * S + 2, width: f.w * S - 4, height: f.h * S - 4, fill: '#fff', stroke: v('--ink'), 'stroke-width': 1.5 }, g);
+      for (let i = 1; i < 6; i++) el('path', { d: `M ${f.x * S + 2} ${f.y * S + 2 + i * 10} A ${i * 10} ${i * 10} 0 0 0 ${f.x * S + 2 + i * 10} ${f.y * S + 2}`, fill: 'none', stroke: v('--ink'), 'stroke-width': 1.2 }, g);
+    } else {
+      el('rect', { x: f.x * S + 4, y: f.y * S + 4, width: f.w * S - 8, height: f.h * S - 8, fill: '#fff', stroke: v('--ink'), 'stroke-width': 1.5 }, g);
+      el('rect', { x: f.x * S + 8, y: f.y * S + 8, width: f.w * S - 16, height: f.h * S - 16, fill: 'none', stroke: v('--ink'), 'stroke-width': .8 }, g);
+    }
+  }
+  // doors
+  for (const d of state.doors) {
+    const e = doorEdge(d);
+    const cx = (e.x1 + e.x2) / 2 * S, cy = (e.y1 + e.y2) / 2 * S;
+    const w = e.vertical ? 10 : 24, h = e.vertical ? 24 : 10;
+    if (d.selected) el('circle', { cx, cy, r: 20, fill: v('--sel'), opacity: .9 });
+    el('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, fill: d.open ? v('--floor') : '#fff', stroke: v('--ink'), 'stroke-width': 1.6, rx: 1 });
+    if (d.open) el('line', { x1: cx - (e.vertical ? 0 : 8), y1: cy - (e.vertical ? 8 : 0), x2: cx + (e.vertical ? 0 : 8), y2: cy + (e.vertical ? 8 : 0), stroke: v('--ink'), 'stroke-width': 1, 'stroke-dasharray': '2 2' });
+    else { el('line', { x1: cx - (e.vertical ? 0 : 6), y1: cy - (e.vertical ? 6 : 0), x2: cx + (e.vertical ? 0 : 6), y2: cy + (e.vertical ? 6 : 0), stroke: v('--ink'), 'stroke-width': 2 }); }
+  }
+  // monsters
+  for (const m of state.monsters) {
+    const cx = (m.x + .5) * S, cy = (m.y + .5) * S;
+    el('circle', { cx, cy, r: 13, fill: v('--green'), stroke: '#F2EBDD', 'stroke-width': 2 });
+    const t = el('text', { x: cx, y: cy + 5, 'text-anchor': 'middle', fill: '#F2EBDD', 'font-family': 'Bonum', 'font-weight': 700, 'font-size': 14 });
+    t.textContent = m.code;
+    t.setAttribute('font-size', 11);
+  }
+
+  // callout position next to selected door
+  const d = state.doors.find(x => x.selected); const e = doorEdge(d);
+  const c = document.getElementById('callout');
+  c.style.left = (28 + e.x1 * S + 24) + 'px';
+  c.style.top = (18 + (e.y1 + .5) * S - 150) + 'px';
+
+  // roster
+  const r = document.getElementById('roster');
+  for (const m of state.monsters) {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="tok">${m.code}</span><div><div>${m.type}</div><div class="st">Move ${m.move} · Att ${m.att} · Def ${m.def} · Body ${m.body}/${m.maxBody}</div></div><button>Slain</button>`;
+    r.appendChild(li);
+  }
+  const h = document.getElementById('heroes');
+  for (const x of state.heroes) { const div = document.createElement('div'); div.innerHTML = `<span>${x.name}</span><b>${x.body}/${x.max}</b>`; h.appendChild(div); }
+})();
+</script>
+</body>
+</html>

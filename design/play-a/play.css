@@ -1,0 +1,166 @@
+@font-face { font-family: "Bonum"; src: url(fonts/texgyrebonum-bold.otf); font-weight: 700; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-regular.otf); font-weight: 400; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-italic.otf); font-style: italic; }
+@font-face { font-family: "Pagella"; src: url(fonts/texgyrepagella-bold.otf); font-weight: 700; }
+
+:root {
+  --paper: #EFE6D2;
+  --paper-2: #E6DAC0;
+  --paper-3: #F6F0E3;
+  --floor: #F7F2E8;
+  --corridor: #E4D8C2;
+  --rock: #B98A8F;
+  --rock-line: #A87479;
+  --ink: #6E1F2A;
+  --ink-2: #8E3A45;
+  --text: #2B1D17;
+  --muted: #6D5A4E;
+  --green: #3F6B3A;
+  --sel: #D9C49A;
+  --off: #B9AE98;
+  --gap: 18px;
+  --ease-ink: cubic-bezier(.22, .8, .3, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  background: var(--paper); color: var(--text);
+  font: 16px/1.45 "Pagella", Georgia, serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:disabled { cursor: default; }
+
+.app { width: 1194px; height: 834px; display: grid; grid-template-columns: 920px 1fr; grid-template-rows: 64px 1fr; position: relative; overflow: hidden; }
+
+/* ---------- header ---------- */
+header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 18px; margin: 0 28px; padding-top: 16px; border-bottom: 2px solid var(--ink); }
+header .qn { font: 700 15px "Bonum", serif; color: var(--ink); letter-spacing: .08em; text-transform: uppercase; }
+header h1 { font: 700 30px/1 "Bonum", serif; color: var(--ink); }
+header .turn { margin-left: auto; font-size: 16px; color: var(--muted); }
+header .turn b { color: var(--text); font-variant-numeric: tabular-nums; display: inline-block; min-width: 1ch; }
+.link { background: none; border: 0; font-style: italic; color: var(--ink); border-bottom: 1px solid currentColor; padding: 6px 0 1px; }
+.link:disabled { color: var(--off); }
+.link:active:not(:disabled) { color: var(--ink-2); }
+
+/* ---------- map ---------- */
+.map { position: relative; padding: 18px 0 0 28px; }
+#board { display: block; touch-action: manipulation; }
+#board .hit { fill: transparent; cursor: pointer; }
+.tok { transform-box: fill-box; transform-origin: center; }
+.tok.stamp { animation: stamp .32s var(--ease-ink) both; }
+@keyframes stamp { 0% { transform: scale(1.35); opacity: 0; } 60% { opacity: 1; } 100% { transform: scale(1); } }
+.selring { animation: pulse 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 50% { opacity: .55; } }
+
+/* ---------- callout (margin note) ---------- */
+.callout {
+  position: absolute; width: 252px; background: var(--paper-3); border: 2px solid var(--ink);
+  padding: 12px 14px 14px; box-shadow: 4px 4px 0 var(--sel); z-index: 5;
+  transform-origin: var(--ox, 0) var(--oy, 50%);
+  animation: pop .2s var(--ease-ink) both;
+}
+@keyframes pop { from { opacity: 0; transform: scale(.96); } }
+.callout .kind { font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.callout h3 { font: 700 18px/1.2 "Bonum"; color: var(--ink); margin: 2px 0 4px; }
+.callout p { font-size: 14.5px; color: var(--muted); margin-bottom: 10px; }
+.callout p b { color: var(--text); }
+.callout .warn { color: var(--ink); font-style: italic; }
+.callout .close { position: absolute; right: 6px; top: 4px; width: 36px; height: 36px; border: 0; background: none; font-size: 20px; color: var(--muted); }
+.btn { display: block; width: 100%; min-height: 44px; border: 2px solid var(--ink); background: var(--ink); color: #F4ECDD; font: 700 16px "Bonum"; padding: 8px 12px; text-align: center; transition: transform .08s, background .15s; }
+.btn + .btn { margin-top: 8px; }
+.btn.alt { background: none; color: var(--ink); }
+.btn:active:not(:disabled) { transform: translate(2px, 2px); }
+.btn:disabled { border-color: var(--off); background: none; color: var(--off); }
+.row { display: flex; gap: 8px; }
+.row .btn { margin-top: 0; }
+.row + .row, .row + .btn, .btn + .row { margin-top: 8px; }
+.chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.chip { min-height: 44px; border: 1.5px solid var(--ink); background: none; color: var(--ink); font: 700 15px "Bonum"; transition: background .15s, color .15s; }
+.chip[aria-pressed="true"] { background: var(--ink); color: #F4ECDD; }
+.chip:disabled { border-color: var(--off); color: var(--off); text-decoration: line-through; }
+.chip:active:not(:disabled) { transform: translate(1px, 1px); }
+
+/* ---------- right column ---------- */
+aside { padding: 18px 28px 22px 24px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.lbl { font: 700 13px "Bonum", serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-bottom: 6px; }
+.goal p { font-style: italic; }
+.zinfo { font-size: 14.5px; color: var(--muted); }
+.roster { list-style: none; max-height: 330px; overflow: auto; margin-right: -8px; padding-right: 8px; }
+.roster li { border-bottom: 1px solid var(--paper-2); }
+.roster li button { width: 100%; display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; background: none; border: 0; text-align: left; min-height: 48px; }
+.roster li.new { animation: slidein .35s var(--ease-ink) both; }
+@keyframes slidein { from { opacity: 0; transform: translateX(14px); } }
+.roster li.sel button { background: linear-gradient(90deg, var(--sel), transparent); }
+.coin { width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: #F2EBDD; display: grid; place-items: center; font: 700 12px "Bonum"; }
+.roster .nm { font-size: 16px; }
+.roster .st { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.roster .bp { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.roster .empty { font-style: italic; color: var(--muted); font-size: 15px; padding: 6px 0; }
+.journal { list-style: none; font-size: 14.5px; color: var(--muted); }
+.journal li { padding: 3px 0; }
+.journal b { color: var(--ink); font-family: "Bonum"; margin-right: 6px; }
+.wander { font-size: 15px; color: var(--muted); }
+.wander b { color: var(--text); }
+.zargon-btn { margin-top: auto; min-height: 60px; border: 2px solid var(--ink); background: var(--ink); color: #F4ECDD; font: 700 19px "Bonum"; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; transition: transform .08s; }
+.zargon-btn small { font: italic 14px "Pagella"; color: #E6CFC0; }
+.zargon-btn:active { transform: translate(2px, 2px); }
+
+/* ---------- Zargon page ---------- */
+.zpage {
+  position: absolute; top: 64px; right: 0; bottom: 0; width: 500px; background: var(--paper-3);
+  border-left: 2px solid var(--ink); box-shadow: -10px 0 0 rgba(110, 31, 42, .08); z-index: 8;
+  display: flex; flex-direction: column; transform: translateX(104%); transition: transform .34s var(--ease-ink);
+}
+.zpage.open { transform: none; }
+.zpage .zh { padding: 18px 28px 12px; display: flex; align-items: baseline; gap: 12px; }
+.zpage h2 { font: 700 26px "Bonum"; color: var(--ink); }
+.zpage .zh span { color: var(--muted); }
+.zpage .zh .link { margin-left: auto; }
+.seg { margin: 0 28px 12px; display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--ink); position: relative; }
+.seg button { position: relative; z-index: 1; min-height: 44px; border: 0; background: none; font: 700 15px "Bonum"; color: var(--ink); transition: color .2s; }
+.seg button[aria-pressed="true"] { color: #F4ECDD; }
+.seg .thumb { position: absolute; top: 0; bottom: 0; left: 0; width: 50%; background: var(--ink); transition: transform .25s var(--ease-ink); }
+.seg[data-mode="detail"] .thumb { transform: translateX(100%); }
+.seg-help { margin: -4px 28px 10px; font-size: 14px; color: var(--muted); font-style: italic; }
+.orders { list-style: none; overflow: auto; padding: 0 28px; flex: 1; }
+.order { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--paper-2); }
+.order .num { font: 700 22px/1 "Bonum"; color: var(--ink); text-align: center; padding-top: 3px; }
+.order h4 { font: 700 18px "Bonum"; display: flex; align-items: center; gap: 6px; }
+.order h4 > span:not(.coin) { margin-left: 4px; }
+.order h4 .x { font: italic 400 15px "Pagella"; color: var(--muted); }
+.order h4 .link { margin-left: auto; font-size: 15px; font-weight: 400; }
+.order h4 .coin { width: 26px; height: 26px; font-size: 11px; }
+.order.done h4 > span:not(.coin) { color: var(--muted); }
+.order.done .num { color: var(--muted); }
+.order dl { display: grid; grid-template-columns: 58px 1fr; gap: 4px 10px; margin-top: 8px; font-size: 15.5px; }
+.order dt { font: 700 12px/1.9 "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.order .tgt { font-family: "Bonum"; color: var(--ink); white-space: nowrap; }
+.order .rule { font-size: 14.5px; color: var(--ink); margin-top: 6px; font-style: italic; }
+.order .chips { grid-template-columns: repeat(4, 1fr); margin: 10px 0 4px; }
+.order .chip { font-size: 13.5px; min-height: 44px; }
+.order .verdict { font-size: 16px; border: 1.5px solid var(--ink); background: var(--paper); padding: 8px 12px; margin-top: 8px; }
+.zfoot { padding: 14px 28px 22px; border-top: 2px solid var(--ink); }
+
+/* ---------- note card ---------- */
+.veil { position: absolute; inset: 0; background: rgba(43, 29, 23, .28); z-index: 20; display: grid; place-items: center; animation: fade .2s both; }
+@keyframes fade { from { opacity: 0; } }
+.note { width: 440px; background: var(--paper-3); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--sel); padding: 22px 26px 22px; animation: rise .3s var(--ease-ink) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.note .hd { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.note .letter { width: 40px; height: 40px; background: var(--ink); color: #F4ECDD; font: 700 24px "Bonum"; display: grid; place-items: center; }
+.note .hd div { font: 700 13px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
+.note .hd h3 { font: 700 22px "Bonum"; color: var(--text); letter-spacing: 0; text-transform: none; }
+.note p { font-size: 17px; margin-bottom: 16px; }
+
+.toast { position: absolute; left: 28px; bottom: 18px; background: var(--text); color: var(--paper); padding: 10px 14px; font-size: 15px; z-index: 30; animation: rise .25s var(--ease-ink) both; }
+.toast button { margin-left: 12px; background: none; border: 0; color: var(--sel); font-style: italic; border-bottom: 1px solid; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+.note p.extra { font-size: 15px; color: var(--muted); border-top: 1px solid var(--paper-2); padding-top: 10px; }
+.journal .jl { background: none; border: 0; text-align: left; font: inherit; color: inherit; padding: 4px 0; min-height: 32px; }
+.journal .jl:active { color: var(--ink); }
+.order .rulehint { font-size: 15.5px; margin-top: 6px; }

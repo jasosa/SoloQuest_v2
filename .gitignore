@@ -1,0 +1,23 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+.vite/
+*.log
+.env
+.env.*
+
+# Local only: renders of the Quest Book / rulebook (copyrighted), overlays
+reference/
+*.pdf
+
+# Prototype screenshots and recordings
+design/**/shots/
+_to_delete/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Cowork app output folder
+Claude outputs/

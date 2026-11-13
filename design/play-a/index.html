@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SoloQuest · Quest 1 · The Trial</title>
+<meta name="viewport" content="width=1194, initial-scale=1">
+<link rel="stylesheet" href="play.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="qn">Quest 1</span>
+    <h1>The Trial</h1>
+    <span class="turn">Turn <b id="turn">3</b></span>
+    <button class="link" id="undo" data-act="undo">Undo</button>
+  </header>
+
+  <div class="map">
+    <svg id="board" role="img" aria-label="Dungeon map"></svg>
+    <div class="callout" id="callout" hidden></div>
+  </div>
+
+  <aside>
+    <section class="goal">
+      <div class="lbl">Your goal</div>
+      <p>Find and destroy Verag, the gargoyle hiding in the catacombs.</p>
+    </section>
+    <p class="zinfo">No traps and no secret doors in this quest.</p>
+    <section>
+      <div class="lbl">Monsters in play</div>
+      <ul class="roster" id="roster"></ul>
+    </section>
+    <section>
+      <div class="lbl">Quest notes</div>
+      <ul class="journal" id="journal"></ul>
+    </section>
+    <p class="wander">Wandering monster: <b>Orc</b></p>
+    <button class="zargon-btn" id="zbtn" data-act="zargon">Zargon's turn<small></small></button>
+  </aside>
+
+  <section class="zpage" id="zpage" aria-label="Zargon's turn">
+    <div class="zh"><h2>Zargon's turn</h2><span id="zturn"></span><button class="link" data-act="zclose">Back to the map</button></div>
+    <div class="seg" id="seg" data-mode="priority">
+      <span class="thumb"></span>
+      <button data-act="mode" data-mode="priority" aria-pressed="true">Priority list</button>
+      <button data-act="mode" data-mode="detail" aria-pressed="false">Who can it reach?</button>
+    </div>
+    <p class="seg-help" id="seghelp"></p>
+    <ol class="orders" id="orders"></ol>
+    <div class="zfoot"><button class="btn" data-act="zend">End Zargon's turn</button></div>
+  </section>
+
+  <div id="notehost"></div>
+  <div id="toasthost"></div>
+</div>
+<script src="quest1.js"></script>
+<script src="play.js"></script>
+</body>
+</html>

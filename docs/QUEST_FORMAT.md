@@ -1,0 +1,131 @@
+# Quest format (`src/content/quests/qNN-<slug>.json`)
+
+One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema.ts` (`npm run validate`). Schema version starts at `1`; any breaking change needs a migration in `src/engine/quest/migrate.ts`.
+
+## Conventions
+
+- Cell: `[x, y]`, `x` 0..25 left to right, `y` 0..18 top to bottom, as on the Quest Book map with the title below it.
+- Area id of a cell: `board.json` (`"C"` corridor, `"R01"`..`"R22"` rooms).
+- Door: an edge between two orthogonal neighbor cells, `{ "a": [x,y], "b": [x,y] }`. Order does not matter.
+- Ids are short and stable inside the quest: `d1`, `m1`, `f1`, `t1`, `n-A`.
+- Text fields are **paraphrased** (see CLAUDE.md hard rule 1). `userText` fields are never shipped: they exist only in the editor's local storage.
+
+## Top level
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "id": "q01-the-trial",
+  "number": 1,
+  "title": "The Trial",
+  "intro": { "summary": "Find and destroy Verag, the gargoyle hiding in the catacombs." },
+  "zargonInfo": "No traps and no secret doors in this quest. It is a hard one: the heroes survive only if they fight together.",
+  "start": { "area": "R20" },                 // area revealed at start (stairway room, or e.g. Q6 "Cell")
+  "rock": { "rooms": ["R04", "R05"], "cells": [[12, 1], [13, 1]] },   // dark shaded on the map
+  "doors": [ { "id": "d1", "a": [3, 17], "b": [3, 18] } ],
+  "secretDoors": [ { "id": "s1", "a": [9, 4], "b": [8, 4] } ],
+  "falseDoors": [ { "id": "x1", "a": [5, 2], "b": [5, 3] } ],
+  "blocks": [ { "cells": [[14, 18]] }, { "cells": [[12, 5], [13, 5]] } ],   // single or double blocked squares
+  "furniture": [ { "id": "f1", "type": "weaponsRack", "cells": [[11, 15], [11, 16], [11, 17]], "letter": "A" } ],
+  "monsters": [ { "id": "m1", "type": "orc", "cell": [7, 14] } ],
+  "traps": [ { "id": "t1", "kind": "pit", "cell": [11, 18] } ],
+  "markers": [ { "id": "k1", "label": "X", "cell": [4, 2], "visible": "zargon" } ],
+  "notes": [ /* see below */ ],
+  "wandering": { "monster": "orc" },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
+  "objectives": [ { "id": "o1", "text": "Destroy Verag", "done": { "monsterKilled": "m-verag" } } ],
+  "rewards": "",                              // text only (e.g. "240 gold coins, shared"), never tracked
+  "rules": { },                               // quest-wide overrides, see below
+  "npcs": [ ]                                 // e.g. Sir Ragnar
+}
+```
+
+### Furniture types
+
+`stairs`, `table`, `sorcerersTable`, `alchemistsBench`, `bookcase`, `cupboard`, `chest`, `throne`, `tomb`, `rack` (torture rack), `weaponsRack`, `fireplace`. Footprint = the `cells` list, read from the map (do not assume a standard size; rotation is implied by the cells).
+
+### Monster types
+
+`goblin`, `orc`, `abomination`, `skeleton`, `zombie`, `mummy`, `dreadWarrior`, `gargoyle`, `dreadSorcerer` (figure for named characters). Optional per monster:
+
+```jsonc
+{ "id": "m-verag", "type": "gargoyle", "cell": [x, y], "name": "Verag",
+  "overrides": { "att": 4 },                  // stat changes
+  "state": "dormant",                         // starts asleep (Q5 B); woken by an effect
+  "invulnerableUntilActs": true,              // Q5 B, Q11 B
+  "spells": ["fear", "sleep", "tempest"], "spellLimit": "onePerTurn",
+  "hidden": true                              // not placed by sight; placed by an effect (Q8 Balur at XX)
+}
+```
+
+### Trap kinds
+
+`pit`, `fallingBlock`, `spear`, `chest` (on furniture: `"furniture": "f3"` instead of `"cell"`), `scripted` (only by effects, e.g. Q12 C). Optional `"effect"` text for chest traps (paraphrased).
+
+## Notes: trigger + conditions + effects
+
+```jsonc
+{
+  "id": "n-A", "letter": "A", "at": [11, 14],          // where the letter is drawn once read
+  "trigger": { "type": "treasureSearch", "area": "R18", "first": true },
+  "when": [ { "monstersAliveIn": "R18", "is": 0 } ],    // optional conditions, all must hold
+  "effects": [ { "type": "showText", "text": "The weapons on this rack are chipped, rusted and broken. Nothing is worth taking." } ],
+  "consumesTreasure": true                              // no treasure card is drawn when this fires
+}
+```
+
+### Triggers
+
+| `type` | Params | Fires when |
+|---|---|---|
+| `questStart` | | game starts |
+| `areaRevealed` | `area` | area first revealed |
+| `doorOpened` | `door` | that door is opened |
+| `areaEntered` | `area` | players tap "A hero enters" on the area (only shown for areas with this trigger) |
+| `squareEntered` | `cell`, `repeat?` | players tap the square marker ("A hero is here") |
+| `treasureSearch` | `area`, `first?` | a hero searches the area for treasure |
+| `secretDoorSearch` | `area` | a hero searches the area for secret doors |
+| `trapSprung` / `trapDisarmed` | `trap` | trap state changes |
+| `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
+| `allKilled` | `monsters` (ids) | the last of them is slain |
+| `zargonTurn` | `n?`, `every?` | at the start of Zargon's turn |
+| `manual` | `label` | a button on the quest panel |
+
+### Conditions (`when`)
+
+`{ "flag": "alarm", "is": true }`, `{ "counter": "kills", "gte": 3 }`, `{ "monster": "m1", "alive": false }`, `{ "monstersAliveIn": "R18", "is": 0 }`, `{ "firstTime": true }`.
+
+### Effects
+
+| `type` | Params |
+|---|---|
+| `showText` | `text`, `title?` |
+| `revealArea` | `area` |
+| `revealAll` | | (Q2 alarm: all monsters, doors, furniture) |
+| `openAllDoors` | |
+| `placeMonster` | `monster` (an id with `hidden: true`), `cell?` |
+| `setMonsterState` | `monster`, `state`: `active`/`dormant`/`stone`, `turns?` |
+| `addSecretDoor` | `door` (reveal a secret door from `secretDoors`) |
+| `placeBlock` | `cells` |
+| `giveItem` | `text` (shown only, not tracked) |
+| `setFlag` / `addCounter` | `flag`, `value` / `counter`, `by` |
+| `completeObjective` | `objective` |
+| `spawnNpc` | `npc` |
+| `promptChoice` | `text`, `options: [{ label, effects }]` |
+
+## Quest rule overrides (`rules`)
+
+```jsonc
+"rules": {
+  "fallingBlock": "q13",            // Q13: roll 1 red die on entering, not blocking
+  "doorTeleport": { "dice": "2red", "squares": "markers" },   // Q10
+  "noEquipmentUntil": "n-A",        // Q6 banner
+  "bounty": { "goblin": 10, "orc": 20, "abomination": 30, "dreadWarrior": 50 }   // Q11, shown as text
+}
+```
+
+## NPCs
+
+```jsonc
+"npcs": [ { "id": "ragnar", "name": "Sir Ragnar", "cell": [x, y], "defend": 2, "body": 2,
+            "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
+```
