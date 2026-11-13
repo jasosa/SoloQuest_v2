@@ -12,13 +12,7 @@ import type { MonsterDef, MonsterType } from '../quest/schema';
 import { rngFor, shuffled } from './hash';
 import { SPELL_EFFECT_TEXT, SPELL_NAMES, isSpellKey } from './spells';
 import { pickSpell } from './spellPick';
-import {
-  ADJACENT_FALLBACK_TEXT,
-  NO_TARGET_TEXT,
-  PLAN_TEXT,
-  RULE_TEXT,
-  nobodyInReachText,
-} from './texts';
+import { PLAN_TEXT, RULE_TEXT, noTargetText } from './texts';
 import { isCaster, profileOf, weightsOf, type Profile, type RuleKey } from './weights';
 
 /** The one spell picked for a caster this turn. The app does not describe spells. */
@@ -53,8 +47,8 @@ export interface Order {
   readonly special: readonly string[];
   /** Casters with a spell to try: the random pick. Ask "Could it cast it?" (SPELL_CAST / SPELL_FAILED). */
   readonly spell?: SpellPick;
-  /** Acting monsters only: what to do when the rule has no valid target, or nobody is in reach. */
-  readonly fallbacks?: { readonly noTarget: string; readonly nobodyInReach: string };
+  /** Only for lastAttacker, caster and grudge on an acting monster: what to do with no valid target. */
+  readonly noTarget?: string;
   /** Casters only: spells declined this turn (SPELL_FAILED), in the order they were offered. */
   readonly declined?: readonly string[];
   /** Shown with `spell`: "If it cannot cast: <plan>". */
@@ -198,17 +192,9 @@ function buildOrder(
     // The shuffle is of the full team, so the relative order stays the same after a death.
     tie: shuffled(full, rngFor(seed, turn, id, 'tie')).filter((h) => living.includes(h)),
     plan: PLAN_TEXT[profile],
-    ...(fresh
+    ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
       ? {}
-      : {
-          fallbacks: {
-            noTarget: `${NO_TARGET_TEXT[rule]} ${ADJACENT_FALLBACK_TEXT}`,
-            nobodyInReach: nobodyInReachText(
-              profile,
-              grudge ? `the ${HERO_NAMES[grudge]}` : 'the closest hero',
-            ),
-          },
-        }),
+      : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),
     special: specialRules(def),
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
     turn,

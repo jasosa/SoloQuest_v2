@@ -138,12 +138,10 @@ function Entry({ order: o }: { order: Order }) {
             <dd>{o.plan}</dd>
           </>
         )}
-        {o.fallbacks && (
+        {o.noTarget && (
           <>
-            <dt>No target</dt>
-            <dd>{o.fallbacks.noTarget}</dd>
-            <dt>No reach</dt>
-            <dd>{o.fallbacks.nobodyInReach}</dd>
+            <dt>Else</dt>
+            <dd>{o.noTarget}</dd>
           </>
         )}
         {o.special.length > 0 && (

@@ -17,32 +17,19 @@ How players use it: the monster goes for the first hero that fits the rule **and
 
 The app tracks only whether a hero died (`HERO_DIED`), nothing else about wounds. `ordersFor` takes the full team and takes dead heroes out: the tie list is the seeded shuffle of the full team with the dead filtered out (so the relative order does not change after a death). The grudge hero is still drawn from the full team; once he is dead the `grudge` rule is no longer offered (the draw uses the remaining weights). `caster` needs a living Wizard or Elf. When every hero is dead there are no orders.
 
-### When the rule has no valid target, or nobody is in reach (decision 35)
+### No valid target (decision 35)
 
-Every acting order carries two lines (`Order.fallbacks`). The monster may only attack a hero it can attack this turn, and it may move then act, or act then move, never move, act, move again. No diagonals, no passing heroes, no opening doors.
+When the rule has no valid target, or the monster cannot reach the hero it names, use the tie list among the heroes it can reach; ties on the stat rules work the same way. A monster can only attack a hero it can attack this turn: if the target is out of reach but another hero is next to it, it attacks the first adjacent hero in the tie list. If it can reach nobody, the plan covers it: it moves toward the target (or the closest hero), or the duelist and the caster block the nearest doorway. A monster may move then act, or act then move, never move, act, move again; no diagonals, no passing heroes, no opening doors. This is written here once and not repeated in each order.
 
-**No valid target** (`noTarget`): use the tie list among the heroes it can reach. One line per rule, each followed by the same adjacent line: "If it is next to a hero but not next to the target, attack the first hero next to it in the tie list."
+Only three rules get a short line on the order (`Order.noTarget`), because the case is not obvious:
 
 | Rule | Line |
 |---|---|
-| `closest` | If two heroes are equally close, use the tie list. |
-| `lastAttacker` | If nobody has attacked it yet, or that hero is dead or out of reach, use the tie list. |
-| `lowestBody` | If heroes are tied for the fewest Body Points, or the one with the fewest is out of reach, use the tie list. |
-| `highestBody` | If heroes are tied for the most Body Points, or the one with the most is out of reach, use the tie list. |
-| `lowestDef` | If heroes are tied for the fewest defend dice, or the one with the fewest is out of reach, use the tie list. |
-| `highestDef` | If heroes are tied for the most defend dice, or the one with the most is out of reach, use the tie list. |
-| `highestAtt` | If heroes are tied for the most attack dice, or the one with the most is out of reach, use the tie list. |
-| `caster` | If no living Wizard or Elf is within reach, use the tie list. |
-| `grudge` | If the grudge hero is out of reach, use the tie list. |
+| `lastAttacker` | If nobody has attacked it yet, use the tie list. |
+| `caster` | If no Wizard or Elf is in reach, use the tie list. |
+| `grudge` | If the <Hero> is out of reach, use the tie list. |
 
-**It can reach nobody** (`nobodyInReach`), by profile:
-
-| Profile | Line |
-|---|---|
-| soldier, brute, relentless, skirmisher | No hero in reach: move as far as you can toward the closest hero (the grudge hero for `grudge`), in straight lines, without passing heroes or opening doors. Do not attack. |
-| duelist, caster | No hero in reach: block the nearest doorway (or hold your place if you are in one). |
-
-Stone entries and fresh wandering monsters have no fallbacks.
+Stone entries and fresh wandering monsters have no `noTarget`.
 
 ## Target rules
 

@@ -24,34 +24,19 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
 };
 
 /**
- * What to do when the target rule has no valid target (decision 35): use the tie list among the
- * heroes the monster can reach. One short line per rule.
+ * What to do when the target rule has no valid target (decision 35): use the tie list. Only for the
+ * rules where the case is not obvious; the other rules need no line (ties and out-of-reach are
+ * what the tie list is for). `grudgeName` fills in the hero of a grudge.
  */
-export const NO_TARGET_TEXT: Readonly<Record<RuleKey, string>> = {
-  closest: 'If two heroes are equally close, use the tie list.',
-  lastAttacker:
-    'If nobody has attacked it yet, or that hero is dead or out of reach, use the tie list.',
-  lowestBody:
-    'If heroes are tied for the fewest Body Points, or the one with the fewest is out of reach, use the tie list.',
-  highestBody:
-    'If heroes are tied for the most Body Points, or the one with the most is out of reach, use the tie list.',
-  lowestDef:
-    'If heroes are tied for the fewest defend dice, or the one with the fewest is out of reach, use the tie list.',
-  highestDef:
-    'If heroes are tied for the most defend dice, or the one with the most is out of reach, use the tie list.',
-  highestAtt:
-    'If heroes are tied for the most attack dice, or the one with the most is out of reach, use the tie list.',
-  caster: 'If no living Wizard or Elf is within reach, use the tie list.',
-  grudge: 'If the grudge hero is out of reach, use the tie list.',
-};
-
-/** Added to every no-target line: the monster may only attack a hero it can attack this turn. */
-export const ADJACENT_FALLBACK_TEXT =
-  'If it is next to a hero but not next to the target, attack the first hero next to it in the tie list.';
-
-/** The monster can reach no hero at all (decision 35). `toward` names the hero to move toward. */
-export function nobodyInReachText(profile: Profile, toward: string): string {
-  if (profile === 'duelist' || profile === 'caster')
-    return 'No hero in reach: block the nearest doorway (or hold your place if you are in one).';
-  return `No hero in reach: move as far as you can toward ${toward}, in straight lines, without passing heroes or opening doors. Do not attack.`;
+export function noTargetText(rule: RuleKey, grudgeName?: string): string | undefined {
+  switch (rule) {
+    case 'lastAttacker':
+      return 'If nobody has attacked it yet, use the tie list.';
+    case 'caster':
+      return 'If no Wizard or Elf is in reach, use the tie list.';
+    case 'grudge':
+      return `If the ${grudgeName ?? 'grudge hero'} is out of reach, use the tie list.`;
+    default:
+      return undefined;
+  }
 }

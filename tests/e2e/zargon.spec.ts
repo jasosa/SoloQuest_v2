@@ -25,8 +25,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await expect(dlg(page).getByText('Tie', { exact: true })).toBeVisible();
     await expect(dlg(page).getByText('Plan', { exact: true })).toBeVisible();
     await expect(dlg(page).locator('.tgt')).toContainText('›');
-    await expect(dlg(page).getByText('No target', { exact: true })).toBeVisible();
-    await expect(dlg(page).getByText('No reach', { exact: true })).toBeVisible();
+    await expect(dlg(page).getByText('No reach')).toHaveCount(0); // no repeated fallbacks
     await expect(dlg(page).locator('.letter')).toHaveText(/^O\d$/);
     // the figure has the selection ring, and so has its roster row
     await expect(page.locator('#board .selring')).toHaveCount(1);
