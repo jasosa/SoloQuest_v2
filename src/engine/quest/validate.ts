@@ -58,15 +58,15 @@ export function validateQuest(quest: Quest, board: Board): string[] {
   return validateQuestIssues(quest, board, { editor: false }).map((i) => i.message);
 }
 
-/** Walk check: any door passes (secret ones can be found), otherwise the edge must not be a wall. */
+/** Walk check: a normal or secret door passes (`passable` ids), a false door blocks, else the edge must not be a wall. */
 function edgeOpenForWalk(
   level: Level,
   a: [number, number],
   b: [number, number],
-  allDoors: ReadonlySet<string>,
+  passable: ReadonlySet<string>,
 ): boolean {
   const door = level.doorAtEdge.get(edgeKey(a, b));
-  return door ? allDoors.has(door.id) : !isWall(level, a, b);
+  return door ? passable.has(door.id) : !isWall(level, a, b);
 }
 
 const cellOf = (c: C): [number, number] => [c[0], c[1]];
@@ -86,14 +86,14 @@ export function validateQuestIssues(
   const areas = new Set<string>([...rooms, 'C']);
 
   /**
-   * Rooms with content that the heroes can never reach from the start room. Normal, secret and
-   * false doors all count as passable here (a secret door can be found). Rock, blocked squares
-   * and walls stop the walk.
+   * Rooms with content that the heroes can never reach from the start room. Normal and secret
+   * doors count as passable (a secret door can be found). False doors never open, so they stop
+   * the walk, like rock, blocked squares and walls.
    */
   function checkReachable() {
     if (!rooms.has(quest.start.area) || rockRooms.has(quest.start.area)) return;
     const level = buildLevel(quest, board);
-    const allDoors = new Set(level.doors.keys());
+    const passable = new Set([...quest.doors, ...quest.secretDoors].map((d) => d.id));
     const seen = new Set<string>();
     const todo: [number, number][] = [];
     for (let y = 0; y < board.height; y++)
@@ -113,7 +113,7 @@ export function validateQuestIssues(
         const n: [number, number] = [c[0] + dx, c[1] + dy];
         const k = keyOf(n);
         if (seen.has(k) || blocksMove(level, n[0], n[1])) continue;
-        if (!edgeOpenForWalk(level, c, n, allDoors)) continue;
+        if (!edgeOpenForWalk(level, c, n, passable)) continue;
         seen.add(k);
         todo.push(n);
       }
@@ -331,6 +331,34 @@ export function validateQuestIssues(
     const twin = trapCells.get(key(t.cell));
     if (twin) err(`trap ${t.id}: same cell as trap ${twin}`, ref);
     else trapCells.set(key(t.cell), t.id);
+  }
+  // Stacking: a trap may share a monster's square (a chest trap sits on its chest). A monster
+  // never shares an NPC square. A trap never sits on stairs, a door square or an NPC.
+  // Monsters beside a door are fine: the Quest Book puts them there (quest 1, orc m16).
+  const doorCells = new Map<string, string>();
+  for (const d of [...quest.doors, ...quest.secretDoors, ...quest.falseDoors])
+    for (const c of [d.a, d.b]) doorCells.set(key(c), `door ${d.id}`);
+  const npcCells = new Map(quest.npcs.map((n) => [key(n.cell), `npc ${n.id}`]));
+  const stairCells = new Map<string, string>();
+  for (const f of quest.furniture)
+    if (f.type === 'stairs') f.cells.forEach((c) => stairCells.set(key(c), `the stairs ${f.id}`));
+  for (const m of quest.monsters) {
+    if (!m.cell) continue;
+    const ref: IssueRef = { kind: 'monster', id: m.id, cell: cellOf(m.cell) };
+    const n = npcCells.get(key(m.cell));
+    if (n) err(`monster ${m.id}: cell ${key(m.cell)} is on ${n}`, ref);
+  }
+  for (const t of quest.traps) {
+    if (!t.cell) continue;
+    const ref: IssueRef = { kind: 'trap', id: t.id, cell: cellOf(t.cell) };
+    for (const [what, map] of [
+      ['the stairs', stairCells],
+      ['a door square', doorCells],
+      ['an NPC', npcCells],
+    ] as const) {
+      const hit = map.get(key(t.cell));
+      if (hit) err(`trap ${t.id}: cell ${key(t.cell)} is on ${what} (${hit})`, ref);
+    }
   }
   // A door cell must be walkable: no block or furniture on either side.
   for (const [label, list] of [
@@ -553,6 +581,15 @@ export function validateQuestIssues(
       if (f.cells.some((c) => !inBoard(board, c[0], c[1]) || isRock(c))) continue; // reported above
       const p = footprintShapeProblem(board, f.cells, `furniture ${f.id}`);
       if (p) err(p, { kind: 'furniture', id: f.id, cell: cellOf(f.cells[0]!) });
+    }
+    for (const c of quest.rock.cells) {
+      const a = inBoard(board, c[0], c[1]) ? areaAt(board, c[0], c[1]) : undefined;
+      if (a && rockRooms.has(a))
+        warn(`rock.cells: ${key(c)} is already rock because room ${a} is rock`, {
+          kind: 'area',
+          area: a,
+          cell: cellOf(c),
+        });
     }
     checkReachable();
   }

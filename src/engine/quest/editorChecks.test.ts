@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { board, cellsOf } from '../board/board';
 import { footprintShapeProblem } from './footprint';
-import { testQuest } from './testQuest';
+import { testQuest, testQuestData } from './testQuest';
 import { validateQuestIssues } from './validate';
 
 const issuesOf = (q: ReturnType<typeof testQuest>) => validateQuestIssues(q, board);
@@ -75,7 +75,7 @@ describe('editor check: furniture footprint', () => {
 });
 
 describe('editor check: unreachable areas', () => {
-  it('the test quest is fully reachable (secret and false doors count)', () => {
+  it('the test quest is fully reachable (secret doors count)', () => {
     expect(unreachable(testQuest())).toEqual([]);
   });
 
@@ -125,5 +125,107 @@ describe('editor check: unreachable areas', () => {
     expect(
       validateQuestIssues(q, board, { editor: false }).some((i) => i.severity === 'warning'),
     ).toBe(false);
+  });
+});
+
+describe('reachability: false doors', () => {
+  it('a false door never opens, so a room behind it is unreachable', () => {
+    // Only d1 and the false door x1 (R20 | R12) are left.
+    const q = testQuest({
+      doors: [{ id: 'd1', a: [3, 17], b: [3, 18] }],
+      secretDoors: [],
+    });
+    expect(unreachable(q).map((h) => h.ref)).toContainEqual({ kind: 'area', area: 'R12' });
+  });
+  it('a normal door at the same edge makes it reachable', () => {
+    const q = testQuest({
+      doors: [
+        { id: 'd1', a: [3, 17], b: [3, 18] },
+        { id: 'd9', a: [1, 14], b: [1, 13] },
+      ],
+      secretDoors: [],
+      falseDoors: [],
+    });
+    expect(unreachable(q).map((h) => h.ref)).not.toContainEqual({ kind: 'area', area: 'R12' });
+  });
+});
+
+describe('editor check: redundant rock cells', () => {
+  it('warns for a rock cell inside a rock room', () => {
+    // R04 is rock; (14,1) is a cell of R04.
+    const q = testQuest({
+      rock: {
+        rooms: ['R04'],
+        cells: [
+          [13, 0],
+          [14, 1],
+        ],
+      },
+    });
+    const hits = issuesOf(q).filter((i) => i.message.includes('already rock'));
+    expect(hits).toHaveLength(1);
+    expect(hits[0]!.severity).toBe('warning');
+    expect(validateQuestIssues(q, board, { editor: false })).toEqual([]);
+  });
+  it('no warning for a rock cell outside rock rooms', () => {
+    expect(issuesOf(testQuest()).filter((i) => i.message.includes('already rock'))).toEqual([]);
+  });
+});
+
+describe('stacking rules in the validator', () => {
+  const npc = { id: 'n1', name: 'Ragnar', cell: [7, 15], defend: 2, body: 4, text: 'Escort.' };
+  const errors = (q: ReturnType<typeof testQuest>) =>
+    validateQuestIssues(q, board, { editor: false }).map((i) => i.message);
+
+  it('accepts a trap on a monster square and a chest trap on its chest', () => {
+    const q = testQuest({
+      traps: [
+        { id: 't1', kind: 'pit', cell: [6, 15] },
+        { id: 't2', kind: 'chest', furniture: 'f1' },
+      ],
+    });
+    expect(errors(q)).toEqual([]);
+  });
+  it('rejects a monster on an NPC square', () => {
+    const q = testQuest({ npcs: [{ ...npc, cell: [6, 15] }] });
+    expect(errors(q)).toContain('monster m1: cell 6,15 is on npc n1');
+  });
+  it('rejects a trap on stairs, a door square or an NPC', () => {
+    const stairs = {
+      id: 's',
+      type: 'stairs',
+      cells: [
+        [1, 15],
+        [2, 15],
+      ],
+    };
+    const f = testQuestData.furniture;
+    const onStairs = testQuest({
+      furniture: [...f, stairs],
+      traps: [{ id: 't9', kind: 'pit', cell: [1, 15] }],
+    });
+    expect(errors(onStairs).join('\n')).toMatch(/trap t9: cell 1,15 is on the stairs/);
+    const onDoor = testQuest({ traps: [{ id: 't9', kind: 'pit', cell: [5, 15] }] });
+    expect(errors(onDoor).join('\n')).toMatch(/trap t9: cell 5,15 is on a door square \(door d2\)/);
+    const onNpc = testQuest({ npcs: [npc], traps: [{ id: 't9', kind: 'pit', cell: [7, 15] }] });
+    expect(errors(onNpc).join('\n')).toMatch(/trap t9: cell 7,15 is on an NPC/);
+  });
+  it('rejects two monsters or two traps on one square', () => {
+    const twoM = testQuest({
+      monsters: [
+        { id: 'a', type: 'orc', cell: [6, 15] },
+        { id: 'b', type: 'orc', cell: [6, 15] },
+      ],
+      notes: [],
+      traps: [],
+    });
+    expect(errors(twoM).join('\n')).toMatch(/monster b: cell 6,15 is already used by monster a/);
+    const twoT = testQuest({
+      traps: [
+        { id: 'a', kind: 'pit', cell: [7, 16] },
+        { id: 'b', kind: 'pit', cell: [7, 16] },
+      ],
+    });
+    expect(errors(twoT).join('\n')).toMatch(/trap b: same cell as trap a/);
   });
 });

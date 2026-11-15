@@ -568,3 +568,52 @@ describe('text and id checks', () => {
     expect(q.doors.map((d) => d.id)).toEqual(['d2', 'd1']);
   });
 });
+
+describe('stacking rules', () => {
+  const npc = { id: 'n1', name: 'Ragnar', cell: [7, 15], defend: 2, body: 4, text: 'Escort.' };
+  const stairs = {
+    id: 'f-stairs',
+    type: 'stairs',
+    cells: [
+      [1, 15],
+      [2, 15],
+    ],
+  };
+  const base = () =>
+    testQuest({
+      monsters: [{ id: 'm1', type: 'orc', cell: [6, 15] }],
+      traps: [],
+      npcs: [npc],
+      notes: [],
+      furniture: [{ id: 'f1', type: 'chest', cells: [[6, 14]] }, stairs],
+    });
+
+  it('a trap may share a monster square, and a chest trap sits on its chest', () => {
+    const q = good(addTrap(base(), 'pit', { cell: [6, 15] }));
+    expect(q.traps[0]?.cell).toEqual([6, 15]);
+    expect(good(addTrap(base(), 'chest', { furniture: 'f1' })).traps).toHaveLength(1);
+    expect(validateQuest(q, board)).toEqual([]);
+  });
+  it('a monster can be added or moved onto a trap square', () => {
+    const q = good(addTrap(base(), 'pit', { cell: [5, 16] }));
+    expect(addMonster(q, 'goblin', [5, 16]).ok).toBe(true);
+    expect(moveMonster(q, 'm1', [5, 16]).ok).toBe(true);
+  });
+  it('refuses a monster on an NPC square (add, move, hidden)', () => {
+    expect(bad(addMonster(base(), 'orc', [7, 15]))).toMatch(/npc n1/);
+    expect(bad(moveMonster(base(), 'm1', [7, 15]))).toMatch(/npc n1/);
+    expect(bad(addMonster(base(), 'orc', [7, 15], { hidden: true }))).toMatch(/npc n1/);
+  });
+  it('refuses a second monster on a square', () => {
+    expect(bad(addMonster(base(), 'orc', [6, 15]))).toMatch(/monster m1/);
+  });
+  it('refuses a trap on stairs, a door square or an NPC', () => {
+    expect(bad(addTrap(base(), 'pit', { cell: [1, 15] }))).toMatch(/stairs/);
+    expect(bad(addTrap(base(), 'pit', { cell: [5, 15] }))).toMatch(/door d2/);
+    expect(bad(addTrap(base(), 'spear', { cell: [7, 15] }))).toMatch(/npc n1/);
+  });
+  it('refuses two traps on a square, also when a trap is moved by updateTrap', () => {
+    const q = good(addTrap(base(), 'pit', { cell: [5, 16] }));
+    expect(bad(addTrap(q, 'spear', { cell: [5, 16] }))).toMatch(/trap t1/);
+  });
+});

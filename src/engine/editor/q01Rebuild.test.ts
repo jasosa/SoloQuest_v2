@@ -113,35 +113,20 @@ describe('quest 1 rebuilt with the editing operations', () => {
     expect(built.monsters).toEqual(q01.monsters);
     expect(built.traps).toEqual(q01.traps);
     expect(built.markers).toEqual(q01.markers);
-    expect(built.rock.rooms).toEqual([...q01.rock.rooms].sort());
+    expect(built.rock.rooms).toEqual(q01.rock.rooms);
   });
 
-  it('has the same rock squares (single cells inside a rock room are folded into the room)', () => {
+  it('has the same rock squares', () => {
     const a = buildLevel(built, board).rock;
     const b = buildLevel(q01, board).rock;
     expect([...a].sort()).toEqual([...b].sort());
-    const roomOf = (c: readonly number[]) => board.cells[c[1] as number]?.[c[0] as number];
-    const wanted = q01.rock.cells.filter((c) => !q01.rock.rooms.includes(roomOf(c) as string));
-    const key = (c: readonly number[]) => `${c[0]},${c[1]}`;
-    expect(built.rock.cells.map(key).sort()).toEqual(wanted.map(key).sort());
+    expect(built.rock).toEqual(q01.rock);
   });
 
-  it('validates and exports to the same text as the bundled file (cells order aside)', () => {
+  it('validates the rebuilt quest', () => {
     expect(validateQuest(built, board)).toEqual([]);
     expect(validateQuestIssues(built, board)).toEqual([]);
-    const a = JSON.parse(exportQuest(built));
-    const b = JSON.parse(exportQuest(q01));
-    const sortCells = (cells: number[][]) =>
-      [...cells].sort(
-        (p, q) => (p[1] as number) - (q[1] as number) || (p[0] as number) - (q[0] as number),
-      );
-    a.rock.cells = sortCells(a.rock.cells);
-    b.rock.cells = sortCells(
-      b.rock.cells.filter((c: number[]) =>
-        a.rock.cells.some((d: number[]) => d[0] === c[0] && d[1] === c[1]),
-      ),
-    );
-    expect(a).toEqual(b);
+    expect(validateQuestIssues(q01, board)).toEqual([]);
   });
 
   it('has the same notes, objectives, wandering, rules and intro', () => {
@@ -155,19 +140,7 @@ describe('quest 1 rebuilt with the editing operations', () => {
     expect(built.title).toBe(q01.title);
   });
 
-  it('exports the same quest as the bundled file', () => {
-    // The only known difference: rock cells inside rock rooms are folded away (see above).
-    const a = JSON.parse(exportQuest(built));
-    const b = JSON.parse(exportQuest(q01));
-    const inRoom = (c: number[]) =>
-      built.rock.rooms.includes(board.cells[c[1] as number]?.[c[0] as number] as string);
-    b.rock.cells = b.rock.cells.filter((c: number[]) => !inRoom(c));
-    const sort = (cells: number[][]) =>
-      [...cells].sort(
-        (p, q) => (p[1] as number) - (q[1] as number) || (p[0] as number) - (q[0] as number),
-      );
-    a.rock.cells = sort(a.rock.cells);
-    b.rock.cells = sort(b.rock.cells);
-    expect(a).toEqual(b);
+  it('exports exactly the same text as the bundled file', () => {
+    expect(exportQuest(built)).toEqual(exportQuest(q01));
   });
 });

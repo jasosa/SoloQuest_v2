@@ -531,6 +531,16 @@ function monsterCellProblem(q: Quest, cell: Cell, skipId?: string): string | und
   const l = layers(q, skipId === undefined ? {} : { monster: skipId });
   const hit = conflict(l, cell, ['blocks', 'furniture', 'stairs', 'monsters']);
   if (hit) return `Monster: ${hit} is already on ${at(cell)}.`;
+  return monsterStackProblem(q, cell);
+}
+
+/**
+ * A monster never stands on an NPC (hidden monsters too). Door squares are allowed: the Quest
+ * Book puts monsters right beside a door (quest 1, orc m16).
+ */
+function monsterStackProblem(q: Quest, cell: Cell): string | undefined {
+  const hit = conflict(layers(q), cell, ['npcs']);
+  if (hit) return `Monster: ${hit} is on ${at(cell)}, so a monster cannot stand there.`;
   return undefined;
 }
 
@@ -544,7 +554,7 @@ export function addMonster(
   if (cell === null) {
     if (!opts.hidden) return fail('A monster needs a square, unless it is hidden.');
   } else if (opts.hidden) {
-    const p = floorProblem(q, cell, 'Monster');
+    const p = floorProblem(q, cell, 'Monster') ?? monsterStackProblem(q, cell);
     if (p) return fail(p);
   } else {
     const p = monsterCellProblem(q, cell);
@@ -580,7 +590,9 @@ export function addMonster(
 export function moveMonster(q: Quest, id: string, cell: Cell): EditResult {
   const m = q.monsters.find((x) => x.id === id);
   if (!m) return fail(`There is no monster ${id}.`);
-  const p = m.hidden ? floorProblem(q, cell, 'Monster') : monsterCellProblem(q, cell, id);
+  const p = m.hidden
+    ? (floorProblem(q, cell, 'Monster') ?? monsterStackProblem(q, cell))
+    : monsterCellProblem(q, cell, id);
   if (p) return fail(p);
   return ok({
     ...q,
@@ -622,8 +634,16 @@ export function addTrap(
       return fail('A chest trap goes on a piece of furniture, not on a square.');
     const p = floorProblem(q, target.cell, 'Trap');
     if (p) return fail(p);
-    const hit = conflict(layers(q), target.cell, ['blocks', 'furniture', 'traps']);
-    if (hit) return fail(`Trap: ${hit} is already on ${at(target.cell)}.`);
+    // A trap may share a monster's square, but never stairs, a door square or an NPC.
+    const hit = conflict(layers(q), target.cell, [
+      'blocks',
+      'furniture',
+      'traps',
+      'stairs',
+      'doors',
+      'npcs',
+    ]);
+    if (hit) return fail(`Trap: ${hit} is on ${at(target.cell)}, so a trap cannot go there.`);
     placed = { cell: copy(target.cell) };
   }
   const picked = pickId(

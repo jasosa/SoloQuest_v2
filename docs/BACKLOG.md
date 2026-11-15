@@ -81,6 +81,7 @@ Slices (in order; each ends green with tests and a commit):
 **Slice 2: inspector and notes**
 - [x] Engine ops for the inspector and note builder (`updateMonster`, `updateTrap`, `setFurnitureLetter`, `addNote`, `updateNote`, `setNoteText`, `removeNote`, `lettersMissingNotes`, `notesWithoutLetter`)
 - [x] Inspector (monster name, overrides, traits, spells, state; trap kind and effect; furniture letter; door kind)
+- [x] Editor checks (decision 64): false doors block reachability, stacking rules in ops and validator, redundant rock cell warning
 - [x] Note builder (trigger picker on the board, conditions, effects, live check that every letter on the map has a note)
 
 **Slice 3: verification tools**
