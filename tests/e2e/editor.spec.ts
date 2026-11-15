@@ -539,3 +539,86 @@ test.describe('editor: reference image', () => {
     await expect(page.getByRole('dialog', { name: 'Align the reference image' })).toHaveCount(0);
   });
 });
+
+test.describe('editor: problems panel and playtest', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+
+  test('the panel lists errors first, rows are 44 px, a row jumps and flashes the element', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Furniture').click();
+    await page.getByRole('button', { name: 'Chest', exact: true }).click();
+    await clickAt(page, 2, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 2, 17);
+    await insp(page).getByLabel('Letter').fill('A');
+    await insp(page).getByLabel('Letter').blur();
+
+    // the header count and the tab badge agree
+    await page.locator('.ed-issues').click();
+    const rows = page.getByTestId('problem-row');
+    const n = await rows.count();
+    expect(n).toBeGreaterThan(1);
+    await expect(page.locator('.ed-issues')).toHaveText(/^\d+ (problems?|warnings?)$/);
+    await expect(page.getByTestId('problem-count')).toHaveText(String(n));
+    // errors first
+    const kinds = await rows.locator('b').allTextContents();
+    expect(kinds[0]).toBe('Problem');
+    const firstWarning = kinds.indexOf('Warning');
+    if (firstWarning >= 0)
+      expect(kinds.slice(firstWarning).every((k) => k === 'Warning')).toBe(true);
+    for (let i = 0; i < n; i++)
+      expect((await rows.nth(i).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await shot(page, 'editor-problems');
+
+    // playtest waits until the errors are fixed
+    await expect(page.getByTestId('playtest')).toBeDisabled();
+
+    // the row about the lettered chest jumps to it
+    await rows.filter({ hasText: 'Furniture' }).first().click();
+    await expect(page.getByTestId('selection-id')).toContainText('f');
+    await expect(page.locator('[data-flash]')).toHaveCount(1);
+    await shot(page, 'editor-problems-jump');
+    // the flash goes away on its own
+    await expect(page.locator('[data-flash]')).toHaveCount(0, { timeout: 4000 });
+  });
+
+  test('playtest plays the draft; Zargon view shows what is hidden and changes nothing', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await btn(page, 'Make a copy').click();
+    await btn(page, 'Open it').click();
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.getByTestId('playtest')).toBeEnabled();
+    await page.getByTestId('playtest').click();
+
+    await expect(page.locator('.app.play')).toBeVisible();
+    await expect(page.locator('.qn')).toHaveText('Playtest');
+    await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
+    const turn = await page.locator('.turn').textContent();
+    const seen = await page.locator('[data-monster]').count();
+    await shot(page, 'playtest-heroes-view');
+
+    const toggle = page.getByTestId('zargon-view');
+    expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-zmonster]')).not.toHaveCount(0);
+    await expect(page.locator('[data-zdoor]')).not.toHaveCount(0);
+    // a view only: the game itself is the same
+    await expect(page.locator('.turn')).toHaveText(turn!);
+    await expect(page.locator('[data-monster]')).toHaveCount(seen);
+    await expect(btn(page, 'Undo')).toBeDisabled();
+    await shot(page, 'playtest-zargon-view');
+
+    await toggle.click();
+    await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
+
+    await btn(page, 'Back to editor').click();
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('#editor-board')).toBeVisible();
+  });
+});

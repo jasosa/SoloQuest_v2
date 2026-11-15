@@ -99,4 +99,20 @@ describe('editor store', () => {
     s.getState().apply((q) => setRockCell(q, [10, 2], false)); // already not rock
     expect(s.getState().past).toHaveLength(1);
   });
+
+  it('jump selects the element, shows its tab and flashes its square', () => {
+    const s = make();
+    s.getState().apply((q) => addMonster(q, 'orc', [6, 2]));
+    s.getState().setPanel('problems');
+    s.getState().jump({ kind: 'monster', id: 'm1' });
+    const st = s.getState();
+    expect(st.panel).toBe('element');
+    expect(st.selection).toEqual({ kind: 'monster', id: 'm1' });
+    expect(st.flash?.cells).toEqual([[6, 2]]);
+    s.getState().jump({ kind: 'area', area: 'R03' });
+    expect(s.getState().flash?.areas).toEqual(['R03']);
+    expect(s.getState().selection).toBeNull();
+    s.getState().clearFlash();
+    expect(s.getState().flash).toBeNull();
+  });
 });

@@ -7,7 +7,9 @@ import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import { EditorBoard } from './EditorBoard';
+import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, Tool } from './editorStore';
+import { countLabel } from './problems';
 import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -36,9 +38,11 @@ export interface EditorScreenProps {
   onBack(): void;
   /** Where the reference image is kept on this device. Without it the image lives in memory only. */
   reference?: ReferenceStore;
+  /** Play the draft in the real play screen. Nothing is saved. */
+  onPlaytest?(quest: Quest): void;
 }
 
-export function EditorScreen({ store, onBack, reference }: EditorScreenProps) {
+export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScreenProps) {
   const s = useStore(store);
   const { quest, tool, toast, warnings, saveErrors } = s;
   const ref = useReference(quest.id, reference);
@@ -49,7 +53,6 @@ export function EditorScreen({ store, onBack, reference }: EditorScreenProps) {
   };
   const issues = useMemo(() => validateQuestIssues(quest, board), [quest]);
   const errors = issues.filter((i) => i.severity === 'error').length;
-  const warns = issues.length - errors;
   const dirty = quest !== s.clean;
 
   // Toasts go away on their own.
@@ -112,17 +115,24 @@ export function EditorScreen({ store, onBack, reference }: EditorScreenProps) {
           className="link ed-issues"
           onClick={() => {
             s.select(null);
-            s.setPanel('element');
+            s.setPanel('problems');
           }}
           aria-label="Problems"
           data-errors={errors}
         >
-          {errors > 0
-            ? `${errors} problem${errors === 1 ? '' : 's'}`
-            : warns > 0
-              ? `${warns} warning${warns === 1 ? '' : 's'}`
-              : 'No problems'}
+          {countLabel(issues)}
         </button>
+        {onPlaytest && (
+          <button
+            className="link"
+            data-testid="playtest"
+            disabled={errors > 0}
+            title={errors > 0 ? 'Fix the problems first' : 'Play this quest to try it'}
+            onClick={() => onPlaytest(quest)}
+          >
+            Playtest
+          </button>
+        )}
         <button className="link" disabled={s.past.length === 0} onClick={() => s.undo()}>
           Undo
         </button>

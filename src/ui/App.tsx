@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { board } from '../engine/board/board';
+import { buildLevel } from '../engine/board/level';
+import type { Quest } from '../engine/quest/schema';
 import { HEROES, type Hero } from '../engine/data/heroes';
 import type { GameEvent } from '../engine/game/events';
 import type { Level } from '../engine/board/level';
@@ -129,6 +131,7 @@ function Game({ params }: { params: URLSearchParams }) {
     () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
     [params],
   );
+  const [playtest, setPlaytest] = useState<{ game: GameStore; editor: EditorStore } | null>(null);
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
   );
@@ -180,6 +183,32 @@ function Game({ params }: { params: URLSearchParams }) {
     }
   };
 
+  // Play the draft in the real play screen: a temporary game that writes no save.
+  const playtestQuest = (quest: Quest) => {
+    if (typeof editor !== 'object' || editor === null) return;
+    try {
+      const store = openGame(
+        new MemorySaveStore(),
+        buildLevel(quest),
+        freshSeed(),
+        HEROES,
+        [],
+        true,
+      );
+      setPlaytest({ game: store, editor });
+    } catch (e) {
+      editor.getState().say(`Cannot playtest yet: ${(e as Error).message}`);
+    }
+  };
+
+  if (playtest)
+    return (
+      <PlayScreen
+        store={playtest.game}
+        onLeave={() => setPlaytest(null)}
+        playtest={{ onBack: () => setPlaytest(null) }}
+      />
+    );
   if (editor === 'start')
     return (
       <EditorStart
@@ -190,7 +219,12 @@ function Game({ params }: { params: URLSearchParams }) {
     );
   if (editor)
     return (
-      <EditorScreen store={editor} onBack={() => setEditor('start')} reference={referenceStore} />
+      <EditorScreen
+        store={editor}
+        onBack={() => setEditor('start')}
+        reference={referenceStore}
+        onPlaytest={playtestQuest}
+      />
     );
   if (game === 'resume' || game === 'dev') return <div className="app" />;
   if (game)

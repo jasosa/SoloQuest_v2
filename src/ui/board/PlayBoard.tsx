@@ -17,6 +17,7 @@ import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
+import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
 
@@ -57,6 +58,8 @@ export interface PlayBoardProps {
   onLetter(note: string): void;
   /** Squares to point out (a monster to put there). */
   highlight?: readonly Cell[];
+  /** Playtest only: also draw everything the heroes have not seen (a view, not a game change). */
+  zargonView?: boolean;
 }
 
 /** The ink wash: a growing white circle in a mask, from the door (650 ms, ease-out). */
@@ -87,6 +90,7 @@ export function PlayBoard({
   onSelect,
   onLetter,
   highlight = [],
+  zargonView = false,
 }: PlayBoardProps) {
   const { board } = level;
   const W = board.width;
@@ -813,6 +817,7 @@ export function PlayBoard({
         {walls.neu}
         {layers.neu}
       </g>
+      {zargonView && <ZargonOverlay level={level} state={state} />}
       <rect
         x={0}
         y={0}

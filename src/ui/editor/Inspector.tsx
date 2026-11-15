@@ -31,6 +31,7 @@ import { SPELL_KEYS, SPELL_NAMES, isSpellKey } from '../../engine/zargon/spells'
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { NotesPanel } from './NotesPanel';
+import { ProblemsPanel } from './ProblemsPanel';
 import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseLines, parseOverrides, toggleIn, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -87,20 +88,6 @@ export function Inspector({
   const trap =
     selection?.kind === 'trap' ? quest.traps.find((t) => t.id === selection.id) : undefined;
 
-  const jump = (i: Issue) => {
-    const ref = i.ref;
-    if (!ref) return;
-    if (
-      ref.kind === 'door' ||
-      ref.kind === 'furniture' ||
-      ref.kind === 'monster' ||
-      ref.kind === 'trap' ||
-      ref.kind === 'marker'
-    ) {
-      if (ref.id) st.select({ kind: ref.kind, id: ref.id });
-    } else if (ref.kind === 'block' && ref.cell) st.select({ kind: 'block', cell: ref.cell });
-  };
-
   const tabs = (
     <div className="ed-chips ed-tabs" role="group" aria-label="Inspector tabs">
       <button
@@ -123,8 +110,29 @@ export function Inspector({
           </span>
         )}
       </button>
+      <button
+        className="chip"
+        aria-pressed={panel === 'problems'}
+        aria-label={issues.length > 0 ? `Problems, ${issues.length}` : 'Problems'}
+        onClick={() => st.setPanel('problems')}
+      >
+        Problems
+        {issues.length > 0 && (
+          <span className="ed-badge" data-testid="problem-count">
+            {issues.length}
+          </span>
+        )}
+      </button>
     </div>
   );
+
+  if (panel === 'problems')
+    return (
+      <>
+        {tabs}
+        <ProblemsPanel store={store} issues={issues} />
+      </>
+    );
 
   if (panel === 'notes')
     return (
@@ -194,24 +202,7 @@ export function Inspector({
             Delete
           </button>
         </section>
-      ) : (
-        <section>
-          <div className="lbl">Problems</div>
-          {issues.length === 0 ? (
-            <p className="ed-note">No problems.</p>
-          ) : (
-            <ul className="ed-issues-list">
-              {issues.map((i, n) => (
-                <li key={n} className={i.severity}>
-                  <button onClick={() => jump(i)}>
-                    <b>{i.severity === 'error' ? 'Problem' : 'Warning'}</b> {i.message}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+      ) : null}
     </>
   );
 }

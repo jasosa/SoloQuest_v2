@@ -84,9 +84,16 @@ export interface PlayScreenProps {
   onLeave(): void;
   /** Initial selection, for screenshots (`?select=`). */
   initialSelect?: string | null;
+  /** A playtest of a draft quest from the editor: nothing is saved, and "Zargon view" is offered. */
+  playtest?: { onBack(): void };
 }
 
-export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenProps) {
+export function PlayScreen({
+  store,
+  onLeave,
+  initialSelect = null,
+  playtest,
+}: PlayScreenProps) {
   const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
@@ -105,6 +112,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   const [reread, setReread] = useState<string | null>(null);
   const [endOpen, setEndOpen] = useState(false);
   const [zOpen, setZOpen] = useState(false);
+  // Playtest only: show what the heroes cannot see. A view option, never a game event.
+  const [zargonView, setZargonView] = useState(false);
   const progress = useMemo(() => turnProgress(level, state), [level, state]);
   // Info dialogs (stone, fresh wanderer) that were read this turn. UI-local, no event.
   const [read, setRead] = useState<{ turn: number; ids: readonly string[] }>({ turn: 0, ids: [] });
@@ -529,7 +538,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
   return (
     <div className="app play" onClick={onRootClick}>
       <header>
-        <span className="qn">Quest {quest.number}</span>
+        <span className="qn">{playtest ? 'Playtest' : `Quest ${quest.number}`}</span>
         <h1>{quest.title}</h1>
         <span className="turn">
           Turn <b>{state.turn}</b>
@@ -540,8 +549,18 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
         <button className="link" onClick={() => setEndOpen(true)}>
           End quest
         </button>
-        <button className="link" onClick={onLeave}>
-          Quests
+        {playtest && (
+          <button
+            className="chip"
+            aria-pressed={zargonView}
+            data-testid="zargon-view"
+            onClick={() => setZargonView((v) => !v)}
+          >
+            Zargon view
+          </button>
+        )}
+        <button className="link" onClick={playtest ? playtest.onBack : onLeave}>
+          {playtest ? 'Back to editor' : 'Quests'}
         </button>
       </header>
 
@@ -555,6 +574,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
           onSelect={choose}
           onLetter={(id) => setReread(id)}
           highlight={sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []}
+          zargonView={zargonView}
         />
         {sheet?.t === 'place' && sheet.p.cell ? (
           <MarginNote
@@ -622,7 +642,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null }: PlayScreenP
       </aside>
 
       {end ? (
-        <EndScreen end={end} title={quest.title} onLeave={onLeave} onUndo={() => undo()} />
+        <EndScreen
+          end={end}
+          title={quest.title}
+          onLeave={playtest ? playtest.onBack : onLeave}
+          leaveLabel={playtest ? 'Back to editor' : 'Back to the quests'}
+          onUndo={() => undo()}
+        />
       ) : sheet?.t === 'note' ? (
         <NoteSheet p={sheet.p} onClose={nextSheet} />
       ) : pending ? (
@@ -822,11 +848,13 @@ function EndScreen({
   end,
   title,
   onLeave,
+  leaveLabel,
   onUndo,
 }: {
   end: NonNullable<ReturnType<typeof endSummary>>;
   title: string;
   onLeave(): void;
+  leaveLabel: string;
   onUndo(): void;
 }) {
   return (
@@ -850,7 +878,7 @@ function EndScreen({
       </ul>
       {end.rewards && <p className="extra">Rewards: {end.rewards}</p>}
       <button className="btn" onClick={onLeave}>
-        Back to the quests
+        {leaveLabel}
       </button>
       <button className="btn alt" onClick={onUndo}>
         Undo the ending

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt, board as boardData, isWallBetween, roomIds } from '../../engine/board/board';
 import { buildLevel, cellKey, edgeKey } from '../../engine/board/level';
@@ -108,7 +108,7 @@ export function EditorBoard({
   store: EditorStore;
   reference?: ReferenceApi;
 }) {
-  const { quest, tool, opts, selection, pendingBlock, picking } = useStore(store);
+  const { quest, tool, opts, selection, pendingBlock, picking, flash } = useStore(store);
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -116,6 +116,13 @@ export function EditorBoard({
   const [drag, setDrag] = useState<Drag | null>(null);
   const [cursor, setCursor] = useState<{ cell: Cell; edge: Edge | undefined } | null>(null);
   const [focused, setFocused] = useState(false);
+
+  // The flash goes away on its own (and stays still with reduced motion).
+  useEffect(() => {
+    if (!flash) return;
+    const t = setTimeout(() => store.getState().clearFlash(), 1800);
+    return () => clearTimeout(t);
+  }, [flash, store]);
 
   const toUnits = (e: { clientX: number; clientY: number }): [number, number] => {
     const r = svgRef.current!.getBoundingClientRect();
@@ -596,6 +603,44 @@ export function EditorBoard({
     );
   }
 
+  // The flash after a jump from the Problems panel: the squares and areas an issue names.
+  const flashMarks: ReactNode[] = [];
+  if (flash) {
+    for (const id of flash.areas)
+      for (let y = 0; y < BOARD_H; y++)
+        for (let x = 0; x < BOARD_W; x++)
+          if (areaAt(board, x, y) === id)
+            flashMarks.push(
+              <rect
+                key={`fa${x},${y}`}
+                x={x * U}
+                y={y * U}
+                width={U}
+                height={U}
+                fill={color.sel}
+                opacity={0.5}
+                className="selring"
+                pointerEvents="none"
+              />,
+            );
+    for (const [x, y] of flash.cells)
+      flashMarks.push(
+        <rect
+          key={`fc${x},${y}`}
+          data-flash={`${x},${y}`}
+          x={x * U + 1}
+          y={y * U + 1}
+          width={U - 2}
+          height={U - 2}
+          fill="none"
+          stroke={color.ink}
+          strokeWidth={3}
+          className="selring"
+          pointerEvents="none"
+        />,
+      );
+  }
+
   const roomLabels: ReactNode[] = [];
   if (opts.roomIds)
     for (const id of roomIds(board)) {
@@ -732,6 +777,7 @@ export function EditorBoard({
     <div className="ed-boardwrap">
       <svg
         ref={svgRef}
+        data-flash-id={flash?.id}
         id="editor-board"
         role="application"
         aria-label="Quest board. Arrow keys move the cursor, Enter acts."
@@ -776,6 +822,7 @@ export function EditorBoard({
           strokeWidth={3}
         />
         {roomLabels}
+        {flashMarks}
         {ghost}
       </svg>
       {reference && <ReferenceLayer api={reference} />}

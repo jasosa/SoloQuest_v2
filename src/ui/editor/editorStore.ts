@@ -16,6 +16,8 @@ import {
 } from '../../engine/editor';
 import type { FurnitureDef, Quest } from '../../engine/quest/schema';
 import type { UserQuestStore } from '../../persist/userQuests';
+import type { IssueRef } from '../../engine/quest/validate';
+import { jumpFor, type Flash } from './problems';
 
 export type Tool =
   'select' | 'rock' | 'doors' | 'blocks' | 'furniture' | 'monsters' | 'traps' | 'markers' | 'start';
@@ -63,7 +65,12 @@ export interface PickRequest {
   onPick(value: string | Cell): void;
 }
 
-export type Panel = 'element' | 'notes';
+export type Panel = 'element' | 'notes' | 'problems';
+
+/** A short highlight on the board after a jump from the Problems panel. `id` restarts it. */
+export interface BoardFlash extends Flash {
+  readonly id: number;
+}
 
 export interface EditorToast {
   readonly id: number;
@@ -88,6 +95,7 @@ export interface EditorState {
   /** First square of a double block, waiting for the second click. */
   readonly pendingBlock: Cell | null;
   readonly toast: EditorToast | null;
+  readonly flash: BoardFlash | null;
   /** Warnings of the last change (for example notes that point at a removed door). */
   readonly warnings: readonly Issue[];
   /** Errors that stopped the last "Save". */
@@ -105,6 +113,9 @@ export interface EditorState {
   setNoteId(id: string | null): void;
   setPicking(req: PickRequest | null): void;
   setPendingBlock(cell: Cell | null): void;
+  /** Open the thing a problem names: select it, show its tab, flash it on the board. */
+  jump(ref: IssueRef | undefined): void;
+  clearFlash(): void;
   say(text: string): void;
   dismissToast(): void;
   dismissWarnings(): void;
@@ -159,6 +170,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       picking: null,
       pendingBlock: null,
       toast: null,
+      flash: null,
       warnings: [],
       saveErrors: null,
       stored: true,
@@ -226,6 +238,19 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setNoteId: (noteId) => set({ noteId, picking: null }),
       setPicking: (picking) => set({ picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
+      jump(ref) {
+        const j = jumpFor(get().quest, ref);
+        const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
+        set({
+          panel: j.panel,
+          selection: j.selection,
+          picking: null,
+          pendingBlock: null,
+          ...(j.panel === 'notes' ? { noteId: j.noteId } : {}),
+          flash: hasFlash ? { ...j.flash, id: ++counter } : null,
+        });
+      },
+      clearFlash: () => get().flash && set({ flash: null }),
       say: (text) => set({ toast: toastOf(text) }),
       dismissToast: () => get().toast && set({ toast: null }),
       dismissWarnings: () => set({ warnings: [] }),

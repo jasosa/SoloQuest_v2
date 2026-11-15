@@ -475,3 +475,42 @@
     animation: none;
   }
 }
+
+/* problems panel */
+.ed-issues-list button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: baseline;
+}
+.ed-issues-list button:active {
+  background: var(--paper-2);
+}
+.ed-issue-kind {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--muted);
+}
+.ed-issue-text {
+  grid-column: 1 / -1;
+}
+.play header .chip {
+  margin: 0 4px;
+}
+.ed-tabs {
+  grid-template-columns: repeat(3, auto);
+  gap: 4px;
+}
+.ed-tabs .chip {
+  padding-left: 3px;
+  padding-right: 3px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ed-tabs .ed-badge {
+  margin-left: 3px;
+  min-width: 16px;
+  padding: 0 3px;
+  font-size: 12px;
+  line-height: 18px;
+}
