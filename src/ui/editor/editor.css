@@ -365,3 +365,113 @@
 .ed-stats.ed-two {
   grid-template-columns: 1fr 1fr;
 }
+
+/* reference image (design/play-a/DESIGN.md, "Reference image") */
+.ed-board {
+  position: relative;
+}
+.ed-boardwrap {
+  position: relative;
+  width: max-content;
+}
+.ed-ref {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.ed-ref img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  user-select: none;
+}
+.ed-ref-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ed-ref-panel .chip {
+  min-height: 44px;
+}
+.ed-range input {
+  padding: 0;
+  border: 0;
+  background: none;
+  min-height: 44px;
+  accent-color: var(--ink);
+}
+.ed-align {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+}
+.ed-align-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ed-align-bar .ed-chips {
+  grid-template-columns: repeat(3, 56px);
+}
+.ed-align-bar .chip {
+  min-height: 44px;
+  padding: 0 14px;
+}
+.ed-align-hint {
+  flex: 1;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--sel);
+  padding: 8px 12px;
+  font-size: 17px;
+  animation: rise 0.2s var(--ease-ink) both;
+}
+.ed-align-view {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 2px solid var(--ink);
+  background: var(--paper-2);
+}
+.ed-align-stage {
+  position: relative;
+  margin: 0 auto;
+  max-width: 100%;
+}
+.ed-align-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: manipulation;
+  user-select: none;
+}
+.ed-align-dot {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 2px solid var(--ink);
+  background: var(--sel);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 14px 'Bonum';
+  color: var(--ink);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed-align-hint {
+    animation: none;
+  }
+}

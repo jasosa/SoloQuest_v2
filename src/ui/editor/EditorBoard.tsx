@@ -22,6 +22,7 @@ import { Furniture } from '../board/Furniture';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
+import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
 import {
   BOARD_H,
   BOARD_W,
@@ -100,7 +101,13 @@ export function previewOp(
   }
 }
 
-export function EditorBoard({ store }: { store: EditorStore }) {
+export function EditorBoard({
+  store,
+  reference,
+}: {
+  store: EditorStore;
+  reference?: ReferenceApi;
+}) {
   const { quest, tool, opts, selection, pendingBlock, picking } = useStore(store);
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
@@ -771,6 +778,7 @@ export function EditorBoard({ store }: { store: EditorStore }) {
         {roomLabels}
         {ghost}
       </svg>
+      {reference && <ReferenceLayer api={reference} />}
       <p className="ed-hint" role="status">
         {hint}
       </p>

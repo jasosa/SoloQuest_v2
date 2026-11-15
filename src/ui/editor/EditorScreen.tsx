@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
 import { validateQuestIssues, type MonsterKind } from '../../engine/editor';
@@ -8,6 +9,7 @@ import { FURNITURE_NAMES } from '../board/furnitureNames';
 import { EditorBoard } from './EditorBoard';
 import type { EditorStore, Tool } from './editorStore';
 import { DOOR_KINDS, Inspector } from './Inspector';
+import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { deleteSelection, rotateSelection } from './selectionActions';
 
 const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
@@ -32,11 +34,19 @@ const TRAP_KINDS = [
 export interface EditorScreenProps {
   store: EditorStore;
   onBack(): void;
+  /** Where the reference image is kept on this device. Without it the image lives in memory only. */
+  reference?: ReferenceStore;
 }
 
-export function EditorScreen({ store, onBack }: EditorScreenProps) {
+export function EditorScreen({ store, onBack, reference }: EditorScreenProps) {
   const s = useStore(store);
   const { quest, tool, toast, warnings, saveErrors } = s;
+  const ref = useReference(quest.id, reference);
+  const dropFile = async (file: File | undefined) => {
+    if (!file) return;
+    const problem = await ref.load(file);
+    if (problem) store.getState().say(problem);
+  };
   const issues = useMemo(() => validateQuestIssues(quest, board), [quest]);
   const errors = issues.filter((i) => i.severity === 'error').length;
   const warns = issues.length - errors;
@@ -143,10 +153,18 @@ export function EditorScreen({ store, onBack }: EditorScreenProps) {
             ))}
           </div>
           <ToolOptions store={store} />
+          <ReferencePanel api={ref} say={s.say} />
         </nav>
 
-        <main className="ed-board">
-          <EditorBoard store={store} />
+        <main
+          className="ed-board"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            void dropFile(e.dataTransfer.files[0]);
+          }}
+        >
+          <EditorBoard store={store} reference={ref} />
           {warnings.length > 0 && (
             <div className="ed-warnings" role="status">
               <button className="link" onClick={() => s.dismissWarnings()}>
@@ -165,6 +183,8 @@ export function EditorScreen({ store, onBack }: EditorScreenProps) {
           <Inspector store={store} issues={issues} saveErrors={saveErrors} />
         </aside>
       </div>
+
+      {ref.aligning && ref.state && <AlignDialog api={ref} say={s.say} />}
 
       {toast && (
         <div className="toast" role="status" key={toast.id}>

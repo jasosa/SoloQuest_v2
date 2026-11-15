@@ -105,3 +105,13 @@ The inspector has two tabs at the top, "Element" and "Notes" (the same chips as 
 **Notes tab, one note.** "All notes" link, the id, then: Letter (one capital, never X), "Letter drawn at" (a square), Text, "No treasure card is drawn". Sections "When it fires" (trigger dropdown and the fields of that trigger), "Only if" (condition rows) and "Then" (effect rows), then "Delete note". Each condition or effect is a row: paper-3 card with a 1.5 px ink border, its name in Bonum, a "Remove" chip, then its fields. A dropdown at the end of the list ("Add a condition", "Add an effect") adds a row at once. "Ask the players" holds answer cards, each with its own button label and effect list. Text fields save on blur, chips and dropdowns at once, every change is one undo step.
 
 **Click it on the board.** Doors, squares and areas can be typed or picked: the button "Click it on the board" starts a pick. A margin-note style bar sticks to the top of the inspector with the instruction and "Cancel" (Esc also cancels), the board hint line repeats it, and the next board click is the answer (a click that does not fit says why in a toast and keeps waiting). Picking does not select or move anything.
+
+### Reference image (M6, slice 3)
+
+A local picture (a photo or scan of a map) to trace from. It stays on this device: in memory and, per quest id, in its own IndexedDB table. It is not part of the quest, so it is never in `.hqquest.json`, never in git and never uploaded.
+
+**Tools column, "Reference image" block** (under "View"): "Load image" (file picker; a file dropped on the board works too), then once loaded "Change image", "Align corners" ("Align again" when set), "Hide image" or "Show image" (filled chip while shown), an "Opacity" slider (44 px high, ink accent) and "Clear image". A file that is not an image is refused with a toast.
+
+**Align.** Loading opens a full screen page in paper, with a margin-note bar on top ("Tap the top left corner of the map frame. (1 of 4)"), zoom chips "Fit", "2x", "3x" (the page scrolls), "Undo point" and "Cancel". Four taps, in order top left, top right, bottom right, bottom left, on the corners of the map frame. Each tap leaves a numbered `--sel` dot. The fourth tap saves and closes. Points that do not make a convex four sided shape are refused with a toast and start again. The four points are mapped to the four corners of the 26 x 19 board with a perspective transform (`reference.ts`), so a tilted photo lines up.
+
+**On the board.** The image is drawn over the board art at the chosen opacity (default 50%) and ignores the pointer, so every tool keeps working through it. Overlay rather than underlay: the squares are opaque, so an image below them would not show.

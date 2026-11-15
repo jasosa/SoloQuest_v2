@@ -459,3 +459,83 @@ test.describe('editor: note builder', () => {
     await expect(page.getByTestId('note-list')).toBeVisible();
   });
 });
+
+test.describe('editor: reference image', () => {
+  /** A small PNG made in the page: a pale sheet with a dark frame (not a quest map). */
+  async function makePng(page: Page): Promise<Buffer> {
+    const b64 = await page.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 520;
+      c.height = 380;
+      const g = c.getContext('2d')!;
+      g.fillStyle = '#e8e0c8';
+      g.fillRect(0, 0, 520, 380);
+      g.strokeStyle = '#a03030';
+      g.lineWidth = 6;
+      g.strokeRect(20, 20, 480, 340);
+      return c.toDataURL('image/png').split(',')[1]!;
+    });
+    return Buffer.from(b64!, 'base64');
+  }
+
+  test('load, align four corners, opacity, hide and clear', async ({ page }) => {
+    await newQuest(page);
+    const png = await makePng(page);
+    const layer = page.getByTestId('reference-layer');
+    await expect(layer).toHaveCount(0);
+
+    await page
+      .getByTestId('reference-file')
+      .setInputFiles({ name: 'sheet.png', mimeType: 'image/png', buffer: png });
+    const dialog = page.getByRole('dialog', { name: 'Align the reference image' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('top left');
+    await shot(page, 'editor-reference-align');
+
+    const img = dialog.getByAltText('Reference to align');
+    const box = (await img.boundingBox())!;
+    const tap = (fx: number, fy: number) =>
+      page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
+    await tap(20 / 520, 20 / 380);
+    await expect(dialog).toContainText('top right');
+    await tap(500 / 520, 20 / 380);
+    await tap(500 / 520, 360 / 380);
+    await expect(dialog).toContainText('bottom left');
+    await tap(20 / 520, 360 / 380);
+    await expect(dialog).toHaveCount(0);
+
+    await expect(layer).toHaveCount(1);
+    const layerImg = layer.locator('img');
+    await expect(layerImg).toHaveCSS('opacity', '0.5');
+    // the frame corners land on the board corners: the layer matrix is a plain scale and shift
+    const m = await layerImg.evaluate((el) => getComputedStyle(el).transform);
+    expect(m).toMatch(/^matrix3d|^matrix/);
+    await shot(page, 'editor-reference');
+
+    await page.getByLabel('Opacity').fill('0.9');
+    await expect(layerImg).toHaveCSS('opacity', '0.9');
+
+    // the board still takes clicks through the image
+    await tool(page, 'Rock').click();
+    await clickAt(page, 10, 2);
+    await expect(board(page).locator('rect[fill="url(#ed-hatch)"]')).toHaveCount(1);
+
+    await btn(page, 'Hide image').click();
+    await expect(layer).toHaveCount(0);
+    await btn(page, 'Show image').click();
+    await expect(layer).toHaveCount(1);
+
+    await btn(page, 'Clear image').click();
+    await expect(layer).toHaveCount(0);
+    await expect(btn(page, 'Load image')).toBeVisible();
+  });
+
+  test('a file that is not an image is refused', async ({ page }) => {
+    await newQuest(page);
+    await page
+      .getByTestId('reference-file')
+      .setInputFiles({ name: 'a.txt', mimeType: 'text/plain', buffer: Buffer.from('hi') });
+    await expect(page.locator('.toast')).toContainText('not an image');
+    await expect(page.getByRole('dialog', { name: 'Align the reference image' })).toHaveCount(0);
+  });
+});

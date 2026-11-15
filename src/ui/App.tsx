@@ -3,6 +3,11 @@ import { board } from '../engine/board/board';
 import { HEROES, type Hero } from '../engine/data/heroes';
 import type { GameEvent } from '../engine/game/events';
 import type { Level } from '../engine/board/level';
+import {
+  DexieReferenceStore,
+  MemoryReferenceStore,
+  type ReferenceStore,
+} from '../persist/reference';
 import { DexieSaveStore, MemorySaveStore, type SaveStore } from '../persist/saves';
 import { BoardView } from './board/BoardView';
 import { knownFor, parseState } from './board/boardStates';
@@ -120,6 +125,10 @@ function Game({ params }: { params: URLSearchParams }) {
     () => (params.has('nosave') ? new MemoryUserQuestStore() : new DexieUserQuestStore()),
     [params],
   );
+  const referenceStore = useMemo<ReferenceStore>(
+    () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
+    [params],
+  );
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
   );
@@ -179,7 +188,10 @@ function Game({ params }: { params: URLSearchParams }) {
         onOpen={(quest, clean) => setEditor(createEditorStore({ quest, clean, store: userStore }))}
       />
     );
-  if (editor) return <EditorScreen store={editor} onBack={() => setEditor('start')} />;
+  if (editor)
+    return (
+      <EditorScreen store={editor} onBack={() => setEditor('start')} reference={referenceStore} />
+    );
   if (game === 'resume' || game === 'dev') return <div className="app" />;
   if (game)
     return (
