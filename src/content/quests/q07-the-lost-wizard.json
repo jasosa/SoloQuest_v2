@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "id": "q07-the-lost-wizard",
+  "number": 7,
+  "title": "The Lost Wizard",
+  "intro": {
+    "summary": "Wardoz, the king's own wizard, has vanished. The king fears he was murdered, or that he fell victim to his own Dread magic. The heroes must find out what happened to Wardoz and then return to the stairway. Each hero is promised 100 gold coins."
+  },
+  "zargonInfo": "Every Dread warrior here is made of stone and defends with 5 dice instead of 4. Chest C is trapped with a poison needle and hides a flask of a strange purple liquid: keep its effect secret from the heroes until someone drinks it. The zombie in room D is Wardoz himself.",
+  "start": {
+    "area": "R08"
+  },
+  "rock": {
+    "rooms": ["R01", "R02", "R03", "R04", "R05", "R06", "R09", "R10", "R11", "R14", "R16", "R18"],
+    "cells": [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [4, 0],
+      [5, 0],
+      [6, 0],
+      [7, 0],
+      [8, 0],
+      [9, 0],
+      [10, 0],
+      [11, 0],
+      [12, 0],
+      [13, 0],
+      [14, 0],
+      [15, 0],
+      [16, 0],
+      [17, 0],
+      [18, 0],
+      [19, 0],
+      [20, 0],
+      [21, 0],
+      [22, 0],
+      [23, 0],
+      [24, 0],
+      [25, 0],
+      [0, 1],
+      [12, 1],
+      [13, 1],
+      [25, 1],
+      [0, 2],
+      [12, 2],
+      [13, 2],
+      [25, 2],
+      [0, 3],
+      [12, 3],
+      [13, 3],
+      [25, 3],
+      [0, 4],
+      [12, 4],
+      [13, 4],
+      [25, 4],
+      [0, 5],
+      [25, 5],
+      [0, 6],
+      [25, 6],
+      [0, 7],
+      [25, 7],
+      [0, 8],
+      [25, 8],
+      [0, 9],
+      [21, 9],
+      [22, 9],
+      [23, 9],
+      [24, 9],
+      [25, 9],
+      [0, 10],
+      [25, 10],
+      [0, 11],
+      [25, 11],
+      [0, 12],
+      [25, 12],
+      [0, 13],
+      [25, 13],
+      [0, 14],
+      [12, 14],
+      [13, 14],
+      [25, 14],
+      [0, 15],
+      [12, 15],
+      [13, 15],
+      [25, 15],
+      [0, 16],
+      [12, 16],
+      [13, 16],
+      [25, 16],
+      [0, 17],
+      [12, 17],
+      [13, 17],
+      [25, 17],
+      [0, 18],
+      [10, 18],
+      [11, 18],
+      [12, 18],
+      [13, 18],
+      [14, 18],
+      [15, 18],
+      [16, 18],
+      [17, 18],
+      [18, 18],
+      [19, 18],
+      [20, 18],
+      [21, 18],
+      [22, 18],
+      [23, 18],
+      [24, 18],
+      [25, 18]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [4, 6],
+      "b": [5, 6]
+    },
+    {
+      "id": "d2",
+      "a": [3, 8],
+      "b": [3, 9]
+    },
+    {
+      "id": "d3",
+      "a": [5, 9],
+      "b": [5, 10]
+    },
+    {
+      "id": "d4",
+      "a": [4, 12],
+      "b": [5, 12]
+    },
+    {
+      "id": "d5",
+      "a": [2, 13],
+      "b": [2, 14]
+    },
+    {
+      "id": "d6",
+      "a": [2, 17],
+      "b": [2, 18]
+    },
+    {
+      "id": "d7",
+      "a": [7, 17],
+      "b": [7, 18]
+    },
+    {
+      "id": "d8",
+      "a": [18, 9],
+      "b": [18, 10]
+    },
+    {
+      "id": "d9",
+      "a": [19, 13],
+      "b": [19, 14]
+    },
+    {
+      "id": "d10",
+      "a": [17, 15],
+      "b": [18, 15]
+    },
+    {
+      "id": "d11",
+      "a": [20, 15],
+      "b": [21, 15]
+    }
+  ],
+  "secretDoors": [],
+  "falseDoors": [],
+  "blocks": [
+    {
+      "cells": [[1, 9]]
+    },
+    {
+      "cells": [[20, 9]]
+    },
+    {
+      "cells": [[1, 18]]
+    },
+    {
+      "cells": [[9, 18]]
+    },
+    {
+      "cells": [
+        [12, 5],
+        [13, 5]
+      ]
+    },
+    {
+      "cells": [
+        [12, 13],
+        [13, 13]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [7, 4],
+        [8, 4],
+        [7, 5],
+        [8, 5]
+      ]
+    },
+    {
+      "id": "f-tomb",
+      "type": "tomb",
+      "cells": [
+        [1, 5],
+        [1, 6],
+        [1, 7]
+      ]
+    },
+    {
+      "id": "f-table",
+      "type": "table",
+      "cells": [
+        [19, 10],
+        [20, 10],
+        [19, 11],
+        [20, 11],
+        [19, 12],
+        [20, 12]
+      ]
+    },
+    {
+      "id": "f-chest-c",
+      "type": "chest",
+      "cells": [[7, 13]],
+      "letter": "C"
+    },
+    {
+      "id": "f-bench",
+      "type": "alchemistsBench",
+      "cells": [
+        [14, 13],
+        [15, 13],
+        [14, 14],
+        [15, 14],
+        [14, 15],
+        [15, 15]
+      ]
+    },
+    {
+      "id": "f-chest-d",
+      "type": "chest",
+      "cells": [[14, 17]],
+      "letter": "D"
+    },
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [24, 14],
+        [24, 15],
+        [24, 16]
+      ],
+      "letter": "B"
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "skeleton",
+      "cell": [3, 6]
+    },
+    {
+      "id": "m2",
+      "type": "skeleton",
+      "cell": [4, 7]
+    },
+    {
+      "id": "m3",
+      "type": "skeleton",
+      "cell": [1, 11]
+    },
+    {
+      "id": "m4",
+      "type": "skeleton",
+      "cell": [2, 12]
+    },
+    {
+      "id": "m5",
+      "type": "skeleton",
+      "cell": [3, 13]
+    },
+    {
+      "id": "m6",
+      "type": "skeleton",
+      "cell": [1, 16]
+    },
+    {
+      "id": "m7",
+      "type": "skeleton",
+      "cell": [2, 17]
+    },
+    {
+      "id": "m8",
+      "type": "skeleton",
+      "cell": [18, 13]
+    },
+    {
+      "id": "m9",
+      "type": "skeleton",
+      "cell": [22, 14]
+    },
+    {
+      "id": "m10",
+      "type": "mummy",
+      "cell": [22, 15]
+    },
+    {
+      "id": "m11",
+      "type": "skeleton",
+      "cell": [22, 16]
+    },
+    {
+      "id": "m-wardoz",
+      "type": "zombie",
+      "cell": [16, 14],
+      "name": "Wardoz"
+    },
+    {
+      "id": "m12",
+      "type": "dreadWarrior",
+      "cell": [9, 6],
+      "overrides": {
+        "def": 5
+      },
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+    },
+    {
+      "id": "m13",
+      "type": "dreadWarrior",
+      "cell": [16, 6],
+      "overrides": {
+        "def": 5
+      },
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+    },
+    {
+      "id": "m14",
+      "type": "dreadWarrior",
+      "cell": [9, 12],
+      "overrides": {
+        "def": 5
+      },
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+    },
+    {
+      "id": "m15",
+      "type": "dreadWarrior",
+      "cell": [16, 12],
+      "overrides": {
+        "def": 5
+      },
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+    },
+    {
+      "id": "m16",
+      "type": "dreadWarrior",
+      "cell": [19, 17],
+      "overrides": {
+        "def": 5
+      },
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t1",
+      "kind": "pit",
+      "cell": [7, 14]
+    },
+    {
+      "id": "t2",
+      "kind": "pit",
+      "cell": [7, 17]
+    },
+    {
+      "id": "t-chest-c",
+      "kind": "chest",
+      "furniture": "f-chest-c",
+      "effect": "A poison needle pricks the hero who searches the chest: that hero loses 2 Body Points."
+    }
+  ],
+  "markers": [],
+  "notes": [
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [10, 6],
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Stone Dread warriors",
+          "text": "All Dread warriors in this quest are living stone. Each rolls one more defend die than usual, so 5 in total instead of 4."
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [24, 17],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R22",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This is the weapons store. The first hero to search it takes the artifact Borin's Armor. Its rules are on the artifact card."
+        },
+        {
+          "type": "giveItem",
+          "text": "Borin's Armor (artifact, see its card)"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [8, 13],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R17",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest hides a poison needle trap. A hero who searches before it is disarmed loses 2 Body Points (see the trap). Inside is a flask of purple liquid that nobody can identify, so keep its nature to yourself. Whoever drinks it freezes into stone for 5 of that hero's turns: no movement, and nothing can hurt them. When the 5 turns are over the hero wakes up."
+        },
+        {
+          "type": "giveItem",
+          "text": "Flask of purple liquid (turns the drinker to stone for 5 turns, keep secret)"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [15, 17],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R19"
+      },
+      "when": [
+        {
+          "monster": "m-wardoz",
+          "alive": false
+        },
+        {
+          "firstTime": true
+        }
+      ],
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Inside Wardoz's chest are 144 gold coins. His papers lie on the bench: they tell how the Dread magic he was testing consumed him and left him a mind-dead zombie."
+        },
+        {
+          "type": "giveItem",
+          "text": "144 gold coins and Wardoz's papers"
+        },
+        {
+          "type": "completeObjective",
+          "objective": "o1"
+        }
+      ],
+      "consumesTreasure": true
+    }
+  ],
+  "wandering": {
+    "monster": "mummy"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Destroy Wardoz and read his papers, then return to the stairway"
+    }
+  ],
+  "rewards": "100 gold coins for each hero, paid on return to the stairway.",
+  "rules": {},
+  "npcs": []
+}
