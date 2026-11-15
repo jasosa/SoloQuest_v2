@@ -34,7 +34,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
 |---|---|---|---|---|---|---|---|
 | 1 | The Trial | done | A to E | ok | ok | ok (src/content/quests/q01.test.ts) | |
-| 2 | The Rescue of Sir Ragnar | | | | | | |
+| 2 | The Rescue of Sir Ragnar | done | A, B, alarm, cell, home | ok | ok | ok (src/content/quests/q02.test.ts) | |
 | 3 | Lair of the Orc Warlord | | | | | | |
 | 4 | Prince Magnus' Gold | | | | | | |
 | 5 | Melar's Maze | | | | | | |
