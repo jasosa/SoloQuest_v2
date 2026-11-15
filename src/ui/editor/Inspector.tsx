@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
+  lettersMissingNotes,
   renameQuest,
   setDoorKind,
   setFurnitureLetter,
@@ -29,6 +30,8 @@ import {
 import { SPELL_KEYS, SPELL_NAMES, isSpellKey } from '../../engine/zargon/spells';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
+import { NotesPanel } from './NotesPanel';
+import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseLines, parseOverrides, toggleIn, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
 
@@ -70,8 +73,9 @@ export function Inspector({
   issues: readonly Issue[];
   saveErrors: readonly string[] | null;
 }) {
-  const { quest, selection } = useStore(store);
+  const { quest, selection, panel } = useStore(store);
   const st = store.getState();
+  const missing = lettersMissingNotes(quest).length;
 
   const door = selection?.kind === 'door' ? findDoor(quest, selection.id) : undefined;
   const furniture =
@@ -97,8 +101,42 @@ export function Inspector({
     } else if (ref.kind === 'block' && ref.cell) st.select({ kind: 'block', cell: ref.cell });
   };
 
+  const tabs = (
+    <div className="ed-chips ed-tabs" role="group" aria-label="Inspector tabs">
+      <button
+        className="chip"
+        aria-pressed={panel === 'element'}
+        onClick={() => st.setPanel('element')}
+      >
+        Element
+      </button>
+      <button
+        className="chip"
+        aria-pressed={panel === 'notes'}
+        aria-label={missing > 0 ? `Notes, ${missing} missing` : 'Notes'}
+        onClick={() => st.setPanel('notes')}
+      >
+        Notes
+        {missing > 0 && (
+          <span className="ed-badge" data-testid="missing-count">
+            {missing}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+
+  if (panel === 'notes')
+    return (
+      <>
+        {tabs}
+        <NotesPanel store={store} />
+      </>
+    );
+
   return (
     <>
+      {tabs}
       <section>
         <div className="lbl">Quest</div>
         <label className="ed-field">
@@ -220,13 +258,19 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
         <input
           key={`${furniture.id}:${furniture.letter ?? ''}`}
           defaultValue={furniture.letter ?? ''}
-          maxLength={2}
+          maxLength={1}
           disabled={stairs}
           placeholder={stairs ? 'Stairs take no letter' : 'None'}
+          onChange={(e) => (e.target.value = e.target.value.toUpperCase())}
           onBlur={(e) => {
-            const v = e.target.value.trim();
-            if (v === (furniture.letter ?? '')) return;
-            st.apply((q) => setFurnitureLetter(q, furniture.id, v === '' ? null : v));
+            const r = parseMapLetter(e.target.value);
+            if (!r.ok) {
+              e.target.value = furniture.letter ?? '';
+              st.say(r.error);
+              return;
+            }
+            if ((r.value ?? '') === (furniture.letter ?? '')) return;
+            st.apply((q) => setFurnitureLetter(q, furniture.id, r.value));
           }}
         />
       </label>

@@ -330,3 +330,132 @@ test.describe('editor: inspector', () => {
     await shot(page, 'editor-inspector-trap');
   });
 });
+
+test.describe('editor: note builder', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+  const notesTab = (page: Page) => insp(page).getByRole('button', { name: /^Notes/ });
+
+  async function chestWithLetter(page: Page, letter: string) {
+    await tool(page, 'Furniture').click();
+    await page.getByRole('button', { name: 'Chest', exact: true }).click();
+    await clickAt(page, 2, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 2, 17);
+    await insp(page).getByLabel('Letter').fill(letter);
+    await insp(page).getByLabel('Letter').blur();
+  }
+
+  test('the furniture letter takes one capital, never X; chips and fields are 44 px', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await chestWithLetter(page, 'x');
+    await expect(page.locator('.toast')).toContainText('not X');
+    await expect(insp(page).getByLabel('Letter')).toHaveValue('');
+    await insp(page).getByLabel('Letter').fill('b');
+    await expect(insp(page).getByLabel('Letter')).toHaveValue('B');
+    await insp(page).getByLabel('Letter').blur();
+    await expect(page.locator('.toast')).toHaveCount(0);
+    // touch targets
+    await tool(page, 'Furniture').click();
+    for (const c of await page.locator('.ed-small .chip').all())
+      expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await tool(page, 'Monsters').click();
+    await tool(page, 'Select').click();
+    await clickAt(page, 2, 17);
+  });
+
+  test('a letter with no note is listed; one tap adds the note; text, trigger, condition, effects', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await chestWithLetter(page, 'A');
+    await expect(notesTab(page).getByTestId('missing-count')).toHaveText('1');
+    await notesTab(page).click();
+    await expect(page.getByTestId('missing-letters')).toContainText('Add note A');
+    await btn(page, 'Add note A').click();
+    await expect(page.getByTestId('note-id')).toHaveText('n-A');
+    await expect(notesTab(page).getByTestId('missing-count')).toHaveCount(0);
+
+    // text
+    const text = insp(page).getByLabel('Text', { exact: true }).first();
+    await text.fill('A dusty chest.');
+    await text.blur();
+
+    // trigger: a hero enters an area, picked on the board
+    await insp(page).getByLabel('Trigger').selectOption('areaEntered');
+    const trig = insp(page).locator('section').filter({ hasText: 'When it fires' });
+    await trig.getByRole('button', { name: 'Click it on the board' }).click();
+    await expect(page.getByTestId('pick-bar')).toContainText('Click a room');
+    await clickAt(page, 2, 17); // the start room
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await expect(trig.getByRole('combobox').nth(1)).not.toHaveValue('');
+
+    // letter shown at, picked on the board
+    await insp(page).getByRole('button', { name: 'Click it on the board' }).first().click();
+    await clickAt(page, 4, 16);
+    await expect(insp(page)).toContainText('Square 4, 16');
+
+    // a condition and effects
+    const addEffect = insp(page).getByLabel('Add an effect').last();
+    await insp(page).getByLabel('Add a condition').selectOption('firstTime');
+    await expect(page.getByTestId('condition-row')).toHaveCount(1);
+    await addEffect.selectOption('setFlag');
+    await addEffect.selectOption('addCounter');
+    await addEffect.selectOption('promptChoice');
+    await addEffect.selectOption('revealAll');
+    await addEffect.selectOption('placeBlock');
+    await expect(page.getByTestId('effect-row')).toHaveCount(5);
+    const flag = page.locator('[data-effect="setFlag"]').getByRole('textbox', { name: 'Flag' });
+    await flag.fill('alarm');
+    await flag.blur();
+    await expect(
+      page.locator('[data-effect="setFlag"]').getByRole('textbox', { name: 'Flag' }),
+    ).toHaveValue('alarm');
+    await page.getByRole('button', { name: 'Add an answer' }).click();
+    await expect(page.getByTestId('option-row')).toHaveCount(2);
+    await shot(page, 'editor-notes-form');
+
+    // an effect that needs a monster says so
+    await insp(page).getByLabel('Add an effect').last().selectOption('placeMonster');
+    await expect(page.locator('.toast')).toContainText('Add a monster first');
+
+    // undo goes back one change at a time
+    await btn(page, 'Undo').click();
+    await expect(page.getByTestId('option-row')).toHaveCount(1);
+
+    // the list shows the note
+    await insp(page).getByRole('button', { name: 'All notes' }).click();
+    await expect(page.getByTestId('note-list')).toContainText('A dusty chest.');
+    await expect(page.getByTestId('note-list')).toContainText('Hero enters');
+    await expect(page.getByTestId('no-missing')).toBeVisible();
+    await shot(page, 'editor-notes-list');
+  });
+
+  test('door trigger picked on the board; unlettered note; delete', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
+    await tool(page, 'Select').click();
+    await notesTab(page).click();
+    await btn(page, 'New note').click();
+    await insp(page).getByLabel('Trigger').selectOption('doorOpened');
+    const trig = insp(page).locator('section').filter({ hasText: 'When it fires' });
+    await expect(trig.getByRole('combobox').nth(1)).toHaveValue('d1');
+    await trig.getByRole('button', { name: 'Click it on the board' }).click();
+    await clickAt(page, 4, 17); // not an edge: refused, still picking
+    await expect(page.locator('.toast')).toContainText('Click a door');
+    await expect(page.getByTestId('pick-bar')).toBeVisible();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    // Escape cancels a pick
+    await trig.getByRole('button', { name: 'Click it on the board' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await btn(page, 'Delete note').click();
+    await expect(page.getByTestId('note-list')).toHaveCount(0);
+    await btn(page, 'Undo').click();
+    await expect(page.getByTestId('note-list')).toBeVisible();
+  });
+});

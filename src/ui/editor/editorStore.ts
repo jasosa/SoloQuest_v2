@@ -51,6 +51,20 @@ export const DEFAULT_OPTS: ToolOpts = {
   roomIds: false,
 };
 
+/** Which part of the board a pick takes: a door (normal or secret), a square, or an area. */
+export type PickKind = 'door' | 'secretDoor' | 'cell' | 'room' | 'area';
+
+/** "Click it on the board" mode: the next board click is handed to `onPick` instead of a tool. */
+export interface PickRequest {
+  readonly kind: PickKind;
+  /** Shown above the board and in the inspector, for example "Click a door." */
+  readonly hint: string;
+  /** A door id, an area id, or a square. */
+  onPick(value: string | Cell): void;
+}
+
+export type Panel = 'element' | 'notes';
+
 export interface EditorToast {
   readonly id: number;
   readonly text: string;
@@ -65,6 +79,12 @@ export interface EditorState {
   readonly tool: Tool;
   readonly opts: ToolOpts;
   readonly selection: EditSelection;
+  /** Inspector tab: the selected element or the note builder. */
+  readonly panel: Panel;
+  /** The note open in the note builder. */
+  readonly noteId: string | null;
+  /** Set while the note builder waits for a click on the board. */
+  readonly picking: PickRequest | null;
   /** First square of a double block, waiting for the second click. */
   readonly pendingBlock: Cell | null;
   readonly toast: EditorToast | null;
@@ -81,6 +101,9 @@ export interface EditorState {
   setTool(tool: Tool): void;
   setOpts(patch: Partial<ToolOpts>): void;
   select(sel: EditSelection): void;
+  setPanel(panel: Panel): void;
+  setNoteId(id: string | null): void;
+  setPicking(req: PickRequest | null): void;
   setPendingBlock(cell: Cell | null): void;
   say(text: string): void;
   dismissToast(): void;
@@ -131,6 +154,9 @@ export function createEditorStore(init: EditorInit): EditorStore {
       tool: 'select',
       opts: DEFAULT_OPTS,
       selection: null,
+      panel: 'element',
+      noteId: null,
+      picking: null,
       pendingBlock: null,
       toast: null,
       warnings: [],
@@ -166,6 +192,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           past: past.slice(0, -1),
           future: [quest, ...future],
           selection: null,
+          picking: null,
           pendingBlock: null,
           warnings: [],
           toast: null,
@@ -182,6 +209,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           past: [...past, quest],
           future: future.slice(1),
           selection: null,
+          picking: null,
           pendingBlock: null,
           warnings: [],
           toast: null,
@@ -191,7 +219,12 @@ export function createEditorStore(init: EditorInit): EditorStore {
 
       setTool: (tool) => set({ tool, pendingBlock: null }),
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
-      select: (selection) => set({ selection }),
+      select: (selection) =>
+        set(selection ? { selection, panel: 'element', picking: null } : { selection }),
+      setPanel: (panel) =>
+        set(panel === 'notes' ? { panel, picking: null, selection: null } : { panel, picking: null }),
+      setNoteId: (noteId) => set({ noteId, picking: null }),
+      setPicking: (picking) => set({ picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
       say: (text) => set({ toast: toastOf(text) }),
       dismissToast: () => get().toast && set({ toast: null }),

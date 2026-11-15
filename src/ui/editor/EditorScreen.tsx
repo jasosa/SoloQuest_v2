@@ -70,7 +70,8 @@ export function EditorScreen({ store, onBack }: EditorScreenProps) {
       if (mod || e.altKey) return;
       if (e.key === 'Escape') {
         st.setPendingBlock(null);
-        st.select(null);
+        if (st.picking) st.setPicking(null);
+        else st.select(null);
         return;
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -99,7 +100,10 @@ export function EditorScreen({ store, onBack }: EditorScreenProps) {
         <span className="ed-status">{dirty ? 'Unsaved changes' : 'Saved'}</span>
         <button
           className="link ed-issues"
-          onClick={() => s.select(null)}
+          onClick={() => {
+            s.select(null);
+            s.setPanel('element');
+          }}
           aria-label="Problems"
           data-errors={errors}
         >

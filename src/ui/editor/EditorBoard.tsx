@@ -101,7 +101,7 @@ export function previewOp(
 }
 
 export function EditorBoard({ store }: { store: EditorStore }) {
-  const { quest, tool, opts, selection, pendingBlock } = useStore(store);
+  const { quest, tool, opts, selection, pendingBlock, picking } = useStore(store);
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -143,6 +143,37 @@ export function EditorBoard({ store }: { store: EditorStore }) {
   const act = (cell: Cell | undefined, edge: Edge | undefined) => {
     const s = store.getState();
     if (!cell) return;
+    if (s.picking) {
+      const req = s.picking;
+      if (req.kind === 'cell') {
+        s.setPicking(null);
+        req.onPick([cell[0], cell[1]]);
+        return;
+      }
+      if (req.kind === 'door' || req.kind === 'secretDoor') {
+        const d = edge ? level.doorAtEdge.get(edgeKey(edge.a, edge.b)) : undefined;
+        const secret = d ? quest.secretDoors.some((x) => x.id === d.id) : false;
+        if (!d || (req.kind === 'secretDoor') !== secret) {
+          s.say(
+            req.kind === 'secretDoor'
+              ? 'Click a secret door. Doors show at the edge of a square.'
+              : 'Click a door. Click close to its edge.',
+          );
+          return;
+        }
+        s.setPicking(null);
+        req.onPick(d.id);
+        return;
+      }
+      const area = areaAt(board, cell[0], cell[1]);
+      if (!area || (req.kind === 'room' && area === 'C')) {
+        s.say('Click a room.');
+        return;
+      }
+      s.setPicking(null);
+      req.onPick(area);
+      return;
+    }
     if (s.tool === 'select') {
       s.select(pick(cell, edge));
       return;
@@ -197,13 +228,19 @@ export function EditorBoard({ store }: { store: EditorStore }) {
   const position = (e: React.PointerEvent) => {
     const [ux, uy] = toUnits(e);
     const cell = toCell(ux, uy);
-    const edge = tool === 'doors' || tool === 'select' ? nearestEdge(ux, uy) : undefined;
+    const edge =
+      tool === 'doors' ||
+      tool === 'select' ||
+      picking?.kind === 'door' ||
+      picking?.kind === 'secretDoor'
+        ? nearestEdge(ux, uy)
+        : undefined;
     return { cell, edge };
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
     svgRef.current?.focus();
-    if (tool !== 'select') return;
+    if (tool !== 'select' || picking) return;
     const { cell, edge } = position(e);
     if (!cell) return;
     const hit = pick(cell, edge);
@@ -267,7 +304,9 @@ export function EditorBoard({ store }: { store: EditorStore }) {
     }
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const edge = cur.edge ?? (tool === 'doors' ? edgeOfCell(cur.cell, 'e') : undefined);
+      const wantsDoor =
+        tool === 'doors' || picking?.kind === 'door' || picking?.kind === 'secretDoor';
+      const edge = cur.edge ?? (wantsDoor ? edgeOfCell(cur.cell, 'e') : undefined);
       act(cur.cell, edge);
     }
   };
@@ -275,9 +314,13 @@ export function EditorBoard({ store }: { store: EditorStore }) {
   // ---- hints and ghosts
 
   const active = hover ?? (focused && cursor ? cursor : null);
-  const previewFn = active ? previewOp(store, active.cell, active.edge) : undefined;
+  const previewFn = active && !picking ? previewOp(store, active.cell, active.edge) : undefined;
   const preview = previewFn ? previewFn(quest) : undefined;
-  const hint = tool !== 'select' && preview && !preview.ok ? preview.error : '';
+  const hint = picking
+    ? picking.hint
+    : tool !== 'select' && preview && !preview.ok
+      ? preview.error
+      : '';
 
   // ---- drawing
 

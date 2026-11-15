@@ -41,10 +41,12 @@
   gap: 6px;
 }
 .ed-chips .chip {
+  min-height: 44px;
   font-size: 14px;
   padding: 0 4px;
 }
 .ed-small .chip {
+  min-height: 44px;
   font-size: 12.5px;
 }
 .ed-options {
@@ -252,6 +254,7 @@
   margin-bottom: 4px;
 }
 .ed-stats .ed-field input {
+  min-height: 44px;
   padding: 8px 4px;
   text-align: center;
 }
@@ -265,4 +268,100 @@
 }
 .ed-inspector .ed-chips {
   margin-bottom: 8px;
+}
+
+/* note builder */
+.ed-tabs {
+  margin-bottom: 0;
+}
+.ed-badge {
+  display: inline-block;
+  min-width: 22px;
+  margin-left: 8px;
+  padding: 0 5px;
+  border: 1.5px solid currentColor;
+  font: 700 13px/20px 'Bonum';
+}
+.ed-pickbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 8px 10px;
+  font-style: italic;
+}
+.ed-pickbar .btn {
+  margin-top: 6px;
+}
+.ed-notelist {
+  list-style: none;
+}
+.ed-notelist button {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--paper-2);
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--text);
+}
+.ed-notelist b {
+  grid-row: 1 / span 2;
+  font: 700 20px 'Bonum';
+  color: var(--ink);
+}
+.ed-notelist i {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-back {
+  min-height: 44px;
+  margin-bottom: 4px;
+}
+.ed-row {
+  border: 1.5px solid var(--ink);
+  background: var(--paper-3);
+  padding: 8px 10px 4px;
+  margin-bottom: 8px;
+}
+.ed-row.ed-nested {
+  background: var(--paper);
+}
+.ed-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font: 700 14px 'Bonum';
+  color: var(--ink);
+}
+.ed-row-head .chip {
+  min-width: 76px;
+  padding: 0 8px;
+}
+.ed-cellrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ed-cellfield .ed-id {
+  margin-bottom: 4px;
+}
+.ed-pick {
+  margin-bottom: 8px;
+}
+.ed-stats.ed-two {
+  grid-template-columns: 1fr 1fr;
 }
