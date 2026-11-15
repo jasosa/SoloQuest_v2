@@ -8,6 +8,7 @@ import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import type { Prompt } from '../../engine/game/prompts';
 import {
+  availableEndings,
   chestsInView,
   endSummary,
   enterableAreas,
@@ -88,12 +89,7 @@ export interface PlayScreenProps {
   playtest?: { onBack(): void };
 }
 
-export function PlayScreen({
-  store,
-  onLeave,
-  initialSelect = null,
-  playtest,
-}: PlayScreenProps) {
+export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
   const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
@@ -135,6 +131,7 @@ export function PlayScreen({
   const pending = pendingChoice(state);
   const zMonster = seq.current?.order.monster;
   const end = endSummary(level, state);
+  const endings = useMemo(() => availableEndings(level), [level]);
   const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen;
   const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
@@ -680,6 +677,18 @@ export function PlayScreen({
           >
             Heroes left by the stairs
           </button>
+          {endings.map((e) => (
+            <button
+              key={e.id}
+              className="btn alt"
+              onClick={() => {
+                setEndOpen(false);
+                dispatch({ type: 'END_QUEST', outcome: 'ending', ending: e.id });
+              }}
+            >
+              {e.label}
+            </button>
+          ))}
           <button
             className="btn alt"
             onClick={() => {
@@ -807,6 +816,9 @@ function NoteSheet({ p, onClose }: { p: Extract<Prompt, { kind: 'note' }>; onClo
       {p.texts.map((t, i) => (
         <p key={i}>{t}</p>
       ))}
+      {p.blocksSearch && (
+        <p className="extra">The search was not used. The hero keeps the action.</p>
+      )}
       <button className="btn" onClick={onClose}>
         Continue
       </button>
@@ -858,11 +870,30 @@ function EndScreen({
   onUndo(): void;
 }) {
   return (
-    <NoteCard kind={title} title={end.won ? 'Quest complete' : 'Quest over, goal not reached'}>
-      <p>
-        {end.outcome === 'fell' ? 'All the heroes fell.' : 'The heroes left by the stairs.'}{' '}
-        {end.goalDone ? 'The goal was done.' : 'The goal was not done.'}
-      </p>
+    <NoteCard
+      kind={title}
+      title={
+        end.outcome === 'ending'
+          ? 'Quest over'
+          : end.won
+            ? 'Quest complete'
+            : 'Quest over, goal not reached'
+      }
+    >
+      {end.outcome === 'ending' ? (
+        <>
+          <p>
+            <b>{end.ending?.label ?? 'The quest ended'}</b>
+          </p>
+          {end.ending?.text && <p>{end.ending.text}</p>}
+          <p>{end.goalDone ? 'The goal was done.' : 'The goal was not done.'}</p>
+        </>
+      ) : (
+        <p>
+          {end.outcome === 'fell' ? 'All the heroes fell.' : 'The heroes left by the stairs.'}{' '}
+          {end.goalDone ? 'The goal was done.' : 'The goal was not done.'}
+        </p>
+      )}
       <ul className="goals end-goals">
         {end.objectives.map((o) => (
           <li key={o.id} className={o.done ? 'done' : ''}>

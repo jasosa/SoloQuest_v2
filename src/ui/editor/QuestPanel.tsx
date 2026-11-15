@@ -9,11 +9,14 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
+  addEnding,
   addObjective,
+  removeEnding,
   removeObjective,
   setRules,
   setWandering,
   setZargonInfo,
+  updateEnding,
   updateObjective,
 } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
@@ -80,6 +83,62 @@ export function QuestPanel({ store }: { store: EditorStore }) {
           onClick={() => st.apply((q) => addObjective(q, { text: 'New objective' }))}
         >
           Add an objective
+        </button>
+      </section>
+
+      <section>
+        <div className="lbl">Endings</div>
+        {(quest.endings ?? []).map((e) => (
+          <div className="ed-row" key={e.id} data-testid="ending-row" data-ending={e.id}>
+            <div className="ed-row-head">
+              <span>{e.id}</span>
+              <button
+                className="chip"
+                aria-label={`Remove ending ${e.id}`}
+                onClick={() => st.apply((q) => removeEnding(q, e.id))}
+              >
+                Remove
+              </button>
+            </div>
+            <label className="ed-field">
+              Label
+              <input
+                key={`${e.id}:l:${e.label}`}
+                defaultValue={e.label}
+                aria-label={`Ending ${e.id} label`}
+                onBlur={(ev) => {
+                  const v = ev.target.value.trim();
+                  if (v === e.label) return;
+                  if (!st.apply((q) => updateEnding(q, e.id, { label: v })))
+                    ev.target.value = e.label;
+                }}
+              />
+            </label>
+            <label className="ed-field">
+              Text for the players
+              <textarea
+                key={`${e.id}:t:${e.text ?? ''}`}
+                defaultValue={e.text ?? ''}
+                rows={2}
+                aria-label={`Ending ${e.id} text`}
+                onBlur={(ev) => {
+                  const v = ev.target.value.trim();
+                  if (v === (e.text ?? '')) return;
+                  st.apply((q) => updateEnding(q, e.id, { text: v === '' ? null : v }));
+                }}
+              />
+            </label>
+          </div>
+        ))}
+        <p className="ed-note">
+          An ending shows in the End quest list, next to the stairs and "All heroes fell". It shows
+          no reward.
+        </p>
+        <button
+          className="btn"
+          onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
+        >
+          Add an ending
         </button>
       </section>
 

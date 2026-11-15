@@ -806,3 +806,64 @@ test.describe('editor: quest fields', () => {
     await shot(page, 'editor-quest-wandering');
   });
 });
+
+test.describe('editor: endings and blocked search', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+
+  test('add, edit, undo and remove an ending', async ({ page }) => {
+    await newQuest(page);
+    await expect(page.getByTestId('ending-row')).toHaveCount(0);
+    await btn(page, 'Add an ending').click();
+    await expect(page.getByTestId('ending-row')).toHaveCount(1);
+    const label = insp(page).getByLabel('Ending e1 label');
+    await expect(label).toHaveValue('New ending');
+    await label.fill('The captive died');
+    await label.blur();
+    const text = insp(page).getByLabel('Ending e1 text');
+    await text.fill('The rescue failed.');
+    await text.blur();
+    await expect(insp(page).getByLabel('Ending e1 text')).toHaveValue('The rescue failed.');
+    await btn(page, 'Undo').click();
+    await expect(insp(page).getByLabel('Ending e1 text')).toHaveValue('');
+    await expect(insp(page).getByLabel('Ending e1 label')).toHaveValue('The captive died');
+    await btn(page, 'Redo').click();
+    // an empty label is refused
+    await insp(page).getByLabel('Ending e1 label').fill('  ');
+    await insp(page).getByLabel('Ending e1 label').blur();
+    await expect(page.locator('.toast')).toContainText('needs a label');
+    await expect(insp(page).getByLabel('Ending e1 label')).toHaveValue('The captive died');
+    for (const b of await insp(page).locator('.ed-quest .chip, .ed-quest .btn').all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await shot(page, 'editor-quest-endings');
+    await insp(page).getByRole('button', { name: 'Remove ending e1' }).click();
+    await expect(page.getByTestId('ending-row')).toHaveCount(0);
+    await btn(page, 'Undo').click();
+    await expect(page.getByTestId('ending-row')).toHaveCount(1);
+  });
+
+  test('the "Searching here is not possible" toggle excludes "No treasure card is drawn"', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await insp(page)
+      .getByRole('button', { name: /^Notes/ })
+      .click();
+    await btn(page, 'New note').click();
+    // only a treasure search trigger offers the toggle
+    await expect(btn(page, 'Searching here is not possible')).toHaveCount(0);
+    await insp(page).getByLabel('Trigger').selectOption('treasureSearch');
+    const block = btn(page, 'Searching here is not possible');
+    const card = btn(page, 'No treasure card is drawn');
+    await expect(block).toHaveAttribute('aria-pressed', 'false');
+    await card.click();
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await block.click();
+    await expect(block).toHaveAttribute('aria-pressed', 'true');
+    await expect(card).toHaveAttribute('aria-pressed', 'false');
+    expect((await block.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await card.click();
+    await expect(block).toHaveAttribute('aria-pressed', 'false');
+    await btn(page, 'Undo').click();
+    await expect(block).toHaveAttribute('aria-pressed', 'true');
+  });
+});

@@ -280,3 +280,61 @@ test.describe('false doors', () => {
     await expect(door(page, 'x1')).toHaveCount(1); // still closed and tappable
   });
 });
+
+test.describe('quest 2 endings and blocked search', () => {
+  const quest2 = (page: Page, open = '') =>
+    page.goto(`/?quest=2&team=dwarf,elf&nosave=1&seed=1&open=${open}`);
+
+  test('end the quest by "Sir Ragnar died": the ending shows, no rewards, undo', async ({
+    page,
+  }) => {
+    await quest2(page);
+    await page.getByRole('button', { name: 'End quest', exact: true }).click();
+    await expect(btn(page, 'Heroes left by the stairs')).toBeVisible();
+    await expect(btn(page, 'Sir Ragnar died')).toBeVisible();
+    expect((await btn(page, 'Sir Ragnar died').boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await shot(page, 'end-options-ending');
+    await btn(page, 'Sir Ragnar died').click();
+    const card = dialog(page);
+    await expect(card).toContainText('Quest over');
+    await expect(card).toContainText('Sir Ragnar died');
+    await expect(card).toContainText('the rescue has failed');
+    await expect(card).not.toContainText('left by the stairs');
+    await expect(card).not.toContainText('Rewards');
+    await shot(page, 'end-ending');
+    await btn(page, 'Undo the ending').click();
+    await expect(dialog(page)).toHaveCount(0);
+  });
+
+  test('searching the cell shows the note, says the search was not used, the hero can search again', async ({
+    page,
+  }) => {
+    await quest2(page, 'd1,look@13:12,look@13:18,d8,d9');
+    await page.waitForTimeout(900);
+    await roomCell(page, '5,13').click();
+    await btn(page, 'Search for secret doors').click();
+    await btn(page, 'The room is clear, search anyway').click();
+    await expect(dialog(page)).toContainText('secret door');
+    await btn(page, 'Done').click();
+    await door(page, 's1').click();
+    await btn(page, 'Open the door').click();
+    await page.waitForTimeout(700);
+    await door(page, 'd10').click();
+    await btn(page, 'Open the door').click();
+    // the alarm note, then maybe more sheets
+    for (let i = 0; i < 4 && (await btn(page, 'Continue').count()); i++)
+      await btn(page, 'Continue').click();
+    await roomCell(page, '5,11').click();
+    await btn(page, 'Search for treasure').click();
+    await btn(page, 'Dwarf').click();
+    const card = dialog(page);
+    await expect(card).toContainText('cannot search for treasure in the cell');
+    await expect(card).toContainText('The search was not used');
+    await shot(page, 'search-blocked');
+    await btn(page, 'Continue').click();
+    // the Dwarf is not marked as searched: still enabled
+    await roomCell(page, '5,11').click();
+    await btn(page, 'Search for treasure').click();
+    await expect(btn(page, 'Dwarf')).toBeEnabled();
+  });
+});

@@ -63,7 +63,10 @@ export type Sheet =
 export function sheetsOf(prompts: readonly Prompt[]): Sheet[] {
   const out: Sheet[] = [];
   for (const p of prompts) {
-    if (p.kind === 'note' && (p.texts.length > 0 || p.letter !== undefined))
+    if (
+      p.kind === 'note' &&
+      (p.texts.length > 0 || p.letter !== undefined || p.blocksSearch === true)
+    )
       out.push({ t: 'note', p });
     if (p.kind === 'monsterPlaced' && p.cell !== undefined) out.push({ t: 'place', p });
   }

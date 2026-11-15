@@ -405,10 +405,31 @@ function NoteForm({ store, note, quest }: { store: EditorStore; note: Note; ques
         <button
           className="chip ed-wide"
           aria-pressed={note.consumesTreasure === true}
-          onClick={() => patch({ consumesTreasure: note.consumesTreasure ? null : true })}
+          onClick={() =>
+            patch(
+              note.consumesTreasure
+                ? { consumesTreasure: null }
+                : { consumesTreasure: true, blocksSearch: null },
+            )
+          }
         >
           No treasure card is drawn
         </button>
+        {(note.trigger.type === 'treasureSearch' || note.blocksSearch === true) && (
+          <button
+            className="chip ed-wide"
+            aria-pressed={note.blocksSearch === true}
+            onClick={() =>
+              patch(
+                note.blocksSearch
+                  ? { blocksSearch: null }
+                  : { blocksSearch: true, consumesTreasure: null },
+              )
+            }
+          >
+            Searching here is not possible
+          </button>
+        )}
       </section>
 
       <section>
