@@ -718,3 +718,91 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 });
+
+test.describe('editor: quest fields', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+  const tab = (page: Page, name: RegExp) => insp(page).getByRole('button', { name });
+
+  test('add, edit, undo and remove an objective; the Problems error and the note effect follow', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    // no objective: the Problems tab says so
+    await tab(page, /^Problems/).click();
+    await expect(page.getByTestId('problems-panel')).toContainText('no objective');
+    await tab(page, /^Element/).click();
+    await expect(page.getByTestId('no-objectives')).toBeVisible();
+
+    await btn(page, 'Add an objective').click();
+    await expect(page.getByTestId('objective-id')).toHaveText('o1');
+    await expect(page.getByTestId('no-objectives')).toHaveCount(0);
+
+    // edit the text, one undo step
+    const text = insp(page).getByLabel('Objective o1 text');
+    await text.fill('Find the lost key.');
+    await text.blur();
+    await expect(text).toHaveValue('Find the lost key.');
+    await btn(page, 'Undo').click();
+    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('New objective');
+    await btn(page, 'Redo').click();
+    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
+    // an empty text is refused and the old text stays
+    await text.fill('   ');
+    await text.blur();
+    await expect(page.locator('.toast')).toContainText('needs text');
+    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
+
+    // touch targets
+    for (const b of await insp(page).locator('.ed-quest .chip, .ed-quest .btn').all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+
+    // the 'no objective' error is gone
+    await tab(page, /^Problems/).click();
+    await expect(page.getByTestId('problems-panel')).not.toContainText('no objective');
+
+    // a note can complete it
+    await tab(page, /^Notes/).click();
+    await btn(page, 'New note').click();
+    await insp(page).getByLabel('Add an effect').last().selectOption('completeObjective');
+    await expect(
+      page.locator('[data-effect="completeObjective"]').getByRole('combobox'),
+    ).toContainText('o1 · Find the lost key.');
+    await shot(page, 'editor-quest-objective-effect');
+
+    // removing it warns about the note
+    await tab(page, /^Element/).click();
+    await shot(page, 'editor-quest-fields');
+    await insp(page).getByRole('button', { name: 'Remove objective o1' }).click();
+    await expect(page.getByTestId('objective-row')).toHaveCount(0);
+    await expect(page.locator('.ed-warnings')).toContainText('o1');
+    await btn(page, 'Undo').click();
+    await expect(page.getByTestId('objective-row')).toHaveCount(1);
+  });
+
+  test('Zargon info, wandering monster and rules save and undo', async ({ page }) => {
+    await newQuest(page);
+    const info = insp(page).getByLabel('Zargon info');
+    await info.fill('Hard quest.');
+    await info.blur();
+    await btn(page, 'Undo').click();
+    await expect(insp(page).getByLabel('Zargon info')).toHaveValue('');
+
+    await insp(page).getByRole('button', { name: 'A monster', exact: true }).click();
+    await expect(insp(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
+      'orc',
+    );
+    await insp(page).getByRole('combobox', { name: 'Monster', exact: true }).selectOption('goblin');
+    await btn(page, 'Undo').click();
+    await expect(insp(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
+      'orc',
+    );
+    await insp(page).getByRole('button', { name: 'Free text', exact: true }).click();
+    const what = insp(page).getByLabel('What appears');
+    await what.fill('A ghost laughs.');
+    await what.blur();
+    await expect(insp(page).getByLabel('What appears')).toHaveValue('A ghost laughs.');
+    await insp(page).getByRole('button', { name: 'None', exact: true }).click();
+    await expect(insp(page).getByLabel('What appears')).toHaveCount(0);
+    await shot(page, 'editor-quest-wandering');
+  });
+});

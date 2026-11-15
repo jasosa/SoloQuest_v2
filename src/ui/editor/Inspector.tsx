@@ -32,6 +32,7 @@ import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { NotesPanel } from './NotesPanel';
 import { ProblemsPanel } from './ProblemsPanel';
+import { QuestPanel } from './QuestPanel';
 import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseLines, parseOverrides, toggleIn, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -172,6 +173,8 @@ export function Inspector({
           />
         </label>
       </section>
+
+      {!selection && <QuestPanel store={store} />}
 
       {saveErrors && (
         <section className="ed-save-errors" role="alert">

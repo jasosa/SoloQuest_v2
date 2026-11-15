@@ -33,8 +33,8 @@ test.describe('quest and team select', () => {
     await page.goto('/?nosave=1');
     await shot(page, 'select-start');
     await expect(page.locator('.qcard')).toHaveCount(14);
-    await expect(page.getByRole('button', { name: /Quest 2/ })).toBeDisabled();
-    await expect(page.getByText('Not encoded yet')).toHaveCount(13);
+    await expect(page.getByRole('button', { name: /Quest 3/ })).toBeDisabled();
+    await expect(page.getByText('Not encoded yet')).toHaveCount(12);
     const start = page.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();

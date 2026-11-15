@@ -108,6 +108,17 @@ The inspector has two tabs at the top, "Element" and "Notes" (the same chips as 
 
 **Note letters on the board.** Every lettered note shows its letter on the editor board in the play style (22 unit ink square, paper-colored Bonum letter, floor-colored outline). The square is the note's "Letter drawn at" square, else a corner (top right) of the furniture or marker that carries the letter. A letter on the map with no note yet is the same square in the missing style: white fill, dashed 2 px ink outline, ink letter. Unlettered notes show nothing. With the Select tool a tap on a letter opens the Notes tab: that note, or the list with "Add note A" when it is missing. The tap target is 44 units (about 34 px at the editor scale) on a note square and 18 units in the corner of a piece, so the piece itself can still be tapped. Other tools ignore the letters.
 
+### Quest fields (objectives, Zargon info, wandering monster, rules)
+
+The Element tab shows the quest fields whenever nothing is selected (below Title and Summary, under a hairline). Sections, each a "lbl" heading:
+
+- **Objectives.** One row per objective (same paper-3 row as notes): the id in Bonum (`o1`, `o2`...) so a note can name it, a "Remove" chip, and a text area "What the heroes must do" (saves on blur, one undo step). A short note says an objective is completed by the note effect "Complete an objective" with that id. An objective with a done rule says it keeps it. "Add an objective" adds one with placeholder text, to edit. With none, a line says the quest needs one. Removing one that a note completes shows the usual warning list on the board.
+- **For Zargon only.** "Zargon info" text area.
+- **Wandering monster.** Chips "None", "A monster" (then a monster dropdown), "Free text" (then a text field, which must not be empty).
+- **Rules.** "Falling block rule" (text) and "No equipment until note" (dropdown of the notes). The door teleport and bounty rules are not editable yet.
+
+All targets are 44 px or more, all changes are engine edits.
+
 ### Import and export in the editor (M6)
 
 Header links "Import" and "Export" (before "Save"). "Export" downloads `<title-slug>.hqquest.json` without `userText`; with errors it refuses with a toast that counts them, warnings do not block. "Import" opens a file and loads it as one undo step, keeping the draft's id. A **sheet** (paper-3, 2 px ink outline, offset shadow, centered over a dim backdrop, 200 ms rise) asks "Replace your draft?" with "Replace the draft" and "Keep my draft" when the draft is not blank, and lists import errors readably with a "Close" button.
@@ -126,7 +137,7 @@ A local picture (a photo or scan of a map) to trace from. It stays on this devic
 
 **Problems tab.** The inspector has a third tab, "Problems", with an ink-outlined count (all issues). The three tab chips share the 274 px column on one line (14 px text). The title band counter ("2 problems", "1 warning", "No problems") opens this tab. The tab lists every issue of the draft, errors first, then warnings, in the engine's order inside each group. A row is a 44 px or taller button: a bold Bonum word ("Problem" or "Warning"), the kind of thing it names in small italics ("Furniture", "Door", "Note", "Quest"), then the sentence. Under the heading, "(n to fix before saving)" counts the errors.
 
-**Jump.** A tap on a row opens the thing it names. Doors, furniture, monsters, traps, markers and blocks are selected on the board and the Element tab opens so it can be fixed. A note opens in the Notes tab. An area is flashed on the board and the Problems tab stays. Objectives, helpers and the quest itself show the Element tab with the quest fields. The board answers with a flash: an ink 3 px outline on the square (a `--sel` wash at 50% on every square of an area), pulsing like the selection ring, gone after 1.8 s. With reduced motion it stays still for the same time.
+**Jump.** A tap on a row opens the thing it names. Doors, furniture, monsters, traps, markers and blocks are selected on the board and the Element tab opens so it can be fixed. A note opens in the Notes tab. An area is flashed on the board and the Problems tab stays. Objectives, helpers and the quest itself show the Element tab with nothing selected, so the quest fields (objectives and the rest) are in view. The board answers with a flash: an ink 3 px outline on the square (a `--sel` wash at 50% on every square of an area), pulsing like the selection ring, gone after 1.8 s. With reduced motion it stays still for the same time.
 
 **Playtest.** "Playtest" is a link in the title band, next to Undo. It is off while the draft has errors (the tooltip says why). It plays the draft in the real play screen with all four heroes, a new seed and a temporary game that is never written to the saves. The eyebrow says "Playtest". "Back to editor" replaces "Quests" in the title band and on the end screen, and the editor draft is exactly as it was.
 

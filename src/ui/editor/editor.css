@@ -550,3 +550,16 @@
     animation: none;
   }
 }
+
+/* quest panel (objectives, Zargon info, wandering monster, rules) */
+.ed-quest {
+  border-top: 1px solid var(--paper-2);
+  padding-top: 12px;
+}
+.ed-quest section + section {
+  border-top: 1px solid var(--paper-2);
+  padding-top: 12px;
+}
+.ed-quest .ed-row-head span {
+  font-size: 16px;
+}
