@@ -12,9 +12,11 @@
  * The board is the fixed game board.
  */
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
+import { isSpellKey, SPELL_KEYS } from '../zargon/spells';
 import { QuestSchema, type FurnitureDef, type MonsterDef, type Quest } from '../quest/schema';
 import type { Issue } from '../quest/validate';
 import { referencesTo, renameDoorRefs } from './refs';
+import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
 export type Cell = [number, number];
 export type DoorKind = 'normal' | 'secret' | 'false';
@@ -22,36 +24,13 @@ export type FurnitureType = FurnitureDef['type'];
 export type MonsterKind = MonsterDef['type'];
 export type TrapKind = Quest['traps'][number]['kind'];
 
-export type EditResult =
-  { ok: true; quest: Quest; warnings: Issue[] } | { ok: false; error: string };
-
-const fail = (error: string): EditResult => ({ ok: false, error });
-
-/**
- * Safety net: an ok result is always a quest the schema accepts, so a draft can always be saved.
- * The input checks in each op give the friendly messages; this catches anything they missed.
- */
-const ok = (quest: Quest, warnings: Issue[] = []): EditResult => {
-  const parsed = QuestSchema.safeParse(quest);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return fail(
-      `That change would make the quest invalid (${first?.path.join('.')}: ${first?.message}).`,
-    );
-  }
-  return { ok: true, quest, warnings };
-};
+export type { EditResult };
 
 const key = (c: readonly number[]) => `${c[0]},${c[1]}`;
 const cellEq = (a: readonly number[], b: readonly number[]) => a[0] === b[0] && a[1] === b[1];
 const at = (c: readonly number[]) => `(${c[0]}, ${c[1]})`;
 const copy = (c: readonly number[]): Cell => [c[0] as number, c[1] as number];
 const byRow = (a: Cell, b: Cell) => a[1] - b[1] || a[0] - b[0];
-
-/** Drop keys whose value is undefined (the schema does not allow explicit undefined). */
-function clean<T extends object>(o: T): T {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
-}
 
 /** Ids a person may type: letters, digits, dash, underscore. */
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
@@ -61,18 +40,6 @@ function trimmed(value: string | undefined, what: string): { value?: string; err
   if (value === undefined) return {};
   const t = value.trim();
   return t === '' ? { error: `The ${what} cannot be empty.` } : { value: t };
-}
-
-/**
- * Generated ids take the LOWEST free number. If removing d3 warned about a note that points at
- * d3, and a new door later becomes d3, that note now points at the new door. The warning from the
- * removal is the only protection: the UI must make the user fix those notes.
- */
-function nextId(prefix: string, taken: Iterable<string>): string {
-  const set = new Set(taken);
-  let n = 1;
-  while (set.has(`${prefix}${n}`)) n++;
-  return `${prefix}${n}`;
 }
 
 function pickId(
@@ -732,4 +699,139 @@ export function addMarker(
 export function removeMarker(q: Quest, id: string): EditResult {
   if (!q.markers.some((m) => m.id === id)) return fail(`There is no marker ${id}.`);
   return ok({ ...q, markers: q.markers.filter((m) => m.id !== id) });
+}
+
+// ---- inspector: change properties of what is already on the map
+
+/**
+ * Change a piece of furniture's letter. `null` clears it. Stairs take no letter.
+ * Warnings: a note that lost its letter on the map, or a new letter that has no note yet.
+ */
+export function setFurnitureLetter(q: Quest, id: string, letter: string | null): EditResult {
+  const f = q.furniture.find((x) => x.id === id);
+  if (!f) return fail(`There is no furniture ${id}.`);
+  let next: string | undefined;
+  if (letter !== null) {
+    const t = trimmed(letter, 'letter');
+    if (t.error) return fail(t.error);
+    next = t.value;
+    if (f.type === 'stairs') return fail('The stairs do not take a letter.');
+  }
+  const { letter: _old, ...rest } = f;
+  void _old;
+  const updated: FurnitureDef = clean({ ...rest, letter: next });
+  const quest = { ...q, furniture: q.furniture.map((x) => (x.id === id ? updated : x)) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** `null` clears a field; a missing key leaves it as it is. */
+export interface MonsterPatch {
+  type?: MonsterKind;
+  name?: string | null;
+  /** Replaces all stat overrides. `null` or `{}` clears them. */
+  overrides?: NonNullable<MonsterDef['overrides']> | null;
+  state?: NonNullable<MonsterDef['state']> | null;
+  spells?: string[] | null;
+  spellLimit?: NonNullable<MonsterDef['spellLimit']> | null;
+  traits?: string[] | null;
+  hidden?: boolean | null;
+}
+
+/**
+ * Change the properties of a monster. Its square stays (use `moveMonster` to move it).
+ * Refused: a spell the app does not know, a spell limit without spells, a negative or fractional
+ * stat, empty text, a shown monster with no square or on an occupied square.
+ */
+export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditResult {
+  const m = q.monsters.find((x) => x.id === id);
+  if (!m) return fail(`There is no monster ${id}.`);
+  const next: Record<string, unknown> = { ...m };
+  const set = (key: string, value: unknown) => {
+    if (value === null || value === undefined) delete next[key];
+    else next[key] = value;
+  };
+  if (patch.type !== undefined) next.type = patch.type;
+  if (patch.name !== undefined) {
+    if (patch.name === null) set('name', null);
+    else {
+      const t = trimmed(patch.name, 'monster name');
+      if (t.error) return fail(t.error);
+      set('name', t.value);
+    }
+  }
+  if (patch.overrides !== undefined) {
+    const o = patch.overrides;
+    for (const [k, v] of Object.entries(o ?? {}))
+      if (v !== undefined && (!Number.isInteger(v) || v < 0))
+        return fail(`The ${k} override must be a whole number, 0 or more.`);
+    const kept = o ? clean({ ...o }) : {};
+    set('overrides', Object.keys(kept).length ? kept : null);
+  }
+  if (patch.state !== undefined) set('state', patch.state);
+  if (patch.traits !== undefined) {
+    if (patch.traits?.some((t) => t.trim() === ''))
+      return fail('Traits and spells cannot be empty text.');
+    set('traits', patch.traits?.length ? patch.traits.map((t) => t.trim()) : null);
+  }
+  if (patch.spells !== undefined) {
+    if (patch.spells?.some((t) => t.trim() === ''))
+      return fail('Traits and spells cannot be empty text.');
+    const bad = patch.spells?.find((s) => !isSpellKey(s));
+    if (bad) return fail(`Unknown spell "${bad}". Known spells: ${SPELL_KEYS.join(', ')}.`);
+    set('spells', patch.spells?.length ? patch.spells : null);
+  }
+  if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);
+  if (patch.hidden !== undefined) set('hidden', patch.hidden === true ? true : null);
+  if (next.spellLimit && !(next.spells as string[] | undefined)?.length)
+    return fail('A spell limit needs at least one spell.');
+  const cell = m.cell;
+  if (next.hidden !== true) {
+    if (!cell) return fail('A monster that is shown needs a square. Move it onto the board first.');
+    const p = monsterCellProblem(q, cell, id);
+    if (p) return fail(p);
+  }
+  const quest = {
+    ...q,
+    monsters: q.monsters.map((x) => (x.id === id ? (next as MonsterDef) : x)),
+  };
+  return ok(quest, newIssues(q, quest));
+}
+
+export interface TrapPatch {
+  kind?: TrapKind;
+  /** Where the trap is. Needed when the new kind does not fit the old place. */
+  target?: TrapTarget;
+  /** `null` clears the effect text. */
+  effect?: string | null;
+}
+
+/**
+ * Change a trap: its kind, its place and its effect text. A chest trap sits on furniture, pit,
+ * falling block and spear on a square, a scripted trap on either. The id stays the same, so notes
+ * that point at the trap keep working.
+ */
+export function updateTrap(q: Quest, id: string, patch: TrapPatch): EditResult {
+  const index = q.traps.findIndex((t) => t.id === id);
+  const t = q.traps[index];
+  if (!t) return fail(`There is no trap ${id}.`);
+  const kind = patch.kind ?? t.kind;
+  let target: TrapTarget | undefined = patch.target;
+  if (!target) {
+    if (kind === 'chest' && !t.furniture)
+      return fail('A chest trap goes on a piece of furniture. Pick the furniture.');
+    if ((kind === 'pit' || kind === 'fallingBlock' || kind === 'spear') && !t.cell)
+      return fail(`A ${kind} trap goes on a square. Pick the square.`);
+    target = t.furniture ? { furniture: t.furniture } : t.cell ? { cell: t.cell } : undefined;
+  }
+  if (!target) return fail('Pick a square or a piece of furniture for the trap.');
+  const effect =
+    patch.effect === undefined ? t.effect : patch.effect === null ? undefined : patch.effect;
+  const without: Quest = { ...q, traps: q.traps.filter((x) => x.id !== id) };
+  const r = addTrap(without, kind, target, clean({ id, effect }));
+  if (!r.ok) return r;
+  const placed = r.quest.traps[r.quest.traps.length - 1]!;
+  const traps = [...without.traps];
+  traps.splice(index, 0, placed);
+  const quest = { ...q, traps };
+  return ok(quest, newIssues(q, quest));
 }

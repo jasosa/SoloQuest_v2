@@ -1,4 +1,5 @@
 export * from './ops';
+export * from './notes';
 export * from './io';
 export * from './ids';
 export { referencesTo, type RefTarget } from './refs';

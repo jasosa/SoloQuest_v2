@@ -241,3 +241,28 @@
   font-size: 14px;
   margin-left: 16px;
 }
+
+/* inspector forms */
+.ed-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+.ed-stats .ed-field {
+  margin-bottom: 4px;
+}
+.ed-stats .ed-field input {
+  padding: 8px 4px;
+  text-align: center;
+}
+.ed-wide {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.ed-inspector select.es-select {
+  font-size: 15px;
+}
+.ed-inspector .ed-chips {
+  margin-bottom: 8px;
+}

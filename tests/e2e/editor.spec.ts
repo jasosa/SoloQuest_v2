@@ -230,13 +230,11 @@ test.describe('editor: storage and files', () => {
   test('import a file: the bundled Quest 1 round trip, with the id warning', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
     const text = readFileSync('src/content/quests/q01-the-trial.json', 'utf8');
-    await page
-      .getByLabel('Import file')
-      .setInputFiles({
-        name: 'q01.hqquest.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from(text),
-      });
+    await page.getByLabel('Import file').setInputFiles({
+      name: 'q01.hqquest.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(text),
+    });
     await expect(page.getByText('The Trial is in your list.')).toBeVisible();
     await expect(page.locator('.es-imported')).toContainText('was changed to user-the-trial');
     await shot(page, 'editor-import');
@@ -251,13 +249,11 @@ test.describe('editor: storage and files', () => {
 
   test('a file that is not a quest is refused with a readable message', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page
-      .getByLabel('Import file')
-      .setInputFiles({
-        name: 'bad.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from('{ nope'),
-      });
+    await page.getByLabel('Import file').setInputFiles({
+      name: 'bad.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from('{ nope'),
+    });
     await expect(page.getByRole('alert')).toContainText('not valid JSON');
   });
 
@@ -268,5 +264,69 @@ test.describe('editor: storage and files', () => {
     await btn(page, 'Open it').click();
     await expect(page.locator('header h1')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
+  });
+});
+
+test.describe('editor: inspector', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+
+  test('monster: type, name, stats, state, spells, traits; undo', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Monsters').click();
+    await clickAt(page, 4, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 4, 17);
+    await expect(page.getByTestId('selection-id')).toContainText('Orc');
+    await insp(page).getByRole('button', { name: 'Goblin', exact: true }).click();
+    await expect(page.getByTestId('selection-id')).toContainText('Goblin');
+    await insp(page).getByLabel('Name').fill('Grub');
+    await insp(page).getByLabel('att').fill('5');
+    await insp(page).getByLabel('Traits (one per line)').fill('Likes gold');
+    await insp(page).getByRole('button', { name: 'Dormant', exact: true }).click();
+    await insp(page).getByRole('button', { name: 'Fear', exact: true }).click();
+    await expect(insp(page).getByLabel('Name')).toHaveValue('Grub');
+    await expect(insp(page).getByLabel('att')).toHaveValue('5');
+    await expect(insp(page).getByLabel('Traits (one per line)')).toHaveValue('Likes gold');
+    await expect(insp(page).getByRole('button', { name: 'Dormant', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await insp(page).getByLabel('def').fill('x');
+    await insp(page).getByLabel('mind').focus();
+    await expect(page.locator('.toast')).toContainText('whole number');
+    await shot(page, 'editor-inspector-monster');
+    await btn(page, 'Undo').click();
+    await btn(page, 'Undo').click();
+    await expect(page.locator('[data-monster]')).toHaveCount(1);
+  });
+
+  test('furniture letter and trap kind, effect and target', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Furniture').click();
+    await page.getByRole('button', { name: 'Chest', exact: true }).click();
+    await clickAt(page, 2, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 2, 17);
+    await insp(page).getByLabel('Letter').fill('A');
+    await insp(page).getByLabel('Letter').blur();
+    await expect(page.locator('.ed-status')).toHaveText('Unsaved changes');
+    await btn(page, 'Undo').click();
+    await btn(page, 'Redo').click();
+    await clickAt(page, 2, 17);
+    await expect(insp(page).getByLabel('Letter')).toHaveValue('A');
+    await tool(page, 'Traps').click();
+    await clickAt(page, 5, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 5, 17);
+    await expect(page.getByTestId('selection-id')).toHaveText('t1');
+    await insp(page).getByLabel('Effect').fill('Poison darts.');
+    await insp(page).getByLabel('Effect').blur();
+    await insp(page).getByRole('button', { name: 'Spear', exact: true }).click();
+    await insp(page).getByLabel('Across').fill('6');
+    await insp(page).getByLabel('Across').blur();
+    await expect(insp(page).getByLabel('Across')).toHaveValue('6');
+    await insp(page).getByRole('button', { name: 'Chest', exact: true }).click();
+    await expect(insp(page).getByLabel('Furniture')).toBeVisible();
+    await shot(page, 'editor-inspector-trap');
   });
 });
