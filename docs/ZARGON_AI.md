@@ -1,6 +1,6 @@
 # Zargon's turn: monster orders
 
-The app does not know where heroes and monsters stand, and it does not know hero Body Points. So it cannot pick a target itself. Instead, each monster gets an **order** the players apply on the board, using their character sheets for numbers.
+The app does not know where heroes and monsters stand, and it does not know hero Body Points. So it cannot pick a target itself. Instead, each monster gets an **order** the players apply on the board, using their character sheets for numbers. The AI never uses positions, and situations the players can see on the board (a Yeti hugging someone, a Gremlin that already stole) stay in the card text, not in app state (decision 46).
 
 ## An order
 
@@ -10,8 +10,16 @@ The app does not know where heroes and monsters stand, and it does not know hero
 | **Tie list** (always shown) | Dwarf › Wizard › Barbarian › Elf |
 | **Plan** | "Move in and attack. Already next to a hero: attack and stay." |
 | **Special rules** (when they apply) | "Cannot be harmed until it has moved or attacked." "Rolls 4 attack dice." |
+| **Roster buttons** (some monsters) | "Escaped" (thief), "It left" / "A hero attacked it" (passive) |
 
 How players use it: the monster goes for the first hero that fits the rule **and that it can reach this turn**. If the rule does not decide (two heroes fit, or the rule needs information nobody remembers), use the tie list. If no hero fits the rule within reach, use the tie list on the heroes it can reach. If it can reach nobody: move toward the heroes, or hold the nearest doorway. The page shows one monster at a time in a dialog (decision 34); there is no "Who can it reach?" mode.
+
+## Targets (decisions 38, 39)
+
+- The team is a free list of named entries: heroes, mercenaries (named with their owner, "Scout (Dwarf)") and animal allies ("Snowdasher (Elf)"). NPCs (decision 27, e.g. Sir Ragnar) are targets too. All of them are in the tie list.
+- A quest can exclude a target (Frozen Horror Q3: Gothar is never a target).
+- `caster`, `grudge` and Gremlin theft pick heroes only. The other rules can name any target ("the one with the fewest defend dice").
+- `HERO_DIED` works for any team entry: a dead mercenary or ally leaves the tie list like a dead hero.
 
 ## Dead heroes (decision 32)
 
@@ -57,9 +65,17 @@ A rule is drawn **each Zargon turn, per monster**, with these weights. Monsters 
 | Dread warrior | duelist | highestAtt 3, highestBody 2, grudge 2, lastAttacker 1 |
 | Skeleton, Zombie, Mummy | relentless | closest 4, lastAttacker 2, lowestDef 1 |
 | Gargoyle | brute | highestBody 2, closest 2, lastAttacker 1, grudge 1 |
-| Named casters (Grak, Balur, Witch Lord) | caster | spell choice first (below), then like Dread warrior |
+| Named casters (Grak, Balur, Witch Lord; packs: Vilor, Frozen Horror, Jracksfot) | caster | spell flow first (below), then like Dread warrior |
+| Ice Gremlin | thief | closest 3, lowestDef 2, lowestBody 1 |
+| Polar Warbear | brute, 2 attacks | closest 3, highestAtt 2, lastAttacker 2, grudge 1 |
+| Yeti | grappler | lowestDef 3, lowestBody 2, closest 2 |
+| Crossbowman (enemy) | shooter | caster 3, lowestDef 2, lastAttacker 2 |
+| Halberdier (enemy) | soldier | like Orc; special rule: attacks diagonally |
+| Scout (enemy) | skirmisher | like Goblin |
+| Swordsman (enemy), Krag, Kelvinos | duelist | like Dread warrior |
+| Wolf mummy | relentless | like Mummy |
 
-Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync.
+Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync. Pack monsters (decision 36) bring their profile and weights in the pack data; the rows for Frozen Horror monsters are listed here so the table stays complete.
 
 ## Plans
 
@@ -71,12 +87,37 @@ Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync.
 | duelist | Move in and attack. No hero in reach: block the nearest doorway. |
 | relentless | Move in and attack. Never falls back. |
 | caster | Cast a spell if a target is in sight and a spell is left; otherwise as duelist. |
+| thief | See below. |
+| grappler | See below. |
+| shooter | Target in sight, not adjacent: shoot, don't move. None in sight: move until one is, then shoot. Starts next to a target: 70% "step back out of contact and shoot; if it can't, melee and stay", 30% "melee and stay". |
+| passive | No orders (like a dormant monster). Buttons "It left" / "A hero attacked it". |
 
 Rule from the rulebook: a monster may move then act, or act then move, but never move part way, act, and move again. "Attack, then run back" is only possible when it starts next to a hero.
 
+### Pack profiles (decision 49)
+
+**Multi-attack (Polar Warbear).** One target rule per attack; it moves only once. Plan: "Attack 1: rule A. Attack 2: rule B. If B's target is out of reach, hit A's target again." Special rules: one defend roll per turn against it; the hero may see the first attack before deciding to defend.
+
+**Large monsters (Frozen Horror, 2x2).** Special rules: attacks any adjacent square, diagonals included; can squeeze through 1-square corridors.
+
+**Thief (Ice Gremlin).** No app state for the theft.
+- Card text: "If it has already stolen: run away at full speed; if no hero sees it at the start of Zargon's turn, it escapes with the item (tap Escaped). Killed before that: the hero gets the item back."
+- Otherwise a seeded 50% steal / 50% attack (attack as skirmisher). Steal: heroes only; suggested item: a potion if the hero has one, else the most valuable item they carry; never the armor, shield or weapon in use (decision 50). With the Raiment setting: never from a hero wearing Cold Iron Plate Mail.
+- **Escaped** takes it off the roster, not a kill (decision 51). Quests can ask a question on escape (Frozen Horror Q9-10: "Was it the Crystal Key?").
+
+**Grappler (Yeti).** No app state for the hug.
+- Card text: "If it is hugging a hero: that hero takes 2 BP, cannot defend and cannot act; the Yeti does nothing else. If its attack makes a hero lose at least 1 BP, it starts hugging them. Otherwise: move in and attack."
+- Setting "No Yeti hug in solo quests" (decision 59, on by default): in solo quests it is a plain brute. With the Raiment setting: it cannot hug a hero carrying the Spiked Shield.
+
+**Passive (Frozen Horror Q0 caged Warbear).** No orders. "It left" makes it `freed`; "A hero attacked it" makes it `active` with its brute profile.
+
+**Monster states**: `hidden`, `dormant`, `passive`, `active`, `dead`, plus `escaped`, `surrendered`, `freed`, which leave the roster without being kills (decision 51).
+
+**Defensive abilities** (future packs, decision 52): a toast on first reveal per monster type and a badge on the token.
+
 ## Tie list
 
-A seeded shuffle of the team, drawn each turn per monster. Always shown, even when the rule names one hero.
+A seeded shuffle of the team (heroes, mercenaries, animal allies) and the NPCs that are not excluded, drawn each turn per monster. Always shown, even when the rule names one target.
 
 ## Casters
 
@@ -89,11 +130,60 @@ For a caster with at least one spell left that has not cast this turn, the order
 
 Before any answer, the order shows the spell and the plan as a fallback line ("If it cannot cast: ...").
 
+### Spell flow with situation tags (decisions 47, 48)
+
+On top of the flow above:
+1. **25% of turns** (seeded, from seed, turn and monster id) the caster shows no spell and uses its normal plan. On the other 75% it tries spells.
+2. **App checks first.** If monster Body Points are tracked, spells tagged `selfHurt`, `selfNearDeath` or `allyHurt` are checked against the roster: true, they come first; false, they are skipped this turn. If BP are not tracked, these tags are asked like the others.
+3. **The other spells** follow the seeded shuffle above. Each is shown with the question of its tag: "Sleep: is a hero with high attack in sight?" A spell tagged `any` asks "Could it cast it?". A custom question replaces the tag question.
+4. **At most 3 "no" answers** per caster turn; then its normal plan.
+5. Escape is only offered when the quest has an escape point.
+
+The app shows the spell name and any warning; players read the Dread spell card. The target of a single-target spell comes from the monster's target rule.
+
+| Tag | Question | App checks alone |
+|---|---|---|
+| `selfHurt` | Has it lost Body Points? | if monster BP tracked |
+| `selfNearDeath` | Does it have 1 Body Point left? | if monster BP tracked |
+| `allyHurt` | Has another monster lost Body Points? | if monster BP tracked |
+| `manyInSight` | Are 3 or more heroes in sight? | no |
+| `heroesGrouped` | Are 2 or more heroes close together in sight? | no |
+| `heroesInSameRoom` | Is it in a room with 2 or more heroes? | no |
+| `heroesInSameArea` | Are 2 or more heroes in the same room or corridor as it? | no |
+| `heroInLine` | Is a hero in a straight line from it, with no wall or closed door between? | no |
+| `heroAdjacent` | Is any hero next to it? | no |
+| `strongAdjacent` | Is a hero with high attack next to it? | no |
+| `strongInSight` | Is a hero with high attack in sight? | no |
+| `casterInSight` | Is the Wizard or Elf in sight? | no |
+| `noneInReach` | Is no hero in reach this turn? | no |
+| `canBlockPath` | Can it block a corridor or doorway between it and the heroes? | no |
+| `nearObjective` | Is a hero close to finishing the quest goal? | no |
+| `any` | Could it cast it? | no |
+
+**Core Dread spells** (tags only, no card text; checked against the owner's photos of the 2021 and 2024 cards)
+
+| Spell | Tags | Warning shown |
+|---|---|---|
+| Fear | `strongAdjacent`, `strongInSight` | |
+| Sleep | `strongAdjacent`, `strongInSight` | |
+| Command | `strongInSight` | |
+| Tempest | `nearObjective`, `strongInSight` | |
+| Ball of Flame | `any` | |
+| Lightning Bolt | `heroInLine` | Older card: also hits monsters in the line |
+| Firestorm | `heroesInSameRoom` | Also hits monsters in the room; not in corridors |
+| Cloud of Dread | `heroesInSameArea` | |
+| Summon Orcs | `manyInSight`, `selfHurt` | |
+| Summon Undead | `manyInSight`, `selfHurt` | |
+| Escape | `selfNearDeath` | Only offered when the quest has an escape point |
+| Rust | custom: "Does a hero in sight carry a metal sword or helmet that is not an artifact?" | |
+
+Pack spells: `FROZEN_HORROR.md`. Fan-made spells are made in the editor (name, own text, tags or custom question, optional warning).
+
 ## Determinism
 
 `rng(seed | turn | monsterId)`: same turn, same order, also after undo and reload. The quest seed is set when the game starts. The seed is kept in the game state. The grudge hero is a pure function of (seed, monster id, team), so nothing else is stored. The draw never uses `state.rng`.
 
-The grudge hero and the tie lists assume the team is fixed for the whole quest. If the team changes, they change too. Deaths do not change the team: they only filter it.
+The grudge hero and the tie lists assume the team is fixed for the whole quest. If the team changes, they change too. Deaths do not change the team: they only filter it. Campaign draws (Raiment artifact placement, decision 61) use a campaign seed and are stored in the campaign.
 
 ## Heroes who die mid-turn
 

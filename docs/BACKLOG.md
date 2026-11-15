@@ -107,3 +107,27 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 - [ ] Wake lock, settings (sound off, reduced motion), resume screen
 - [ ] Accessibility pass (labels, focus, contrast)
 - [ ] Full session test on a real tablet
+
+## Zargon spell tags (core, can land before M9)
+
+- [ ] Casters: 25% of turns no spell (seeded), situation tags order and question, app-checked hurt tags when monster BP are tracked, at most 3 "no" answers, Escape only with an escape point (decisions 47, 48; `ZARGON_AI.md`)
+- [ ] Core Dread spell tag table in `dreadSpells.ts`, with warnings
+
+## M9 · Pack layer
+
+- [ ] Core as a pack: `pack.json`, loader, `dependsOn`
+- [ ] Campaign / one-shot, campaign flags with one-shot defaults, campaign settings and campaign seed
+- [ ] Team as a free list (heroes, mercenaries, animal allies with owner); quest team rules as warnings; `HERO_DIED` for any entry
+- [ ] Targets: mercenaries, allies and NPCs in tie lists; `excludeTargets`; `caster`, `grudge`, theft heroes only
+- [ ] Settings: Rule hints (free movement hint, first-reveal reminders)
+
+## M10 · Frozen Horror (`FROZEN_HORROR.md`)
+
+- [ ] Schema: `maps` + links, start kinds, edge doors, locked and `hiddenUntil` doors, room tiles, terrain, area merge, sight blockers, monster size, passive state, trap kinds as data, tunnels with design, wandering monster list, quest team rule
+- [ ] Hazards and optional decoys; ice slide reveal on a good jump
+- [ ] Note questions and new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, sight blocker clear, `crossMap`)
+- [ ] Multi-map crossing (Q9-10)
+- [ ] Profiles: thief, grappler (solo setting), shooter, passive, multi-attack, large; Raiment warnings
+- [ ] Frozen Horror spell tags and random extra spells
+- [ ] Editor: pack tools, map tabs, spell builder
+- [ ] Encode Q0 and Q1..Q10, overlays, walk-through tests; confirm the dark square near F in Q0

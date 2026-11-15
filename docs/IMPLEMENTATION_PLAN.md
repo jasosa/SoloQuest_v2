@@ -1,9 +1,11 @@
 # SoloQuest v2: Implementation Plan
 
-HeroQuest (2021 Hasbro / Avalon Hill edition) companion app for solo and cooperative play of the 14 core quests.
+HeroQuest (2021 Hasbro / Avalon Hill edition) companion app for solo and cooperative play of the 14 core quests, and of quest packs (expansions) as data. First expansion: **The Frozen Horror** with its free online prelude "Into the Northlands" (`docs/FROZEN_HORROR.md`).
 The app replaces Zargon as **map revealer, quest-note keeper and monster brain**. It does not track hero or monster movement. The physical board stays the center of the game.
 
-Sources used: `F3649_en-us_heroquest-game-instructions-rulebook.pdf` (image-only, read with OCR) and `HEROQUEST_CORE_QUEST_BOOK.pdf` (text layer for notes, maps are images).
+**Guiding principle:** the app tracks as little as possible and enforces the minimum set of rules. It tracks only what the reveal engine, the notes and the AI need; game rules are shown as text, warnings or optional hints (`docs/DECISIONS.md`).
+
+Sources used: `F3649_en-us_heroquest-game-instructions-rulebook.pdf` (image-only, read with OCR) and `HEROQUEST_CORE_QUEST_BOOK.pdf` (text layer for notes, maps are images). Packs: Frozen Horror Quest Book (text layer), Online Quest 2 "Into the Northlands" (image-only), owner's photos of the Dread spell cards (tags only).
 
 ---
 
@@ -11,16 +13,19 @@ Sources used: `F3649_en-us_heroquest-game-instructions-rulebook.pdf` (image-only
 
 **Goals**
 
-- Choose a quest and a team of heroes (Barbarian, Dwarf, Elf, Wizard; data model open for expansion heroes).
+- Choose a pack (core or an expansion), a mode (campaign or one-shot), a quest and a team (a free list of heroes, mercenaries and animal allies; data model open for expansion heroes).
 - Show the explored part of the dungeon only, with fog of war on the rest. Reveal rooms and corridors with the same rules a human Zargon uses.
 - Keep the roster of monsters in play. On Zargon's turn, propose for each acting monster a target, an action, and if it retreats after the attack. Flag special rules when they trigger.
 - Treasure search, secret door search, house-rule traps, all quest notes with triggers.
 - A quest editor that uses the same data format.
-- All 14 core quests shipped as data.
+- All 14 core quests shipped as data; quest packs shipped as data (Frozen Horror first, prelude included).
 
 **Non-goals**
 
 - No tracking of hero or monster positions or movement.
+- No tracking of hero-related monster state (who is hugged, who was robbed): the card text covers it (decision 46).
+- No enforcement of team rules: quest team rules are warnings (decision 38).
+- No spell effects, potions, items or Mind Points. Spells are names, tags and short warnings; players read the cards.
 - No digital dice (players roll real dice). An optional dice roller can come later.
 - No digital treasure deck (players draw real cards). The app only says "draw a card" and handles the Wandering Monster result.
 - No reproduction of the official book text. The app ships the quest data (positions, stats, effects) and **paraphrased** notes. In the editor the user can paste the original wording into their local copy (stored only on their device).
@@ -35,13 +40,13 @@ From the rulebook, the parts that matter for the app:
 |---|---|---|
 | Looking down a corridor | Zargon places doors, blocked squares and monsters in the hero's line of sight. A line through a wall or a closed door blocks sight. | "Look from here" on a corridor cell reveals cells, doors, blocks and monsters in line of sight from that cell. |
 | Opening a door | Zargon places monsters, chests and other items of that room. No traps, no treasure. | Open door reveals the whole room behind it (all cells, furniture, monsters, closed doors on its walls). If the door gives to a corridor, reveal is line of sight from the cell in front of the door. |
-| Line of sight | Straight line between square centers. Visible if it does not cross a wall or closed door, even if it touches a corner. | Ray cast center-to-center on the wall-edge grid. Corner touch = visible. Blocked squares count as wall. Monsters and heroes do not block reveal (they only block spells). |
+| Line of sight | Straight line between square centers. Visible if it does not cross a wall or closed door, even if it touches a corner. | Ray cast center-to-center on the wall-edge grid. Corner touch = visible. Blocked squares count as wall. Monsters and heroes do not block reveal (they only block spells). Furniture does not block (decision 16), except pieces marked as sight blockers until a flag (decision 56). Terrain does not block (decision 57). |
 | Doors | All start closed. Once opened they never close. Opening is free (not an action). | Doors can only go from closed to open. |
 | Search treasure | Rooms only. No monsters in the room. Each hero once per room. Special treasure only for the first searcher; otherwise draw a treasure card. Wandering monster from a card is placed next to the searcher and attacks them at once. | Search dialog: pick hero, check room has no living revealed monsters, per-hero-per-room tracking, special note or "Draw a treasure card" + "I drew a Wandering Monster" button. |
 | Search secret doors | No monsters visible. Zargon reveals secret doors in the room or corridor where the hero is. Door must still be opened later. | Search dialog: pick the area (room, or corridor cell for line of sight); no hero. Places found secret doors as closed doors. |
 | Traps (official) | Pit, falling block, spear, chest/furniture. Hidden until searched. Jump: 2 moves left, 1 combat die, skull = sprung. Disarm: tool kit (fail on skull) or Dwarf (fail on black shield). | Replaced by the house rule below. |
 | Monsters | Move then act, or act then move. Never move part way, act, and move again. No diagonal. Max one attack. Spellcasters cast instead of attacking, each spell once per quest. | Zargon turn assistant: action plan per monster ("advance and attack", "attack and retreat", "hold", "cast X"). |
-| Ending | Goal done and back to stairway, or retreat to stairway, or all heroes dead. | End quest screen with objectives check and reward. |
+| Ending | Goal done and back to stairway, or retreat to stairway, or all heroes dead. | End quest screen with objectives check and reward. The exit can be the stairway, a wooden exit door or a tile; the end dialog also offers "The quest has failed" (decision 54). |
 
 **House rules from the brief**
 
@@ -52,7 +57,9 @@ From the rulebook, the parts that matter for the app:
 - **No "search for traps" action.**
 
 Spring effects by type (official): pit = 1 BP, pit tile, turn ends; falling block = 3 combat dice, 1 BP per skull, no defend, square becomes permanent block, hero picks a side; spear = roll 1 die, skull = 1 BP, trap gone; chest = effect from quest note.
-**Decided:** a failed jump (or failed disarm) springs the trap with its normal rules for that trap type.
+**Decided:** a failed jump (or failed disarm) springs the trap with its normal rules for that trap type. Chest traps follow decision 25 (hidden, "Search for traps" on the chest).
+
+**Pack hazards** (decisions 41 to 44): square hazards that the book makes undetectable (wandering monster trap, slippery ice, ice slide) use the same "?"; a disarm always fails and springs them; a good jump over an ice slide reveals the whole slide. Optional decoy "?" markers (off / few / many). Trap kinds are data in the pack.
 
 ---
 
@@ -79,12 +86,14 @@ SoloQuest_v2/
       board/                 grid, areas, walls, line of sight
       quest/                 quest model, schema, loader, validator
       game/                  game state, actions, reducer, event log, undo
-      triggers/              trigger matching, conditions, effects
-      zargon/                monster AI, target selection, special rules
+      triggers/              trigger matching, conditions, effects, note questions
+      zargon/                monster AI, target selection, special rules, spell flow
+      pack/                  pack manifest, loader, dependency on core (M9)
       data/                  monsters.ts, heroes.ts, dreadSpells.ts, furniture.ts
     content/
       board.json             fixed geometry of the 2021 board (26 x 19)
       quests/q01-the-trial.json ... q14-return-to-barak-tor.json
+      packs/frozen-horror/   pack.json + quests q00 (prelude), q01..q08, q09-10 (M10)
     ui/
       board/                 SVG renderer, fog, tokens, markers
       play/                  setup, play screen, sheets, Zargon turn
@@ -99,7 +108,7 @@ SoloQuest_v2/
 **Engine pattern: event sourcing**
 
 - `GameState = reduce(questDefinition, events[])`.
-- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`.
+- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`. Pack additions: `NOTE_ANSWER` (note questions), `MONSTER_REMOVE` (escaped, surrendered, freed), `MONSTER_ACTIVATE` (passive attacked), `CROSS_MAP`.
 - The reducer returns new state plus a list of **prompts** (texts, choices) for the UI.
 - Benefits: full undo (very important at the table, mis-taps happen), autosave is just the event list, deterministic tests, replay for debugging.
 - Randomness (AI tie breaks) uses a seeded RNG stored in state, so undo/redo is stable.
@@ -114,6 +123,7 @@ The 2021 board is a 26 x 19 grid. Encode once in `board.json`:
 
 - `cells[y][x] = areaId` (`R01`..`R22` rooms incl. the center room, `C` corridor).
 - Walls are derived: an edge between two cells is a wall when the area ids differ, or when either cell is a room and the other a corridor. Corridor to corridor edges are open.
+- Quests can override areas: `areaOverrides: [{ merge: [areaA, areaB], as }]` removes the wall between two rooms (decision 55).
 - Source of truth: the blank map in the Quest Book (page "Design Your Own Quest Adventures") plus the quest 1 map. Verified by overlay (section 8).
 
 ### 4.2 Quest file (`*.hqquest.json`)
@@ -141,6 +151,15 @@ Quest {
 }
 ```
 
+**Pack additions to the quest file** (M9 and M10; `QUEST_FORMAT.md` gets them when they are implemented):
+- `pack`; `team?: { solo?, only?: HeroType[] | 'any', grantsAlly? }` (warnings only, decision 38); `excludeTargets?`; `flagsIn?` (campaign flags with one-shot defaults).
+- `maps: QuestMap[]` and `links` for multi-map quests (decision 45); today's single-map fields move into one map.
+- `start` kinds: stairway, iron door, tile; doors with `outside` (board edge) and kinds `ironEntry`, `woodenExit`, `locked`, plus `hiddenUntil` (decision 54).
+- `roomTiles`, `terrain`, `areaOverrides`, furniture and tiles with `blocksSightUntil` (decisions 55 to 57).
+- Monster `size` (large monsters), `startState: 'passive'`, `plan` override.
+- Traps by pack trap kind id (decision 44); markers for tunnels with `pair` and `design` (decision 58) and escape points.
+- `wanderingMonsters: { type, count }[]` (decision 40).
+
 ### 4.3 Notes and triggers
 
 A note = **trigger + conditions + effects**. One note can have several effects.
@@ -161,10 +180,14 @@ Triggers:
 | `allKilled(filter)` | Q10 A both Dread warriors dead |
 | `zargonTurn(n)` | Q7 stone statue countdown |
 | `manual` | a button on a marker: "a hero passes here" |
+| `noteQuestion(answer)` | FH Q5 B "Are all heroes in this room?", Q8 G scepter, Q9 A stairway, Q0 C lever, ice tunnels (decision 53) |
+| `monsterEscaped(monster)` | FH Q9-10 "Was it the Crystal Key?" |
 
-Conditions: flags, counters, monster alive/dead, "first time", hero chosen.
+Conditions: flags, counters, monster alive/dead, "first time", hero chosen, ally in team (alive).
 
-Effects: `showText`, `revealArea`, `revealAll` (Q2 alarm), `openAllDoors`, `placeMonster`, `setMonsterState` (dormant, active, stone n turns), `addDoor` / `convertToSecretDoor` (Q5 E throne), `placeBlock` (Q12 C falling block), `giveItem` / `giveArtifact`, `setFlag`, `addCounter` (bounty gold), `completeObjective`, `spawnNpc`, `promptChoice`.
+Effects: `showText`, `revealArea`, `revealAll` (Q2 alarm), `openAllDoors`, `placeMonster`, `setMonsterState` (dormant, active, stone n turns), `addDoor` / `convertToSecretDoor` (Q5 E throne), `placeBlock` (Q12 C falling block), `giveItem` / `giveArtifact`, `setFlag`, `addCounter` (bounty gold), `completeObjective`, `spawnNpc`, `promptChoice`. Pack additions (decision 53): `removeDoor`, `showDoor` (`hiddenUntil`), `removeMonster(reason)`, `excludeTarget`, `replaceFurnitureWithDoor` (open), clear a sight blocker, `crossMap`.
+
+A note can have three parts: what the heroes know, a question asked when its letter is tapped, and a hidden part with effects after the answer.
 
 **Engine API notes**: the UI must call `startGame(level, seed)` (not only `initialState`) to get the questStart and start-room prompts. A pending `promptChoice` does not block other events; the UI shows it until `CHOOSE` answers it.
 
@@ -187,7 +210,18 @@ Base stats from the monster cards (to verify against the physical cards / Game M
 
 Named monsters from the quest book: Ulag 10/4/5/2/3, Grak 8/4/4/3/3 + fear, sleep, tempest; Balur 8/2/5/3/7 + six spells, fire immune; Witch Lord Q12 moves 1, 2 attack, only the Spirit Blade harms him; Witch Lord Q14 10/5/6/4/6.
 
-Monster instance in game state: `{ id, type, name, stats, body, state: 'hidden'|'dormant'|'active'|'dead', flags, spellsLeft, revealedAt }`.
+Pack monsters (Frozen Horror: Frozen Horror, Ice Gremlin, Polar Warbear, Yeti, enemy mercenaries, named monsters) come with stats, profile, weights, special rules, defensive abilities and spells in the pack data (`docs/FROZEN_HORROR.md`).
+
+Monster instance in game state: `{ id, type, name, stats, body, size?, map?, state: 'hidden'|'dormant'|'passive'|'active'|'dead'|'escaped'|'surrendered'|'freed', flags, spellsLeft, revealedAt }`.
+
+### 4.5 Pack manifest (`pack.json`, M9)
+
+- `id`, `name`, `dependsOn: ['core']`, campaign order (extra quests allowed, e.g. Frozen Horror Q0).
+- `heroes` (Frozen Horror: alternate Barbarian), `mercenaries` (team and enemy), `allies` (wolf).
+- `monsters`: stats, profile, weights, special rules, defensive abilities, spell list, extra random spells.
+- `spells`: name, tags or custom question, optional warning (decision 48).
+- `trapKinds` (decision 44), `terrain`, `roomTiles`, shared `rules` texts (e.g. ice ledge, ice tunnels).
+- `campaignSettings` (e.g. Raiment, decision 61).
 
 ---
 
@@ -195,9 +229,11 @@ Monster instance in game state: `{ id, type, name, stats, body, state: 'hidden'|
 
 ### 5.1 Setup
 
-1. Pick quest (cards for 1 to 14 plus user quests). Shows the paraphrased goal.
-2. Pick team: any 1 to 4 of the heroes. The app does **not** track hero Body Points, gold, equipment or artifacts (decided).
-3. Start: the start area is revealed, Zargon info is shown, the wandering monster for the quest is listed.
+1. Pick pack and mode (campaign or one-shot, decision 37; packs from M9). Campaign settings are chosen when the campaign starts.
+2. Pick quest (cards for 1 to 14 plus user quests). Shows the paraphrased goal.
+3. Pick team: today any 1 to 4 of the heroes. From M9 a free list in three groups (heroes, mercenaries, animal allies with an owner hero); quest team rules only warn (decision 38). The app does **not** track hero Body Points, gold, equipment or artifacts (decided).
+4. Settings (from M9/M10): decoy traps, "No Yeti hug in solo quests", "Rule hints" (decisions 43, 59, 60).
+5. Start: the start area is revealed (stairway room, iron door opened and looked in, or tile area), Zargon info is shown, the wandering monsters for the quest are listed.
 
 ### 5.2 Main screen interactions (tap-first, everything else in sheets)
 
@@ -209,7 +245,8 @@ Monster instance in game state: `{ id, type, name, stats, body, state: 'hidden'|
 | Trap "?" | **Jump**, **Disarm**, **Step on it**. |
 | Monster token | Damage -1 / +1, **Kill**, view stats and special rules. |
 | Square marker | **A hero is here**. Fires the note. |
-| Top bar | Turn counter, **Zargon's turn**, objectives, undo, menu. |
+| Top bar | Turn counter, **Zargon's turn**, objectives, undo, menu. Free movement hint when Rule hints are on and no monster is active (decision 60). |
+| Iron door / wooden exit / exit tile (packs) | **Open** (start); end the quest when all heroes have left (decision 54). |
 
 Explored area stays visible. Fog covers the rest. Rock is never shown as playable.
 
@@ -219,6 +256,7 @@ Explored area stays visible. Fog covers the rest. Rock is never shown as playabl
 - `revealLineOfSight(fromCell)`: for every cell in the corridor network and the open rooms, cast a ray center to center, stop on walls, closed doors and blocks. Reveal the visible corridor cells, their doors, blocks, monsters, trap "?". A room is never partly revealed: if line of sight reaches any square of a room (for example through an open door), the whole room is revealed.
 - Door into a corridor: line of sight from the corridor cell in front of the door, looking out.
 - Door between two known areas: only flips the door to open.
+- Packs: sight blockers until a flag (decision 56); large monsters are visible if any of their cells is revealed; multi-map crossing resets fog and opened doors (decision 45).
 
 ### 5.4 Zargon's turn assistant
 
@@ -239,7 +277,9 @@ How the order is built (full spec: `docs/ZARGON_AI.md`): each Zargon turn, each 
 
 Hero Body Points are not tracked (decided); rules that need them are applied by the players. The app tracks only whether a hero died (decision 32): dead heroes leave the tie list and cannot be named in events.
 
-Spell choice for casters (decision 31): one random spell the monster still has; the players say whether it could be cast; if not, the next random one; when none is left, the normal plan. Each spell listing once per quest, one spell per turn.
+Spell choice for casters (decision 31): one random spell the monster still has; the players say whether it could be cast; if not, the next random one; when none is left, the normal plan. Each spell listing once per quest, one spell per turn. Extended by decisions 47 and 48: 25% of turns no spell, situation tags set the order and the question, at most 3 "no" answers.
+
+Pack profiles (decision 49): thief, grappler, shooter, passive, multi-attack, large. Targets include mercenaries, animal allies and NPCs (decision 39). Roster buttons: "Escaped" (thief), "It left" / "A hero attacked it" (passive).
 
 ### 5.5 Searches
 
@@ -262,6 +302,8 @@ Spell choice for casters (decision 31): one random spell the monster still has; 
 | Q13 | Different falling-block rule | `squareEntered` notes with `repeat: true` and a `showText` effect (not `fallingBlock` trap objects, which are the one-shot trap that leaves a permanent block); `rules.fallingBlock = 'q13'` for the text |
 | Q14 | Witch Lord only harmed by Spirit Blade, fear twice | override flags |
 
+Frozen Horror and its prelude: `docs/FROZEN_HORROR.md`.
+
 ---
 
 ## 6. Editor
@@ -275,6 +317,7 @@ Same SVG board, different tools. Layout: tool palette left, board center, inspec
 - **Validation panel**: doors on valid edges, furniture inside one room and not overlapping, monster count vs. box inventory, unreachable areas, missing notes, schema errors.
 - **Playtest**: open the quest in play mode, with a "Zargon view" toggle that shows everything.
 - **Import / export** `.hqquest.json`. Schema versioned with migrations.
+- **Pack additions** (M10): board-edge doors, locked and hidden-until-flag doors, room tiles, terrain, area merge, sight blockers, large monster footprint, tunnels with pair and design, escape point, one tab per map with a link tool, quest settings (team warning, granted ally, excluded targets), note questions, spell builder for fan-made spells. Validation: map links with both ends, tunnel pairs complete, ice slide bottom touching a walkable square.
 
 ### Editor model (slice 1, engine and storage)
 
@@ -294,6 +337,7 @@ Code: `src/engine/editor/` (ops, refs, io), `src/engine/quest/validate.ts`, `src
 
 - Autosave the event log after every action (IndexedDB). Resume screen on launch.
 - User quests and user-pasted text in IndexedDB. Export/import for backup.
+- Campaign state per pack (M9): finished quests, flags, team, campaign-setting draws. User spells in IndexedDB.
 - PWA cache for app shell and bundled quests. Works in airplane mode.
 - Screen wake lock during play (the tablet should not sleep at the table).
 
@@ -330,8 +374,10 @@ Steps 1 to 5 can be skipped if template matching is unreliable; then step 6 does
 | M6 | Editor | tools, inspector, note builder, underlay, validation, playtest, import/export | Quest 1 recreated in the editor equals the bundled file |
 | M7 | 14 quests | import pipeline + manual pass + verification + walk-through tests | All 14 validate, overlays reviewed, walk-throughs green |
 | M8 | Polish | final UI design (section 10), animations, wake lock, resume, settings, accessibility | Full campaign session on a tablet |
+| M9 | Pack layer | core as a pack, pack manifest and loader, campaign / one-shot, campaign settings, free team list (heroes, mercenaries, animal allies) with warnings, targets incl. NPCs, settings (Rule hints) | Core quests run from the core pack; campaign resume works |
+| M10 | Frozen Horror | schema additions (4.2), edge doors, room tiles, area merge, terrain, sight blockers, large monsters, hazards and decoys, multi-map quests, tunnels, note questions, new profiles, spell tags, Raiment, Q0 + 10 quests encoded | All 11 validate, walk-throughs green, Q9-10 crossing tests |
 
-Suggested order is as listed. M6 comes before M7 because the editor underlay is the verification tool for the quests.
+Suggested order is as listed. M6 comes before M7 because the editor underlay is the verification tool for the quests. The spell tags and the 25% rule (decisions 47, 48) can land in the core Zargon code before M9.
 
 ---
 
@@ -387,6 +433,7 @@ Process: the `oil-ui` skill. Three directions were rendered (`design/explore/sty
 3. Zargon assistant: one monster at a time in a dialog. Target rules are dynamic and always come with a tie list (`docs/ZARGON_AI.md`).
 4. Gold, equipment, artifacts between quests: not tracked.
 5. UI direction: **A · Quest Book Map**. Prototype and design note in `design/play-a/`.
-6. Wandering monster placement card, quest note letters on the map, "Look from here" eye hints. Full list: `docs/DECISIONS.md`.
+6. Wandering monster placement card, quest note letters on the map, "Look from here" eye hints.
+7. Quest packs, Frozen Horror and its prelude, the minimum-tracking principle (decisions 36 to 63). Full list: `docs/DECISIONS.md`.
 
 Development harness for Claude Code: `CLAUDE.md`, `docs/BACKLOG.md`, `.claude/agents/`, `.claude/commands/`.
