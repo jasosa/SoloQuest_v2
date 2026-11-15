@@ -1,0 +1,811 @@
+{
+  "schemaVersion": 1,
+  "id": "q06-legacy-of-the-orc-warlord",
+  "number": 6,
+  "title": "Legacy of the Orc Warlord",
+  "intro": {
+    "summary": "Grak, the son of Ulag, has hunted the heroes down for months to avenge his father. He ambushed them and locked them in his dungeon. A guard sleeps outside the cell and the heroes have picked its lock with a rat bone. They must find their stolen gear and fight their way to the stairs that lead out."
+  },
+  "zargonInfo": "The heroes start locked in the cell, stripped of all gear. Until they search the room with the cupboard (A), they cannot use equipment or spells, and fight with 1 attack die and 2 defend dice. Grak is played with an orc figure holding a staff like the armory staff, and he wears a Wizard's Cloak. His stats are Movement 8, Attack 4, Defend 4, Body 3, Mind 3. He knows fear, sleep and tempest, and each turn he may cast a single spell in place of his attack.",
+  "start": {
+    "area": "R13"
+  },
+  "rock": {
+    "rooms": [
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R10",
+      "R12",
+      "R14",
+      "R15",
+      "R16",
+      "R19",
+      "R22"
+    ],
+    "cells": [
+      [
+        9,
+        6
+      ],
+      [
+        10,
+        6
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        12,
+        6
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        14,
+        6
+      ],
+      [
+        15,
+        6
+      ],
+      [
+        16,
+        6
+      ],
+      [
+        16,
+        7
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        12,
+        3
+      ],
+      [
+        13,
+        3
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        13,
+        4
+      ],
+      [
+        12,
+        5
+      ],
+      [
+        13,
+        5
+      ]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        0,
+        2
+      ],
+      "b": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        5,
+        9
+      ],
+      "b": [
+        5,
+        10
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        9,
+        8
+      ],
+      "b": [
+        10,
+        8
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        15,
+        9
+      ],
+      "b": [
+        16,
+        9
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        18,
+        8
+      ],
+      "b": [
+        18,
+        9
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        0,
+        17
+      ],
+      "b": [
+        1,
+        17
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        6,
+        17
+      ],
+      "b": [
+        6,
+        18
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        10,
+        17
+      ],
+      "b": [
+        10,
+        18
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        19,
+        17
+      ],
+      "b": [
+        19,
+        18
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        8,
+        16
+      ],
+      "b": [
+        9,
+        16
+      ]
+    }
+  ],
+  "secretDoors": [],
+  "falseDoors": [],
+  "blocks": [
+    {
+      "cells": [
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          9,
+          7
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          16,
+          8
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          16,
+          10
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          2,
+          18
+        ]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ]
+      ],
+      "letter": "A"
+    },
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [
+          19,
+          5
+        ],
+        [
+          20,
+          5
+        ],
+        [
+          19,
+          6
+        ],
+        [
+          20,
+          6
+        ],
+        [
+          19,
+          7
+        ],
+        [
+          20,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "f-table-c",
+      "type": "table",
+      "cells": [
+        [
+          12,
+          8
+        ],
+        [
+          13,
+          8
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          13,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [
+          5,
+          13
+        ],
+        [
+          6,
+          13
+        ],
+        [
+          5,
+          14
+        ],
+        [
+          6,
+          14
+        ]
+      ],
+      "letter": "B"
+    },
+    {
+      "id": "f-fireplace",
+      "type": "fireplace",
+      "cells": [
+        [
+          4,
+          15
+        ],
+        [
+          4,
+          16
+        ],
+        [
+          4,
+          17
+        ]
+      ]
+    },
+    {
+      "id": "f-table-e",
+      "type": "table",
+      "cells": [
+        [
+          18,
+          14
+        ],
+        [
+          19,
+          14
+        ],
+        [
+          20,
+          14
+        ],
+        [
+          18,
+          15
+        ],
+        [
+          19,
+          15
+        ],
+        [
+          20,
+          15
+        ]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "goblin",
+      "cell": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "m2",
+      "type": "orc",
+      "cell": [
+        17,
+        5
+      ]
+    },
+    {
+      "id": "m3",
+      "type": "abomination",
+      "cell": [
+        18,
+        6
+      ]
+    },
+    {
+      "id": "m4",
+      "type": "goblin",
+      "cell": [
+        20,
+        8
+      ]
+    },
+    {
+      "id": "m5",
+      "type": "goblin",
+      "cell": [
+        17,
+        9
+      ]
+    },
+    {
+      "id": "m6",
+      "type": "goblin",
+      "cell": [
+        24,
+        9
+      ]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [
+        25,
+        1
+      ]
+    },
+    {
+      "id": "m8",
+      "type": "orc",
+      "cell": [
+        11,
+        8
+      ]
+    },
+    {
+      "id": "m9",
+      "type": "abomination",
+      "cell": [
+        11,
+        9
+      ]
+    },
+    {
+      "id": "m10",
+      "type": "orc",
+      "cell": [
+        11,
+        10
+      ]
+    },
+    {
+      "id": "m11",
+      "type": "orc",
+      "cell": [
+        14,
+        8
+      ]
+    },
+    {
+      "id": "m12",
+      "type": "orc",
+      "cell": [
+        14,
+        9
+      ]
+    },
+    {
+      "id": "m13",
+      "type": "orc",
+      "cell": [
+        14,
+        10
+      ]
+    },
+    {
+      "id": "m14",
+      "type": "abomination",
+      "cell": [
+        12,
+        12
+      ]
+    },
+    {
+      "id": "m15",
+      "type": "orc",
+      "cell": [
+        6,
+        15
+      ]
+    },
+    {
+      "id": "m16",
+      "type": "goblin",
+      "cell": [
+        8,
+        15
+      ]
+    },
+    {
+      "id": "m17",
+      "type": "goblin",
+      "cell": [
+        5,
+        16
+      ]
+    },
+    {
+      "id": "m-grak",
+      "type": "orc",
+      "cell": [
+        6,
+        16
+      ],
+      "name": "Grak",
+      "overrides": {
+        "move": 8,
+        "att": 4,
+        "def": 4,
+        "body": 3,
+        "mind": 3
+      },
+      "spells": [
+        "fear",
+        "sleep",
+        "tempest"
+      ],
+      "spellLimit": "onePerTurn",
+      "traits": [
+        "Carries a staff that works like the armory staff",
+        "Wears a Wizard's Cloak (see the note when he dies)"
+      ]
+    },
+    {
+      "id": "m18",
+      "type": "orc",
+      "cell": [
+        7,
+        16
+      ]
+    },
+    {
+      "id": "m19",
+      "type": "orc",
+      "cell": [
+        7,
+        17
+      ]
+    },
+    {
+      "id": "m20",
+      "type": "goblin",
+      "cell": [
+        10,
+        16
+      ]
+    },
+    {
+      "id": "m21",
+      "type": "goblin",
+      "cell": [
+        9,
+        17
+      ]
+    },
+    {
+      "id": "m22",
+      "type": "goblin",
+      "cell": [
+        11,
+        17
+      ]
+    },
+    {
+      "id": "m23",
+      "type": "orc",
+      "cell": [
+        3,
+        16
+      ]
+    },
+    {
+      "id": "m24",
+      "type": "goblin",
+      "cell": [
+        5,
+        18
+      ]
+    },
+    {
+      "id": "m25",
+      "type": "orc",
+      "cell": [
+        19,
+        18
+      ]
+    },
+    {
+      "id": "m26",
+      "type": "goblin",
+      "cell": [
+        24,
+        18
+      ]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t1",
+      "kind": "pit",
+      "cell": [
+        16,
+        12
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "pit",
+      "cell": [
+        0,
+        18
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "pit",
+      "cell": [
+        8,
+        18
+      ]
+    }
+  ],
+  "markers": [
+    {
+      "id": "k1",
+      "label": "Cell",
+      "cell": [
+        5,
+        11
+      ],
+      "visible": "players"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Prisoners without gear",
+          "text": "The heroes begin inside the cell. Their gear was confiscated: no gear of any kind, and no spells, until they get it back from the room with the cupboard (A). Until then each hero fights with 1 attack die and defends with 2 dice. Searching the cell for treasure is not allowed."
+        }
+      ]
+    },
+    {
+      "id": "n-cell",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R13"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "There is nothing to search for in the cell. The hero keeps the action."
+        }
+      ],
+      "blocksSearch": true
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        1,
+        3
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R01",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Equipment found",
+          "text": "The heroes' confiscated gear lies in the cupboard of this room. Once it is searched, the gear is found. Every other hero has to come into this room to get their things. Entering the room gives a hero the equipment back, and a spellcaster gets spells back too."
+        },
+        {
+          "type": "giveItem",
+          "text": "All heroes get their own equipment back when they enter this room"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [
+        7,
+        13
+      ],
+      "trigger": {
+        "type": "manual",
+        "label": "A hero stands on the stairs"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The stairs are the way out. A hero who steps onto the stair tile has escaped."
+        },
+        {
+          "type": "completeObjective",
+          "objective": "o1"
+        }
+      ]
+    },
+    {
+      "id": "n-grak-dead",
+      "trigger": {
+        "type": "monsterKilled",
+        "monster": "m-grak"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Grak falls. His Wizard's Cloak is a prize for the wizard: give the wizard the Wizard's Cloak artifact card."
+        },
+        {
+          "type": "giveItem",
+          "text": "Wizard's Cloak artifact card, for the wizard"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "abomination"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find your equipment and escape by the stairs"
+    }
+  ],
+  "rewards": "",
+  "rules": {
+    "noEquipmentUntil": "n-A"
+  },
+  "npcs": []
+}
