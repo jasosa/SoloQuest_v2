@@ -265,6 +265,72 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('header h1')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
+
+  test('editor header: import with a confirm, export a file, bad file shows errors', async ({
+    page,
+  }) => {
+    await newQuest(page, 'The Cellar');
+    const q1 = readFileSync('src/content/quests/q01-the-trial.json', 'utf8');
+    const file = (name: string, text: string) => ({
+      name,
+      mimeType: 'application/json',
+      buffer: Buffer.from(text),
+    });
+    for (const name of ['Import', 'Export']) {
+      expect((await btn(page, name).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+
+    // a blank draft is replaced at once, as one undo step
+    await page.getByLabel('Import file').setInputFiles(file('q1.hqquest.json', q1));
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('[data-monster]')).toHaveCount(24);
+
+    // export: the file name comes from the title, and there is no userText
+    const [dl] = await Promise.all([page.waitForEvent('download'), btn(page, 'Export').click()]);
+    expect(dl.suggestedFilename()).toBe('the-trial.hqquest.json');
+    const out = readFileSync((await dl.path())!, 'utf8');
+    expect(out).not.toContain('userText');
+    expect(JSON.parse(out).title).toBe('The Trial');
+    await expect(page.locator('.toast')).toContainText('Exported the-trial.hqquest.json');
+
+    // a bad file: readable errors, nothing changes
+    await page.getByLabel('Import file').setInputFiles(file('bad.hqquest.json', '{ not json'));
+    const dialog = page.getByRole('dialog', { name: 'The file could not be used' });
+    await expect(dialog).toContainText('not valid JSON');
+    await shot(page, 'editor-import-error');
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+
+    // a good file on a draft with content asks first
+    const other = JSON.stringify({ ...JSON.parse(q1), title: 'Second Trial' });
+    await page.getByLabel('Import file').setInputFiles(file('two.hqquest.json', other));
+    const sheet = page.getByRole('dialog', { name: 'Replace the draft' });
+    await expect(sheet).toBeVisible();
+    await shot(page, 'editor-import-confirm');
+    for (const b of await sheet.getByRole('button').all()) {
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    await sheet.getByRole('button', { name: 'Keep my draft' }).click();
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await page.getByLabel('Import file').setInputFiles(file('two.hqquest.json', other));
+    await sheet.getByRole('button', { name: 'Replace the draft' }).click();
+    await expect(page.locator('header h1')).toHaveText('Second Trial');
+    await btn(page, 'Undo').click();
+    await expect(page.locator('header h1')).toHaveText('The Trial');
+  });
+
+  test('export refuses a draft with errors and counts them', async ({ page }) => {
+    await newQuest(page, 'Broken');
+    // a new quest has no objective yet, which is an error
+    await expect(page.locator('.ed-issues')).not.toHaveAttribute('data-errors', '0');
+    let downloaded = false;
+    page.on('download', () => (downloaded = true));
+    await page.getByTestId('export').click();
+    await expect(page.locator('.toast')).toHaveText(/^Cannot export: \d+ problems?/);
+    await page.waitForTimeout(300);
+    expect(downloaded).toBe(false);
+  });
 });
 
 test.describe('editor: inspector', () => {

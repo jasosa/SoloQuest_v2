@@ -514,3 +514,39 @@
   font-size: 12px;
   line-height: 18px;
 }
+
+/* import sheet */
+/* the shared .veil, over the whole screen */
+.veil.ed-sheet-wrap {
+  position: fixed;
+  z-index: 50;
+}
+.ed-sheet {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--sel);
+  padding: 16px 18px;
+  animation: rise 0.2s var(--ease-ink) both;
+}
+.ed-sheet h2 {
+  font-family: 'Bonum', serif;
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.ed-sheet li {
+  font-size: 15px;
+  margin-left: 18px;
+}
+.ed-sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed-sheet {
+    animation: none;
+  }
+}

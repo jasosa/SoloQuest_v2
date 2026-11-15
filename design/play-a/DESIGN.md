@@ -106,6 +106,10 @@ The inspector has two tabs at the top, "Element" and "Notes" (the same chips as 
 
 **Click it on the board.** Doors, squares and areas can be typed or picked: the button "Click it on the board" starts a pick. A margin-note style bar sticks to the top of the inspector with the instruction and "Cancel" (Esc also cancels), the board hint line repeats it, and the next board click is the answer (a click that does not fit says why in a toast and keeps waiting). Picking does not select or move anything.
 
+### Import and export in the editor (M6)
+
+Header links "Import" and "Export" (before "Save"). "Export" downloads `<title-slug>.hqquest.json` without `userText`; with errors it refuses with a toast that counts them, warnings do not block. "Import" opens a file and loads it as one undo step, keeping the draft's id. A **sheet** (paper-3, 2 px ink outline, offset shadow, centered over a dim backdrop, 200 ms rise) asks "Replace your draft?" with "Replace the draft" and "Keep my draft" when the draft is not blank, and lists import errors readably with a "Close" button.
+
 ### Reference image (M6, slice 3)
 
 A local picture (a photo or scan of a map) to trace from. It stays on this device: in memory and, per quest id, in its own IndexedDB table. It is not part of the quest, so it is never in `.hqquest.json`, never in git and never uploaded.

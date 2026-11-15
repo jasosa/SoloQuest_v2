@@ -12,6 +12,7 @@ import type { EditorStore, Tool } from './editorStore';
 import { countLabel } from './problems';
 import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
+import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
 
 const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
@@ -138,6 +139,10 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
         </button>
         <button className="link" disabled={s.future.length === 0} onClick={() => s.redo()}>
           Redo
+        </button>
+        <ImportButton store={store} />
+        <button className="link" data-testid="export" onClick={() => exportDraft(store)}>
+          Export
         </button>
         <button className="link" onClick={() => void s.save()}>
           Save

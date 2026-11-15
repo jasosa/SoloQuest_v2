@@ -234,7 +234,9 @@ export function createEditorStore(init: EditorInit): EditorStore {
       select: (selection) =>
         set(selection ? { selection, panel: 'element', picking: null } : { selection }),
       setPanel: (panel) =>
-        set(panel === 'notes' ? { panel, picking: null, selection: null } : { panel, picking: null }),
+        set(
+          panel === 'notes' ? { panel, picking: null, selection: null } : { panel, picking: null },
+        ),
       setNoteId: (noteId) => set({ noteId, picking: null }),
       setPicking: (picking) => set({ picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),

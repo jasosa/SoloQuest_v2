@@ -79,13 +79,14 @@ Slices (in order; each ends green with tests and a commit):
 - [x] Editor shell UI (tools left, board center, inspector right, history undo/redo) and the board tools; Editor entry on the quest select screen
 
 **Slice 2: inspector and notes**
-- [ ] Inspector (monster name, overrides, traits, spells, state; trap kind and effect; furniture letter; door kind)
-- [ ] Note builder (trigger picker on the board, conditions, effects, live check that every letter on the map has a note)
+- [x] Engine ops for the inspector and note builder (`updateMonster`, `updateTrap`, `setFurnitureLetter`, `addNote`, `updateNote`, `setNoteText`, `removeNote`, `lettersMissingNotes`, `notesWithoutLetter`)
+- [x] Inspector (monster name, overrides, traits, spells, state; trap kind and effect; furniture letter; door kind)
+- [x] Note builder (trigger picker on the board, conditions, effects, live check that every letter on the map has a note)
 
 **Slice 3: verification tools**
-- [ ] Reference underlay (load image, 4-corner align, opacity), local only
-- [ ] Validation panel with jump to the element; playtest with a "Zargon view" (shows everything)
-- [ ] Import/export in the UI; Quest 1 recreated in the editor equals the bundled file (done when)
+- [x] Reference underlay (load image, 4-corner align, opacity), local only
+- [x] Validation panel with jump to the element; playtest with a "Zargon view" (shows everything)
+- [x] Import/export in the UI; Quest 1 recreated in the editor equals the bundled file (done when)
 
 Open: "monster count vs box inventory" validation needs the miniature counts of the owner's box (not in the repo).
 
