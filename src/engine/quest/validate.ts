@@ -333,11 +333,8 @@ export function validateQuestIssues(
     else trapCells.set(key(t.cell), t.id);
   }
   // Stacking: a trap may share a monster's square (a chest trap sits on its chest). A monster
-  // never shares an NPC square. A trap never sits on stairs, a door square or an NPC.
+  // never shares an NPC square. A trap never sits on stairs or an NPC. Door squares are fine.
   // Monsters beside a door are fine: the Quest Book puts them there (quest 1, orc m16).
-  const doorCells = new Map<string, string>();
-  for (const d of [...quest.doors, ...quest.secretDoors, ...quest.falseDoors])
-    for (const c of [d.a, d.b]) doorCells.set(key(c), `door ${d.id}`);
   const npcCells = new Map(quest.npcs.map((n) => [key(n.cell), `npc ${n.id}`]));
   const stairCells = new Map<string, string>();
   for (const f of quest.furniture)
@@ -353,7 +350,6 @@ export function validateQuestIssues(
     const ref: IssueRef = { kind: 'trap', id: t.id, cell: cellOf(t.cell) };
     for (const [what, map] of [
       ['the stairs', stairCells],
-      ['a door square', doorCells],
       ['an NPC', npcCells],
     ] as const) {
       const hit = map.get(key(t.cell));

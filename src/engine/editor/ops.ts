@@ -634,13 +634,12 @@ export function addTrap(
       return fail('A chest trap goes on a piece of furniture, not on a square.');
     const p = floorProblem(q, target.cell, 'Trap');
     if (p) return fail(p);
-    // A trap may share a monster's square, but never stairs, a door square or an NPC.
+    // A trap may share a monster's square or a door square, but never stairs or an NPC.
     const hit = conflict(layers(q), target.cell, [
       'blocks',
       'furniture',
       'traps',
       'stairs',
-      'doors',
       'npcs',
     ]);
     if (hit) return fail(`Trap: ${hit} is on ${at(target.cell)}, so a trap cannot go there.`);

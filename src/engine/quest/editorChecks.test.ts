@@ -190,7 +190,7 @@ describe('stacking rules in the validator', () => {
     const q = testQuest({ npcs: [{ ...npc, cell: [6, 15] }] });
     expect(errors(q)).toContain('monster m1: cell 6,15 is on npc n1');
   });
-  it('rejects a trap on stairs, a door square or an NPC', () => {
+  it('rejects a trap on stairs or an NPC, allows one on a door square', () => {
     const stairs = {
       id: 's',
       type: 'stairs',
@@ -206,7 +206,7 @@ describe('stacking rules in the validator', () => {
     });
     expect(errors(onStairs).join('\n')).toMatch(/trap t9: cell 1,15 is on the stairs/);
     const onDoor = testQuest({ traps: [{ id: 't9', kind: 'pit', cell: [5, 15] }] });
-    expect(errors(onDoor).join('\n')).toMatch(/trap t9: cell 5,15 is on a door square \(door d2\)/);
+    expect(errors(onDoor).join('\n')).not.toMatch(/trap t9/);
     const onNpc = testQuest({ npcs: [npc], traps: [{ id: 't9', kind: 'pit', cell: [7, 15] }] });
     expect(errors(onNpc).join('\n')).toMatch(/trap t9: cell 7,15 is on an NPC/);
   });

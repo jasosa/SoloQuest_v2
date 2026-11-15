@@ -607,9 +607,9 @@ describe('stacking rules', () => {
   it('refuses a second monster on a square', () => {
     expect(bad(addMonster(base(), 'orc', [6, 15]))).toMatch(/monster m1/);
   });
-  it('refuses a trap on stairs, a door square or an NPC', () => {
+  it('refuses a trap on stairs or an NPC, allows one on a door square', () => {
     expect(bad(addTrap(base(), 'pit', { cell: [1, 15] }))).toMatch(/stairs/);
-    expect(bad(addTrap(base(), 'pit', { cell: [5, 15] }))).toMatch(/door d2/);
+    expect(addTrap(base(), 'pit', { cell: [5, 15] }).ok).toBe(true);
     expect(bad(addTrap(base(), 'spear', { cell: [7, 15] }))).toMatch(/npc n1/);
   });
   it('refuses two traps on a square, also when a trap is moved by updateTrap', () => {
