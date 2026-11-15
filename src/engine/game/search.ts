@@ -11,7 +11,7 @@ import { statsOf } from '../data/monsters';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
-import { runTriggers, type TriggerEvent } from './notes';
+import { blockingSearchNotes, runTriggers, type TriggerEvent } from './notes';
 import { springTrap } from './traps';
 import { draftOf, type GameState } from './state';
 import { isDormant, liveMonstersInRoom } from './monstersIn';
@@ -81,6 +81,19 @@ export function searchTreasure(
   const d = draftOf(state);
   const prompts: Prompt[] = [];
   const triggers: TriggerEvent[] = [];
+
+  // (0) A blocking note ("searching here is not possible"): only that note is shown. No chest
+  // trap springs, no card is drawn, and the search is not recorded, so the hero keeps the action.
+  const blockers = blockingSearchNotes(level, state, room, before.length === 0);
+  if (blockers.length > 0) {
+    const shown = runTriggers(
+      level,
+      d,
+      [{ type: 'treasureSearch', area: room, first: before.length === 0 }],
+      { beforeRooms: new Set(state.revealedRooms), only: (n) => blockers.includes(n) },
+    );
+    return { state: d, prompts: shown.prompts };
+  }
 
   // (a) A chest or furniture trap that is still armed springs first, then the search goes on.
   // This order is an interpretation of the digest ("searching springs it first").

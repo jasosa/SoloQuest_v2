@@ -209,6 +209,8 @@ const NoteSchema = z.strictObject({
   when: z.array(ConditionSchema).optional(),
   effects: z.array(EffectSchema),
   consumesTreasure: z.boolean().optional(),
+  /** Treasure search only: the note is shown, no card, no chest trap, and the search is not used up. */
+  blocksSearch: z.boolean().optional(),
 });
 
 // ---- the rest
@@ -235,6 +237,12 @@ const RulesSchema = z.strictObject({
   doorTeleport: z.strictObject({ dice: nonEmpty, squares: nonEmpty }).optional(),
   noEquipmentUntil: id.optional(),
   bounty: z.partialRecord(MonsterType, z.number().int().min(0)).optional(),
+});
+
+const EndingSchema = z.strictObject({
+  id,
+  label: nonEmpty,
+  text: nonEmpty.optional(),
 });
 
 const NpcSchema = z.strictObject({
@@ -274,6 +282,8 @@ export const QuestSchema = z.strictObject({
   rewards: z.string().optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
+  /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */
+  endings: z.array(EndingSchema).optional(),
 });
 
 export type Quest = z.infer<typeof QuestSchema>;
@@ -287,6 +297,7 @@ export type FurnitureDef = z.infer<typeof FurnitureSchema>;
 export type MonsterDef = z.infer<typeof MonsterSchema>;
 export type TrapDef = z.infer<typeof TrapSchema>;
 export type MarkerDef = z.infer<typeof MarkerSchema>;
+export type EndingDef = z.infer<typeof EndingSchema>;
 export type NpcDef = z.infer<typeof NpcSchema>;
 export type ObjectiveDef = z.infer<typeof ObjectiveSchema>;
 export type QuestRules = z.infer<typeof RulesSchema>;

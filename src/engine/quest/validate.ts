@@ -510,8 +510,19 @@ export function validateQuestIssues(
     }
     if (n.consumesTreasure && t.type !== 'treasureSearch')
       err(`${where}: consumesTreasure only makes sense for a treasureSearch trigger`, noteRef);
+    if (n.blocksSearch && t.type !== 'treasureSearch')
+      err(`${where}: blocksSearch only makes sense for a treasureSearch trigger`, noteRef);
+    if (n.blocksSearch && n.consumesTreasure)
+      err(`${where}: blocksSearch and consumesTreasure cannot both be set`, noteRef);
     (n.when ?? []).forEach((c) => checkCondition(where, c));
     n.effects.forEach((e) => checkEffect(where, e));
+  }
+
+  // ---- endings
+  const endingIds = new Set<string>();
+  for (const e of quest.endings ?? []) {
+    if (endingIds.has(e.id)) err(`ending ${e.id}: duplicate id`, { kind: 'quest' });
+    endingIds.add(e.id);
   }
 
   // ---- hidden monsters, objectives, rules

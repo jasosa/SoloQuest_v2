@@ -13,6 +13,7 @@ import { initialState, reduce, replay, startGame, undo, type Prompt } from './re
 import { draftOf, emptyState } from './state';
 import { revealRoom } from './reveal';
 import {
+  availableEndings,
   dormantFigures,
   endSummary,
   enterableAreas,
@@ -861,6 +862,47 @@ describe('objectives and END_QUEST', () => {
     expect(objectivesStatus(lv0, initialState(lv0, SEED)).goalDone).toBe(false);
   });
 
+  it('END_QUEST with a custom ending: label and text, not won, no rewards', () => {
+    const lvE = buildLevel(
+      testQuest({
+        rewards: '100 gold coins, shared',
+        endings: [
+          { id: 'npc-died', label: 'The guide died', text: 'The guide is lost.' },
+          { id: 'plain', label: 'Plain' },
+        ],
+      }),
+    );
+    expect(availableEndings(lvE)).toEqual([
+      { id: 'npc-died', label: 'The guide died', text: 'The guide is lost.' },
+      { id: 'plain', label: 'Plain', text: undefined },
+    ]);
+    const s = initialState(lvE, SEED);
+    const r = reduce(lvE, s, { type: 'END_QUEST', outcome: 'ending', ending: 'npc-died' });
+    expect(r.prompts).toEqual([
+      { kind: 'questEnded', outcome: 'ending', ending: 'npc-died', goalDone: false },
+    ]);
+    expect(r.state.ended).toEqual({ outcome: 'ending', ending: 'npc-died' });
+    expect(endSummary(lvE, r.state)).toMatchObject({
+      outcome: 'ending',
+      ending: { id: 'npc-died', label: 'The guide died', text: 'The guide is lost.' },
+      won: false,
+      rewards: undefined,
+    });
+    expect(code(() => reduce(lvE, r.state, turnEnd))).toBe('QUEST_ENDED');
+    // Undo replays to the state before the end.
+    expect(
+      undo(lvE, SEED, [{ type: 'END_QUEST', outcome: 'ending', ending: 'plain' }]).state.ended,
+    ).toBeUndefined();
+  });
+
+  it('END_QUEST refuses an unknown ending, and any ending when the quest has none', () => {
+    const lvE = buildLevel(testQuest({ endings: [{ id: 'a', label: 'A' }] }));
+    const bad: GameEvent = { type: 'END_QUEST', outcome: 'ending', ending: 'zzz' };
+    expect(code(() => reduce(lvE, initialState(lvE, SEED), bad))).toBe('UNKNOWN_ENDING');
+    expect(code(() => reduce(lv, initialState(lv, SEED), bad))).toBe('UNKNOWN_ENDING');
+    expect(availableEndings(lv)).toEqual([]);
+  });
+
   it('END_QUEST ends once and blocks every other event', () => {
     const s = replay(lv, SEED, seen);
     expect(endSummary(lv, s)).toBeUndefined();
@@ -1079,6 +1121,38 @@ describe('validateQuest: notes engine checks', () => {
     });
     for (const part of ['not both', 'n or every', 'consumesTreasure only', 'not a room'])
       expect(has(ps, part)).toBe(true);
+  });
+  it('blocksSearch needs a treasureSearch trigger and excludes consumesTreasure', () => {
+    const ps = problems({
+      notes: [
+        keepFixture,
+        note({ id: 'a', blocksSearch: true }),
+        note({
+          id: 'b',
+          trigger: { type: 'treasureSearch', area: 'R17' },
+          blocksSearch: true,
+          consumesTreasure: true,
+        }),
+      ],
+    });
+    expect(has(ps, 'note a: blocksSearch only')).toBe(true);
+    expect(has(ps, 'note b: blocksSearch and consumesTreasure')).toBe(true);
+    const fine = problems({
+      notes: [
+        keepFixture,
+        note({ id: 'c', trigger: { type: 'treasureSearch', area: 'R17' }, blocksSearch: true }),
+      ],
+    });
+    expect(fine).toEqual([]);
+  });
+  it('ending ids must be unique', () => {
+    const ps = problems({
+      endings: [
+        { id: 'e1', label: 'One' },
+        { id: 'e1', label: 'Two' },
+      ],
+    });
+    expect(has(ps, 'ending e1: duplicate id')).toBe(true);
   });
   it('traps and doors may not sit under blocks or furniture', () => {
     const ps = problems({

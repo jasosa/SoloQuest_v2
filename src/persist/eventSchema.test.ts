@@ -24,6 +24,7 @@ describe('EventSchema covers the search, trap and notes events', () => {
     { type: 'MONSTER_DONE', monster: 'm1' },
     { type: 'END_QUEST', outcome: 'stairs' },
     { type: 'END_QUEST', outcome: 'fell' },
+    { type: 'END_QUEST', outcome: 'ending', ending: 'ragnar-died' },
   ];
   for (const e of events)
     it(`round-trips ${e.type}`, () => {
@@ -32,6 +33,10 @@ describe('EventSchema covers the search, trap and notes events', () => {
 
   it('rejects bad note events', () => {
     expect(EventSchema.safeParse({ type: 'END_QUEST', outcome: 'won' }).success).toBe(false);
+    expect(EventSchema.safeParse({ type: 'END_QUEST', outcome: 'ending' }).success).toBe(false);
+    expect(EventSchema.safeParse({ type: 'END_QUEST', outcome: 'fell', ending: 'x' }).success).toBe(
+      false,
+    );
     expect(EventSchema.safeParse({ type: 'CHOOSE', note: 'n', option: -1 }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'SQUARE_TRIGGER', cell: [1.5, 2] }).success).toBe(false);
     expect(EventSchema.safeParse({ type: 'AREA_ENTER' }).success).toBe(false);

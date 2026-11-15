@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addEnding,
   addObjective,
+  removeEnding,
+  updateEnding,
   removeObjective,
   setRules,
   setWandering,
@@ -34,6 +37,39 @@ describe('setWandering', () => {
   });
   it('refuses empty text', () => {
     expect(setWandering(base(), { text: ' ' }).ok).toBe(false);
+  });
+});
+
+describe('endings', () => {
+  it('adds with generated ids, trims, and keeps the quest valid', () => {
+    const q = ok(addEnding(base(), { label: '  Sir Ragnar died ', text: ' Lost. ' }));
+    expect(q.endings).toEqual([{ id: 'e1', label: 'Sir Ragnar died', text: 'Lost.' }]);
+    const q2 = ok(addEnding(q, { label: 'Other', id: 'other' }));
+    expect(q2.endings).toEqual([
+      { id: 'e1', label: 'Sir Ragnar died', text: 'Lost.' },
+      { id: 'other', label: 'Other' },
+    ]);
+  });
+  it('refuses an empty label, a bad id and a duplicate id', () => {
+    const q = ok(addEnding(base(), { label: 'A', id: 'a' }));
+    expect(addEnding(q, { label: ' ' }).ok).toBe(false);
+    expect(addEnding(q, { label: 'B', id: 'bad id' }).ok).toBe(false);
+    expect(addEnding(q, { label: 'B', id: 'a' }).ok).toBe(false);
+  });
+  it('updates label and text, null clears the text', () => {
+    const q = ok(addEnding(base(), { label: 'A', text: 'x', id: 'a' }));
+    const u = ok(updateEnding(q, 'a', { label: 'B', text: 'y' }));
+    expect(u.endings).toEqual([{ id: 'a', label: 'B', text: 'y' }]);
+    expect(ok(updateEnding(u, 'a', { text: null })).endings).toEqual([{ id: 'a', label: 'B' }]);
+    expect(updateEnding(u, 'a', { label: '' }).ok).toBe(false);
+    expect(updateEnding(u, 'zz', {}).ok).toBe(false);
+  });
+  it('removes, and drops the field when the list is empty; the input is not changed', () => {
+    const q = Object.freeze(ok(addEnding(base(), { label: 'A', id: 'a' })));
+    const r = ok(removeEnding(q, 'a'));
+    expect('endings' in r).toBe(false);
+    expect(q.endings).toHaveLength(1);
+    expect(removeEnding(q, 'zz').ok).toBe(false);
   });
 });
 

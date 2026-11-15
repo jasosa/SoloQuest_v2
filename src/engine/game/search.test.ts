@@ -263,6 +263,66 @@ describe('SEARCH_TREASURE: notes', () => {
   });
 });
 
+describe('SEARCH_TREASURE: blocksSearch', () => {
+  const lv = buildLevel(
+    testQuest({
+      notes: [
+        {
+          id: 'no-search',
+          letter: 'A',
+          trigger: { type: 'treasureSearch', area: 'R17' },
+          effects: [{ type: 'showText', text: 'Cannot search here.' }],
+          blocksSearch: true,
+        },
+        {
+          id: 'also-r17',
+          trigger: { type: 'treasureSearch', area: 'R17' },
+          effects: [{ type: 'showText', text: 'Should not show.' }],
+        },
+      ],
+    }),
+  );
+
+  it('shows only the note: no card, no chest trap, search not recorded', () => {
+    const s = replay(lv, SEED, intoR17);
+    const r = reduce(lv, s, treasure('R17', 'elf'));
+    expect(r.prompts).toEqual([
+      {
+        kind: 'note',
+        noteId: 'no-search',
+        letter: 'A',
+        texts: ['Cannot search here.'],
+        consumesTreasure: false,
+        blocksSearch: true,
+      },
+    ]);
+    expect(r.state.treasureSearched).toEqual({});
+    expect(r.state.trapStates).toEqual({}); // the chest trap did not spring
+    expect(r.state.notesFired).toEqual(['no-search']);
+  });
+
+  it('the same hero may try again, and may search another room', () => {
+    const s = replay(lv, SEED, [...intoR17, treasure('R17', 'elf')]);
+    expect(kinds(reduce(lv, s, treasure('R17', 'elf')).prompts)).toEqual(['note']);
+    expect(kinds(reduce(lv, s, treasure('R20', 'elf')).prompts)).toEqual(['drawCard']);
+  });
+
+  it('a blocking note whose conditions fail does not block', () => {
+    const lv2 = buildLevel(
+      testQuest({
+        notes: [{ ...lv.quest.notes[0]!, when: [{ flag: 'x', is: true }] }],
+      }),
+    );
+    const s = replay(lv2, SEED, intoR17);
+    expect(kinds(reduce(lv2, s, treasure('R17', 'elf')).prompts)).toContain('drawCard');
+  });
+
+  it('still refuses while monsters are in the room', () => {
+    const s = replay(lv, SEED, [open('d2')]);
+    expect(code(() => reduce(lv, s, treasure('R17', 'elf')))).toBe('MONSTERS_IN_ROOM');
+  });
+});
+
 describe('SEARCH_TREASURE: quest 1 notes A and D (decision 17)', () => {
   const q1 = parseQuest(
     JSON.parse(

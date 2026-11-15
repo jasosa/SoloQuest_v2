@@ -31,6 +31,8 @@ export type Prompt =
       readonly title?: string | undefined;
       readonly texts: readonly string[];
       readonly consumesTreasure: boolean;
+      /** Present (true) on a note that blocks the search: no card, the hero may search elsewhere. */
+      readonly blocksSearch?: true;
     }
   /** A note asks the players to choose. Answer with CHOOSE {note, option}. */
   | {
@@ -82,7 +84,9 @@ export type Prompt =
   | { readonly kind: 'goalDone' }
   | {
       readonly kind: 'questEnded';
-      readonly outcome: 'stairs' | 'fell';
+      readonly outcome: 'stairs' | 'fell' | 'ending';
+      /** The id of the quest ending, when `outcome` is 'ending'. */
+      readonly ending?: string;
       readonly goalDone: boolean;
     }
   /** The notes engine stopped a chain of notes that went on too long. */

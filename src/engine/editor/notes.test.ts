@@ -156,6 +156,25 @@ describe('updateNote', () => {
   });
 });
 
+describe('blocksSearch', () => {
+  const withNote = () => deepFreeze(good(addNote(testQuest(), { letter: 'A', at: [2, 2] })));
+  it('is set and cleared, and addNote accepts it', () => {
+    const trigger = { type: 'treasureSearch', area: 'R17' } as const;
+    const q = good(updateNote(withNote(), 'n-A', { trigger, blocksSearch: true }));
+    expect(q.notes[1]).toMatchObject({ blocksSearch: true });
+    const r = updateNote(q, 'n-A', { blocksSearch: null });
+    expect(r.ok && 'blocksSearch' in r.quest.notes[1]!).toBe(false);
+    const added = good(addNote(testQuest(), { trigger, blocksSearch: true }));
+    expect(added.notes.at(-1)).toMatchObject({ blocksSearch: true });
+  });
+  it('warns when the trigger is not a treasure search', () => {
+    const r = updateNote(withNote(), 'n-A', { blocksSearch: true });
+    expect(r.ok && r.warnings.map((w) => w.message)).toEqual([
+      expect.stringMatching(/blocksSearch only/),
+    ]);
+  });
+});
+
 describe('setNoteText', () => {
   it('adds, replaces and removes the main text, keeping other effects and the title', () => {
     let q = good(addNote(base(), { letter: 'A', effects: [{ type: 'revealAll' }] }));

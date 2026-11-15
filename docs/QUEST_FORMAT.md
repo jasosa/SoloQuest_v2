@@ -35,7 +35,8 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "objectives": [ { "id": "o1", "text": "Destroy Verag", "done": { "monsterKilled": "m-verag" } } ],
   "rewards": "",                              // text only (e.g. "240 gold coins, shared"), never tracked
   "rules": { },                               // quest-wide overrides, see below
-  "npcs": [ ]                                 // e.g. Sir Ragnar
+  "npcs": [ ],                                // e.g. Sir Ragnar
+  "endings": [ { "id": "ragnar-died", "label": "Sir Ragnar died", "text": "optional end screen text" } ]  // optional
 }
 ```
 
@@ -77,8 +78,17 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "when": [ { "monstersAliveIn": "R18", "is": 0 } ],    // optional conditions, all must hold
   "effects": [ { "type": "showText", "text": "The weapons on this rack are chipped, rusted and broken. Nothing is worth taking." } ],
   "consumesTreasure": true                              // no treasure card is drawn when this fires
+  // or: "blocksSearch": true   (treasureSearch only, not together with consumesTreasure)
 }
 ```
+
+`blocksSearch`: searching here is not possible. The note is shown, no treasure card is drawn, no chest trap springs, and the search is NOT recorded: the hero keeps the action and may search elsewhere. Only the blocking notes fire for that search (other notes of the trigger wait). A search with `consumesTreasure` is different: it is used up.
+
+### Endings (optional)
+
+`endings` lists extra ways to end the quest, for example when an NPC dies. Each has a unique `id`, a short paraphrased `label` and an optional `text`. The End the Quest list offers them next to "Left by the stairs" and "All heroes fell". Picking one sends `END_QUEST` with `outcome: "ending"` and `ending: <id>`. The end screen shows the label and text, counts as not won, and shows no reward. Nothing in notes refers to endings.
+
+Migration: `endings` and `blocksSearch` are optional, so old files stay valid and `schemaVersion` stays `1`.
 
 ### Triggers
 

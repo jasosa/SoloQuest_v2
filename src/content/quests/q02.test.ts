@@ -7,7 +7,14 @@ import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { journal, mapLetters, npcsInPlay, objectivesStatus } from '../../engine/game/view';
+import {
+  availableEndings,
+  endSummary,
+  journal,
+  mapLetters,
+  npcsInPlay,
+  objectivesStatus,
+} from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -242,12 +249,17 @@ describe('quest 2: the alarm', () => {
     expect(shown.text).toContain('2 Body Points');
   });
 
-  it('no treasure search in the cell: the search is consumed with a message', () => {
+  it('no treasure search in the cell: a message, no card, and the hero keeps the search', () => {
     const s = reduce(level, r.state, search('R13'));
     expect(s.prompts.find((p) => p.kind === 'note')).toMatchObject({
       noteId: 'n-cell',
-      consumesTreasure: true,
+      consumesTreasure: false,
+      blocksSearch: true,
     });
+    expect(s.prompts.map((p) => p.kind)).not.toContain('drawCard');
+    expect(s.state.treasureSearched['R13']).toBeUndefined();
+    expect(note('A')?.blocksSearch).toBeUndefined();
+    expect(quest.notes.find((n) => n.id === 'n-cell')?.consumesTreasure).toBeUndefined();
   });
 
   it('other doors never trigger the alarm', () => {
@@ -265,6 +277,21 @@ describe('quest 2: the end', () => {
     expect(r.state.objectivesDone).toContain('o1');
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
     expect(quest.rewards).toContain('240');
+  });
+
+  it('has the ending "Sir Ragnar died": not a win, no reward shown', () => {
+    expect(availableEndings(level).map((e) => e.id)).toEqual(['ragnar-died']);
+    const s = reduce(level, run(...intoCell), {
+      type: 'END_QUEST',
+      outcome: 'ending',
+      ending: 'ragnar-died',
+    }).state;
+    expect(endSummary(level, s)).toMatchObject({
+      outcome: 'ending',
+      ending: { label: 'Sir Ragnar died' },
+      won: false,
+      rewards: undefined,
+    });
   });
 
   it('the stairs note only works after the alarm', () => {

@@ -73,6 +73,8 @@ export type GameEvent =
   /** The players carried out the order of a monster this Zargon turn. Once per monster per turn. */
   | { readonly type: 'MONSTER_DONE'; readonly monster: string }
   /** The quest is over: the heroes left by the stairs, or all of them fell. Only once. */
-  | { readonly type: 'END_QUEST'; readonly outcome: 'stairs' | 'fell' };
+  | { readonly type: 'END_QUEST'; readonly outcome: 'stairs' | 'fell' }
+  /** The quest is over by one of the quest's own endings (`quest.endings`), for example an NPC died. */
+  | { readonly type: 'END_QUEST'; readonly outcome: 'ending'; readonly ending: string };
 
 export type EventType = GameEvent['type'];

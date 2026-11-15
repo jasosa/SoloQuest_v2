@@ -4,7 +4,7 @@
  * Half done work is allowed (an objective that points at a missing monster): that comes back as
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
-import type { MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
+import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
 /** Text for Zargon only. Empty text clears it. */
@@ -100,5 +100,79 @@ export function setRules(q: Quest, patch: RulesPatch): EditResult {
     else next[k] = v;
   }
   const quest = { ...q, rules: next as QuestRules };
+  return ok(quest, newIssues(q, quest));
+}
+
+// ---- endings
+
+export interface NewEnding {
+  label: string;
+  text?: string;
+  id?: string;
+}
+
+/** Put the list back on the quest; an empty list removes the field. */
+function withEndings(q: Quest, endings: EndingDef[]): Quest {
+  const { endings: _old, ...rest } = q;
+  void _old;
+  return endings.length === 0 ? rest : { ...rest, endings };
+}
+
+/** Add a custom quest ending (for example "Sir Ragnar died"). */
+export function addEnding(q: Quest, input: NewEnding): EditResult {
+  const label = input.label.trim();
+  if (label === '') return fail('An ending needs a label.');
+  const list = q.endings ?? [];
+  let id = input.id;
+  if (id !== undefined) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The ending id "${id}" is not valid.`);
+    if (list.some((e) => e.id === id)) return fail(`An ending with id ${id} already exists.`);
+  } else
+    id = nextId(
+      'e',
+      list.map((e) => e.id),
+    );
+  const text = input.text?.trim();
+  const ending: EndingDef = clean({ id, label, text: text === '' ? undefined : text });
+  const quest = withEndings(q, [...list, ending]);
+  return ok(quest, newIssues(q, quest));
+}
+
+/** `null` clears the text; a missing key leaves it as it is. */
+export interface EndingPatch {
+  label?: string;
+  text?: string | null;
+}
+
+export function updateEnding(q: Quest, id: string, patch: EndingPatch): EditResult {
+  const list = q.endings ?? [];
+  const e = list.find((x) => x.id === id);
+  if (!e) return fail(`There is no ending ${id}.`);
+  const next: EndingDef = { ...e };
+  if (patch.label !== undefined) {
+    const l = patch.label.trim();
+    if (l === '') return fail('An ending needs a label.');
+    next.label = l;
+  }
+  if (patch.text !== undefined) {
+    const t = patch.text === null ? '' : patch.text.trim();
+    if (t === '') delete next.text;
+    else next.text = t;
+  }
+  const quest = withEndings(
+    q,
+    list.map((x) => (x.id === id ? next : x)),
+  );
+  return ok(quest, newIssues(q, quest));
+}
+
+/** Remove an ending. Nothing in the quest refers to endings, so there is nothing to warn about. */
+export function removeEnding(q: Quest, id: string): EditResult {
+  const list = q.endings ?? [];
+  if (!list.some((e) => e.id === id)) return fail(`There is no ending ${id}.`);
+  const quest = withEndings(
+    q,
+    list.filter((e) => e.id !== id),
+  );
   return ok(quest, newIssues(q, quest));
 }

@@ -155,20 +155,22 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
     case 'MONSTER_DONE':
       return monsterDone(level, state, event.monster);
     case 'END_QUEST': {
+      const goalDone = objectivesStatus(level, state).goalDone;
+      const d = draftOf(state);
+      if (event.outcome === 'ending') {
+        const id = event.ending;
+        if (!(level.quest.endings ?? []).some((e) => e.id === id))
+          throw new EventError('UNKNOWN_ENDING', `Unknown ending ${String(id)}`);
+        d.ended = { outcome: 'ending', ending: id };
+        return {
+          state: d,
+          prompts: [{ kind: 'questEnded', outcome: 'ending', ending: id, goalDone }],
+        };
+      }
       if (event.outcome !== 'stairs' && event.outcome !== 'fell')
         throw new EventError('BAD_RESULT', `Bad outcome ${String(event.outcome)}`);
-      const d = draftOf(state);
       d.ended = { outcome: event.outcome };
-      return {
-        state: d,
-        prompts: [
-          {
-            kind: 'questEnded',
-            outcome: event.outcome,
-            goalDone: objectivesStatus(level, state).goalDone,
-          },
-        ],
-      };
+      return { state: d, prompts: [{ kind: 'questEnded', outcome: event.outcome, goalDone }] };
     }
     default: {
       const never: never = event;

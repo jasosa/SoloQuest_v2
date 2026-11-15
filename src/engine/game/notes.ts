@@ -57,6 +57,8 @@ export interface RunOptions {
   /** Rooms that were revealed before the event. Rooms revealed since fire `areaRevealed`.
    *  Default: the rooms revealed now (nothing new). */
   readonly beforeRooms?: ReadonlySet<AreaId>;
+  /** Only notes that pass this filter may fire (used for a blocked search). */
+  readonly only?: (note: Note) => boolean;
   readonly maxDepth?: number;
   readonly maxSteps?: number;
 }
@@ -164,6 +166,26 @@ function conditionHolds(level: Level, d: GameState, c: Condition, note: Note): b
   return !d.notesFired.includes(note.id); // firstTime
 }
 
+/**
+ * Notes with `blocksSearch` that apply to a treasure search of `area` right now (trigger matches,
+ * conditions hold). The caller shows only these and stops the search.
+ */
+export function blockingSearchNotes(
+  level: Level,
+  d: GameState,
+  area: AreaId,
+  first: boolean,
+): Note[] {
+  const t: TriggerEvent = { type: 'treasureSearch', area, first };
+  return level.quest.notes.filter(
+    (n) =>
+      n.blocksSearch === true &&
+      matches(n, t, d) &&
+      isAvailable(n, d) &&
+      conditionsHold(level, d, n),
+  );
+}
+
 // ---- the queue
 
 export function fireTrigger(
@@ -230,6 +252,7 @@ function run(level: Level, d: Draft, initial: Item[], opts: RunOptions): NotesRe
       runNoteEffects(ctx, item.note, item.effects, true, false);
     } else {
       for (const note of level.quest.notes) {
+        if (opts.only && !opts.only(note)) continue;
         if (!matches(note, item.t, d)) continue;
         if (!isAvailable(note, d)) continue;
         if (!conditionsHold(level, d, note)) continue;
@@ -263,7 +286,10 @@ function runNoteEffects(
   takesTreasure: boolean,
 ): void {
   const { texts, title } = textsOf(effects);
-  if (texts.length > 0 || (!fromChoice && (note.letter !== undefined || takesTreasure))) {
+  if (
+    texts.length > 0 ||
+    (!fromChoice && (note.letter !== undefined || takesTreasure || note.blocksSearch === true))
+  ) {
     ctx.prompts.push({
       kind: 'note',
       noteId: note.id,
@@ -272,6 +298,7 @@ function runNoteEffects(
       ...(title !== undefined ? { title } : {}),
       texts,
       consumesTreasure: takesTreasure || (!fromChoice && note.consumesTreasure === true),
+      ...(!fromChoice && note.blocksSearch === true ? { blocksSearch: true as const } : {}),
     });
   }
   for (const e of effects) runEffect(ctx, note, e);

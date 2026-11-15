@@ -21,6 +21,7 @@ export type EventErrorCode =
   | 'TRAP_GONE'
   | 'TRAP_CANNOT'
   | 'BAD_RESULT'
+  | 'UNKNOWN_ENDING'
   | 'UNKNOWN_FURNITURE'
   | 'NOT_A_CHEST'
   | 'FURNITURE_NOT_SEEN'

@@ -65,7 +65,20 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('SPELL_FAILED'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),
-  z.object({ type: z.literal('END_QUEST'), outcome: z.enum(['stairs', 'fell']) }),
+  // One object for all outcomes (a discriminated union needs one entry per type). The refine
+  // keeps an ending id on 'ending' and nowhere else; the transform gives the GameEvent shape.
+  z
+    .object({
+      type: z.literal('END_QUEST'),
+      outcome: z.enum(['stairs', 'fell', 'ending']),
+      ending: z.string().optional(),
+    })
+    .refine((e) => (e.outcome === 'ending') === (e.ending !== undefined))
+    .transform((e) =>
+      e.outcome === 'ending'
+        ? { type: e.type, outcome: e.outcome, ending: e.ending! }
+        : { type: e.type, outcome: e.outcome },
+    ),
 ]);
 
 // Compile-time guard: every GameEvent type needs an entry in EventSchema, or a save that holds

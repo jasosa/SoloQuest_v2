@@ -268,7 +268,7 @@
       "id": "n-cell",
       "trigger": { "type": "treasureSearch", "area": "R13" },
       "effects": [{ "type": "showText", "text": "Heroes cannot search for treasure in the cell." }],
-      "consumesTreasure": true
+      "blocksSearch": true
     },
     {
       "id": "n-home",
@@ -289,6 +289,13 @@
   ],
   "rewards": "240 gold coins, shared among the heroes. Nothing if Sir Ragnar dies during the escape.",
   "rules": {},
+  "endings": [
+    {
+      "id": "ragnar-died",
+      "label": "Sir Ragnar died",
+      "text": "Sir Ragnar is lost and the rescue has failed. The heroes earn no reward."
+    }
+  ],
   "npcs": [
     {
       "id": "ragnar",

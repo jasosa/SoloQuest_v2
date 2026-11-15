@@ -57,6 +57,8 @@ export interface NewNote {
   when?: Condition[];
   effects?: Effect[];
   consumesTreasure?: boolean;
+  /** Treasure search only: show the note, draw no card, and do not use up the search. */
+  blocksSearch?: boolean;
   id?: string;
 }
 
@@ -91,6 +93,7 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
     when: input.when && input.when.length ? input.when : undefined,
     effects: input.effects ?? [],
     consumesTreasure: input.consumesTreasure ? true : undefined,
+    blocksSearch: input.blocksSearch ? true : undefined,
   });
   const quest = { ...q, notes: [...q.notes, note] };
   return ok(quest, newIssues(q, quest));
@@ -104,6 +107,7 @@ export interface NotePatch {
   when?: Condition[] | null;
   effects?: Effect[];
   consumesTreasure?: boolean | null;
+  blocksSearch?: boolean | null;
 }
 
 export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
@@ -130,6 +134,7 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
   if (patch.effects !== undefined) next.effects = patch.effects;
   if (patch.consumesTreasure !== undefined)
     set('consumesTreasure', patch.consumesTreasure ? true : null);
+  if (patch.blocksSearch !== undefined) set('blocksSearch', patch.blocksSearch ? true : null);
   const quest = { ...q, notes: q.notes.map((x) => (x.id === id ? (next as Note) : x)) };
   return ok(quest, newIssues(q, quest));
 }

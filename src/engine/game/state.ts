@@ -118,7 +118,10 @@ export interface GameState {
   /** Monsters whose order was carried out this Zargon turn. Cleared on ZARGON_TURN_END. */
   readonly doneThisTurn: readonly string[];
   /** Set once by END_QUEST. After that every event is rejected. */
-  readonly ended: { readonly outcome: 'stairs' | 'fell' } | undefined;
+  readonly ended:
+    | { readonly outcome: 'stairs' | 'fell' }
+    | { readonly outcome: 'ending'; readonly ending: string }
+    | undefined;
 }
 
 export function emptyState(seed: number): GameState {

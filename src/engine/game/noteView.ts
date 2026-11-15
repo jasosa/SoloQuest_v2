@@ -150,8 +150,22 @@ export function objectivesStatus(level: Level, state: GameState): ObjectivesView
   return { items, goalDone: items.length > 0 && items.every((i) => i.done) };
 }
 
+/** A way to end the quest that the quest itself names (paraphrased label and text). */
+export interface EndingView {
+  readonly id: string;
+  readonly label: string;
+  readonly text: string | undefined;
+}
+
+/** The custom endings to offer in the End the Quest list (empty for most quests). */
+export function availableEndings(level: Level): EndingView[] {
+  return (level.quest.endings ?? []).map((e) => ({ id: e.id, label: e.label, text: e.text }));
+}
+
 export interface EndSummary {
-  readonly outcome: 'stairs' | 'fell';
+  readonly outcome: 'stairs' | 'fell' | 'ending';
+  /** The custom ending that was picked (only when `outcome` is 'ending'). */
+  readonly ending: EndingView | undefined;
   readonly goalDone: boolean;
   /** The goal was done and the heroes left by the stairs. */
   readonly won: boolean;
@@ -164,11 +178,16 @@ export interface EndSummary {
 export function endSummary(level: Level, state: GameState): EndSummary | undefined {
   if (!state.ended) return undefined;
   const view = objectivesStatus(level, state);
+  const e = state.ended;
+  const ending =
+    e.outcome === 'ending' ? availableEndings(level).find((x) => x.id === e.ending) : undefined;
   return {
-    outcome: state.ended.outcome,
+    outcome: e.outcome,
+    ending,
     goalDone: view.goalDone,
-    won: view.goalDone && state.ended.outcome === 'stairs',
-    rewards: level.quest.rewards ? level.quest.rewards : undefined,
+    won: view.goalDone && e.outcome === 'stairs',
+    // A custom ending shows no reward.
+    rewards: e.outcome !== 'ending' && level.quest.rewards ? level.quest.rewards : undefined,
     objectives: view.items,
   };
 }
