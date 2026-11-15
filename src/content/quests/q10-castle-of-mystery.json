@@ -1,0 +1,2758 @@
+{
+  "schemaVersion": 1,
+  "id": "q10-castle-of-mystery",
+  "number": 10,
+  "title": "Castle of Mystery",
+  "intro": {
+    "summary": "Long ago the wizard Ollar raised an enchanted castle on top of a gold mine to guard it. Its ground floor is a puzzle of magic doors, held by monsters caught out of time. The heroes must find the way to the mine."
+  },
+  "zargonInfo": "Every door is a teleporter. A hero who passes through ends the move there and rolls 2 red dice, then is moved to the numbered square equal to the total. A total of 2 or 12 leads to the square marked 2/12, just inside the start room door; from there the hero can walk to the stairs and leave. The app does not track positions: the players move the figures, apply the teleport rule and the stair exit by hand.",
+  "start": {
+    "area": "R20"
+  },
+  "rock": {
+    "rooms": [
+      "R01",
+      "R09",
+      "R15"
+    ],
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        0
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        11,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        13,
+        0
+      ],
+      [
+        14,
+        0
+      ],
+      [
+        15,
+        0
+      ],
+      [
+        16,
+        0
+      ],
+      [
+        17,
+        0
+      ],
+      [
+        18,
+        0
+      ],
+      [
+        19,
+        0
+      ],
+      [
+        20,
+        0
+      ],
+      [
+        21,
+        0
+      ],
+      [
+        22,
+        0
+      ],
+      [
+        23,
+        0
+      ],
+      [
+        24,
+        0
+      ],
+      [
+        25,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        6,
+        1
+      ],
+      [
+        7,
+        1
+      ],
+      [
+        8,
+        1
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        13,
+        1
+      ],
+      [
+        17,
+        1
+      ],
+      [
+        18,
+        1
+      ],
+      [
+        19,
+        1
+      ],
+      [
+        20,
+        1
+      ],
+      [
+        25,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        18,
+        2
+      ],
+      [
+        19,
+        2
+      ],
+      [
+        20,
+        2
+      ],
+      [
+        25,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        7,
+        3
+      ],
+      [
+        8,
+        3
+      ],
+      [
+        12,
+        3
+      ],
+      [
+        13,
+        3
+      ],
+      [
+        17,
+        3
+      ],
+      [
+        18,
+        3
+      ],
+      [
+        19,
+        3
+      ],
+      [
+        20,
+        3
+      ],
+      [
+        25,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        5,
+        4
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        7,
+        4
+      ],
+      [
+        8,
+        4
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        13,
+        4
+      ],
+      [
+        17,
+        4
+      ],
+      [
+        18,
+        4
+      ],
+      [
+        19,
+        4
+      ],
+      [
+        20,
+        4
+      ],
+      [
+        25,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        7,
+        5
+      ],
+      [
+        8,
+        5
+      ],
+      [
+        12,
+        5
+      ],
+      [
+        13,
+        5
+      ],
+      [
+        21,
+        5
+      ],
+      [
+        23,
+        5
+      ],
+      [
+        24,
+        5
+      ],
+      [
+        25,
+        5
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        6
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        8,
+        6
+      ],
+      [
+        9,
+        6
+      ],
+      [
+        10,
+        6
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        12,
+        6
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        14,
+        6
+      ],
+      [
+        15,
+        6
+      ],
+      [
+        16,
+        6
+      ],
+      [
+        21,
+        6
+      ],
+      [
+        22,
+        6
+      ],
+      [
+        23,
+        6
+      ],
+      [
+        24,
+        6
+      ],
+      [
+        25,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ],
+      [
+        8,
+        7
+      ],
+      [
+        9,
+        7
+      ],
+      [
+        16,
+        7
+      ],
+      [
+        21,
+        7
+      ],
+      [
+        22,
+        7
+      ],
+      [
+        23,
+        7
+      ],
+      [
+        24,
+        7
+      ],
+      [
+        25,
+        7
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        8
+      ],
+      [
+        9,
+        8
+      ],
+      [
+        16,
+        8
+      ],
+      [
+        21,
+        8
+      ],
+      [
+        22,
+        8
+      ],
+      [
+        23,
+        8
+      ],
+      [
+        24,
+        8
+      ],
+      [
+        25,
+        8
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        9
+      ],
+      [
+        17,
+        9
+      ],
+      [
+        18,
+        9
+      ],
+      [
+        19,
+        9
+      ],
+      [
+        20,
+        9
+      ],
+      [
+        21,
+        9
+      ],
+      [
+        22,
+        9
+      ],
+      [
+        23,
+        9
+      ],
+      [
+        24,
+        9
+      ],
+      [
+        25,
+        9
+      ],
+      [
+        0,
+        10
+      ],
+      [
+        1,
+        10
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        16,
+        10
+      ],
+      [
+        25,
+        10
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        1,
+        11
+      ],
+      [
+        2,
+        11
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        4,
+        11
+      ],
+      [
+        8,
+        11
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        16,
+        11
+      ],
+      [
+        25,
+        11
+      ],
+      [
+        0,
+        12
+      ],
+      [
+        1,
+        12
+      ],
+      [
+        2,
+        12
+      ],
+      [
+        3,
+        12
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        7,
+        12
+      ],
+      [
+        8,
+        12
+      ],
+      [
+        9,
+        12
+      ],
+      [
+        10,
+        12
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        12
+      ],
+      [
+        13,
+        12
+      ],
+      [
+        14,
+        12
+      ],
+      [
+        15,
+        12
+      ],
+      [
+        16,
+        12
+      ],
+      [
+        25,
+        12
+      ],
+      [
+        0,
+        13
+      ],
+      [
+        1,
+        13
+      ],
+      [
+        2,
+        13
+      ],
+      [
+        3,
+        13
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        6,
+        13
+      ],
+      [
+        7,
+        13
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        13
+      ],
+      [
+        25,
+        13
+      ],
+      [
+        0,
+        14
+      ],
+      [
+        5,
+        14
+      ],
+      [
+        6,
+        14
+      ],
+      [
+        7,
+        14
+      ],
+      [
+        8,
+        14
+      ],
+      [
+        12,
+        14
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        18,
+        14
+      ],
+      [
+        19,
+        14
+      ],
+      [
+        20,
+        14
+      ],
+      [
+        21,
+        14
+      ],
+      [
+        23,
+        14
+      ],
+      [
+        24,
+        14
+      ],
+      [
+        25,
+        14
+      ],
+      [
+        0,
+        15
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        6,
+        15
+      ],
+      [
+        7,
+        15
+      ],
+      [
+        12,
+        15
+      ],
+      [
+        13,
+        15
+      ],
+      [
+        18,
+        15
+      ],
+      [
+        19,
+        15
+      ],
+      [
+        20,
+        15
+      ],
+      [
+        21,
+        15
+      ],
+      [
+        22,
+        15
+      ],
+      [
+        23,
+        15
+      ],
+      [
+        24,
+        15
+      ],
+      [
+        25,
+        15
+      ],
+      [
+        0,
+        16
+      ],
+      [
+        5,
+        16
+      ],
+      [
+        6,
+        16
+      ],
+      [
+        7,
+        16
+      ],
+      [
+        8,
+        16
+      ],
+      [
+        12,
+        16
+      ],
+      [
+        13,
+        16
+      ],
+      [
+        19,
+        16
+      ],
+      [
+        20,
+        16
+      ],
+      [
+        21,
+        16
+      ],
+      [
+        22,
+        16
+      ],
+      [
+        23,
+        16
+      ],
+      [
+        24,
+        16
+      ],
+      [
+        25,
+        16
+      ],
+      [
+        0,
+        17
+      ],
+      [
+        5,
+        17
+      ],
+      [
+        6,
+        17
+      ],
+      [
+        7,
+        17
+      ],
+      [
+        8,
+        17
+      ],
+      [
+        12,
+        17
+      ],
+      [
+        13,
+        17
+      ],
+      [
+        18,
+        17
+      ],
+      [
+        19,
+        17
+      ],
+      [
+        20,
+        17
+      ],
+      [
+        21,
+        17
+      ],
+      [
+        22,
+        17
+      ],
+      [
+        23,
+        17
+      ],
+      [
+        24,
+        17
+      ],
+      [
+        25,
+        17
+      ],
+      [
+        0,
+        18
+      ],
+      [
+        1,
+        18
+      ],
+      [
+        2,
+        18
+      ],
+      [
+        3,
+        18
+      ],
+      [
+        4,
+        18
+      ],
+      [
+        5,
+        18
+      ],
+      [
+        6,
+        18
+      ],
+      [
+        7,
+        18
+      ],
+      [
+        8,
+        18
+      ],
+      [
+        9,
+        18
+      ],
+      [
+        10,
+        18
+      ],
+      [
+        11,
+        18
+      ],
+      [
+        12,
+        18
+      ],
+      [
+        13,
+        18
+      ],
+      [
+        14,
+        18
+      ],
+      [
+        15,
+        18
+      ],
+      [
+        16,
+        18
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        18
+      ],
+      [
+        19,
+        18
+      ],
+      [
+        20,
+        18
+      ],
+      [
+        21,
+        18
+      ],
+      [
+        22,
+        18
+      ],
+      [
+        23,
+        18
+      ],
+      [
+        24,
+        18
+      ],
+      [
+        25,
+        18
+      ]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        8,
+        2
+      ],
+      "b": [
+        9,
+        2
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        16,
+        2
+      ],
+      "b": [
+        17,
+        2
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        22,
+        4
+      ],
+      "b": [
+        22,
+        5
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        4,
+        6
+      ],
+      "b": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        15,
+        9
+      ],
+      "b": [
+        16,
+        9
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        6,
+        11
+      ],
+      "b": [
+        7,
+        11
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        9,
+        15
+      ],
+      "b": [
+        8,
+        15
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        17,
+        16
+      ],
+      "b": [
+        18,
+        16
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        22,
+        13
+      ],
+      "b": [
+        22,
+        14
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        4,
+        13
+      ],
+      "b": [
+        4,
+        14
+      ]
+    }
+  ],
+  "secretDoors": [],
+  "falseDoors": [],
+  "blocks": [],
+  "furniture": [
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [
+          1,
+          16
+        ],
+        [
+          2,
+          16
+        ],
+        [
+          1,
+          17
+        ],
+        [
+          2,
+          17
+        ]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "skeleton",
+      "cell": [
+        10,
+        1
+      ]
+    },
+    {
+      "id": "m2",
+      "type": "zombie",
+      "cell": [
+        10,
+        3
+      ]
+    },
+    {
+      "id": "m3",
+      "type": "zombie",
+      "cell": [
+        9,
+        4
+      ]
+    },
+    {
+      "id": "m4",
+      "type": "orc",
+      "cell": [
+        22,
+        1
+      ]
+    },
+    {
+      "id": "m5",
+      "type": "orc",
+      "cell": [
+        21,
+        2
+      ]
+    },
+    {
+      "id": "m6",
+      "type": "orc",
+      "cell": [
+        24,
+        3
+      ]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [
+        3,
+        5
+      ]
+    },
+    {
+      "id": "m8",
+      "type": "orc",
+      "cell": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "m9",
+      "type": "goblin",
+      "cell": [
+        13,
+        8
+      ]
+    },
+    {
+      "id": "m10",
+      "type": "goblin",
+      "cell": [
+        12,
+        9
+      ]
+    },
+    {
+      "id": "m11",
+      "type": "goblin",
+      "cell": [
+        11,
+        10
+      ]
+    },
+    {
+      "id": "m12",
+      "type": "goblin",
+      "cell": [
+        13,
+        11
+      ]
+    },
+    {
+      "id": "m13",
+      "type": "dreadWarrior",
+      "cell": [
+        5,
+        10
+      ]
+    },
+    {
+      "id": "m-dw-a1",
+      "type": "dreadWarrior",
+      "cell": [
+        22,
+        11
+      ]
+    },
+    {
+      "id": "m-dw-a2",
+      "type": "dreadWarrior",
+      "cell": [
+        24,
+        12
+      ]
+    },
+    {
+      "id": "m16",
+      "type": "mummy",
+      "cell": [
+        16,
+        13
+      ]
+    },
+    {
+      "id": "m17",
+      "type": "skeleton",
+      "cell": [
+        15,
+        15
+      ]
+    },
+    {
+      "id": "m18",
+      "type": "skeleton",
+      "cell": [
+        14,
+        16
+      ]
+    },
+    {
+      "id": "m19",
+      "type": "skeleton",
+      "cell": [
+        16,
+        17
+      ]
+    },
+    {
+      "id": "m20",
+      "type": "mummy",
+      "cell": [
+        10,
+        16
+      ]
+    }
+  ],
+  "traps": [],
+  "markers": [
+    {
+      "id": "k-3",
+      "label": "3",
+      "cell": [
+        9,
+        2
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-8",
+      "label": "8",
+      "cell": [
+        16,
+        2
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-11",
+      "label": "11",
+      "cell": [
+        22,
+        4
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-4",
+      "label": "4",
+      "cell": [
+        4,
+        6
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-7",
+      "label": "7",
+      "cell": [
+        15,
+        9
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-5",
+      "label": "5",
+      "cell": [
+        6,
+        11
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-6",
+      "label": "6",
+      "cell": [
+        9,
+        15
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-9",
+      "label": "9",
+      "cell": [
+        17,
+        16
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-10",
+      "label": "10",
+      "cell": [
+        22,
+        13
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "k-2-12",
+      "label": "2/12",
+      "cell": [
+        4,
+        14
+      ],
+      "visible": "players"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Magic doors",
+          "text": "Every door in this castle works as a teleporter. The moment a hero passes through any door, the hero halts and throws 2 red dice. The total names a numbered square, and the hero is moved there. If a figure already stands on that square, the arriving hero lands on it: that hero or monster loses 1 Body Point and, if still alive, throws 2 red dice and is teleported in turn (a total naming the same square is thrown again). The hero who arrived first keeps the square. Each hero may use a single door in a turn. The square marked 2/12 is inside the start room, just in from door d10. From it a hero can walk to the stairs and leave the quest. The players apply all of this by hand."
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        23,
+        11
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R16"
+      },
+      "when": [
+        {
+          "monster": "m-dw-a1",
+          "alive": false
+        },
+        {
+          "monster": "m-dw-a2",
+          "alive": false
+        },
+        {
+          "firstTime": true
+        }
+      ],
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Both Dread warriors lie dead. The first hero to search this room discovers that one of them was carrying the magic Ring of Return. Hand over its artifact card, which describes how it works."
+        },
+        {
+          "type": "giveItem",
+          "text": "Ring of Return artifact card, to the first hero who searches"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [
+        14,
+        4
+      ],
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [
+          14,
+          4
+        ]
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Mine entrance",
+          "text": "This square is the way into the gold mine. One hero here may take 5,000 gold coins. A hero loaded with this gold cannot attack or defend. If the hero sets it down, the gold is gone again."
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d1",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d1"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d2",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d2"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d3",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d3"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d4",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d4"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d5",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d5"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d6",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d6"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d7",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d7"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d8",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d8"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d9",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d9"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tele-d10",
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d10"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
+          "options": [
+            {
+              "label": "2",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            },
+            {
+              "label": "3",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R03"
+                }
+              ]
+            },
+            {
+              "label": "4",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R07"
+                }
+              ]
+            },
+            {
+              "label": "5",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R13"
+                }
+              ]
+            },
+            {
+              "label": "6",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R18"
+                }
+              ]
+            },
+            {
+              "label": "7",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R11"
+                }
+              ]
+            },
+            {
+              "label": "8",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R04"
+                }
+              ]
+            },
+            {
+              "label": "9",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R19"
+                }
+              ]
+            },
+            {
+              "label": "10",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R16"
+                }
+              ]
+            },
+            {
+              "label": "11",
+              "effects": [
+                {
+                  "type": "revealArea",
+                  "area": "R06"
+                }
+              ]
+            },
+            {
+              "label": "12",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "text": "Ollar's ghost floats by, lets out a mad laugh and fades from sight. No monster appears."
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Kill every monster, or leave by the stairs (the players end the quest when all heroes have left)",
+      "done": {
+        "allKilled": [
+          "m1",
+          "m2",
+          "m3",
+          "m4",
+          "m5",
+          "m6",
+          "m7",
+          "m8",
+          "m9",
+          "m10",
+          "m11",
+          "m12",
+          "m13",
+          "m-dw-a1",
+          "m-dw-a2",
+          "m16",
+          "m17",
+          "m18",
+          "m19",
+          "m20"
+        ]
+      }
+    }
+  ],
+  "rewards": "Tell the players at the end: all the gold taken at the mine entrance is fool's gold and worthless. Any other treasure they found is real.",
+  "rules": {
+    "doorTeleport": {
+      "dice": "2red",
+      "squares": "markers"
+    }
+  },
+  "npcs": []
+}
