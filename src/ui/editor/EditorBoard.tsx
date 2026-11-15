@@ -22,6 +22,7 @@ import { Furniture } from '../board/Furniture';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
+import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
 import {
   BOARD_H,
@@ -603,6 +604,69 @@ export function EditorBoard({
     );
   }
 
+  // Quest-note letters, as in play. A letter on the map with no note is dashed and white.
+  // With the Select tool a tap on one opens the Notes tab (its own hit square, 44 units, 18 in the corner of a piece).
+  const letterMarks: ReactNode[] = [];
+  const tappable = tool === 'select' && !picking;
+  for (const l of editorLetters(quest)) {
+    // A letter on its furniture or marker sits in the corner, so the piece can still be tapped.
+    const cx = (l.at[0] + 0.5) * U + (l.onThing ? 11 : 0);
+    const cy = (l.at[1] + 0.5) * U - (l.onThing ? 11 : 0);
+    const missing = l.note === undefined;
+    letterMarks.push(
+      <g
+        key={`lt${l.letter}`}
+        data-letter={l.letter}
+        data-note={l.note}
+        data-missing={missing ? 'true' : undefined}
+      >
+        <rect
+          x={cx - 11}
+          y={cy - 11}
+          width={22}
+          height={22}
+          fill={missing ? color.white : color.ink}
+          stroke={missing ? color.ink : color.floor}
+          strokeWidth={missing ? 2 : 1.5}
+          strokeDasharray={missing ? '4 3' : undefined}
+          pointerEvents="none"
+        />
+        <text
+          x={cx}
+          y={cy + 5.5}
+          textAnchor="middle"
+          fill={missing ? color.ink : color.tokenText}
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={15}
+          pointerEvents="none"
+        >
+          {l.letter}
+        </text>
+        {tappable && (
+          <rect
+            data-letter-hit={l.letter}
+            x={cx - (l.onThing ? 9 : 22)}
+            y={cy - (l.onThing ? 9 : 22)}
+            width={l.onThing ? 18 : 44}
+            height={l.onThing ? 18 : 44}
+            fill="transparent"
+            style={{ cursor: 'pointer' }}
+            role="button"
+            aria-label={missing ? `Letter ${l.letter}, no note yet` : `Quest note ${l.letter}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => {
+              e.stopPropagation();
+              const st = store.getState();
+              st.setPanel('notes');
+              st.setNoteId(l.note ?? null);
+            }}
+          />
+        )}
+      </g>,
+    );
+  }
+
   // The flash after a jump from the Problems panel: the squares and areas an issue names.
   const flashMarks: ReactNode[] = [];
   if (flash) {
@@ -812,6 +876,7 @@ export function EditorBoard({
         {blockArt}
         {things}
         {doors}
+        {letterMarks}
         <rect
           x={0}
           y={0}

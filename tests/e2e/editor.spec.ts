@@ -498,6 +498,36 @@ test.describe('editor: note builder', () => {
     await shot(page, 'editor-notes-list');
   });
 
+  test('note letters show on the board: missing style, then solid; a tap opens the note', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await chestWithLetter(page, 'A');
+    const mark = page.locator('#editor-board [data-letter="A"]');
+    await expect(mark).toHaveAttribute('data-missing', 'true');
+    await expect(mark).toContainText('A');
+    await shot(page, 'editor-letter-missing');
+
+    // a tap on a missing letter opens the Notes tab at the list
+    await clickAt(page, 2, 17, 0.82, 0.18);
+    await expect(page.getByTestId('missing-letters')).toContainText('Add note A');
+    await btn(page, 'Add note A').click();
+    await expect(page.getByTestId('note-id')).toHaveText('n-A');
+    await expect(mark).not.toHaveAttribute('data-missing', 'true');
+    await expect(mark).toHaveAttribute('data-note', 'n-A');
+    await insp(page).getByRole('button', { name: 'All notes' }).click();
+    await expect(page.getByTestId('note-list')).toBeVisible();
+    await shot(page, 'editor-letter-note');
+
+    // a tap on a noted letter opens that note
+    await clickAt(page, 2, 17, 0.82, 0.18);
+    await expect(page.getByTestId('note-id')).toHaveText('n-A');
+
+    // other tools do not tap letters: a monster can be placed on the square
+    await tool(page, 'Monsters').click();
+    await expect(page.locator('[data-letter-hit]')).toHaveCount(0);
+  });
+
   test('door trigger picked on the board; unlettered note; delete', async ({ page }) => {
     await newQuest(page);
     await tool(page, 'Doors').click();
