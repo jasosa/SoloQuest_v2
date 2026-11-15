@@ -93,7 +93,7 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 
 ## M7 · The 14 quests
 
-- [ ] Overlay tool (`npm run overlay -- N`)
+- [x] Overlay tool (`npm run overlay -- N`)
 - [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
 
 ## M8 · Polish
