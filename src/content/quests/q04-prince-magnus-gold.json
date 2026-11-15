@@ -1,0 +1,968 @@
+{
+  "schemaVersion": 1,
+  "id": "q04-prince-magnus-gold",
+  "number": 4,
+  "title": "Prince Magnus' Gold",
+  "intro": {
+    "summary": "Raiders from the Dark Mountains, under the Dread warrior Gulthor, have carried off three chests that belong to the King. Prince Magnus pays 240 gold coins if the heroes return all three chests with their gold untouched."
+  },
+  "zargonInfo": "Gulthor is the Dread warrior in the central room, standing next to the three chests. He has normal Dread warrior stats. The only way into that room is its east door, so the heroes must take the long way round through the north rooms and the secret door in the room with the cupboard. The app does not track who carries a chest: the players apply the carrying rules by hand.",
+  "start": {
+    "area": "R21"
+  },
+  "rock": {
+    "rooms": [
+      "R01",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R09",
+      "R13",
+      "R15",
+      "R16",
+      "R17",
+      "R18",
+      "R19"
+    ],
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        0
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        0,
+        12
+      ],
+      [
+        0,
+        13
+      ],
+      [
+        0,
+        14
+      ],
+      [
+        0,
+        15
+      ],
+      [
+        0,
+        16
+      ],
+      [
+        0,
+        17
+      ],
+      [
+        25,
+        10
+      ],
+      [
+        25,
+        11
+      ],
+      [
+        25,
+        12
+      ],
+      [
+        25,
+        13
+      ],
+      [
+        25,
+        14
+      ],
+      [
+        25,
+        15
+      ],
+      [
+        25,
+        16
+      ],
+      [
+        25,
+        17
+      ],
+      [
+        25,
+        18
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        13,
+        4
+      ],
+      [
+        12,
+        5
+      ],
+      [
+        13,
+        5
+      ],
+      [
+        12,
+        6
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        9,
+        12
+      ],
+      [
+        10,
+        12
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        12
+      ],
+      [
+        13,
+        12
+      ],
+      [
+        14,
+        12
+      ],
+      [
+        15,
+        12
+      ],
+      [
+        16,
+        12
+      ],
+      [
+        16,
+        11
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        13
+      ],
+      [
+        12,
+        14
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        12,
+        15
+      ],
+      [
+        13,
+        15
+      ],
+      [
+        12,
+        16
+      ],
+      [
+        13,
+        16
+      ]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        8,
+        2
+      ],
+      "b": [
+        9,
+        2
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        5,
+        3
+      ],
+      "b": [
+        5,
+        4
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        9,
+        5
+      ],
+      "b": [
+        9,
+        6
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        8,
+        7
+      ],
+      "b": [
+        9,
+        7
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        5,
+        8
+      ],
+      "b": [
+        5,
+        9
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        2,
+        9
+      ],
+      "b": [
+        2,
+        10
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        7,
+        9
+      ],
+      "b": [
+        7,
+        10
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        15,
+        9
+      ],
+      "b": [
+        16,
+        9
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        21,
+        8
+      ],
+      "b": [
+        21,
+        9
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        24,
+        7
+      ],
+      "b": [
+        25,
+        7
+      ]
+    },
+    {
+      "id": "d11",
+      "a": [
+        3,
+        13
+      ],
+      "b": [
+        3,
+        14
+      ]
+    },
+    {
+      "id": "d12",
+      "a": [
+        1,
+        17
+      ],
+      "b": [
+        1,
+        18
+      ]
+    },
+    {
+      "id": "d13",
+      "a": [
+        20,
+        17
+      ],
+      "b": [
+        21,
+        17
+      ]
+    },
+    {
+      "id": "d14",
+      "a": [
+        23,
+        17
+      ],
+      "b": [
+        23,
+        18
+      ]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [
+        11,
+        2
+      ],
+      "b": [
+        12,
+        2
+      ]
+    }
+  ],
+  "falseDoors": [],
+  "blocks": [
+    {
+      "cells": [
+        [
+          11,
+          0
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          3
+        ],
+        [
+          13,
+          3
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          11,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          14,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          1,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          9,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          16,
+          10
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          25,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          17
+        ],
+        [
+          13,
+          17
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          0,
+          18
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          24,
+          18
+        ]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [
+          19,
+          14
+        ],
+        [
+          20,
+          14
+        ],
+        [
+          19,
+          15
+        ],
+        [
+          20,
+          15
+        ]
+      ]
+    },
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          11,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          8,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          8,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "f-fireplace",
+      "type": "fireplace",
+      "cells": [
+        [
+          22,
+          5
+        ],
+        [
+          23,
+          5
+        ],
+        [
+          24,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "f-chest1",
+      "type": "chest",
+      "cells": [
+        [
+          10,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "f-chest2",
+      "type": "chest",
+      "cells": [
+        [
+          10,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "f-chest3",
+      "type": "chest",
+      "cells": [
+        [
+          10,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "f-table",
+      "type": "table",
+      "cells": [
+        [
+          1,
+          14
+        ],
+        [
+          2,
+          14
+        ],
+        [
+          1,
+          15
+        ],
+        [
+          2,
+          15
+        ],
+        [
+          1,
+          16
+        ],
+        [
+          2,
+          16
+        ]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "orc",
+      "cell": [
+        7,
+        2
+      ]
+    },
+    {
+      "id": "m2",
+      "type": "goblin",
+      "cell": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": "m3",
+      "type": "goblin",
+      "cell": [
+        8,
+        7
+      ]
+    },
+    {
+      "id": "m4",
+      "type": "orc",
+      "cell": [
+        2,
+        10
+      ]
+    },
+    {
+      "id": "m5",
+      "type": "orc",
+      "cell": [
+        3,
+        10
+      ]
+    },
+    {
+      "id": "m6",
+      "type": "orc",
+      "cell": [
+        3,
+        16
+      ]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [
+        4,
+        16
+      ]
+    },
+    {
+      "id": "m8",
+      "type": "orc",
+      "cell": [
+        2,
+        18
+      ]
+    },
+    {
+      "id": "m9",
+      "type": "goblin",
+      "cell": [
+        13,
+        7
+      ]
+    },
+    {
+      "id": "m10",
+      "type": "orc",
+      "cell": [
+        12,
+        8
+      ]
+    },
+    {
+      "id": "m-gulthor",
+      "type": "dreadWarrior",
+      "cell": [
+        11,
+        9
+      ],
+      "name": "Gulthor"
+    },
+    {
+      "id": "m11",
+      "type": "abomination",
+      "cell": [
+        12,
+        9
+      ]
+    },
+    {
+      "id": "m12",
+      "type": "orc",
+      "cell": [
+        12,
+        10
+      ]
+    },
+    {
+      "id": "m13",
+      "type": "goblin",
+      "cell": [
+        13,
+        11
+      ]
+    },
+    {
+      "id": "m14",
+      "type": "orc",
+      "cell": [
+        16,
+        9
+      ]
+    },
+    {
+      "id": "m15",
+      "type": "orc",
+      "cell": [
+        22,
+        7
+      ]
+    },
+    {
+      "id": "m16",
+      "type": "orc",
+      "cell": [
+        21,
+        8
+      ]
+    },
+    {
+      "id": "m17",
+      "type": "orc",
+      "cell": [
+        23,
+        8
+      ]
+    },
+    {
+      "id": "m18",
+      "type": "goblin",
+      "cell": [
+        22,
+        15
+      ]
+    },
+    {
+      "id": "m19",
+      "type": "goblin",
+      "cell": [
+        23,
+        16
+      ]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t1",
+      "kind": "spear",
+      "cell": [
+        9,
+        6
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "pit",
+      "cell": [
+        9,
+        7
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "spear",
+      "cell": [
+        15,
+        6
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "pit",
+      "cell": [
+        16,
+        7
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "spear",
+      "cell": [
+        25,
+        1
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "pit",
+      "cell": [
+        6,
+        9
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "spear",
+      "cell": [
+        4,
+        17
+      ]
+    }
+  ],
+  "markers": [],
+  "notes": [
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        10,
+        11
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R11"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The three chests carry the royal seal of Prince Magnus. Every chest is locked and holds 250 gold coins plus goods for the Prince and the King. Each hero carries at most one chest, and a hero with a chest moves with 1 red die only. None of the gold in the chests may be kept by the heroes."
+        }
+      ]
+    },
+    {
+      "id": "n-home",
+      "trigger": {
+        "type": "manual",
+        "label": "All three chests are on the stairs"
+      },
+      "effects": [
+        {
+          "type": "completeObjective",
+          "objective": "o1"
+        },
+        {
+          "type": "showText",
+          "text": "The chests are home with all their gold. The heroes share the reward of 240 gold coins."
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "abomination"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Bring all three chests, with all their gold, back to the stairs"
+    }
+  ],
+  "rewards": "240 gold coins, shared among the heroes. The gold inside the chests is not theirs to keep.",
+  "rules": {},
+  "npcs": []
+}
