@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "id": "q11-bastion-of-dread",
+  "number": 11,
+  "title": "Bastion of Dread",
+  "intro": {
+    "summary": "Orcs and goblins from the eastern lands have sided with Zargon and terrorize the countryside. The King sends the heroes into the Bastion of Dread, a fortified underground stronghold led by a few Dread warriors, with orders to leave none of its monsters alive. Every kill pays a bounty."
+  },
+  "zargonInfo": "The heroes start on the stairs. Kills pay gold: 10 for a goblin, 20 for an orc, 30 for an abomination, 50 for a Dread warrior. The app only shows these amounts, the players keep the count. The gargoyle by the chest (B) is a still statue until the chest trap springs. After it wakes, the players treat it as unharmable until it has acted once.",
+  "start": {
+    "area": "R14"
+  },
+  "rock": {
+    "rooms": [
+      "R01",
+      "R02",
+      "R04",
+      "R05",
+      "R06",
+      "R09",
+      "R10",
+      "R16",
+      "R19"
+    ],
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        0
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        11,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        13,
+        0
+      ],
+      [
+        14,
+        0
+      ],
+      [
+        15,
+        0
+      ],
+      [
+        16,
+        0
+      ],
+      [
+        17,
+        0
+      ],
+      [
+        18,
+        0
+      ],
+      [
+        19,
+        0
+      ],
+      [
+        20,
+        0
+      ],
+      [
+        21,
+        0
+      ],
+      [
+        22,
+        0
+      ],
+      [
+        23,
+        0
+      ],
+      [
+        24,
+        0
+      ],
+      [
+        25,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        25,
+        1
+      ],
+      [
+        25,
+        2
+      ],
+      [
+        25,
+        3
+      ],
+      [
+        25,
+        4
+      ],
+      [
+        25,
+        5
+      ],
+      [
+        25,
+        6
+      ],
+      [
+        25,
+        7
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        12,
+        3
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        13,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        13,
+        3
+      ],
+      [
+        13,
+        4
+      ],
+      [
+        13,
+        5
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        14,
+        6
+      ],
+      [
+        15,
+        6
+      ],
+      [
+        16,
+        6
+      ],
+      [
+        16,
+        7
+      ]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        0,
+        5
+      ],
+      "b": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        8,
+        4
+      ],
+      "b": [
+        9,
+        4
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        9,
+        5
+      ],
+      "b": [
+        9,
+        6
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        4,
+        7
+      ],
+      "b": [
+        5,
+        7
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        11,
+        6
+      ],
+      "b": [
+        11,
+        7
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        9,
+        8
+      ],
+      "b": [
+        10,
+        8
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        2,
+        9
+      ],
+      "b": [
+        2,
+        10
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        18,
+        9
+      ],
+      "b": [
+        18,
+        10
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        4,
+        16
+      ],
+      "b": [
+        5,
+        16
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        8,
+        16
+      ],
+      "b": [
+        9,
+        16
+      ]
+    },
+    {
+      "id": "d11",
+      "a": [
+        7,
+        12
+      ],
+      "b": [
+        7,
+        13
+      ]
+    },
+    {
+      "id": "d12",
+      "a": [
+        13,
+        11
+      ],
+      "b": [
+        13,
+        12
+      ]
+    },
+    {
+      "id": "d13",
+      "a": [
+        2,
+        17
+      ],
+      "b": [
+        2,
+        18
+      ]
+    },
+    {
+      "id": "d14",
+      "a": [
+        24,
+        15
+      ],
+      "b": [
+        25,
+        15
+      ]
+    },
+    {
+      "id": "d15",
+      "a": [
+        19,
+        17
+      ],
+      "b": [
+        19,
+        18
+      ]
+    },
+    {
+      "id": "d16",
+      "a": [
+        22,
+        17
+      ],
+      "b": [
+        22,
+        18
+      ]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [
+        4,
+        11
+      ],
+      "b": [
+        5,
+        11
+      ]
+    }
+  ],
+  "falseDoors": [],
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          5
+        ],
+        [
+          12,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          9,
+          7
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          16,
+          8
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          25,
+          8
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          1,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          16
+        ],
+        [
+          13,
+          16
+        ]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          10,
+          2
+        ],
+        [
+          11,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "f-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          4,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "f-table-w",
+      "type": "table",
+      "cells": [
+        [
+          5,
+          4
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          7,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "f-table-c",
+      "type": "table",
+      "cells": [
+        [
+          12,
+          8
+        ],
+        [
+          13,
+          8
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          13,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "f-throne",
+      "type": "throne",
+      "cells": [
+        [
+          15,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "f-bench",
+      "type": "alchemistsBench",
+      "cells": [
+        [
+          1,
+          12
+        ],
+        [
+          2,
+          12
+        ],
+        [
+          3,
+          12
+        ],
+        [
+          1,
+          13
+        ],
+        [
+          2,
+          13
+        ],
+        [
+          3,
+          13
+        ]
+      ]
+    },
+    {
+      "id": "f-chest",
+      "type": "chest",
+      "cells": [
+        [
+          5,
+          10
+        ]
+      ],
+      "letter": "B"
+    },
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [
+          7,
+          10
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          7,
+          11
+        ],
+        [
+          8,
+          11
+        ]
+      ]
+    },
+    {
+      "id": "f-fireplace",
+      "type": "fireplace",
+      "cells": [
+        [
+          9,
+          13
+        ],
+        [
+          10,
+          13
+        ],
+        [
+          11,
+          13
+        ]
+      ]
+    },
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [
+          20,
+          10
+        ],
+        [
+          20,
+          11
+        ],
+        [
+          20,
+          12
+        ]
+      ]
+    },
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [
+          18,
+          14
+        ],
+        [
+          18,
+          15
+        ],
+        [
+          18,
+          16
+        ]
+      ],
+      "letter": "A"
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "orc",
+      "cell": [
+        10,
+        3
+      ]
+    },
+    {
+      "id": "m2",
+      "type": "orc",
+      "cell": [
+        14,
+        8
+      ]
+    },
+    {
+      "id": "m3",
+      "type": "orc",
+      "cell": [
+        14,
+        10
+      ]
+    },
+    {
+      "id": "m4",
+      "type": "orc",
+      "cell": [
+        11,
+        16
+      ]
+    },
+    {
+      "id": "m5",
+      "type": "orc",
+      "cell": [
+        22,
+        15
+      ]
+    },
+    {
+      "id": "m6",
+      "type": "orc",
+      "cell": [
+        20,
+        16
+      ]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [
+        23,
+        16
+      ]
+    },
+    {
+      "id": "m8",
+      "type": "goblin",
+      "cell": [
+        13,
+        7
+      ]
+    },
+    {
+      "id": "m9",
+      "type": "goblin",
+      "cell": [
+        14,
+        11
+      ]
+    },
+    {
+      "id": "m10",
+      "type": "goblin",
+      "cell": [
+        6,
+        15
+      ]
+    },
+    {
+      "id": "m11",
+      "type": "goblin",
+      "cell": [
+        7,
+        15
+      ]
+    },
+    {
+      "id": "m12",
+      "type": "goblin",
+      "cell": [
+        10,
+        15
+      ]
+    },
+    {
+      "id": "m13",
+      "type": "goblin",
+      "cell": [
+        10,
+        16
+      ]
+    },
+    {
+      "id": "m14",
+      "type": "goblin",
+      "cell": [
+        10,
+        17
+      ]
+    },
+    {
+      "id": "m15",
+      "type": "goblin",
+      "cell": [
+        12,
+        17
+      ]
+    },
+    {
+      "id": "m16",
+      "type": "goblin",
+      "cell": [
+        13,
+        17
+      ]
+    },
+    {
+      "id": "m17",
+      "type": "abomination",
+      "cell": [
+        7,
+        6
+      ]
+    },
+    {
+      "id": "m18",
+      "type": "abomination",
+      "cell": [
+        3,
+        7
+      ]
+    },
+    {
+      "id": "m19",
+      "type": "dreadWarrior",
+      "cell": [
+        2,
+        11
+      ]
+    },
+    {
+      "id": "m20",
+      "type": "dreadWarrior",
+      "cell": [
+        18,
+        11
+      ]
+    },
+    {
+      "id": "m21",
+      "type": "dreadWarrior",
+      "cell": [
+        19,
+        15
+      ]
+    },
+    {
+      "id": "m-c",
+      "type": "dreadWarrior",
+      "cell": [
+        14,
+        9
+      ]
+    },
+    {
+      "id": "m-gargoyle",
+      "type": "gargoyle",
+      "cell": [
+        5,
+        12
+      ],
+      "state": "dormant"
+    }
+  ],
+  "traps": [
+    {
+      "id": "t1",
+      "kind": "pit",
+      "cell": [
+        9,
+        12
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "pit",
+      "cell": [
+        12,
+        13
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "pit",
+      "cell": [
+        13,
+        13
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "pit",
+      "cell": [
+        25,
+        18
+      ]
+    },
+    {
+      "id": "t-chest",
+      "kind": "chest",
+      "furniture": "f-chest",
+      "effect": "Searching the chest while the trap is armed wakes the gargoyle from its statue pose."
+    }
+  ],
+  "markers": [],
+  "notes": [
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        19,
+        14
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R21",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The first hero to search the armory takes a shield identical to the one on the armory card. Every other weapon lying here is broken and useless."
+        },
+        {
+          "type": "giveItem",
+          "text": "A shield, same as the armory shield"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [
+        6,
+        11
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R13"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A gargoyle stands in this room, a motionless statue, and a treasure chest sits near it."
+        }
+      ]
+    },
+    {
+      "id": "n-B-wake",
+      "trigger": {
+        "type": "trapSprung",
+        "trap": "t-chest"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "The gargoyle wakes",
+          "text": "The gargoyle lurches awake and goes for the searching hero on the spot. Reminder for the players: hits on it count for nothing until it has either moved or attacked."
+        },
+        {
+          "type": "setMonsterState",
+          "monster": "m-gargoyle",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "id": "n-B-disarm",
+      "trigger": {
+        "type": "trapDisarmed",
+        "trap": "t-chest"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Trap disarmed",
+          "text": "The trap is neutralized. Tell the heroes what it was for: a search with the trap armed would have woken the gargoyle, and it would have struck at once. The statue stays still."
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [
+        15,
+        10
+      ],
+      "trigger": {
+        "type": "monsterKilled",
+        "monster": "m-c"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The Dread warrior here wields Orc's Bane, an artifact sword. Whoever slays him can claim it. Its rules are on the artifact card."
+        },
+        {
+          "type": "giveItem",
+          "text": "Orc's Bane (artifact sword, see its card)"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "abomination"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Kill every monster in the Bastion",
+      "done": {
+        "allKilled": [
+          "m1",
+          "m2",
+          "m3",
+          "m4",
+          "m5",
+          "m6",
+          "m7",
+          "m8",
+          "m9",
+          "m10",
+          "m11",
+          "m12",
+          "m13",
+          "m14",
+          "m15",
+          "m16",
+          "m17",
+          "m18",
+          "m19",
+          "m20",
+          "m21",
+          "m-c",
+          "m-gargoyle"
+        ]
+      }
+    }
+  ],
+  "rewards": "Bounty per kill, paid to the hero who killed: goblin 10 gold coins, orc 20, abomination 30, Dread warrior 50.",
+  "rules": {
+    "bounty": {
+      "goblin": 10,
+      "orc": 20,
+      "abomination": 30,
+      "dreadWarrior": 50
+    }
+  },
+  "npcs": []
+}
