@@ -15,6 +15,7 @@ import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
 import { isSpellKey, SPELL_KEYS } from '../zargon/spells';
 import { QuestSchema, type FurnitureDef, type MonsterDef, type Quest } from '../quest/schema';
 import type { Issue } from '../quest/validate';
+import { footprintShapeProblem } from '../quest/footprint';
 import { referencesTo, renameDoorRefs } from './refs';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
@@ -132,31 +133,6 @@ function floorProblem(q: Quest, c: readonly number[], what: string): string | un
 const neighbours = (a: readonly number[], b: readonly number[]) =>
   Math.abs((a[0] as number) - (b[0] as number)) + Math.abs((a[1] as number) - (b[1] as number)) ===
   1;
-
-function connected(cells: readonly Cell[]): boolean {
-  const left = new Map(cells.map((c) => [key(c), c]));
-  const first = cells[0];
-  if (!first) return false;
-  const todo = [first];
-  left.delete(key(first));
-  while (todo.length) {
-    const c = todo.pop() as Cell;
-    for (const [dx, dy] of [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ] as const) {
-      const k = key([c[0] + dx, c[1] + dy]);
-      const n = left.get(k);
-      if (n) {
-        left.delete(k);
-        todo.push(n);
-      }
-    }
-  }
-  return left.size === 0;
-}
 
 // ---- empty quest
 
@@ -432,11 +408,8 @@ function footprintProblem(
     const p = floorProblem(q, c, what);
     if (p) return p;
   }
-  const area = areaAt(board, cells[0]![0], cells[0]![1]);
-  if (area === 'C') return `${what} must be inside a room, not in the corridor.`;
-  if (cells.some((c) => areaAt(board, c[0], c[1]) !== area))
-    return `${what} must be inside one room, but it crosses a wall.`;
-  if (!connected(cells)) return `${what} squares must touch each other.`;
+  const shape = footprintShapeProblem(board, cells, what);
+  if (shape) return shape;
   const l = layers(q, ignoreId === undefined ? {} : { furniture: ignoreId });
   const names: LayerName[] =
     type === 'stairs'

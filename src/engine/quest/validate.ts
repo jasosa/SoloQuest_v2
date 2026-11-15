@@ -4,6 +4,16 @@
  * returns the plain error messages of the game checks (empty means ok).
  */
 import { areaAt, inBoard, roomIds, type Board } from '../board/board';
+import {
+  buildLevel,
+  blocksMove,
+  edgeKey,
+  isWall,
+  keyOf,
+  parseKey,
+  type Level,
+} from '../board/level';
+import { footprintShapeProblem } from './footprint';
 import { SPELL_KEYS, isSpellKey } from '../zargon/spells';
 import { forEachEffect } from './effects';
 import type { Condition, Effect, Quest } from './schema';
@@ -48,6 +58,17 @@ export function validateQuest(quest: Quest, board: Board): string[] {
   return validateQuestIssues(quest, board, { editor: false }).map((i) => i.message);
 }
 
+/** Walk check: any door passes (secret ones can be found), otherwise the edge must not be a wall. */
+function edgeOpenForWalk(
+  level: Level,
+  a: [number, number],
+  b: [number, number],
+  allDoors: ReadonlySet<string>,
+): boolean {
+  const door = level.doorAtEdge.get(edgeKey(a, b));
+  return door ? allDoors.has(door.id) : !isWall(level, a, b);
+}
+
 const cellOf = (c: C): [number, number] => [c[0], c[1]];
 
 export function validateQuestIssues(
@@ -63,6 +84,68 @@ export function validateQuestIssues(
     issues.push(ref ? { message, severity: 'warning', ref } : { message, severity: 'warning' });
   const rooms = new Set(roomIds(board));
   const areas = new Set<string>([...rooms, 'C']);
+
+  /**
+   * Rooms with content that the heroes can never reach from the start room. Normal, secret and
+   * false doors all count as passable here (a secret door can be found). Rock, blocked squares
+   * and walls stop the walk.
+   */
+  function checkReachable() {
+    if (!rooms.has(quest.start.area) || rockRooms.has(quest.start.area)) return;
+    const level = buildLevel(quest, board);
+    const allDoors = new Set(level.doors.keys());
+    const seen = new Set<string>();
+    const todo: [number, number][] = [];
+    for (let y = 0; y < board.height; y++)
+      for (let x = 0; x < board.width; x++)
+        if (areaAt(board, x, y) === quest.start.area && !blocksMove(level, x, y)) {
+          seen.add(keyOf([x, y]));
+          todo.push([x, y]);
+        }
+    while (todo.length) {
+      const c = todo.pop() as [number, number];
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ] as const) {
+        const n: [number, number] = [c[0] + dx, c[1] + dy];
+        const k = keyOf(n);
+        if (seen.has(k) || blocksMove(level, n[0], n[1])) continue;
+        if (!edgeOpenForWalk(level, c, n, allDoors)) continue;
+        seen.add(k);
+        todo.push(n);
+      }
+    }
+    const reached = new Set<string>();
+    for (const k of seen) {
+      const [x, y] = parseKey(k);
+      const a = areaAt(board, x, y);
+      if (a) reached.add(a);
+    }
+    // First thing found in each room, to name it in the message.
+    const content = new Map<string, string>();
+    const note = (c: C | undefined, what: string) => {
+      if (!c || !inBoard(board, c[0], c[1])) return;
+      const a = areaAt(board, c[0], c[1]);
+      if (a && a !== 'C' && !content.has(a)) content.set(a, what);
+    };
+    for (const m of quest.monsters) note(m.cell, `monster ${m.id}`);
+    for (const f of quest.furniture) note(f.cells[0], `furniture ${f.id}`);
+    for (const t of quest.traps) note(t.cell, `trap ${t.id}`);
+    for (const m of quest.markers) note(m.cell, `marker ${m.id}`);
+    for (const d of [...quest.doors, ...quest.secretDoors, ...quest.falseDoors]) {
+      note(d.a, `door ${d.id}`);
+      note(d.b, `door ${d.id}`);
+    }
+    for (const [area, what] of content)
+      if (!reached.has(area) && !rockRooms.has(area))
+        warn(`${area} cannot be reached from the start room (it holds ${what})`, {
+          kind: 'area',
+          area,
+        });
+  }
 
   // ---- rock
   const rockRooms = new Set(quest.rock.rooms);
@@ -464,6 +547,14 @@ export function validateQuestIssues(
     for (const n of quest.notes)
       if (n.letter && !n.at && !mapLetters.has(n.letter))
         warn(`note ${n.id}: letter ${n.letter} is not on the map`, { kind: 'note', id: n.id });
+
+    // Furniture must sit inside one room, squares touching (same rule as the editor ops).
+    for (const f of quest.furniture) {
+      if (f.cells.some((c) => !inBoard(board, c[0], c[1]) || isRock(c))) continue; // reported above
+      const p = footprintShapeProblem(board, f.cells, `furniture ${f.id}`);
+      if (p) err(p, { kind: 'furniture', id: f.id, cell: cellOf(f.cells[0]!) });
+    }
+    checkReachable();
   }
   return issues;
 }

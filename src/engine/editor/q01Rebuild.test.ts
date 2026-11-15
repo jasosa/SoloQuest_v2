@@ -1,6 +1,6 @@
 /**
  * Proof that the editing model can express a real quest: rebuild quest 1 from `emptyQuest`
- * with the editing operations only (notes, objectives and wandering are copied: slice 2).
+ * with the editing operations only: map, notes, objectives, wandering monster, rules, Zargon info.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -27,6 +27,8 @@ import {
   type Cell,
   type EditResult,
 } from './ops';
+import { addNote, setNoteText, updateNote } from './notes';
+import { addObjective, setRules, setWandering, setZargonInfo } from './meta';
 
 const q01 = parseQuest(
   JSON.parse(
@@ -70,16 +72,32 @@ function rebuild(src: Quest): Quest {
       }),
     );
   for (const m of src.markers) q = ok(addMarker(q, m.label, m.cell as Cell, m.visible, m.id));
-  // slice 2 will edit these in the UI
-  return {
-    ...q,
-    zargonInfo: src.zargonInfo as string,
-    notes: src.notes,
-    objectives: src.objectives,
-    ...(src.wandering ? { wandering: src.wandering } : {}),
-    rules: src.rules,
-    npcs: src.npcs,
-  };
+  if (src.zargonInfo) q = ok(setZargonInfo(q, src.zargonInfo));
+  if (src.wandering) q = ok(setWandering(q, src.wandering));
+  for (const o of src.objectives)
+    q = ok(addObjective(q, { id: o.id, text: o.text, ...(o.done ? { done: o.done } : {}) }));
+  q = ok(setRules(q, src.rules));
+  for (const n of src.notes) {
+    // A plain first text effect goes in through setNoteText, the rest through the note itself.
+    const first = n.effects[0];
+    const plainText = first?.type === 'showText' && first.title === undefined;
+    q = ok(
+      addNote(q, {
+        id: n.id,
+        ...(n.letter ? { letter: n.letter } : {}),
+        ...(n.at ? { at: n.at as Cell } : {}),
+        trigger: n.trigger,
+        ...(n.when ? { when: n.when } : {}),
+        effects: plainText ? n.effects.slice(1) : n.effects,
+        ...(n.consumesTreasure ? { consumesTreasure: true } : {}),
+      }),
+    );
+    if (plainText) q = ok(setNoteText(q, n.id, first.text));
+  }
+  // A note can be reworded later with updateNote: put the first note back to its own trigger.
+  const a = src.notes[0];
+  if (a) q = ok(updateNote(q, a.id, { trigger: a.trigger }));
+  return q;
 }
 
 describe('quest 1 rebuilt with the editing operations', () => {
@@ -123,6 +141,33 @@ describe('quest 1 rebuilt with the editing operations', () => {
         a.rock.cells.some((d: number[]) => d[0] === c[0] && d[1] === c[1]),
       ),
     );
+    expect(a).toEqual(b);
+  });
+
+  it('has the same notes, objectives, wandering, rules and intro', () => {
+    expect(built.notes).toEqual(q01.notes);
+    expect(built.objectives).toEqual(q01.objectives);
+    expect(built.wandering).toEqual(q01.wandering);
+    expect(built.rules).toEqual(q01.rules);
+    expect(built.npcs).toEqual(q01.npcs);
+    expect(built.zargonInfo).toEqual(q01.zargonInfo);
+    expect(built.intro).toEqual(q01.intro);
+    expect(built.title).toBe(q01.title);
+  });
+
+  it('exports the same quest as the bundled file', () => {
+    // The only known difference: rock cells inside rock rooms are folded away (see above).
+    const a = JSON.parse(exportQuest(built));
+    const b = JSON.parse(exportQuest(q01));
+    const inRoom = (c: number[]) =>
+      built.rock.rooms.includes(board.cells[c[1] as number]?.[c[0] as number] as string);
+    b.rock.cells = b.rock.cells.filter((c: number[]) => !inRoom(c));
+    const sort = (cells: number[][]) =>
+      [...cells].sort(
+        (p, q) => (p[1] as number) - (q[1] as number) || (p[0] as number) - (q[0] as number),
+      );
+    a.rock.cells = sort(a.rock.cells);
+    b.rock.cells = sort(b.rock.cells);
     expect(a).toEqual(b);
   });
 });
