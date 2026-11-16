@@ -17,7 +17,7 @@ const card = (page: Page) => page.getByTestId('dz-card');
 
 async function open(page: Page) {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^Designer/ }).click();
+  await page.getByRole('button', { name: /^DESIGNER/ }).click();
   await expect(page.getByRole('tab', { name: 'Designer' })).toHaveAttribute(
     'aria-selected',
     'true',
@@ -151,6 +151,7 @@ test.describe('designer: the library', () => {
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();

@@ -24,6 +24,7 @@ async function pointAt(page: Page, x: number, y: number, fx = 0.5, fy = 0.5) {
 
 async function newQuest(page: Page, title = 'My quest', url = '/?editor=1&nosave=1') {
   await page.goto(url);
+  await page.getByRole('button', { name: /^NEW QUEST/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await btn(page, 'Create the quest').click();
   await expect(page.locator('header h1')).toHaveText(title);
@@ -35,8 +36,9 @@ test.describe('editor: shell and board tools', () => {
   }) => {
     await page.goto('/?nosave=1');
     await btn(page, 'Quest editor').click();
-    await expect(page.locator('header h1')).toHaveText('Your quests');
+    await expect(page.getByRole('heading', { name: 'SoloQuest Designer' })).toBeVisible();
     await shot(page, 'editor-start');
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');
     await btn(page, 'Create the quest').click();
     await expect(page.locator('header h1')).toHaveText('The Cellar');
@@ -211,7 +213,7 @@ test.describe('editor: storage and files', () => {
     await page.reload();
     await expect(page.locator('li[data-quest]')).toHaveCount(1);
     await expect(page.locator('li[data-quest]')).toContainText('Unsaved draft');
-    await btn(page, 'Open').click();
+    await page.getByRole('button', { name: 'Open Persistent' }).click();
     await expect(page.locator('header h1')).toHaveText('Persistent');
     await expect(page.locator('[data-monster]')).toHaveCount(1);
   });
@@ -260,6 +262,7 @@ test.describe('editor: storage and files', () => {
 
   test('copy a bundled quest from the list', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
@@ -919,7 +922,7 @@ test.describe('editor: reference image', () => {
       // kept on this device: back to the list, open the quest again
       await page.waitForTimeout(800);
       await page.reload();
-      await btn(page, 'Open').first().click();
+      await page.locator('li[data-quest] .fr-open').first().click();
       await expect(page.getByTestId('reference-layer')).toHaveCount(1);
     });
   }
@@ -1018,6 +1021,7 @@ test.describe('editor: problems panel and playtest', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();

@@ -8,6 +8,7 @@ import {
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import type { UserQuestStore, UserQuestSummary } from '../../persist/userQuests';
+import { Dialog, Fld } from '../shared/Frame';
 import { questEntries } from '../quests';
 
 export interface EditorStartProps {
@@ -32,6 +33,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
   const [notes, setNotes] = useState<readonly Issue[]>([]);
   const [imported, setImported] = useState<Quest | null>(null);
   const [copyOf, setCopyOf] = useState('');
+  const [popup, setPopup] = useState<'new' | 'open' | null>(null);
 
   const refresh = useCallback(async () => {
     const list = await store.list();
@@ -93,152 +95,215 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
   const bundled = questEntries.filter((q) => q.level);
 
   return (
-    <div className="app editor-start">
-      <header>
-        <span className="qn">Editor</span>
-        <h1>Your quests</h1>
-        {onDesigner && (
-          <button className="btn alt" onClick={onDesigner} style={{ marginLeft: 'auto' }}>
-            Designer
-          </button>
-        )}
-        <button
-          className="link"
-          onClick={onBack}
-          style={onDesigner ? undefined : { marginLeft: 'auto' }}
-        >
-          Back
-        </button>
-      </header>
-
-      <div className="pick es-list">
-        {rows.length === 0 && (
-          <p className="es-empty">No quest yet. Make a new one, or import a file.</p>
-        )}
-        <ul>
-          {rows.map((r) => (
-            <li key={r.id} data-quest={r.id}>
-              <div>
-                <b>{r.title}</b> <span className="es-meta">Quest {r.number}</span>
-                {r.draft && <span className="es-tag">Unsaved draft</span>}
-                <div className="es-meta">{new Date(r.updatedAt).toLocaleString()}</div>
-              </div>
-              {confirm === r.id ? (
-                <div className="es-actions">
-                  <span>Delete it?</span>
-                  <button className="btn" onClick={() => void remove(r.id)}>
-                    Yes, delete
-                  </button>
-                  <button className="btn alt" onClick={() => setConfirm(null)}>
-                    No
-                  </button>
-                </div>
-              ) : (
-                <div className="es-actions">
-                  <button className="btn" onClick={() => void open(r.id)}>
-                    Open
-                  </button>
-                  <button className="btn alt" onClick={() => setConfirm(r.id)}>
+    <div
+      className="app fr editor-start"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        void onFile(e.dataTransfer.files[0]);
+      }}
+    >
+      <div className="fr-start">
+        <div>
+          <h1>SoloQuest Designer</h1>
+          <h2>Recent quests</h2>
+          {rows.length === 0 && (
+            <p className="fr-help">No quest yet. Make a new one, or import a file.</p>
+          )}
+          <ul className="fr-recent">
+            {rows.map((r) => (
+              <li key={r.id} data-quest={r.id}>
+                <button
+                  className="fr-open"
+                  aria-label={`Open ${r.title}`}
+                  onClick={() => void open(r.id)}
+                >
+                  {r.title}
+                </button>
+                <span>
+                  Quest {r.number} · {r.draft ? 'Unsaved draft' : 'saved'} ·{' '}
+                  {new Date(r.updatedAt).toLocaleDateString()}
+                </span>
+                {confirm === r.id ? (
+                  <>
+                    <span>Delete it?</span>
+                    <button className="btn" onClick={() => void remove(r.id)}>
+                      Yes, delete
+                    </button>
+                    <button className="btn alt" onClick={() => setConfirm(null)}>
+                      No
+                    </button>
+                  </>
+                ) : (
+                  <button className="link" onClick={() => setConfirm(r.id)}>
                     Delete
                   </button>
-                </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="fr-help" style={{ marginTop: 20 }}>
+            You can also drop a quest file here to open it.
+          </p>
+          <input
+            type="file"
+            hidden
+            accept=".json,application/json"
+            aria-label="Import file"
+            onChange={(e) => void onFile(e.target.files?.[0])}
+          />
+
+          {problems.length > 0 && (
+            <section role="alert" className="es-problems">
+              <h2>The file could not be used</h2>
+              <ul>
+                {problems.map((p, i) => (
+                  <li key={i}>{p}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {imported && (
+            <section className="es-imported" role="status">
+              <h2>Imported</h2>
+              <p>{imported.title} is in your list.</p>
+              {notes.length > 0 && (
+                <ul>
+                  {notes.map((n, i) => (
+                    <li key={i}>{n.message}</li>
+                  ))}
+                </ul>
               )}
-            </li>
-          ))}
-        </ul>
+              <button className="btn" onClick={() => onOpen(imported, imported)}>
+                Open it
+              </button>
+            </section>
+          )}
+        </div>
+
+        <div className="fr-cards">
+          <button className="fr-card" onClick={() => setPopup('new')}>
+            <b>NEW QUEST</b>
+            <span>Start an empty quest with its stairs and map.</span>
+          </button>
+          <button className="fr-card" onClick={() => setPopup('open')}>
+            <b>OPEN QUEST</b>
+            <span>Load a quest from a file, or one of the 14 bundled quests.</span>
+          </button>
+          {onDesigner && (
+            <button className="fr-card" onClick={onDesigner}>
+              <b>DESIGNER</b>
+              <span>
+                Abilities, spells, enemies, heroes and companions. Made once, used in any quest.
+              </span>
+            </button>
+          )}
+          <div className="fr-card off" aria-disabled="true">
+            <b>PACKAGER (later)</b>
+            <span>Arrange quests and export a custom campaign.</span>
+          </div>
+          <button className="link" onClick={onBack} style={{ justifySelf: 'start' }}>
+            Back
+          </button>
+        </div>
+      </div>
+      <div className="fr-foot">
+        <span>Editor 0.1</span>
+        <span>Quest format 1</span>
+        <span style={{ marginLeft: 'auto' }}>Works offline</span>
       </div>
 
-      <aside className="side">
-        <section>
-          <div className="lbl">New quest</div>
-          <label className="ed-field">
-            Title
-            <input value={title} maxLength={80} onChange={(e) => setTitle(e.target.value)} />
-          </label>
-          <label className="ed-field">
-            Number
+      {popup === 'new' && (
+        <Dialog
+          title="New quest"
+          foot={
+            <>
+              <button className="btn alt" onClick={() => setPopup(null)}>
+                Cancel
+              </button>
+              <button className="btn" onClick={() => void create()}>
+                Create the quest
+              </button>
+            </>
+          }
+        >
+          <Fld label="Title">
             <input
+              className="fr-in"
+              aria-label="Title"
+              value={title}
+              maxLength={80}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Fld>
+          <Fld label="Number">
+            <input
+              className="fr-in"
+              aria-label="Number"
               type="number"
               min={1}
               max={99}
               value={number}
               onChange={(e) => setNumber(e.target.value)}
             />
-          </label>
-          <button className="btn" onClick={() => void create()}>
-            Create the quest
-          </button>
-        </section>
-
-        <section>
-          <div className="lbl">Import a file</div>
-          <label className="btn alt es-file">
+          </Fld>
+        </Dialog>
+      )}
+      {popup === 'open' && (
+        <Dialog
+          title="Open quest"
+          foot={
+            <button className="btn alt" onClick={() => setPopup(null)}>
+              Close
+            </button>
+          }
+        >
+          <label className="btn alt es-file" style={{ width: '100%' }}>
             Choose a .hqquest.json file
             <input
               type="file"
               accept=".json,application/json"
-              aria-label="Import file"
-              onChange={(e) => void onFile(e.target.files?.[0])}
+              aria-label="Import file in the dialog"
+              onChange={(e) => {
+                setPopup(null);
+                void onFile(e.target.files?.[0]);
+              }}
             />
           </label>
-        </section>
-
-        {bundled.length > 0 && (
-          <section>
-            <div className="lbl">Copy a bundled quest</div>
-            <select
-              className="es-select"
-              aria-label="Bundled quest"
-              value={copyOf}
-              onChange={(e) => setCopyOf(e.target.value)}
-            >
-              <option value="">Choose a quest</option>
-              {bundled.map((q) => (
-                <option key={q.number} value={q.number}>
-                  Quest {q.number}: {q.level?.quest.title}
-                </option>
-              ))}
-            </select>
-            <button
-              className="btn alt"
-              disabled={copyOf === ''}
-              onClick={() => {
-                const q = bundled.find((b) => String(b.number) === copyOf)?.level?.quest;
-                if (q) void take(exportQuest(q));
-              }}
-            >
-              Make a copy
-            </button>
-          </section>
-        )}
-
-        {problems.length > 0 && (
-          <section role="alert" className="es-problems">
-            <div className="lbl">The file could not be used</div>
-            <ul>
-              {problems.map((p, i) => (
-                <li key={i}>{p}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-        {imported && (
-          <section className="es-imported" role="status">
-            <div className="lbl">Imported</div>
-            <p>{imported.title} is in your list.</p>
-            {notes.length > 0 && (
-              <ul>
-                {notes.map((n, i) => (
-                  <li key={i}>{n.message}</li>
-                ))}
-              </ul>
-            )}
-            <button className="btn" onClick={() => onOpen(imported, imported)}>
-              Open it
-            </button>
-          </section>
-        )}
-      </aside>
+          {bundled.length > 0 && (
+            <>
+              <Fld label="Copy a bundled quest">
+                <select
+                  className="fr-sel"
+                  aria-label="Bundled quest"
+                  value={copyOf}
+                  onChange={(e) => setCopyOf(e.target.value)}
+                >
+                  <option value="">Choose a quest</option>
+                  {bundled.map((q) => (
+                    <option key={q.number} value={q.number}>
+                      Quest {q.number}: {q.level?.quest.title}
+                    </option>
+                  ))}
+                </select>
+              </Fld>
+              <button
+                className="btn alt"
+                disabled={copyOf === ''}
+                onClick={() => {
+                  const q = bundled.find((b) => String(b.number) === copyOf)?.level?.quest;
+                  if (q) {
+                    setPopup(null);
+                    void take(exportQuest(q));
+                  }
+                }}
+              >
+                Make a copy
+              </button>
+            </>
+          )}
+        </Dialog>
+      )}
     </div>
   );
 }
