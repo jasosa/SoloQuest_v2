@@ -228,6 +228,8 @@ const ObjectiveSchema = z.strictObject({
     .union([
       z.strictObject({ monsterKilled: id }),
       z.strictObject({ allKilled: z.array(id).min(1) }),
+      /** Every monster the players have seen is slain (and at least one was seen). */
+      z.strictObject({ allSeenKilled: z.literal(true) }),
       z.strictObject({ flag: nonEmpty }),
     ])
     .optional(),

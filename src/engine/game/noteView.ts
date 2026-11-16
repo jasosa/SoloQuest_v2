@@ -138,6 +138,10 @@ function isDone(o: ObjectiveDef, state: GameState): boolean {
   if (!d) return false;
   if ('monsterKilled' in d) return state.monsters[d.monsterKilled]?.dead === true;
   if ('allKilled' in d) return d.allKilled.every((id) => state.monsters[id]?.dead === true);
+  if ('allSeenKilled' in d) {
+    const seen = [...state.seenMonsters];
+    return seen.length > 0 && seen.every((id) => state.monsters[id]?.dead === true);
+  }
   return state.flags[d.flag] === true;
 }
 

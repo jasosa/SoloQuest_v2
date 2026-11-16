@@ -440,9 +440,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {
@@ -540,33 +546,9 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Kill every monster in the Bastion",
+      "text": "Kill every monster you find in the Bastion",
       "done": {
-        "allKilled": [
-          "m1",
-          "m2",
-          "m3",
-          "m4",
-          "m5",
-          "m6",
-          "m7",
-          "m8",
-          "m9",
-          "m10",
-          "m11",
-          "m12",
-          "m13",
-          "m14",
-          "m15",
-          "m16",
-          "m17",
-          "m18",
-          "m19",
-          "m20",
-          "m21",
-          "m-c",
-          "m-gargoyle"
-        ]
+        "allSeenKilled": true
       }
     }
   ],

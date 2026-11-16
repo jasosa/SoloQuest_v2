@@ -259,19 +259,24 @@ describe('quest 11: letter C, the magic sword', () => {
 });
 
 describe('quest 11: end', () => {
-  it('the objective needs every one of the 23 monsters dead, the gargoyle included', () => {
-    const ids = quest.monsters.map((m) => m.id);
-    expect(ids).toHaveLength(23);
+  it('the goal is to kill the monsters the heroes find, not every monster of the map', () => {
+    expect(quest.monsters).toHaveLength(23);
     expect(quest.objectives).toHaveLength(1);
-    expect(quest.objectives[0]?.done).toEqual({ allKilled: ids });
+    expect(quest.objectives[0]?.done).toEqual({ allSeenKilled: true });
+    expect(objectivesStatus(level, run()).goalDone).toBe(false); // nothing seen yet
     const s = run(...toR13, search('R13'));
     expect(objectivesStatus(level, s).goalDone).toBe(false);
   });
 
-  it('killing the seen monsters of R21 does not finish the quest', () => {
+  it('is done when every seen monster is slain, and not before', () => {
     const base = [...toR20, open('d13'), open('d15')];
-    const inR21 = quest.monsters.filter((m) => areaOf(m.cell!) === 'R21');
-    const s = run(...base, ...inR21.map((m) => kill(m.id)));
-    expect(objectivesStatus(level, s).goalDone).toBe(false);
+    const seen = run(...base);
+    const ids = [...seen.seenMonsters];
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids.length).toBeLessThan(23);
+    const partial = run(...base, ...ids.slice(1).map((id) => kill(id)));
+    expect(objectivesStatus(level, partial).goalDone).toBe(false);
+    const all = run(...base, ...ids.map((id) => kill(id)));
+    expect(objectivesStatus(level, all).goalDone).toBe(true);
   });
 });

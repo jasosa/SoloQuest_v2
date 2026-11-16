@@ -32,6 +32,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "notes": [ /* see below */ ],
   "wandering": { "monster": "orc" },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
   "objectives": [ { "id": "o1", "text": "Destroy Verag", "done": { "monsterKilled": "m-verag" } } ],
+  // objective `done` rules: { "monsterKilled": id } | { "allKilled": [ids] } | { "allSeenKilled": true } (every monster the players have seen is slain, at least one) | { "flag": name }
   "rewards": "",                              // text only (e.g. "240 gold coins, shared"), never tracked
   "rules": { },                               // quest-wide overrides, see below
   "npcs": [ ],                                // e.g. Sir Ragnar
