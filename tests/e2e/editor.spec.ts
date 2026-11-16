@@ -27,7 +27,7 @@ async function newQuest(page: Page, title = 'My quest', url = '/?editor=1&nosave
   await page.getByRole('button', { name: /^NEW QUEST/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await btn(page, 'Create the quest').click();
-  await expect(page.locator('header h1')).toHaveText(title);
+  await expect(page.locator('.fr-title')).toHaveText(title);
 }
 
 test.describe('editor: shell and board tools', () => {
@@ -41,7 +41,7 @@ test.describe('editor: shell and board tools', () => {
     await page.getByRole('button', { name: /^NEW QUEST/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');
     await btn(page, 'Create the quest').click();
-    await expect(page.locator('header h1')).toHaveText('The Cellar');
+    await expect(page.locator('.fr-title')).toHaveText('The Cellar');
     await expect(board(page)).toBeVisible();
     // the stairs of the empty quest, and no fog: rock hatch only where the quest has rock
     await expect(page.locator('[data-furniture="f-stairs"]')).toHaveCount(1);
@@ -214,7 +214,7 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('li[data-quest]')).toHaveCount(1);
     await expect(page.locator('li[data-quest]')).toContainText('Unsaved draft');
     await page.getByRole('button', { name: 'Open Persistent' }).click();
-    await expect(page.locator('header h1')).toHaveText('Persistent');
+    await expect(page.locator('.fr-title')).toHaveText('Persistent');
     await expect(page.locator('[data-monster]')).toHaveCount(1);
   });
 
@@ -242,7 +242,7 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('.es-imported')).toContainText('was changed to user-the-trial');
     await shot(page, 'editor-import');
     await btn(page, 'Open it').click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     // everything of Quest 1 is on the board: 24 monsters, the furniture, doors
     await expect(page.locator('[data-monster]')).toHaveCount(24);
     expect(await page.locator('[data-furniture]').count()).toBeGreaterThan(8);
@@ -266,7 +266,7 @@ test.describe('editor: storage and files', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -286,7 +286,7 @@ test.describe('editor: storage and files', () => {
 
     // a blank draft is replaced at once, as one undo step
     await page.getByLabel('Import file').setInputFiles(file('q1.hqquest.json', q1));
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
 
     // export: the file name comes from the title, and there is no userText
@@ -304,7 +304,7 @@ test.describe('editor: storage and files', () => {
     await shot(page, 'editor-import-error');
     await dialog.getByRole('button', { name: 'Close' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
 
     // a good file on a draft with content asks first
     const other = JSON.stringify({ ...JSON.parse(q1), title: 'Second Trial' });
@@ -316,12 +316,12 @@ test.describe('editor: storage and files', () => {
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
     await sheet.getByRole('button', { name: 'Keep my draft' }).click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     await page.getByLabel('Import file').setInputFiles(file('two.hqquest.json', other));
     await sheet.getByRole('button', { name: 'Replace the draft' }).click();
-    await expect(page.locator('header h1')).toHaveText('Second Trial');
+    await expect(page.locator('.fr-title')).toHaveText('Second Trial');
     await btn(page, 'Undo').click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
   });
 
   test('export refuses a draft with errors and counts them', async ({ page }) => {
@@ -616,8 +616,9 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
 
   test('the quest start message is an action of the quest, not a loose note', async ({ page }) => {
     await newQuest(page);
-    const quest = page.getByTestId('element-actions');
-    await expect(quest).toContainText('No action here yet.');
+    await page.getByRole('tab', { name: 'Quest' }).click();
+    const quest = page.getByTestId('quest-actions');
+    await expect(quest).toContainText('No action yet.');
     await quest.getByRole('button', { name: 'Add action' }).click();
     await expect(dlg(page).getByLabel('Applies to')).toHaveValue('quest');
     await expect(dlg(page).getByLabel('When')).toHaveValue('questStart');
@@ -631,7 +632,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await message.fill('Place the heroes on the stairs.');
     await message.blur();
     await btn(page, 'Close').click();
-    await expect(page.getByTestId('action-list')).toContainText('Quest starts');
+    await expect(page.getByTestId('note-list')).toContainText(/quest starts/i);
   });
 
   test('zones: paint squares with the Zones tool, select the zone, give it an action', async ({
@@ -784,11 +785,12 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     const section = page.getByTestId('monster-abilities');
     await section.getByRole('button', { name: 'New ability…' }).click();
     await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
-    await clickAt(page, 12, 3); // an empty square: nothing selected, the quest fields show
+    await page.getByRole('tab', { name: 'Quest' }).click(); // the quest fields are in the Quest tab
     const own = page.getByTestId('abilities-section');
     await expect(own).toContainText('New ability');
     await own.getByRole('button', { name: 'Edit ability ab1' }).click();
     await abilityDlg(page).getByRole('button', { name: 'Delete ability' }).click();
+    await page.getByRole('tab', { name: 'Map' }).click();
     await expect(page.locator('.ed-warnings')).toContainText('ab1');
   });
 });
@@ -1025,7 +1027,7 @@ test.describe('editor: problems panel and playtest', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     await expect(page.getByTestId('playtest')).toBeEnabled();
     await page.getByTestId('playtest').click();
     await dismissStart(page);
@@ -1053,7 +1055,7 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
 
     await btn(page, 'Back to editor').click();
-    await expect(page.locator('header h1')).toHaveText('The Trial');
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 });
@@ -1061,6 +1063,9 @@ test.describe('editor: problems panel and playtest', () => {
 test.describe('editor: quest fields', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
   const tab = (page: Page, name: RegExp) => insp(page).getByRole('button', { name });
+  const quest = (page: Page) => page.locator('.fr-frame');
+  const goQuest = (page: Page) => page.getByRole('tab', { name: 'Quest' }).click();
+  const goMap = (page: Page) => page.getByRole('tab', { name: 'Map' }).click();
 
   test('add, edit, undo and remove an objective; the Problems error and the note effect follow', async ({
     page,
@@ -1069,7 +1074,7 @@ test.describe('editor: quest fields', () => {
     // no objective: the Problems tab says so
     await tab(page, /^Problems/).click();
     await expect(page.getByTestId('problems-panel')).toContainText('no objective');
-    await tab(page, /^Element/).click();
+    await goQuest(page);
     await expect(page.getByTestId('no-objectives')).toBeVisible();
 
     await btn(page, 'Add an objective').click();
@@ -1077,31 +1082,32 @@ test.describe('editor: quest fields', () => {
     await expect(page.getByTestId('no-objectives')).toHaveCount(0);
 
     // edit the text, one undo step
-    const text = insp(page).getByLabel('Objective o1 text');
+    const text = quest(page).getByLabel('Objective o1 text');
     await text.fill('Find the lost key.');
     await text.blur();
     await expect(text).toHaveValue('Find the lost key.');
     await btn(page, 'Undo').click();
-    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('New objective');
+    await expect(quest(page).getByLabel('Objective o1 text')).toHaveValue('New objective');
     await btn(page, 'Redo').click();
-    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
+    await expect(quest(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
     // an empty text is refused and the old text stays
     await text.fill('   ');
     await text.blur();
     await expect(page.locator('.toast')).toContainText('needs text');
-    await expect(insp(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
+    await expect(quest(page).getByLabel('Objective o1 text')).toHaveValue('Find the lost key.');
 
     // touch targets
-    for (const b of await insp(page).locator('.ed-quest .chip, .ed-quest .btn').all())
+    for (const b of await quest(page).locator('.ed-quest .chip, .ed-quest .btn').all())
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
 
     // the 'no objective' error is gone
+    await goMap(page);
     await tab(page, /^Problems/).click();
     await expect(page.getByTestId('problems-panel')).not.toContainText('no objective');
 
     // an action can complete it
-    await tab(page, /^Element/).click();
-    await insp(page).getByRole('button', { name: 'Add action' }).click();
+    await goQuest(page);
+    await quest(page).getByRole('button', { name: 'Add action' }).click();
     await page
       .getByRole('dialog', { name: 'Action' })
       .getByLabel('Add an effect')
@@ -1114,43 +1120,48 @@ test.describe('editor: quest fields', () => {
 
     // removing it warns about the note
     await btn(page, 'Close').click();
-    await tab(page, /^Element/).click();
     await shot(page, 'editor-quest-fields');
-    await insp(page).getByRole('button', { name: 'Remove objective o1' }).click();
+    await quest(page).getByRole('button', { name: 'Remove objective o1' }).click();
     await expect(page.getByTestId('objective-row')).toHaveCount(0);
+    await goMap(page);
     await expect(page.locator('.ed-warnings')).toContainText('o1');
     await btn(page, 'Undo').click();
+    await goQuest(page);
     await expect(page.getByTestId('objective-row')).toHaveCount(1);
   });
 
   test('wandering monster and rules save and undo', async ({ page }) => {
     await newQuest(page);
-    await expect(insp(page).getByLabel('Zargon info')).toHaveCount(0); // decision 66
-    await insp(page).getByRole('button', { name: 'A monster', exact: true }).click();
-    await expect(insp(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
+    await goQuest(page);
+    await expect(quest(page).getByLabel('Zargon info')).toHaveCount(0); // decision 66
+    await quest(page).getByRole('button', { name: 'A monster', exact: true }).click();
+    await expect(quest(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
       'orc',
     );
-    await insp(page).getByRole('combobox', { name: 'Monster', exact: true }).selectOption('goblin');
+    await quest(page)
+      .getByRole('combobox', { name: 'Monster', exact: true })
+      .selectOption('goblin');
     await btn(page, 'Undo').click();
-    await expect(insp(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
+    await expect(quest(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
       'orc',
     );
-    await insp(page).getByRole('button', { name: 'Free text', exact: true }).click();
-    const what = insp(page).getByLabel('What appears');
+    await quest(page).getByRole('button', { name: 'Free text', exact: true }).click();
+    const what = quest(page).getByLabel('What appears');
     await what.fill('A ghost laughs.');
     await what.blur();
-    await expect(insp(page).getByLabel('What appears')).toHaveValue('A ghost laughs.');
-    await insp(page).getByRole('button', { name: 'None', exact: true }).click();
-    await expect(insp(page).getByLabel('What appears')).toHaveCount(0);
+    await expect(quest(page).getByLabel('What appears')).toHaveValue('A ghost laughs.');
+    await quest(page).getByRole('button', { name: 'None', exact: true }).click();
+    await expect(quest(page).getByLabel('What appears')).toHaveCount(0);
     await shot(page, 'editor-quest-wandering');
   });
 });
 
 test.describe('editor: endings and blocked search', () => {
-  const insp = (page: Page) => page.locator('.ed-inspector');
+  const insp = (page: Page) => page.locator('.fr-frame');
 
   test('add, edit, undo and remove an ending', async ({ page }) => {
     await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest' }).click();
     await expect(page.getByTestId('ending-row')).toHaveCount(0);
     await btn(page, 'Add an ending').click();
     await expect(page.getByTestId('ending-row')).toHaveCount(1);
@@ -1184,6 +1195,7 @@ test.describe('editor: endings and blocked search', () => {
     page,
   }) => {
     await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest' }).click();
     await insp(page).getByRole('button', { name: 'Add action' }).click();
     // only a treasure search trigger offers the toggle
     await expect(btn(page, 'Searching here is not possible')).toHaveCount(0);

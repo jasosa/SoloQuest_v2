@@ -247,6 +247,8 @@ function Game({ params }: { params: URLSearchParams }) {
           onBack={() => setEditor('start')}
           reference={referenceStore}
           onPlaytest={playtestQuest}
+          library={libraryStore}
+          quests={questSource}
         />
       </LibraryProvider>
     );

@@ -1,0 +1,99 @@
+import { useStore } from 'zustand';
+import { renameQuest, setSummary } from '../../engine/editor';
+import { Col, Fld, Frame, Panel } from '../shared/Frame';
+import { ActionsPanel } from './ActionsPanel';
+import type { EditorStore } from './editorStore';
+import { QuestPanel } from './QuestPanel';
+
+/**
+ * The Quest tab (the mockup of decision 70): the actions of the quest on the left, the general
+ * fields and the objectives in the middle, the rules, wandering monster, endings and the quest's
+ * own abilities and spells on the right.
+ */
+export function QuestTab({ store }: { store: EditorStore }) {
+  const { quest } = useStore(store);
+  const st = store.getState();
+  return (
+    <Frame>
+      <Col label="Actions">
+        <Panel title="Actions" testId="quest-actions">
+          <ActionsPanel store={store} />
+        </Panel>
+      </Col>
+      <Col label="General">
+        <Panel title="General" testId="quest-general">
+          <div className="fr-row2">
+            <Fld label="Title">
+              <input
+                className="fr-in"
+                aria-label="Title"
+                key={quest.title}
+                defaultValue={quest.title}
+                maxLength={80}
+                onBlur={(e) => {
+                  if (e.target.value !== quest.title)
+                    st.apply((q) => renameQuest(q, e.target.value));
+                }}
+              />
+            </Fld>
+            <Fld label="Number">
+              <input className="fr-in" aria-label="Number" value={quest.number} disabled readOnly />
+            </Fld>
+          </div>
+          <Fld label="Summary">
+            <textarea
+              className="fr-ta"
+              aria-label="Summary"
+              key={quest.intro.summary}
+              defaultValue={quest.intro.summary}
+              rows={4}
+              onBlur={(e) => {
+                if (e.target.value !== quest.intro.summary)
+                  st.apply((q) => setSummary(q, e.target.value));
+              }}
+            />
+          </Fld>
+        </Panel>
+        <Panel title="Objectives" testId="quest-objectives">
+          <QuestPanel store={store} only="objectives" />
+        </Panel>
+      </Col>
+      <Col label="Rules">
+        <Panel title="Rules">
+          <QuestPanel store={store} only="rules" />
+        </Panel>
+        <Panel title="Wandering monster">
+          <QuestPanel store={store} only="wandering" />
+        </Panel>
+        <Panel title="Ending">
+          <QuestPanel store={store} only="endings" />
+        </Panel>
+        <Panel title="Abilities and spells of this quest">
+          <QuestPanel store={store} only="abilities" />
+        </Panel>
+      </Col>
+    </Frame>
+  );
+}
+
+/** The Actions tab: the list of every action (a row opens it in the popup) and how it works. */
+export function ActionsTab({ store }: { store: EditorStore }) {
+  return (
+    <Frame narrow>
+      <Col label="Actions">
+        <Panel title="Actions" testId="actions-list">
+          <ActionsPanel store={store} />
+        </Panel>
+      </Col>
+      <Col label="Help">
+        <Panel title="How actions work">
+          <p className="fr-help">
+            An action happens at a moment of the quest, on a place, or on an element. Pick one on
+            the left to change it. To add one to an element, select it on the Map or in the Monsters
+            tab and use its Add action button.
+          </p>
+        </Panel>
+      </Col>
+    </Frame>
+  );
+}

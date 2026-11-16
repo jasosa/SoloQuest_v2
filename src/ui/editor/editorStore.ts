@@ -82,6 +82,9 @@ export interface PickRequest {
 
 export type Panel = 'element' | 'notes' | 'problems';
 
+/** The tabs of the editor (the mockup of decision 70). */
+export type EditorTabName = 'Quest' | 'Map' | 'Actions' | 'Monsters' | 'Designer';
+
 /** A short highlight on the board after a jump from the Problems panel. `id` restarts it. */
 export interface BoardFlash extends Flash {
   readonly id: number;
@@ -101,6 +104,8 @@ export interface EditorState {
   readonly tool: Tool;
   readonly opts: ToolOpts;
   readonly selection: EditSelection;
+  /** The editor tab on show. */
+  readonly tab: EditorTabName;
   /** Inspector tab: the selected element or the note builder. */
   readonly panel: Panel;
   /** The note open in the note builder. */
@@ -128,6 +133,7 @@ export interface EditorState {
   setTool(tool: Tool): void;
   setOpts(patch: Partial<ToolOpts>): void;
   select(sel: EditSelection): void;
+  setTab(tab: EditorTabName): void;
   setPanel(panel: Panel): void;
   setNoteId(id: string | null): void;
   setAbilityId(id: string | null): void;
@@ -186,6 +192,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       tool: 'select',
       opts: DEFAULT_OPTS,
       selection: null,
+      tab: 'Map',
       panel: 'element',
       noteId: null,
       abilityId: null,
@@ -256,9 +263,12 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
       select: (selection) =>
         set(selection ? { selection, panel: 'element', picking: null } : { selection }),
+      setTab: (tab) => set({ tab, picking: null }),
       setPanel: (panel) =>
         set(
-          panel === 'notes' ? { panel, picking: null, selection: null } : { panel, picking: null },
+          panel === 'notes'
+            ? { panel, picking: null, selection: null, tab: 'Map' }
+            : { panel, picking: null },
         ),
       setNoteId: (noteId) => set({ noteId, picking: null }),
       setAbilityId: (abilityId) => set({ abilityId }),
@@ -269,6 +279,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
         const j = jumpFor(get().quest, ref);
         const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
         set({
+          tab: 'Map',
           panel: j.panel,
           selection: j.selection,
           picking: null,

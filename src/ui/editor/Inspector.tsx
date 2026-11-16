@@ -8,10 +8,8 @@ import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
   lettersMissingNotes,
-  renameQuest,
   setDoorKind,
   setFurnitureLetter,
-  setSummary,
   updateMarker,
   updateMonster,
   updateTrap,
@@ -35,7 +33,6 @@ import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { elementOf } from './elementActions';
 import { ActionsPanel } from './ActionsPanel';
 import { ProblemsPanel } from './ProblemsPanel';
-import { QuestPanel } from './QuestPanel';
 import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseLines, parseOverrides, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -154,39 +151,10 @@ export function Inspector({
   return (
     <>
       {tabs}
-      <section>
-        <div className="lbl">Quest</div>
-        <label className="ed-field">
-          Title
-          <input
-            key={quest.title}
-            defaultValue={quest.title}
-            maxLength={80}
-            onBlur={(e) => {
-              if (e.target.value !== quest.title) st.apply((q) => renameQuest(q, e.target.value));
-            }}
-          />
-        </label>
-        <p className="ed-note">Number {quest.number}</p>
-        <label className="ed-field">
-          Summary
-          <textarea
-            key={quest.intro.summary}
-            defaultValue={quest.intro.summary}
-            rows={4}
-            onBlur={(e) => {
-              if (e.target.value !== quest.intro.summary)
-                st.apply((q) => setSummary(q, e.target.value));
-            }}
-          />
-        </label>
-      </section>
-
       {!selection && (
-        <>
-          <SubjectActions store={store} subject={{ kind: 'quest' }} />
-          <QuestPanel store={store} />
-        </>
+        <p className="ed-note" data-testid="inspector-hint">
+          Select something on the map to edit it. The quest fields are in the Quest tab.
+        </p>
       )}
 
       {saveErrors && (
@@ -442,7 +410,7 @@ function MonsterFields({ store, monster }: { store: EditorStore; monster: Monste
   );
 }
 
-function StatFields({
+export function StatFields({
   store,
   monster,
   onSave,

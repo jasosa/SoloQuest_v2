@@ -527,3 +527,56 @@
 .fr-bd > .fr-lbtns {
   padding: 8px 0 0;
 }
+.fr-addrow .btn,
+.fr-bd .btn {
+  display: inline-flex;
+  width: auto;
+  padding: 0 18px;
+  margin-top: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+.fr-bd .ed-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.fr-bd .ed-stats .ed-field input {
+  text-align: center;
+}
+.fr .fr-title {
+  font:
+    400 15px 'Pagella',
+    Georgia,
+    serif;
+  color: var(--muted);
+}
+.fr-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: 0 28px;
+  min-height: 44px;
+  align-items: center;
+  flex: none;
+}
+.fr-bar .link {
+  min-height: 44px;
+  padding: 0 10px;
+}
+.fr-bd .lbl:first-child,
+.fr-bd [data-testid='monster-abilities'] > .lbl,
+.fr-bd [data-testid='monster-spells'] > .lbl {
+  display: none;
+}
+.app.editor.fr .ed-body {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 12px;
+}
+/* In the editor the action row sits under the tab bar: popups start below it. */
+.app.editor .fr-veil,
+.app.editor .ed-veil {
+  inset: 108px 0 0 0;
+}

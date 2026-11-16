@@ -26,7 +26,11 @@ import type { EditorStore } from './editorStore';
 
 type WanderMode = 'none' | 'monster' | 'text';
 
-export function QuestPanel({ store }: { store: EditorStore }) {
+export type QuestPart = 'objectives' | 'endings' | 'abilities' | 'wandering' | 'rules';
+
+/** `only` shows one part (a panel of the Quest tab); without it every part shows. */
+export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPart }) {
+  const show = (part: QuestPart) => only === undefined || only === part;
   const { quest } = useStore(store);
   const st = store.getState();
   const w = quest.wandering;
@@ -38,292 +42,302 @@ export function QuestPanel({ store }: { store: EditorStore }) {
 
   return (
     <div className="ed-quest" data-testid="quest-panel">
-      <section>
-        <div className="lbl">Objectives</div>
-        {quest.objectives.length === 0 ? (
-          <p className="ed-note" data-testid="no-objectives">
-            No objectives yet. A quest needs at least one.
+      {show('objectives') && (
+        <section>
+          <div className="lbl">Objectives</div>
+          {quest.objectives.length === 0 ? (
+            <p className="ed-note" data-testid="no-objectives">
+              No objectives yet. A quest needs at least one.
+            </p>
+          ) : (
+            quest.objectives.map((o) => (
+              <div className="ed-row" key={o.id} data-testid="objective-row" data-objective={o.id}>
+                <div className="ed-row-head">
+                  <span data-testid="objective-id">{o.id}</span>
+                  <button
+                    className="chip"
+                    aria-label={`Remove objective ${o.id}`}
+                    onClick={() => st.apply((q) => removeObjective(q, o.id))}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <label className="ed-field">
+                  What the heroes must do
+                  <textarea
+                    key={`${o.id}:${o.text}`}
+                    defaultValue={o.text}
+                    rows={2}
+                    aria-label={`Objective ${o.id} text`}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim();
+                      if (v === o.text) return;
+                      if (!st.apply((q) => updateObjective(q, o.id, { text: v })))
+                        e.target.value = o.text;
+                    }}
+                  />
+                </label>
+                {o.done && <p className="ed-note">It also has a done rule, kept as it is.</p>}
+              </div>
+            ))
+          )}
+          <p className="ed-note">
+            A note completes an objective with the effect "Complete an objective", using its id.
           </p>
-        ) : (
-          quest.objectives.map((o) => (
-            <div className="ed-row" key={o.id} data-testid="objective-row" data-objective={o.id}>
+          <button
+            className="btn"
+            onClick={() => st.apply((q) => addObjective(q, { text: 'New objective' }))}
+          >
+            Add an objective
+          </button>
+        </section>
+      )}
+
+      {show('endings') && (
+        <section>
+          <div className="lbl">Endings</div>
+          {(quest.endings ?? []).map((e) => (
+            <div className="ed-row" key={e.id} data-testid="ending-row" data-ending={e.id}>
               <div className="ed-row-head">
-                <span data-testid="objective-id">{o.id}</span>
+                <span>{e.id}</span>
                 <button
                   className="chip"
-                  aria-label={`Remove objective ${o.id}`}
-                  onClick={() => st.apply((q) => removeObjective(q, o.id))}
+                  aria-label={`Remove ending ${e.id}`}
+                  onClick={() => st.apply((q) => removeEnding(q, e.id))}
                 >
                   Remove
                 </button>
               </div>
               <label className="ed-field">
-                What the heroes must do
-                <textarea
-                  key={`${o.id}:${o.text}`}
-                  defaultValue={o.text}
-                  rows={2}
-                  aria-label={`Objective ${o.id} text`}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v === o.text) return;
-                    if (!st.apply((q) => updateObjective(q, o.id, { text: v })))
-                      e.target.value = o.text;
+                Label
+                <input
+                  key={`${e.id}:l:${e.label}`}
+                  defaultValue={e.label}
+                  aria-label={`Ending ${e.id} label`}
+                  onBlur={(ev) => {
+                    const v = ev.target.value.trim();
+                    if (v === e.label) return;
+                    if (!st.apply((q) => updateEnding(q, e.id, { label: v })))
+                      ev.target.value = e.label;
                   }}
                 />
               </label>
-              {o.done && <p className="ed-note">It also has a done rule, kept as it is.</p>}
+              <label className="ed-field">
+                Text for the players
+                <textarea
+                  key={`${e.id}:t:${e.text ?? ''}`}
+                  defaultValue={e.text ?? ''}
+                  rows={2}
+                  aria-label={`Ending ${e.id} text`}
+                  onBlur={(ev) => {
+                    const v = ev.target.value.trim();
+                    if (v === (e.text ?? '')) return;
+                    st.apply((q) => updateEnding(q, e.id, { text: v === '' ? null : v }));
+                  }}
+                />
+              </label>
             </div>
-          ))
-        )}
-        <p className="ed-note">
-          A note completes an objective with the effect "Complete an objective", using its id.
-        </p>
-        <button
-          className="btn"
-          onClick={() => st.apply((q) => addObjective(q, { text: 'New objective' }))}
-        >
-          Add an objective
-        </button>
-      </section>
-
-      <section>
-        <div className="lbl">Endings</div>
-        {(quest.endings ?? []).map((e) => (
-          <div className="ed-row" key={e.id} data-testid="ending-row" data-ending={e.id}>
-            <div className="ed-row-head">
-              <span>{e.id}</span>
-              <button
-                className="chip"
-                aria-label={`Remove ending ${e.id}`}
-                onClick={() => st.apply((q) => removeEnding(q, e.id))}
-              >
-                Remove
-              </button>
-            </div>
-            <label className="ed-field">
-              Label
-              <input
-                key={`${e.id}:l:${e.label}`}
-                defaultValue={e.label}
-                aria-label={`Ending ${e.id} label`}
-                onBlur={(ev) => {
-                  const v = ev.target.value.trim();
-                  if (v === e.label) return;
-                  if (!st.apply((q) => updateEnding(q, e.id, { label: v })))
-                    ev.target.value = e.label;
-                }}
-              />
-            </label>
-            <label className="ed-field">
-              Text for the players
-              <textarea
-                key={`${e.id}:t:${e.text ?? ''}`}
-                defaultValue={e.text ?? ''}
-                rows={2}
-                aria-label={`Ending ${e.id} text`}
-                onBlur={(ev) => {
-                  const v = ev.target.value.trim();
-                  if (v === (e.text ?? '')) return;
-                  st.apply((q) => updateEnding(q, e.id, { text: v === '' ? null : v }));
-                }}
-              />
-            </label>
-          </div>
-        ))}
-        <p className="ed-note">
-          An ending shows in the End quest list, next to the stairs and "All heroes fell". It shows
-          no reward.
-        </p>
-        <button
-          className="btn"
-          onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
-        >
-          Add an ending
-        </button>
-      </section>
-
-      <section data-testid="abilities-section">
-        <div className="lbl">Abilities and spells of this quest</div>
-        <ul className="ed-items">
-          {quest.abilityDefs.map((a) => (
-            <li key={a.id} data-ability={a.id}>
-              <b>{a.name}</b>
-              <p>
-                {a.kind === 'weakness'
-                  ? 'Weakness'
-                  : a.kind === 'immunity'
-                    ? 'Immunity'
-                    : 'Ability'}
-                : {a.text}
-              </p>
-              <button
-                className="chip"
-                aria-label={`Edit ability ${a.id}`}
-                onClick={() => st.setAbilityId(a.id)}
-              >
-                Edit
-              </button>
-            </li>
           ))}
-          {quest.spellDefs.map((sp) => (
-            <li key={sp.id} data-spell={sp.id}>
-              <b>{sp.name}</b>
-              <p>Spell: {sp.question ?? sp.tags.join(', ')}</p>
-              <button
-                className="chip"
-                aria-label={`Edit spell ${sp.id}`}
-                onClick={() => st.setSpellId(sp.id)}
-              >
-                Edit
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="ed-note">
-          Your own abilities and spells show next to the core ones when you add them to a monster. A
-          monster with an ability is not a special monster.
-        </p>
-        <div className="ed-addrow">
+          <p className="ed-note">
+            An ending shows in the End quest list, next to the stairs and "All heroes fell". It
+            shows no reward.
+          </p>
           <button
             className="btn"
-            onClick={() => {
-              if (
-                !st.apply((q) =>
-                  addAbility(q, { name: 'New ability', text: 'Write what it does.' }),
+            onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
+          >
+            Add an ending
+          </button>
+        </section>
+      )}
+
+      {show('abilities') && (
+        <section data-testid="abilities-section">
+          <div className="lbl">Abilities and spells of this quest</div>
+          <ul className="ed-items">
+            {quest.abilityDefs.map((a) => (
+              <li key={a.id} data-ability={a.id}>
+                <b>{a.name}</b>
+                <p>
+                  {a.kind === 'weakness'
+                    ? 'Weakness'
+                    : a.kind === 'immunity'
+                      ? 'Immunity'
+                      : 'Ability'}
+                  : {a.text}
+                </p>
+                <button
+                  className="chip"
+                  aria-label={`Edit ability ${a.id}`}
+                  onClick={() => st.setAbilityId(a.id)}
+                >
+                  Edit
+                </button>
+              </li>
+            ))}
+            {quest.spellDefs.map((sp) => (
+              <li key={sp.id} data-spell={sp.id}>
+                <b>{sp.name}</b>
+                <p>Spell: {sp.question ?? sp.tags.join(', ')}</p>
+                <button
+                  className="chip"
+                  aria-label={`Edit spell ${sp.id}`}
+                  onClick={() => st.setSpellId(sp.id)}
+                >
+                  Edit
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="ed-note">
+            Your own abilities and spells show next to the core ones when you add them to a monster.
+            A monster with an ability is not a special monster.
+          </p>
+          <div className="ed-addrow">
+            <button
+              className="btn"
+              onClick={() => {
+                if (
+                  !st.apply((q) =>
+                    addAbility(q, { name: 'New ability', text: 'Write what it does.' }),
+                  )
                 )
-              )
-                return;
-              const made = store.getState().quest.abilityDefs.at(-1);
-              if (made) st.setAbilityId(made.id);
-            }}
-          >
-            Add an ability
-          </button>
-          <button
-            className="btn"
-            onClick={() => {
-              if (!st.apply((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
-              const made = store.getState().quest.spellDefs.at(-1);
-              if (made) st.setSpellId(made.id);
-            }}
-          >
-            Add a spell
-          </button>
-        </div>
-      </section>
+                  return;
+                const made = store.getState().quest.abilityDefs.at(-1);
+                if (made) st.setAbilityId(made.id);
+              }}
+            >
+              Add an ability
+            </button>
+            <button
+              className="btn"
+              onClick={() => {
+                if (!st.apply((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
+                const made = store.getState().quest.spellDefs.at(-1);
+                if (made) st.setSpellId(made.id);
+              }}
+            >
+              Add a spell
+            </button>
+          </div>
+        </section>
+      )}
 
-      <section>
-        <div className="lbl">Wandering monster</div>
-        <div className="ed-chips" role="group" aria-label="Wandering monster">
-          <button
-            className="chip"
-            aria-pressed={mode === 'none'}
-            onClick={() => {
-              setMode(false);
-              if (w) st.apply((q) => setWandering(q, null));
-            }}
-          >
-            None
-          </button>
-          <button
-            className="chip"
-            aria-pressed={mode === 'monster'}
-            onClick={() => {
-              setMode(false);
-              if (!w || 'text' in w) st.apply((q) => setWandering(q, { monster: wMonster }));
-            }}
-          >
-            A monster
-          </button>
-          <button
-            className="chip ed-wide"
-            aria-pressed={mode === 'text'}
-            onClick={() => {
-              setMode(true);
-              if (w && 'monster' in w) st.apply((q) => setWandering(q, null));
-            }}
-          >
-            Free text
-          </button>
-        </div>
-        {mode === 'monster' && (
+      {show('wandering') && (
+        <section>
+          <div className="lbl">Wandering monster</div>
+          <div className="ed-chips" role="group" aria-label="Wandering monster">
+            <button
+              className="chip"
+              aria-pressed={mode === 'none'}
+              onClick={() => {
+                setMode(false);
+                if (w) st.apply((q) => setWandering(q, null));
+              }}
+            >
+              None
+            </button>
+            <button
+              className="chip"
+              aria-pressed={mode === 'monster'}
+              onClick={() => {
+                setMode(false);
+                if (!w || 'text' in w) st.apply((q) => setWandering(q, { monster: wMonster }));
+              }}
+            >
+              A monster
+            </button>
+            <button
+              className="chip ed-wide"
+              aria-pressed={mode === 'text'}
+              onClick={() => {
+                setMode(true);
+                if (w && 'monster' in w) st.apply((q) => setWandering(q, null));
+              }}
+            >
+              Free text
+            </button>
+          </div>
+          {mode === 'monster' && (
+            <label className="ed-field">
+              Monster
+              <select
+                className="es-select"
+                value={wMonster}
+                onChange={(e) =>
+                  st.apply((q) => setWandering(q, { monster: e.target.value as MonsterType }))
+                }
+              >
+                {MONSTER_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {MONSTER_NAMES[t]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {mode === 'text' && (
+            <label className="ed-field">
+              What appears
+              <input
+                key={wText}
+                defaultValue={wText}
+                placeholder="Text for the players"
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v === wText) return;
+                  if (v === '' && wText === '') return;
+                  if (!st.apply((q) => setWandering(q, { text: v }))) e.target.value = wText;
+                }}
+              />
+            </label>
+          )}
+        </section>
+      )}
+
+      {show('rules') && (
+        <section>
+          <div className="lbl">Rules</div>
           <label className="ed-field">
-            Monster
+            Falling block rule
+            <input
+              key={quest.rules.fallingBlock ?? ''}
+              defaultValue={quest.rules.fallingBlock ?? ''}
+              placeholder="None"
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v === (quest.rules.fallingBlock ?? '')) return;
+                st.apply((q) => setRules(q, { fallingBlock: v === '' ? null : v }));
+              }}
+            />
+          </label>
+          <label className="ed-field">
+            No equipment until note
             <select
               className="es-select"
-              value={wMonster}
+              value={quest.rules.noEquipmentUntil ?? ''}
               onChange={(e) =>
-                st.apply((q) => setWandering(q, { monster: e.target.value as MonsterType }))
+                st.apply((q) =>
+                  setRules(q, { noEquipmentUntil: e.target.value === '' ? null : e.target.value }),
+                )
               }
             >
-              {MONSTER_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {MONSTER_NAMES[t]}
+              <option value="">None</option>
+              {quest.rules.noEquipmentUntil &&
+                !quest.notes.some((n) => n.id === quest.rules.noEquipmentUntil) && (
+                  <option value={quest.rules.noEquipmentUntil}>
+                    {quest.rules.noEquipmentUntil} (missing)
+                  </option>
+                )}
+              {quest.notes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.id}
                 </option>
               ))}
             </select>
           </label>
-        )}
-        {mode === 'text' && (
-          <label className="ed-field">
-            What appears
-            <input
-              key={wText}
-              defaultValue={wText}
-              placeholder="Text for the players"
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === wText) return;
-                if (v === '' && wText === '') return;
-                if (!st.apply((q) => setWandering(q, { text: v }))) e.target.value = wText;
-              }}
-            />
-          </label>
-        )}
-      </section>
-
-      <section>
-        <div className="lbl">Rules</div>
-        <label className="ed-field">
-          Falling block rule
-          <input
-            key={quest.rules.fallingBlock ?? ''}
-            defaultValue={quest.rules.fallingBlock ?? ''}
-            placeholder="None"
-            onBlur={(e) => {
-              const v = e.target.value.trim();
-              if (v === (quest.rules.fallingBlock ?? '')) return;
-              st.apply((q) => setRules(q, { fallingBlock: v === '' ? null : v }));
-            }}
-          />
-        </label>
-        <label className="ed-field">
-          No equipment until note
-          <select
-            className="es-select"
-            value={quest.rules.noEquipmentUntil ?? ''}
-            onChange={(e) =>
-              st.apply((q) =>
-                setRules(q, { noEquipmentUntil: e.target.value === '' ? null : e.target.value }),
-              )
-            }
-          >
-            <option value="">None</option>
-            {quest.rules.noEquipmentUntil &&
-              !quest.notes.some((n) => n.id === quest.rules.noEquipmentUntil) && (
-                <option value={quest.rules.noEquipmentUntil}>
-                  {quest.rules.noEquipmentUntil} (missing)
-                </option>
-              )}
-            {quest.notes.map((n) => (
-              <option key={n.id} value={n.id}>
-                {n.id}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

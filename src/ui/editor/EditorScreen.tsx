@@ -8,7 +8,12 @@ import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
-import type { EditorStore, Tool } from './editorStore';
+import type { EditorStore, EditorTabName, Tool } from './editorStore';
+import { EDITOR_TABS, TopBar } from '../shared/Frame';
+import { DesignerBody, type QuestSource } from '../designer/DesignerScreen';
+import type { LibraryStore } from '../../persist/library';
+import { ActionsTab, QuestTab } from './QuestTabs';
+import { MonstersTab } from './MonstersTab';
 import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
@@ -45,11 +50,21 @@ export interface EditorScreenProps {
   reference?: ReferenceStore;
   /** Play the draft in the real play screen. Nothing is saved. */
   onPlaytest?(quest: Quest): void;
+  /** The Designer library and the quests it looks at, for the Designer tab. */
+  library: LibraryStore;
+  quests?: QuestSource;
 }
 
-export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScreenProps) {
+export function EditorScreen({
+  store,
+  onBack,
+  reference,
+  onPlaytest,
+  library,
+  quests,
+}: EditorScreenProps) {
   const s = useStore(store);
-  const { quest, tool, toast, warnings, saveErrors } = s;
+  const { quest, tool, toast, warnings, saveErrors, tab } = s;
   const ref = useReference(quest.id, reference);
   const dropFile = async (file: File | undefined) => {
     if (!file) return;
@@ -111,15 +126,17 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
   }, [store]);
 
   return (
-    <div className="app editor">
-      <header>
-        <span className="qn">Editor</span>
-        <h1>{quest.title}</h1>
+    <div className="app editor fr">
+      <TopBar tabs={EDITOR_TABS} active={tab} onTab={(t) => s.setTab(t as EditorTabName)}>
+        <h1 className="fr-title">{quest.title}</h1>
         <span className="ed-status">{dirty ? 'Unsaved changes' : 'Saved'}</span>
+      </TopBar>
+      <div className="fr-bar" role="toolbar" aria-label="Quest">
         <button
           className="link ed-issues"
           onClick={() => {
             s.select(null);
+            s.setTab('Map');
             s.setPanel('problems');
           }}
           aria-label="Problems"
@@ -154,54 +171,60 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
         <button className="link" onClick={onBack}>
           Back
         </button>
-      </header>
-
-      <div className="ed-body">
-        <nav className="ed-tools" aria-label="Tools">
-          <div className="ed-chips">
-            {TOOLS.map((t) => (
-              <button
-                key={t.tool}
-                className="chip"
-                aria-pressed={tool === t.tool}
-                title={`Shortcut ${t.key.toUpperCase()}`}
-                onClick={() => s.setTool(t.tool)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <ToolOptions store={store} />
-          <ReferencePanel api={ref} say={s.say} />
-        </nav>
-
-        <main
-          className="ed-board"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            void dropFile(e.dataTransfer.files[0]);
-          }}
-        >
-          <EditorBoard store={store} reference={ref} />
-          {warnings.length > 0 && (
-            <div className="ed-warnings" role="status">
-              <button className="link" onClick={() => s.dismissWarnings()}>
-                Dismiss
-              </button>
-              <ul>
-                {warnings.map((w, i) => (
-                  <li key={i}>{w.message}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </main>
-
-        <aside className="ed-inspector" aria-label="Inspector">
-          <Inspector store={store} issues={issues} saveErrors={saveErrors} />
-        </aside>
       </div>
+
+      {tab === 'Quest' && <QuestTab store={store} />}
+      {tab === 'Actions' && <ActionsTab store={store} />}
+      {tab === 'Monsters' && <MonstersTab store={store} />}
+      {tab === 'Designer' && <DesignerBody store={library} quests={quests} />}
+      {tab === 'Map' && (
+        <div className="ed-body">
+          <nav className="ed-tools" aria-label="Tools">
+            <div className="ed-chips">
+              {TOOLS.map((t) => (
+                <button
+                  key={t.tool}
+                  className="chip"
+                  aria-pressed={tool === t.tool}
+                  title={`Shortcut ${t.key.toUpperCase()}`}
+                  onClick={() => s.setTool(t.tool)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <ToolOptions store={store} />
+            <ReferencePanel api={ref} say={s.say} />
+          </nav>
+
+          <main
+            className="ed-board"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              void dropFile(e.dataTransfer.files[0]);
+            }}
+          >
+            <EditorBoard store={store} reference={ref} />
+            {warnings.length > 0 && (
+              <div className="ed-warnings" role="status">
+                <button className="link" onClick={() => s.dismissWarnings()}>
+                  Dismiss
+                </button>
+                <ul>
+                  {warnings.map((w, i) => (
+                    <li key={i}>{w.message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </main>
+
+          <aside className="ed-inspector" aria-label="Inspector">
+            <Inspector store={store} issues={issues} saveErrors={saveErrors} />
+          </aside>
+        </div>
+      )}
 
       <ActionDialog store={store} />
       <AbilityDialog store={store} />

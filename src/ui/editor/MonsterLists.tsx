@@ -43,7 +43,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
   return (
     <section data-testid="monster-abilities">
       <div className="lbl">Abilities</div>
-      <ul className="ed-items">
+      <ul className="fr-items">
         {mine.map((id) => {
           const a = lookup.get(id);
           const own = quest.abilityDefs.some((x) => x.id === id);
@@ -52,14 +52,14 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
               <b>{a?.name ?? id}</b>
               <p>{a?.text ?? 'Unknown ability.'}</p>
               <button
-                className="chip"
+                className="x"
                 aria-label={`Remove ${a?.name ?? id}`}
                 onClick={() => patch({ abilities: mine.filter((x) => x !== id) })}
               >
                 Remove
               </button>
               {own && (
-                <button className="link ed-edit" onClick={() => st.setAbilityId(id)}>
+                <button className="lnk" onClick={() => st.setAbilityId(id)}>
                   Edit the ability…
                 </button>
               )}
@@ -67,9 +67,9 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
           );
         })}
       </ul>
-      <div className="ed-addrow">
+      <div className="fr-addrow">
         <select
-          className="es-select"
+          className="fr-sel"
           aria-label="Add an ability"
           value={pick}
           onChange={(e) => setPick(e.target.value)}
@@ -156,7 +156,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
   return (
     <section data-testid="monster-spells">
       <div className="lbl">Spells</div>
-      <ul className="ed-items">
+      <ul className="fr-items">
         {ids.map((id) => {
           const sp = lookup.get(id);
           const own = quest.spellDefs.some((x) => x.id === id);
@@ -165,15 +165,15 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
               <b>{sp?.name ?? id}</b>
               <p>{sp ? spellQuestions(sp).join(' · ') : 'Unknown spell.'}</p>
               <button
-                className="chip"
+                className="x"
                 aria-label={`Remove ${sp?.name ?? id}`}
                 onClick={() => withCount(id, 0)}
               >
                 Remove
               </button>
-              <div className="ed-ctl">
+              <div className="ctl">
                 <select
-                  className="es-select"
+                  className="fr-sel"
                   aria-label={`${sp?.name ?? id} cast limit`}
                   value={String(count(id))}
                   onChange={(e) => withCount(id, Number(e.target.value))}
@@ -185,7 +185,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
                   ))}
                 </select>
                 {own && (
-                  <button className="link ed-edit" onClick={() => st.setSpellId(id)}>
+                  <button className="lnk" onClick={() => st.setSpellId(id)}>
                     Edit the spell…
                   </button>
                 )}
@@ -194,9 +194,9 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
           );
         })}
       </ul>
-      <div className="ed-addrow">
+      <div className="fr-addrow">
         <select
-          className="es-select"
+          className="fr-sel"
           aria-label="Add a spell"
           value={pick}
           onChange={(e) => setPick(e.target.value)}
@@ -245,11 +245,14 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
         </button>
       </div>
       <button
-        className="chip ed-wide"
-        aria-pressed={monster.spellLimit === 'onePerTurn'}
+        type="button"
+        role="switch"
+        className="fr-tog"
+        aria-checked={monster.spellLimit === 'onePerTurn'}
         disabled={list.length === 0}
         onClick={() => patch({ spellLimit: monster.spellLimit ? null : 'onePerTurn' })}
       >
+        <i />
         One spell each turn
       </button>
     </section>
@@ -274,7 +277,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
       <label className="ed-field">
         Enemy
         <select
-          className="es-select"
+          className="fr-sel"
           aria-label="Enemy"
           value={monster.enemy ?? ''}
           onChange={(e) => {
