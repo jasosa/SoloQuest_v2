@@ -98,6 +98,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     [level, state.seenMonsters, state.wanderers],
   );
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
+  /** Slain monsters leave the roster; the journal keeps the kill. */
+  const alive = useMemo(() => monsters.filter((m) => !m.dead), [monsters]);
   const traps = useMemo(() => trapsInView(level, state), [level, state]);
   const living = useMemo(() => livingHeroes(team, state), [team, state]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
@@ -593,7 +595,6 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <aside>
         <Objectives view={objectives} intro={quest.intro.summary} />
         <div className="aside-scroll">
-          {quest.zargonInfo && <p className="zinfo">{quest.zargonInfo}</p>}
           <Heroes
             team={team}
             dead={state.deadHeroes}
@@ -603,8 +604,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <section>
             <div className="lbl">Monsters in play</div>
             <ul className="roster">
-              {monsters.length === 0 && <li className="empty">No monster in sight.</li>}
-              {monsters.map((m) => (
+              {alive.length === 0 && <li className="empty">No monster in sight.</li>}
+              {alive.map((m) => (
                 <RosterRow
                   key={m.id}
                   m={m}

@@ -1,6 +1,6 @@
 # Playtest feedback: review, design and plan (2026-11-16)
 
-Status: proposal. Nothing here changes the quest format or the rules until the owner answers the questions in section 6. Straightforward fixes are listed in section 5 and can start at once.
+Status: owner answered section 6 on 2026-11-16 (decision 66; question 7 open). Before that, nothing here changed the quest format or the rules until the owner answers the questions in section 6. Straightforward fixes are listed in section 5 and can start at once.
 
 Owner notes covered: the playtest list of 2026-11-16 (general, quests 2 to 13, editor image) and the review brief (status, player experience, quest actions, monsters, traps, map).
 
@@ -124,3 +124,12 @@ Engine changes in steps 3 and 6 follow `CLAUDE.md` (pure, tests with every chang
 5. **Add monster** (3.5): monsters added mid-game join the roster without a square (like the wandering monster). Is that enough, or should the app track where they are? (CLAUDE.md says no positions.)
 6. **Zargon field**: keep `zargonInfo` in the format as "author notes", or remove it from all quests?
 7. **Markers**: drop the `zargon` visibility (placement markers) and replace it with a plain "internal anchor" flag, or keep as is?
+
+## 7. Owner answers (decision 66)
+
+1. Admin edit of bundled quests: edit the original, keep it as a draft until the owner replaces the bundled file.
+2. to 3. Yes.
+4. Show room: free tool with a warning.
+5. Added and wandering monsters: players give a square (supersedes decision 33 for these monsters).
+6. `zargonInfo`: remove it.
+7. Markers: open. Zargon markers are used in quests 2, 8 (two) and 12 and 14 (one each) as "place the monster here" anchors, never drawn to players. Proposal: drop the word Zargon, keep them as internal anchors with no `visible` field (players never see them), and use `visible: players` only for drawn labels.

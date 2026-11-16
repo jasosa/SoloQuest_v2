@@ -10,6 +10,8 @@ export interface NoteCardProps {
   onClose?: (() => void) | undefined;
   /** `light`: no dim veil, the map stays readable around the card (Zargon's turn). */
   light?: boolean;
+  /** Focus the title instead of the first button, so a screen reader reads the card first. */
+  focusTitle?: boolean;
   children: ReactNode;
 }
 
@@ -20,11 +22,21 @@ const openCards: symbol[] = [];
  * The note sheet of the prototype: a card in the middle of a dim veil. Used for quest notes,
  * choices, Zargon's turn and the end of the quest. The first button gets focus so Enter goes on.
  */
-export function NoteCard({ letter, kind, title, onClose, light, children }: NoteCardProps) {
+export function NoteCard({
+  letter,
+  kind,
+  title,
+  onClose,
+  light,
+  focusTitle,
+  children,
+}: NoteCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    ref.current?.querySelector<HTMLElement>('button')?.focus();
-  }, []);
+    const root = ref.current;
+    const target = focusTitle ? root?.querySelector<HTMLElement>('h3') : root?.querySelector<HTMLElement>('button');
+    target?.focus();
+  }, [focusTitle]);
   useEffect(() => {
     const me = Symbol('card');
     openCards.push(me);
@@ -46,7 +58,7 @@ export function NoteCard({ letter, kind, title, onClose, light, children }: Note
           {letter !== undefined && <span className="letter">{letter}</span>}
           <div>
             {kind}
-            <h3>{title}</h3>
+            <h3 tabIndex={-1}>{title}</h3>
           </div>
         </div>
         {children}
