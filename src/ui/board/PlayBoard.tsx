@@ -7,7 +7,7 @@ import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
   chestsInView,
   dormantFigures,
-  enterableAreas,
+  roomLabelAreas,
   mapLetters,
   monstersInPlay,
   squareMarkers,
@@ -597,7 +597,7 @@ export function PlayBoard({
       />,
     );
   }
-  for (const room of enterableAreas(level, state)) {
+  for (const room of roomLabelAreas(level, state)) {
     let best: [number, number] | undefined;
     for (const k of state.seenCells) {
       const [x, y] = parseKey(k);

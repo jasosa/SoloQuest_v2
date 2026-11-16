@@ -2,7 +2,8 @@
 import type { AreaId, Cell } from '../board/board';
 import { keyOf, parseKey, type Level } from '../board/level';
 import { forEachEffect, textsOf } from '../quest/effects';
-import type { ObjectiveDef } from '../quest/schema';
+import type { NoteTarget, ObjectiveDef } from '../quest/schema';
+import { notesOf } from '../quest/targets';
 import { conditionsHold, isAvailable, objectiveConditionsHold } from './notes';
 import type { GameState, PendingChoice } from './state';
 
@@ -105,18 +106,75 @@ export function enterableAreas(level: Level, state: GameState): AreaId[] {
   return out;
 }
 
+/**
+ * Rooms that get the small label on the map: a room with an `areaEntered` note waiting, or with
+ * a button of its own that can be pressed now (decision 67).
+ */
+export function roomLabelAreas(level: Level, state: GameState): AreaId[] {
+  const out = enterableAreas(level, state);
+  for (const b of level.quest.notes) {
+    const tg = b.target;
+    if (
+      b.trigger.type === 'manual' &&
+      tg?.kind === 'area' &&
+      state.revealedRooms.has(tg.id) &&
+      isAvailable(b, state) &&
+      conditionsHold(level, state, b) &&
+      !out.includes(tg.id)
+    )
+      out.push(tg.id);
+  }
+  return out;
+}
+
 export interface ManualTrigger {
   readonly note: string;
   readonly label: string;
 }
 
-/** Buttons for `manual` notes that have not fired and whose conditions hold now. */
+/**
+ * Buttons for `manual` notes that have not fired and whose conditions hold now. Notes with a
+ * `target` belong to their element (see `elementQuest`), so they are left out here.
+ */
 export function manualTriggers(level: Level, state: GameState): ManualTrigger[] {
   const out: ManualTrigger[] = [];
   for (const n of level.quest.notes)
-    if (n.trigger.type === 'manual' && isAvailable(n, state) && conditionsHold(level, state, n))
+    if (
+      n.trigger.type === 'manual' &&
+      !n.target &&
+      isAvailable(n, state) &&
+      conditionsHold(level, state, n)
+    )
       out.push({ note: n.id, label: n.trigger.label });
   return out;
+}
+
+export interface ElementQuest {
+  /** Notes already read that belong to the element, in the order they fired. */
+  readonly read: readonly JournalEntry[];
+  /** Buttons of the element that can be pressed now. */
+  readonly buttons: readonly ManualTrigger[];
+}
+
+/** What the "For this quest" block of a margin note shows for one element (decision 67). */
+export function elementQuest(
+  level: Level,
+  state: GameState,
+  kind: NoteTarget['kind'],
+  id: string,
+): ElementQuest {
+  const mine = new Set(notesOf(level.quest.notes, kind, id).map((n) => n.id));
+  const read = journal(level, state).filter((e) => mine.has(e.id));
+  const buttons: ManualTrigger[] = [];
+  for (const n of level.quest.notes)
+    if (
+      mine.has(n.id) &&
+      n.trigger.type === 'manual' &&
+      isAvailable(n, state) &&
+      conditionsHold(level, state, n)
+    )
+      buttons.push({ note: n.id, label: n.trigger.label });
+  return { read, buttons };
 }
 
 export interface ObjectiveConfirm {

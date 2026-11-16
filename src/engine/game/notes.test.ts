@@ -16,6 +16,7 @@ import {
   availableEndings,
   dormantFigures,
   endSummary,
+  elementQuest,
   enterableAreas,
   journal,
   manualTriggers,
@@ -25,6 +26,7 @@ import {
   objectiveConfirms,
   objectivesStatus,
   pendingChoice,
+  roomLabelAreas,
   squareMarkers,
   startTexts,
 } from './view';
@@ -1376,5 +1378,60 @@ describe('startTexts', () => {
       ],
     });
     expect(startTexts(lv)).toEqual(['Place the heroes on the stairs.']);
+  });
+});
+
+describe('element buttons (decision 67)', () => {
+  const lv = lvOf({
+    notes: [
+      {
+        id: 'free',
+        trigger: { type: 'manual', label: 'No element' },
+        effects: [text('free')],
+      },
+      {
+        id: 'on-door',
+        trigger: { type: 'manual', label: 'On the door' },
+        target: { kind: 'door', id: 'd2' },
+        effects: [text('door')],
+      },
+      {
+        id: 'seen',
+        trigger: { type: 'doorOpened', door: 'd2' },
+        effects: [text('The door groans.')],
+      },
+    ],
+  });
+
+  it('a manual note with a target is a button of its element, not of the Quest sheet', () => {
+    const s = initialState(lv, SEED);
+    expect(manualTriggers(lv, s).map((m) => m.note)).toEqual(['free']);
+    expect(elementQuest(lv, s, 'door', 'd2').buttons).toEqual([
+      { note: 'on-door', label: 'On the door' },
+    ]);
+    expect(elementQuest(lv, s, 'door', 'd1')).toEqual({ read: [], buttons: [] });
+  });
+
+  it('lists the notes already read for the element, and a pressed button is gone', () => {
+    const s = replay(lv, SEED, [open('d2'), manual('on-door')]);
+    const q = elementQuest(lv, s, 'door', 'd2');
+    expect(q.buttons).toEqual([]);
+    expect(q.read.map((e) => e.id)).toEqual(['seen', 'on-door']);
+  });
+
+  it('a button with an area target puts the label on a revealed room', () => {
+    const lv2 = lvOf({
+      notes: [
+        {
+          id: 'room-btn',
+          trigger: { type: 'manual', label: 'Room button' },
+          target: { kind: 'area', id: lvOf().quest.start.area },
+          effects: [text('x')],
+        },
+      ],
+    });
+    const s = initialState(lv2, SEED);
+    expect(roomLabelAreas(lv2, s)).toEqual([lv2.quest.start.area]);
+    expect(enterableAreas(lv2, s)).toEqual([]); // no "A hero enters" for a button only
   });
 });

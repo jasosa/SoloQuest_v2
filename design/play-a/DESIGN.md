@@ -168,7 +168,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 2. **At the start**: the start instruction (the text of the `questStart` note), so it can be read again.
 3. **Goal**: one row per objective with a tick box (same as today). A row that has a `confirm` button and is not done shows the button under it (`btn alt`, full width, 48 px): for example "All surviving heroes have left by the stairs". A button whose `confirmWhen` does not hold yet is not shown.
 4. **Tell the app** (working title, the name is open; "When it happens" is a candidate; only when it has rows): buttons of notes with no element (a `manual` note with no `target`), each with a one-line hint under the label. Nothing here ends the quest. **A button only shows while its conditions hold** (the room or square it is about is seen, a flag is set): it never appears before the players could need it. The same holds for element buttons and objective confirm buttons.
-5. **Notes read**: letter chip or bullet, first sentence, tap to read again (the message sheet opens above the Quest sheet).
+5. **Notes read**: letter chip or bullet, first sentence, tap to read again (the Quest sheet closes and the note opens alone; closing the note brings the Quest sheet back, so only one dialog is open at a time). Pressing any button in the sheet closes it too, so the message that follows is the only dialog.
 6. **What happened**: the log, newest first, one line each with the turn number: door opened, room revealed, monster slain, trap sprung, search made, hero fell, note read, monster added. Tap a note line to read it again. The log is derived from the events, so undo removes the line.
 
 **Segmented control** between 5 and 6 is not used: both lists are short headings in one scroll. If the log grows, "What happened" shows the last 12 with a "Show all" link.
@@ -178,7 +178,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 - its buttons (`manual` notes with that `target`), `btn alt`, one per row.
 The line is not drawn when there is nothing to show, so most notes stay as they are.
 
-**Room label.** A revealed room that has a quest action (an `areaEntered` note, or a `manual` note with that room as `target`) shows a small label at its top-left floor square: the existing arrow glyph in a 44 x 44 hit area, drawn like the furniture name label (dark paper text on ink) with the glyph only, no text. Tap opens the margin note for the room: "A hero enters" and its buttons under **For this quest**. Floor taps keep their meaning (look from here, search).
+**Room label.** A revealed room that has a quest action (an `areaEntered` note, or a `manual` note with that room as `target`) shows a small label at its top-left floor square: the existing arrow glyph in a 44 x 44 hit area, drawn like the furniture name label (dark paper text on ink) with the glyph only, no text. The label is an indicator: a tap anywhere on the room floor opens the room's margin note ("A hero enters", search, and its buttons under **For this quest**), as before. A room gets the label while it has an `areaEntered` note waiting or a button of its own that can be pressed.
 
 **Square marker.** Unchanged: a neutral dashed ring with a dot on a seen square that has a `squareEntered` note. It never says what it is. When the note fires, its letter is drawn there as for any note.
 

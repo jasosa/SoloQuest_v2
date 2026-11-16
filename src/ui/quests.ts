@@ -114,6 +114,12 @@ export async function devTestLevel(): Promise<Level | undefined> {
           ],
         },
         {
+          id: 'n-lever',
+          target: { kind: 'area', id: 'R17' },
+          trigger: { type: 'manual', label: 'Knock on the wall' },
+          effects: [{ type: 'showText', text: 'Something knocks back.' }],
+        },
+        {
           id: 'n-stone',
           trigger: { type: 'manual', label: 'Turn the guardian to stone' },
           effects: [{ type: 'setMonsterState', monster: 'm3', state: 'stone', turns: 2 }],

@@ -252,10 +252,46 @@ test.describe('notes engine on the dev fixture', () => {
     await btn(page, 'A hero enters').click();
     await expect(page.getByRole('dialog', { name: 'The study' })).toContainText('Dust');
     await btn(page, 'Continue').click();
+    // the label stays while the room still has a button of its own to press
+    await expect(page.locator('[data-enter="R17"]')).toHaveCount(1);
+    await roomCell(page, '5,17').click();
+    await expect(btn(page, 'A hero enters')).toHaveCount(0); // that one is used
+    await btn(page, 'Knock on the wall').click();
+    await btn(page, 'Continue').click();
     await expect(page.locator('[data-enter="R17"]')).toHaveCount(0);
     // the room that has no such note does not offer it
     await roomCell(page, '2,15').click();
     await expect(btn(page, 'A hero enters')).toHaveCount(0);
+  });
+
+  test('"For this quest": a room button, and the note read stays there to read again', async ({
+    page,
+  }) => {
+    await fixture(page, 'd1,d2');
+    await page.waitForTimeout(900);
+    await roomCell(page, '5,17').click();
+    const fq = page.locator('.fq');
+    await expect(fq).toContainText('For this quest');
+    await expect(fq.getByRole('button', { name: 'Knock on the wall' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Quest sheet' })).toHaveCount(0);
+    await shot(page, 'notes-for-this-quest');
+    await fq.getByRole('button', { name: 'Knock on the wall' }).click();
+    await expect(dialog(page)).toContainText('Something knocks back.');
+    await btn(page, 'Continue').click();
+    // the button is gone; the note read is listed in the room's block
+    await roomCell(page, '5,17').click();
+    await expect(
+      page.locator('.fq').getByRole('button', { name: 'Knock on the wall' }),
+    ).toHaveCount(0);
+    await expect(page.locator('.fq .nr')).toContainText('Something knocks back.');
+    await page.locator('.fq .nr').click();
+    await expect(dialog(page)).toContainText('Something knocks back.');
+    // a button of an element is not listed in the Quest sheet
+    await btn(page, 'Close').click();
+    await openQuestSheet(page);
+    await expect(page.getByRole('dialog', { name: 'Quest sheet' })).not.toContainText(
+      'Knock on the wall',
+    );
   });
 
   test('quest actions: a manual note brings an NPC chip; a placed monster is pointed out', async ({

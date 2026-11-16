@@ -15,6 +15,7 @@ import {
   journal,
   livingHeroes,
   manualTriggers,
+  elementQuest,
   eventLog,
   objectiveConfirms,
   startTexts,
@@ -34,6 +35,8 @@ import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
+import type { NoteTarget } from '../../engine/quest/schema';
+import { ForThisQuest } from './ForThisQuest';
 import { QuestSheet } from './QuestSheet';
 import { Helpers, Heroes } from './sidebar';
 import {
@@ -193,6 +196,18 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     dispatch(event);
   };
 
+  /** "For this quest" under the normal actions of a margin note (decision 67). */
+  const forQuest = (kind: NoteTarget['kind'], id: string) => (
+    <ForThisQuest
+      view={elementQuest(level, state, kind, id)}
+      onRead={(note) => {
+        choose(null);
+        setReread(note);
+      }}
+      onPress={(note) => act({ type: 'MANUAL_TRIGGER', note })}
+    />
+  );
+
   const roomAnchor = (room: string): Anchor => {
     let x0 = 99;
     let x1 = -1;
@@ -263,6 +278,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <button className="btn" onClick={() => act({ type: 'OPEN_DOOR', door: sel.id })}>
             Open the door
           </button>
+          {forQuest('door', sel.id)}
         </MarginNote>
       );
     }
@@ -386,6 +402,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
                 : undefined
             }
           />
+          {forQuest('area', sel.room)}
         </MarginNote>
       );
     }
@@ -459,6 +476,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               onDisarm={() => setStep({ t: 'who' })}
               onStep={() => spring({ type: 'TRAP_STEP', trap: tv.id })}
             />
+            {forQuest('trap', tv.id)}
           </MarginNote>
         );
       }
@@ -500,6 +518,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               setStep({ t: 'who' });
             }}
           />
+          {forQuest('furniture', cv.id)}
         </MarginNote>
       );
     }
@@ -552,6 +571,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <button className="btn" onClick={() => act({ type: 'MONSTER_KILL', monster: m.id })}>
             Slain
           </button>
+          {forQuest('monster', m.id)}
         </MarginNote>
       );
     }
