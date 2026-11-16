@@ -87,6 +87,7 @@ export function repeats(note: Note): boolean {
     case 'secretDoorSearch':
       return true;
     case 'squareEntered':
+    case 'manual':
       return t.repeat === true;
     case 'monsterKilled':
       return t.monster === undefined;

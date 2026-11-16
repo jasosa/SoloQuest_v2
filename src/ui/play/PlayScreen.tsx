@@ -273,7 +273,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         vertical ? d.a[1] + 0.5 : Math.max(d.a[1], d.b[1]),
       );
       const both = state.seenCells.has(keyOf(d.a)) && state.seenCells.has(keyOf(d.b));
-      note = (
+      // A magic door (the teleport rule) never opens: its buttons say what happens (decision 67).
+      const magic = level.quest.rules.doorTeleport !== undefined;
+      note = magic ? (
+        <MarginNote anchor={anchor} kind="Door" title="A magic door" onClose={closeNote}>
+          {forQuest('door', sel.id)}
+        </MarginNote>
+      ) : (
         <MarginNote anchor={anchor} kind="Closed door" title="Open this door?" onClose={closeNote}>
           <p>{both ? 'Both sides are explored.' : 'Opening is free. You see what is behind it.'}</p>
           <button className="btn" onClick={() => act({ type: 'OPEN_DOOR', door: sel.id })}>
@@ -1007,6 +1013,7 @@ function EndScreen({
         ))}
       </ul>
       {end.rewards && <p className="extra">Rewards: {end.rewards}</p>}
+      {end.endText && <p className="extra">{end.endText}</p>}
       <button className="btn" onClick={onLeave}>
         {leaveLabel}
       </button>

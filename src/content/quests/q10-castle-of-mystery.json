@@ -584,8 +584,10 @@
     {
       "id": "n-tele-d1",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d1"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -693,13 +695,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d1"
+      }
     },
     {
       "id": "n-tele-d2",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d2"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -807,13 +815,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d2"
+      }
     },
     {
       "id": "n-tele-d3",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d3"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -921,13 +935,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d3"
+      }
     },
     {
       "id": "n-tele-d4",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d4"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1035,13 +1055,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d4"
+      }
     },
     {
       "id": "n-tele-d5",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d5"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1149,13 +1175,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d5"
+      }
     },
     {
       "id": "n-tele-d6",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d6"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1263,13 +1295,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d6"
+      }
     },
     {
       "id": "n-tele-d7",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d7"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1377,13 +1415,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d7"
+      }
     },
     {
       "id": "n-tele-d8",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d8"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1491,13 +1535,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d8"
+      }
     },
     {
       "id": "n-tele-d9",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d9"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1605,13 +1655,19 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d9"
+      }
     },
     {
       "id": "n-tele-d10",
       "trigger": {
-        "type": "doorOpened",
-        "door": "d10"
+        "type": "manual",
+        "label": "A hero goes through",
+        "hint": "Every hero who goes through this door throws the dice.",
+        "repeat": true
       },
       "effects": [
         {
@@ -1719,7 +1775,11 @@
             }
           ]
         }
-      ]
+      ],
+      "target": {
+        "kind": "door",
+        "id": "d10"
+      }
     }
   ],
   "wandering": {
@@ -1755,12 +1815,12 @@
       }
     }
   ],
-  "rewards": "Tell the players at the end: all the gold taken at the mine entrance is fool's gold and worthless. Any other treasure they found is real.",
   "rules": {
     "doorTeleport": {
       "dice": "2red",
       "squares": "markers"
     }
   },
-  "npcs": []
+  "npcs": [],
+  "endText": "All the gold taken at the mine entrance was fool's gold and is worthless. Any other treasure you found is real."
 }

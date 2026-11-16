@@ -6,7 +6,7 @@ import { board } from '../../engine/board/board';
 import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { objectivesStatus } from '../../engine/game/view';
+import { elementQuest, endSummary, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -14,7 +14,8 @@ const quest = parseQuest(
   JSON.parse(readFileSync(resolve(import.meta.dirname, 'q10-castle-of-mystery.json'), 'utf8')),
 );
 const level = buildLevel(quest);
-const open = (door: string): GameEvent => ({ type: 'OPEN_DOOR', door });
+// Doors never open here: a hero goes through, and the door's own button asks for the total.
+const go = (door: string): GameEvent => ({ type: 'MANUAL_TRIGGER', note: `n-tele-${door}` });
 // A choice option is the dice total minus 2 (totals 2..12).
 const choose = (door: string, total: number): GameEvent => ({
   type: 'CHOOSE',
@@ -35,7 +36,7 @@ const search = (
 const count = (type: string) => quest.monsters.filter((m) => m.type === type).length;
 const areaOf = (c: [number, number]) => board.cells[c[1]]?.[c[0]];
 // Leave the start room by d10, roll `total`: the destination room is revealed.
-const teleport = (total: number): GameEvent[] => [open('d10'), choose('d10', total)];
+const teleport = (total: number): GameEvent[] => [go('d10'), choose('d10', total)];
 
 describe('quest 10: data', () => {
   it('is valid against the board', () => {
@@ -97,20 +98,22 @@ describe('quest 10: the teleporting doors', () => {
   it('every door has a teleport choice with 11 totals', () => {
     for (const d of quest.doors) {
       const n = quest.notes.find((x) => x.id === `n-tele-${d.id}`)!;
-      expect(n.trigger).toEqual({ type: 'doorOpened', door: d.id });
+      expect(n.trigger).toMatchObject({ type: 'manual', repeat: true });
+      expect(n.target).toEqual({ kind: 'door', id: d.id });
       const c = n.effects.find((e) => e.type === 'promptChoice') as { options: unknown[] };
       expect(c.options).toHaveLength(11);
     }
   });
 
-  it('opening d10 asks for the total; nothing is revealed until it is chosen', () => {
-    const r = reduce(level, initialState(level, 1), open('d10'));
+  it('pressing the d10 button asks for the total; nothing is revealed until it is chosen', () => {
+    const r = reduce(level, initialState(level, 1), go('d10'));
     expect(r.prompts.find((p) => p.kind === 'choice')).toMatchObject({
       kind: 'choice',
       noteId: 'n-tele-d10',
     });
-    // R12 is the one open square beyond d10 (no monsters).
-    expect(r.state.revealedRooms).toEqual(new Set(['R20', 'R12']));
+    // the door does not open, so not even the room beyond it is shown
+    expect(r.state.openDoors.size).toBe(0);
+    expect(r.state.revealedRooms).toEqual(new Set(['R20']));
     expect(r.state.seenMonsters.size).toBe(0);
   });
 
@@ -169,19 +172,19 @@ describe('quest 10: the teleporting doors', () => {
   it('totals 2 and 12 send the hero to the stairs square: nothing new', () => {
     for (const t of [2, 12]) {
       const s = run(...teleport(t));
-      expect(s.revealedRooms).toEqual(new Set(['R20', 'R12']));
+      expect(s.revealedRooms).toEqual(new Set(['R20']));
       expect(s.seenMonsters.size).toBe(0);
     }
   });
 
   it('a door seen after a teleport asks again: d9 from R16 leads on by the next total', () => {
-    const s = run(...teleport(10), open('d9'), choose('d9', 9));
-    expect(s.openDoors.has('d9')).toBe(true);
+    const s = run(...teleport(10), go('d9'), choose('d9', 9));
+    expect(s.openDoors.size).toBe(0); // magic doors never open
     expect(s.revealedRooms.has('R19')).toBe(true);
   });
 
   it('never reveals the rock rooms', () => {
-    const s = run(...teleport(3), open('d1'), choose('d1', 11), open('d3'), choose('d3', 6));
+    const s = run(...teleport(3), go('d1'), choose('d1', 11), go('d3'), choose('d3', 6));
     for (const r of quest.rock.rooms) expect(s.revealedRooms.has(r)).toBe(false);
   });
 });
@@ -257,7 +260,8 @@ describe("quest 10: letter B (the mine, fool's gold)", () => {
     expect(text).toContain('5,000');
     expect(text).not.toContain("fool's");
     expect(quest.intro.summary).not.toContain('fool');
-    expect(quest.rewards).toContain("fool's gold");
+    expect(quest.rewards).toBeUndefined();
+    expect(quest.endText).toContain("fool's gold");
   });
 
   it('the quest ends when all monsters are dead (or by the stairs)', () => {
@@ -275,11 +279,36 @@ describe("quest 10: letter B (the mine, fool's gold)", () => {
       ['d2', 9],
       ['d8', 10],
       ['d9', 11],
-    ].forEach(([d, t]) => chain.push(open(d as string), choose(d as string, t as number)));
+    ].forEach(([d, t]) => chain.push(go(d as string), choose(d as string, t as number)));
     const seenAll = run(...chain);
     for (const m of quest.monsters) expect(seenAll.seenMonsters.has(m.id)).toBe(true);
     const kills: GameEvent[] = quest.monsters.map((m) => ({ type: 'MONSTER_KILL', monster: m.id }));
     const s = run(...chain, ...kills);
     expect(objectivesStatus(level, s).goalDone).toBe(true);
+  });
+});
+
+describe('quest 10: repeatable door buttons and the closing note', () => {
+  it('the door button can be pressed again by every hero who goes through', () => {
+    const once = run(...teleport(3));
+    const buttons = elementQuest(level, once, 'door', 'd10').buttons;
+    expect(buttons).toEqual([
+      {
+        note: 'n-tele-d10',
+        label: 'A hero goes through',
+        hint: 'Every hero who goes through this door throws the dice.',
+      },
+    ]);
+    const twice = run(...teleport(3), ...teleport(4));
+    expect(twice.revealedRooms.has('R07')).toBe(true); // the second total
+    expect(twice.openDoors.size).toBe(0);
+  });
+
+  it('every ending shows the closing note about the gold, also leaving by the stairs', () => {
+    const left = reduce(level, run(...teleport(3)), { type: 'END_QUEST', outcome: 'stairs' }).state;
+    const end = endSummary(level, left)!;
+    expect(end.won).toBe(false);
+    expect(end.rewards).toBeUndefined();
+    expect(end.endText).toContain("fool's gold");
   });
 });

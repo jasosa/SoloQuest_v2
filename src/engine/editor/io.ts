@@ -34,8 +34,10 @@ const TOP_KEYS = [
   'wandering',
   'objectives',
   'rewards',
+  'endText',
   'rules',
   'npcs',
+  'endings',
 ] as const;
 
 /** Suggested file name for a quest. */

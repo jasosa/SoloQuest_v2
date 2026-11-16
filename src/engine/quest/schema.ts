@@ -149,7 +149,13 @@ const TriggerSchema = z.discriminatedUnion('type', [
     monster: id.optional(),
     monsterType: MonsterType.optional(),
   }),
-  z.strictObject({ type: z.literal('manual'), label: nonEmpty, hint: nonEmpty.optional() }),
+  z.strictObject({
+    type: z.literal('manual'),
+    label: nonEmpty,
+    hint: nonEmpty.optional(),
+    /** The button can be pressed again and again (for example a magic door). */
+    repeat: z.boolean().optional(),
+  }),
 ]);
 
 const ConditionSchema = z.union([
@@ -308,6 +314,8 @@ export const QuestSchema = z.strictObject({
   wandering: WanderingSchema.optional(),
   objectives: z.array(ObjectiveSchema).default([]),
   rewards: z.string().optional(),
+  /** Shown on the end screen after every ending (a note the players should read at the end). */
+  endText: nonEmpty.optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */

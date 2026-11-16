@@ -182,6 +182,10 @@ The line is not drawn when there is nothing to show, so most notes stay as they 
 
 **Square marker.** A dashed ring with a dot on a seen square that has a `squareEntered` note or a button of its own (a `manual` note with a `square` target). A button-only square opens a margin note "This square" with the button's `hint` line above the button (no letter, no "Did a hero step here?"). The ring replaces the eye glyph on its square: the margin note then offers "Look from here" when that square is a look square.
 
+**Magic door (the `doorTeleport` rule, quest 10).** A door never opens: tapping a seen door opens the margin note "A magic door" with only its buttons under **For this quest** (no "Open the door"). The button "A hero goes through" repeats for every hero and asks for the dice total; only the chosen total reveals anything, so not even the room beyond the door is shown.
+
+**End card.** After every ending the quest's `endText` (when it has one) is shown as an `extra` line, also when the goal was not reached.
+
 **Message sheet.** The existing note card, used for every triggered text. Without a choice it uses the **light veil** (no dim, the board stays readable) and one button "Continue". With a choice it keeps the dim veil and cannot be skipped. A message never repeats a reward or an item that the end card or the log already shows. Every message goes into the log and can be read again from the Quest sheet.
 
 **Start.** At the start of a quest the start instruction opens as a message sheet titled "Start" (for example "Place the heroes on the stairs."). It is also kept in the Quest sheet.

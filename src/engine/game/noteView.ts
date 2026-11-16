@@ -287,6 +287,8 @@ export interface EndSummary {
   readonly won: boolean;
   /** Reward text from the quest. Never tracked. */
   readonly rewards: string | undefined;
+  /** The quest's closing note, shown after every ending. */
+  readonly endText: string | undefined;
   readonly objectives: readonly ObjectiveStatus[];
 }
 
@@ -304,6 +306,7 @@ export function endSummary(level: Level, state: GameState): EndSummary | undefin
     won: view.goalDone && e.outcome === 'stairs',
     // A custom ending shows no reward.
     rewards: e.outcome !== 'ending' && level.quest.rewards ? level.quest.rewards : undefined,
+    endText: level.quest.endText,
     objectives: view.items,
   };
 }
