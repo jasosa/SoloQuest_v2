@@ -424,6 +424,20 @@
       "consumesTreasure": true
     },
     {
+      "id": "n-stairs-seen",
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R17"
+      },
+      "effects": [
+        {
+          "type": "setFlag",
+          "flag": "stairsSeen",
+          "value": true
+        }
+      ]
+    },
+    {
       "id": "n-B",
       "letter": "B",
       "at": [7, 13],
@@ -439,6 +453,12 @@
         {
           "type": "completeObjective",
           "objective": "o1"
+        }
+      ],
+      "when": [
+        {
+          "flag": "stairsSeen",
+          "is": true
         }
       ]
     },

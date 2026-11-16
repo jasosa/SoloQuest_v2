@@ -7,7 +7,7 @@ import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { journal, objectivesStatus } from '../../engine/game/view';
+import { journal, manualTriggers, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -184,8 +184,10 @@ describe('quest 6: letters A and B', () => {
 
   it('B: the stairs end the quest for the hero who reaches them', () => {
     expect(note('B')?.trigger.type).toBe('manual');
+    expect(manualTriggers(level, run())).toEqual([]); // no stairs button before the room is seen
     const s = run(...via('d7'));
     expect(objectivesStatus(level, s).goalDone).toBe(false);
+    expect(manualTriggers(level, s).map((m) => m.note)).toEqual(['n-B']);
     const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-B' });
     expect(r.state.objectivesDone).toContain('o1');
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
