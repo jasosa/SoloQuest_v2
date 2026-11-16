@@ -557,6 +557,78 @@ test.describe('editor: note builder', () => {
   });
 });
 
+test.describe('editor: actions of an element (decision 67)', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+
+  test('select a door, add a button on it, edit it, read it back from the door', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    const actions = page.getByTestId('element-actions');
+    await expect(actions).toContainText('No action on this element yet.');
+    await expect(actions.getByRole('button', { name: 'Add: When it is opened' })).toBeVisible();
+    await shot(page, 'editor-actions-empty');
+
+    await actions.getByRole('button', { name: 'Add: A button on it' }).click();
+    // the new note opens in the Notes tab, already tied to the door
+    await expect(page.getByTestId('belongs-to')).toContainText('Belongs to door d1.');
+    await expect(insp(page).getByLabel('Button label')).toHaveValue('Press me');
+    await insp(page)
+      .getByLabel('Hint above the button (optional)')
+      .fill('Press it when the last hero is through.');
+    await insp(page).getByLabel('Hint above the button (optional)').blur();
+    await insp(page).getByRole('button', { name: 'Every time', exact: true }).click();
+    await shot(page, 'editor-actions-note');
+
+    // "Show it" selects the door again, and its Actions section lists the note
+    await page.getByTestId('belongs-to').getByRole('button', { name: 'Show it' }).click();
+    await expect(page.getByTestId('selection-id')).toHaveText('d1');
+    await expect(page.getByTestId('action-list')).toContainText('Button: Press me');
+    await shot(page, 'editor-actions-list');
+    // a click on the row opens the note again
+    await page.getByTestId('action-list').getByRole('button').first().click();
+    await expect(insp(page).getByLabel('Button label')).toHaveValue('Press me');
+    // detaching leaves a note with no element
+    await page.getByTestId('belongs-to').getByRole('button', { name: 'Detach' }).click();
+    await expect(insp(page)).toContainText(
+      'Belongs to no element: its button is in the Quest sheet.',
+    );
+  });
+
+  test('an event action (door opened) is derived to its door and needs no detach', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await page
+      .getByTestId('element-actions')
+      .getByRole('button', { name: 'Add: When it is opened' })
+      .click();
+    await expect(page.getByTestId('belongs-to')).toContainText('Belongs to door d1.');
+    await expect(
+      page.getByTestId('belongs-to').getByRole('button', { name: 'Detach' }),
+    ).toHaveCount(0);
+  });
+
+  test('a monster offers seen, slain and a button', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Monsters').click();
+    await clickAt(page, 4, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 4, 17);
+    const actions = page.getByTestId('element-actions');
+    for (const label of ['When it is seen', 'When it is slain', 'A button on it'])
+      await expect(actions.getByRole('button', { name: `Add: ${label}` })).toBeVisible();
+  });
+});
+
 test.describe('editor: reference image', () => {
   /** A small PNG made in the page: a pale sheet with a dark frame (not a quest map). */
   async function makePng(page: Page): Promise<Buffer> {

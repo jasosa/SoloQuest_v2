@@ -24,9 +24,10 @@ import {
   type Quest,
   type Trigger,
 } from '../../engine/quest/schema';
+import { noteTarget } from '../../engine/quest/targets';
 import { SPELL_KEYS, SPELL_NAMES } from '../../engine/zargon/spells';
 import type { Cell } from '../../engine/editor';
-import type { EditorStore, PickKind } from './editorStore';
+import type { EditorStore, EditSelection, PickKind } from './editorStore';
 import {
   CONDITION_TYPES,
   EFFECT_TYPES,
@@ -440,6 +441,7 @@ function NoteForm({ store, note, quest }: { store: EditorStore; note: Note; ques
           trigger={note.trigger}
           onChange={(t) => patch({ trigger: t })}
         />
+        <BelongsTo store={store} note={note} />
       </section>
 
       <section>
@@ -506,6 +508,59 @@ function LetterField({
   );
 }
 
+/** Which element the note belongs to (decision 67), and a way to detach an explicit target. */
+function BelongsTo({ store, note }: { store: EditorStore; note: Note }) {
+  const target = noteTarget(note);
+  if (!target)
+    return (
+      <p className="ed-note">
+        {note.trigger.type === 'manual'
+          ? 'Belongs to no element: its button is in the Quest sheet.'
+          : 'Belongs to no element.'}
+      </p>
+    );
+  const where = target.kind === 'area' ? `room ${target.id}` : `${target.kind} ${target.id}`;
+  const q = store.getState().quest;
+  // The element to select again on the board: a square is its marker, a room has none.
+  const selectable: EditSelection =
+    target.kind === 'door' ||
+    target.kind === 'furniture' ||
+    target.kind === 'monster' ||
+    target.kind === 'trap' ||
+    target.kind === 'marker'
+      ? { kind: target.kind, id: target.id }
+      : target.kind === 'square'
+        ? (() => {
+            const m = q.markers.find((x) => `${x.cell[0]},${x.cell[1]}` === target.id);
+            return m ? { kind: 'marker' as const, id: m.id } : null;
+          })()
+        : null;
+  return (
+    <p className="ed-note" data-testid="belongs-to">
+      Belongs to {where}.
+      {selectable && (
+        <>
+          {' '}
+          <button className="chip" onClick={() => store.getState().select(selectable)}>
+            Show it
+          </button>
+        </>
+      )}
+      {note.target && (
+        <>
+          {' '}
+          <button
+            className="chip"
+            onClick={() => store.getState().apply((q) => updateNote(q, note.id, { target: null }))}
+          >
+            Detach
+          </button>
+        </>
+      )}
+    </p>
+  );
+}
+
 // ---- trigger
 
 function TriggerForm({
@@ -538,11 +593,35 @@ function TriggerForm({
         }}
       />
       {t.type === 'manual' && (
-        <Text
-          label="Button label"
-          value={t.label}
-          onSave={(v) => v && onChange({ ...t, label: v })}
-        />
+        <>
+          <Text
+            label="Button label"
+            value={t.label}
+            onSave={(v) => v && onChange({ ...t, label: v })}
+          />
+          <Text
+            label="Hint above the button (optional)"
+            value={t.hint ?? ''}
+            placeholder="One plain line for the players"
+            onSave={(v) => {
+              const { hint: _gone, ...rest } = t;
+              void _gone;
+              onChange(v ? { ...rest, hint: v } : rest);
+            }}
+          />
+          <Chips
+            value={t.repeat ? 'many' : 'once'}
+            options={[
+              { value: 'once', label: 'Pressed once' },
+              { value: 'many', label: 'Every time' },
+            ]}
+            onChange={(v) => {
+              const { repeat: _gone, ...rest } = t;
+              void _gone;
+              onChange(v === 'many' ? { ...rest, repeat: true } : rest);
+            }}
+          />
+        </>
       )}
       {(t.type === 'areaRevealed' || t.type === 'areaEntered' || t.type === 'secretDoorSearch') && (
         <AreaField

@@ -30,6 +30,7 @@ import {
 import { SPELL_KEYS, SPELL_NAMES, isSpellKey } from '../../engine/zargon/spells';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
+import { ElementActions } from './ActionsSection';
 import { NotesPanel } from './NotesPanel';
 import { ProblemsPanel } from './ProblemsPanel';
 import { QuestPanel } from './QuestPanel';
@@ -201,6 +202,7 @@ export function Inspector({
           {furniture && <FurnitureFields store={store} furniture={furniture} />}
           {monster && <MonsterFields store={store} monster={monster} />}
           {trap && <TrapFields key={trap.id} store={store} trap={trap} quest={quest} />}
+          {selection.kind !== 'block' && <ElementActions store={store} selection={selection} />}
           <button className="btn" onClick={() => deleteSelection(store)}>
             Delete
           </button>

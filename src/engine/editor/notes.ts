@@ -7,7 +7,7 @@
  * (and `validateQuestIssues` keeps listing them as errors). Only things the schema rejects are
  * refused.
  */
-import type { Condition, Effect, Note, Quest, Trigger } from '../quest/schema';
+import type { Condition, Effect, Note, NoteTarget, Quest, Trigger } from '../quest/schema';
 import type { Cell } from './ops';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
@@ -52,6 +52,8 @@ export interface NewNote {
   /** A letter A..Z, `'next'` for the next free one, or nothing for an unlettered note. */
   letter?: string;
   at?: Cell;
+  /** The element the note belongs to (a button of that element when the trigger is manual). */
+  target?: NoteTarget;
   /** Default: a manual trigger. */
   trigger?: Trigger;
   when?: Condition[];
@@ -89,6 +91,7 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
     id,
     letter,
     at: input.at ? ([input.at[0], input.at[1]] as Cell) : undefined,
+    target: input.target ? { kind: input.target.kind, id: input.target.id } : undefined,
     trigger: input.trigger ?? { type: 'manual', label: 'Manual note' },
     when: input.when && input.when.length ? input.when : undefined,
     effects: input.effects ?? [],
@@ -103,6 +106,8 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
 export interface NotePatch {
   letter?: string | null;
   at?: Cell | null;
+  /** `null` detaches the note from its element. */
+  target?: NoteTarget | null;
   trigger?: Trigger;
   when?: Condition[] | null;
   effects?: Effect[];
@@ -129,6 +134,8 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
     }
   }
   if (patch.at !== undefined) set('at', patch.at ? [patch.at[0], patch.at[1]] : null);
+  if (patch.target !== undefined)
+    set('target', patch.target ? { kind: patch.target.kind, id: patch.target.id } : null);
   if (patch.trigger !== undefined) next.trigger = patch.trigger;
   if (patch.when !== undefined) set('when', patch.when?.length ? patch.when : null);
   if (patch.effects !== undefined) next.effects = patch.effects;
