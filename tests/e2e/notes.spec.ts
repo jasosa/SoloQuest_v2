@@ -269,6 +269,22 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(btn(page, 'Look from here')).toHaveCount(0); // nothing left to see from here
   });
 
+  test('a zone (a set of squares) gets one label; a tap says "A hero enters" once', async ({
+    page,
+  }) => {
+    await fixture(page, 'd1');
+    const label = page.locator('[data-zone="z1"]');
+    await expect(label).toHaveCount(1);
+    await expect(page.locator('[data-zone-label="z1"]')).toHaveCount(1);
+    await label.click();
+    await expect(page.getByRole('dialog', { name: 'A hero enters' })).toContainText('steps into');
+    await shot(page, 'notes-zone');
+    await btn(page, 'A hero enters').click();
+    await expect(page.getByRole('dialog', { name: 'The cold spot' })).toContainText('cold here');
+    await btn(page, 'Continue').click();
+    await expect(page.locator('[data-zone="z1"]')).toHaveCount(0); // fired once
+  });
+
   test('a room with an areaEntered note offers "A hero enters"', async ({ page }) => {
     await fixture(page, 'd1,d2');
     await page.waitForTimeout(900);

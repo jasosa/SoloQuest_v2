@@ -58,6 +58,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('TRAP_STEP'), trap: z.string() }),
   z.object({ type: z.literal('AREA_ENTER'), area: z.string() }),
+  z.object({ type: z.literal('ZONE_ENTER'), zone: z.string() }),
   z.object({ type: z.literal('SQUARE_TRIGGER'), cell: CellSchema }),
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CONFIRM_OBJECTIVE'), objective: z.string() }),

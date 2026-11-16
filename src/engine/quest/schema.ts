@@ -102,6 +102,9 @@ const TrapSchema = z
     { message: 'chest traps use "furniture"; pit, fallingBlock and spear use "cell"' },
   );
 
+/** A set of squares (decision 68): a place where "a hero enters" can be an event of its own. */
+const ZoneSchema = z.strictObject({ id, cells: z.array(cell).min(1) });
+
 const MarkerSchema = z.strictObject({
   id,
   label: nonEmpty,
@@ -117,6 +120,7 @@ const TriggerSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('areaRevealed'), area: areaId }),
   z.strictObject({ type: z.literal('doorOpened'), door: id }),
   z.strictObject({ type: z.literal('areaEntered'), area: areaId }),
+  z.strictObject({ type: z.literal('zoneEntered'), zone: id }),
   z.strictObject({ type: z.literal('squareEntered'), cell, repeat: z.boolean().optional() }),
   z.strictObject({
     type: z.literal('treasureSearch'),
@@ -223,7 +227,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
 
 /** The quest element a note belongs to (decision 67). Derived from the trigger when missing. */
 const TargetSchema = z.strictObject({
-  kind: z.enum(['door', 'furniture', 'monster', 'trap', 'marker', 'area', 'square']),
+  kind: z.enum(['door', 'furniture', 'monster', 'trap', 'marker', 'area', 'square', 'zone']),
   id: nonEmpty,
 });
 
@@ -310,6 +314,7 @@ export const QuestSchema = z.strictObject({
   monsters: z.array(MonsterSchema).default([]),
   traps: z.array(TrapSchema).default([]),
   markers: z.array(MarkerSchema).default([]),
+  zones: z.array(ZoneSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   wandering: WanderingSchema.optional(),
   objectives: z.array(ObjectiveSchema).default([]),
@@ -328,6 +333,7 @@ export type Trigger = z.infer<typeof TriggerSchema>;
 export type Condition = z.infer<typeof ConditionSchema>;
 export type Note = z.infer<typeof NoteSchema>;
 export type NoteTarget = z.infer<typeof TargetSchema>;
+export type ZoneDef = z.infer<typeof ZoneSchema>;
 export type DoorDef = z.infer<typeof DoorSchema>;
 export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;

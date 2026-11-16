@@ -693,6 +693,46 @@ export function removeMarker(q: Quest, id: string): EditResult {
   return ok({ ...q, markers: q.markers.filter((m) => m.id !== id) });
 }
 
+// ---- zones (decision 68)
+
+/** A new zone with its first square. More squares are added with `toggleZoneCell`. */
+export function addZone(q: Quest, cell: Cell, id?: string): EditResult {
+  const p = floorProblem(q, cell, 'Zone');
+  if (p) return fail(p);
+  const picked = pickId(
+    'z',
+    q.zones.map((z) => z.id),
+    id,
+    'zone',
+  );
+  if ('error' in picked) return fail(picked.error);
+  return ok({ ...q, zones: [...q.zones, { id: picked.id, cells: [copy(cell)] }] });
+}
+
+/** Add the square to the zone, or take it out when it is already part of it. */
+export function toggleZoneCell(q: Quest, zoneId: string, cell: Cell): EditResult {
+  const z = q.zones.find((x) => x.id === zoneId);
+  if (!z) return fail(`There is no zone ${zoneId}.`);
+  let cells: [number, number][];
+  if (z.cells.some((c) => cellEq(c, cell))) {
+    if (z.cells.length === 1)
+      return fail('A zone needs at least one square. Delete the zone instead.');
+    cells = z.cells.filter((c) => !cellEq(c, cell)).map((c) => [c[0], c[1]]);
+  } else {
+    const p = floorProblem(q, cell, 'Zone');
+    if (p) return fail(p);
+    cells = [...z.cells.map((c) => [c[0], c[1]] as [number, number]), copy(cell)];
+  }
+  return ok({ ...q, zones: q.zones.map((x) => (x.id === zoneId ? { ...x, cells } : x)) });
+}
+
+/** Remove a zone. Notes that still point at it come back as warnings. */
+export function removeZone(q: Quest, id: string): EditResult {
+  if (!q.zones.some((z) => z.id === id)) return fail(`There is no zone ${id}.`);
+  const quest = { ...q, zones: q.zones.filter((z) => z.id !== id) };
+  return ok(quest, newIssues(q, quest));
+}
+
 // ---- inspector: change properties of what is already on the map
 
 /**

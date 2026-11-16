@@ -30,6 +30,7 @@ export type TriggerEvent =
   | { readonly type: 'areaRevealed'; readonly area: AreaId }
   | { readonly type: 'doorOpened'; readonly door: string }
   | { readonly type: 'areaEntered'; readonly area: AreaId }
+  | { readonly type: 'zoneEntered'; readonly zone: string }
   | { readonly type: 'squareEntered'; readonly cell: CellKey }
   | { readonly type: 'treasureSearch'; readonly area: AreaId; readonly first: boolean }
   | { readonly type: 'secretDoorSearch'; readonly area: AreaId }
@@ -123,6 +124,8 @@ function matches(note: Note, t: TriggerEvent, d: GameState): boolean {
       const tt = t as Extract<TriggerEvent, { type: 'treasureSearch' }>;
       return n.area === tt.area && (n.first !== true || tt.first);
     }
+    case 'zoneEntered':
+      return n.zone === (t as { zone: string }).zone;
     case 'doorOpened':
       return n.door === (t as { door: string }).door;
     case 'squareEntered':
@@ -555,6 +558,28 @@ export function areaEnter(
     throw new EventError('NOT_A_TRIGGER', `Area ${area} already fired`);
   const before = new Set(state.revealedRooms);
   const r = fireTrigger(level, d, { type: 'areaEntered', area }, { beforeRooms: before });
+  return { prompts: r.prompts.length > 0 ? r.prompts : [{ kind: 'nothingNew' }] };
+}
+
+/** A hero entered a zone that has a `zoneEntered` note waiting (decision 68). */
+export function zoneEnter(
+  level: Level,
+  state: GameState,
+  d: Draft,
+  zone: string,
+): { prompts: Prompt[] } {
+  const z = level.quest.zones.find((x) => x.id === zone);
+  if (!z) throw new EventError('UNKNOWN_ZONE', `Unknown zone ${zone}`);
+  const notes = level.quest.notes.filter(
+    (n) => n.trigger.type === 'zoneEntered' && n.trigger.zone === zone,
+  );
+  if (notes.length === 0)
+    throw new EventError('NOT_A_TRIGGER', `Nothing is waiting in zone ${zone}`);
+  if (!z.cells.some((c) => state.seenCells.has(keyOf(c))))
+    throw new EventError('ZONE_NOT_SEEN', `Zone ${zone} has not been seen yet`);
+  if (!notes.some((n) => isAvailable(n, state)))
+    throw new EventError('NOT_A_TRIGGER', `Zone ${zone} already fired`);
+  const r = fireTrigger(level, d, { type: 'zoneEntered', zone });
   return { prompts: r.prompts.length > 0 ? r.prompts : [{ kind: 'nothingNew' }] };
 }
 

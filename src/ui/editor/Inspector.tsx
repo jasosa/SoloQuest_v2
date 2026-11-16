@@ -65,6 +65,7 @@ const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
   monster: 'Monster',
   trap: 'Trap',
   marker: 'Marker',
+  zone: 'Zone',
 };
 
 export function Inspector({

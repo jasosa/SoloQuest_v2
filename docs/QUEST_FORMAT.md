@@ -28,6 +28,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "furniture": [ { "id": "f1", "type": "weaponsRack", "cells": [[11, 15], [11, 16], [11, 17]], "letter": "A" } ],
   "monsters": [ { "id": "m1", "type": "orc", "cell": [7, 14] } ],
   "traps": [ { "id": "t1", "kind": "pit", "cell": [11, 18] } ],
+  "zones": [ { "id": "z1", "cells": [[3, 16], [4, 16]] } ],   // a set of squares: "a hero enters" and buttons (decision 68)
   "markers": [ { "id": "k1", "label": "X", "cell": [4, 2], "visible": "editor" } ],
   "notes": [ /* see below */ ],
   "wandering": { "monster": "orc" },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
@@ -95,7 +96,7 @@ A **throne** may stand on a secret door's square (it hides the door until a trea
 
 ### Note target (decision 67)
 
-A note may name the quest element it belongs to: `"target": { "kind": "door" | "furniture" | "monster" | "trap" | "marker" | "area" | "square", "id": "..." }` (`square` ids are `"x,y"`). The target is derived from the trigger when missing (a `doorOpened` note belongs to its door, a `treasureSearch` note to its room, a `squareEntered` note to its square). A `manual` note with a target is a button of that element: it shows under **For this quest** in the element's margin note (the square keeps its ring marker while the button can be pressed), not in the Quest sheet. A `manual` note without a target shows in the Quest sheet. The validator checks that the target exists.
+A note may name the quest element it belongs to: `"target": { "kind": "door" | "furniture" | "monster" | "trap" | "marker" | "area" | "square" | "zone", "id": "..." }` (`square` ids are `"x,y"`). The target is derived from the trigger when missing (a `doorOpened` note belongs to its door, a `treasureSearch` note to its room, a `squareEntered` note to its square). A `manual` note with a target is a button of that element: it shows under **For this quest** in the element's margin note (the square keeps its ring marker while the button can be pressed), not in the Quest sheet. A `manual` note without a target shows in the Quest sheet. The validator checks that the target exists.
 
 ### Triggers
 
@@ -105,6 +106,7 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 | `areaRevealed` | `area` | area first revealed |
 | `doorOpened` | `door` | that door is opened |
 | `areaEntered` | `area` | players tap "A hero enters" on the area (only shown for areas with this trigger) |
+| `zoneEntered` | `zone` | players tap "A hero enters" on the zone label (shown once any square of the zone is seen and a note waits) |
 | `squareEntered` | `cell`, `repeat?` | players tap the square marker ("A hero is here") |
 | `treasureSearch` | `area`, `first?` | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search. |
 | `secretDoorSearch` | `area` | a hero searches the area for secret doors |

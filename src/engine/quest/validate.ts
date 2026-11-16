@@ -28,6 +28,7 @@ export type IssueRefKind =
   | 'monster'
   | 'trap'
   | 'marker'
+  | 'zone'
   | 'note'
   | 'objective'
   | 'npc'
@@ -207,6 +208,11 @@ export function validateQuestIssues(
     quest.traps.map((t) => t.id),
     'trap',
   );
+  const zoneIds = unique(
+    'zones',
+    quest.zones.map((z) => z.id),
+    'zone',
+  );
   unique(
     'markers',
     quest.markers.map((m) => m.id),
@@ -384,6 +390,9 @@ export function validateQuestIssues(
             cell: cellOf(c),
           });
       }
+  quest.zones.forEach((z) =>
+    z.cells.forEach((c) => inside(`zone ${z.id}`, c, { kind: 'zone', id: z.id, cell: cellOf(c) })),
+  );
   quest.markers.forEach((m) =>
     inside(`marker ${m.id}`, m.cell, { kind: 'marker', id: m.id, cell: cellOf(m.cell) }),
   );
@@ -516,6 +525,9 @@ export function validateQuestIssues(
             err(`${where}: monster ${t.monster} has no spell ${t.spell}`, noteRef);
         }
         break;
+      case 'zoneEntered':
+        if (!zoneIds.has(t.zone)) err(`${where}: unknown zone ${t.zone}`, noteRef);
+        break;
       case 'zargonTurn':
         if (t.n !== undefined && t.every !== undefined)
           err(`${where}: zargonTurn takes n or every, not both`, noteRef);
@@ -547,9 +559,11 @@ export function validateQuestIssues(
                 ? trapIds.has(tg.id)
                 : tg.kind === 'marker'
                   ? quest.markers.some((m) => m.id === tg.id)
-                  : tg.kind === 'square'
-                    ? isBoardSquare(tg.id)
-                    : areas.has(tg.id);
+                  : tg.kind === 'zone'
+                    ? zoneIds.has(tg.id)
+                    : tg.kind === 'square'
+                      ? isBoardSquare(tg.id)
+                      : areas.has(tg.id);
       if (!known) err(`${where}: target ${tg.kind} ${tg.id} does not exist`, noteRef);
     }
     (n.when ?? []).forEach((c) => checkCondition(where, c));

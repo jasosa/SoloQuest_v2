@@ -11,6 +11,7 @@ import {
   mapLetters,
   monstersInPlay,
   squareMarkers,
+  zoneLabels,
   trapsInView,
 } from '../../engine/game/view';
 import type { Selection } from '../play/selection';
@@ -617,6 +618,43 @@ export function PlayBoard({
           strokeLinejoin="round"
         />
       </g>,
+    );
+  }
+
+  // Zones with something waiting (decision 68): one small label on the first seen square.
+  for (const z of zoneLabels(level, state)) {
+    const cx = (z.cell[0] + 0.5) * S;
+    const cy = (z.cell[1] + 0.5) * S;
+    markerMarks.push(
+      <g key={`zn${z.zone}`} opacity={0.75} pointerEvents="none" data-zone-label={z.zone}>
+        <rect
+          x={cx - 9}
+          y={cy - 9}
+          width={18}
+          height={18}
+          fill="none"
+          stroke={color.ink}
+          strokeWidth={1.5}
+          strokeDasharray="3 2.5"
+        />
+        <path
+          d={`M ${cx - 4} ${cy + 4} L ${cx - 4} ${cy - 4} L ${cx + 5} ${cy} Z`}
+          fill={color.ink}
+        />
+      </g>,
+    );
+    markerHits.push(
+      <rect
+        key={`znh${z.zone}`}
+        className="hit"
+        data-hit
+        data-zone={z.zone}
+        x={cx - 22}
+        y={cy - 22}
+        width={44}
+        height={44}
+        {...press('Zone with something waiting', () => onSelect({ kind: 'zone', id: z.zone }))}
+      />,
     );
   }
 

@@ -122,6 +122,41 @@ export function enterableAreas(level: Level, state: GameState): AreaId[] {
   return out;
 }
 
+export interface ZoneLabel {
+  readonly zone: string;
+  /** The first seen square of the zone (top row, then left): where the label is drawn. */
+  readonly cell: Cell;
+  /** A `zoneEntered` note waits ("A hero enters"). False when only a button is waiting. */
+  readonly enter: boolean;
+}
+
+/**
+ * Zones that get a label on the map (decision 68): a seen zone with a `zoneEntered` note waiting,
+ * or with a button of its own that is not pressed yet. Neutral: nothing about the content.
+ */
+export function zoneLabels(level: Level, state: GameState): ZoneLabel[] {
+  const out: ZoneLabel[] = [];
+  for (const z of level.quest.zones) {
+    const seen = z.cells
+      .filter((c) => state.seenCells.has(keyOf(c)))
+      .sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+    const first = seen[0];
+    if (!first) continue;
+    const enter = level.quest.notes.some(
+      (n) => n.trigger.type === 'zoneEntered' && n.trigger.zone === z.id && isAvailable(n, state),
+    );
+    const button = level.quest.notes.some(
+      (n) =>
+        n.trigger.type === 'manual' &&
+        n.target?.kind === 'zone' &&
+        n.target.id === z.id &&
+        isAvailable(n, state),
+    );
+    if (enter || button) out.push({ zone: z.id, cell: [first[0], first[1]], enter });
+  }
+  return out;
+}
+
 /**
  * Rooms that get the small label on the map: a room with an `areaEntered` note waiting, or with
  * a button of its own that can be pressed now (decision 67).

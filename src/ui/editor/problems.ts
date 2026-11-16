@@ -56,6 +56,8 @@ export function refLabel(ref: IssueRef | undefined): string {
       return 'Trap';
     case 'marker':
       return 'Marker';
+    case 'zone':
+      return 'Zone';
     case 'note':
       return 'Note';
     case 'objective':
@@ -92,6 +94,10 @@ function cellOfRef(quest: Quest, ref: IssueRef): Cell | undefined {
     }
     case 'marker':
       return quest.markers.find((m) => m.id === id)?.cell;
+    case 'zone': {
+      const c = quest.zones.find((z) => z.id === id)?.cells[0];
+      return c ? [c[0], c[1]] : undefined;
+    }
     case 'npc':
       return quest.npcs.find((n) => n.id === id)?.cell;
     case 'note':
@@ -113,6 +119,7 @@ export function jumpFor(quest: Quest, ref: IssueRef | undefined): Jump {
     case 'monster':
     case 'trap':
     case 'marker':
+    case 'zone':
       return ref.id
         ? { panel: 'element', selection: { kind: ref.kind, id: ref.id }, noteId: null, flash }
         : { ...none, flash };

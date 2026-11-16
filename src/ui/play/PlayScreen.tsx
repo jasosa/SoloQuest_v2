@@ -17,6 +17,7 @@ import {
   manualTriggers,
   elementQuest,
   squareMarkers,
+  zoneLabels,
   eventLog,
   objectiveConfirms,
   startTexts,
@@ -430,6 +431,28 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         </button>
       </MarginNote>
     );
+  } else if (sel?.kind === 'zone') {
+    const label = zoneLabels(level, state).find((z) => z.zone === sel.id);
+    if (label) {
+      note = (
+        <MarginNote
+          anchor={toMap(label.cell[0] + 0.5, label.cell[1] + 0.5)}
+          kind="Zone"
+          title={label.enter ? 'A hero enters' : 'This place'}
+          onClose={closeNote}
+        >
+          {label.enter && (
+            <>
+              <p>Tap when a hero steps into this place.</p>
+              <button className="btn" onClick={() => act({ type: 'ZONE_ENTER', zone: sel.id })}>
+                A hero enters
+              </button>
+            </>
+          )}
+          {forQuest('zone', sel.id)}
+        </MarginNote>
+      );
+    }
   } else if (sel?.kind === 'square') {
     const marker = squareMarkers(level, state).find(
       (m) => m.cell[0] === sel.at[0] && m.cell[1] === sel.at[1],

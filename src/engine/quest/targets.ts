@@ -19,6 +19,8 @@ export function noteTarget(note: Note): NoteTarget | undefined {
       return t.monster ? { kind: 'monster', id: t.monster } : undefined;
     case 'spellCast':
       return t.monster ? { kind: 'monster', id: t.monster } : undefined;
+    case 'zoneEntered':
+      return { kind: 'zone', id: t.zone };
     case 'areaRevealed':
     case 'areaEntered':
     case 'treasureSearch':

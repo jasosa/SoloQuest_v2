@@ -23,6 +23,7 @@ import type { MonsterDef } from '../quest/schema';
 import { isDormant, monsterStateOf } from './monstersIn';
 import {
   areaEnter,
+  zoneEnter,
   choose,
   manualTrigger,
   monsterSeenTriggers,
@@ -150,6 +151,10 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
     case 'AREA_ENTER': {
       const d = draftOf(state);
       return { state: d, prompts: areaEnter(level, state, d, event.area).prompts };
+    }
+    case 'ZONE_ENTER': {
+      const d = draftOf(state);
+      return { state: d, prompts: zoneEnter(level, state, d, event.zone).prompts };
     }
     case 'SQUARE_TRIGGER': {
       checkCell(level, event.cell);

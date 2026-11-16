@@ -6,6 +6,7 @@ import {
   removeMarker,
   removeMonster,
   removeTrap,
+  removeZone,
   rotateFurniture,
 } from '../../engine/editor';
 import type { EditorStore } from './editorStore';
@@ -36,6 +37,8 @@ export function deleteSelection(store: EditorStore) {
         return removeTrap(q, sel.id);
       case 'marker':
         return removeMarker(q, sel.id);
+      case 'zone':
+        return removeZone(q, sel.id);
     }
   });
   if (ok) st.select(null);

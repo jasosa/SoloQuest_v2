@@ -58,6 +58,8 @@ export type GameEvent =
   | { readonly type: 'TRAP_STEP'; readonly trap: string }
   /** A hero entered a revealed room that has an `areaEntered` note. */
   | { readonly type: 'AREA_ENTER'; readonly area: string }
+  /** A hero entered a seen zone that has a `zoneEntered` note (decision 68). */
+  | { readonly type: 'ZONE_ENTER'; readonly zone: string }
   /** A hero is on a seen square that has a `squareEntered` note. */
   | { readonly type: 'SQUARE_TRIGGER'; readonly cell: Cell }
   /** The players pressed the confirm button of an objective (Quest sheet). */

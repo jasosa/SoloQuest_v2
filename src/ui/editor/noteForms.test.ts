@@ -27,6 +27,7 @@ describe('note form defaults', () => {
       secretDoors: [{ id: 's1', a: [1, 2], b: [2, 2] }],
       monsters: [{ id: 'm1', type: 'orc', cell: [3, 3] }],
       traps: [{ id: 't1', kind: 'pit', cell: [4, 4] }],
+      zones: [{ id: 'z1', cells: [[6, 6]] }],
       objectives: [{ id: 'o1', text: 'Win' }],
       npcs: [{ id: 'n1', name: 'N', cell: [5, 5], defend: 1, body: 1, text: '' }],
     } as Quest;

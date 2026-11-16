@@ -23,7 +23,10 @@ export type Tool =
   'select' | 'rock' | 'doors' | 'blocks' | 'furniture' | 'monsters' | 'traps' | 'markers' | 'start';
 
 export type EditSelection =
-  | { readonly kind: 'door' | 'furniture' | 'monster' | 'trap' | 'marker'; readonly id: string }
+  | {
+      readonly kind: 'door' | 'furniture' | 'monster' | 'trap' | 'marker' | 'zone';
+      readonly id: string;
+    }
   | { readonly kind: 'block'; readonly cell: Cell }
   | null;
 

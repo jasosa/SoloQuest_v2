@@ -64,7 +64,21 @@ export async function devTestLevel(): Promise<Level | undefined> {
           text: 'Moves with the heroes. Zargon never attacks it.',
         },
       ],
+      zones: [
+        {
+          id: 'z1',
+          cells: [
+            [3, 16],
+            [4, 16],
+          ],
+        },
+      ],
       notes: [
+        {
+          id: 'n-zone',
+          trigger: { type: 'zoneEntered', zone: 'z1' },
+          effects: [{ type: 'showText', title: 'The cold spot', text: 'The air grows cold here.' }],
+        },
         {
           id: 'n-wake',
           trigger: { type: 'doorOpened', door: 'd3' },

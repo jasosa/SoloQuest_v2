@@ -30,6 +30,7 @@ const TOP_KEYS = [
   'monsters',
   'traps',
   'markers',
+  'zones',
   'notes',
   'wandering',
   'objectives',

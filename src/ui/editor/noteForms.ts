@@ -9,6 +9,7 @@ export const TRIGGER_TYPES: readonly { type: Trigger['type']; label: string }[] 
   { type: 'areaRevealed', label: 'An area is revealed' },
   { type: 'doorOpened', label: 'A door is opened' },
   { type: 'areaEntered', label: 'A hero enters an area' },
+  { type: 'zoneEntered', label: 'A hero enters a zone' },
   { type: 'squareEntered', label: 'A hero is on a square' },
   { type: 'treasureSearch', label: 'Search for treasure' },
   { type: 'secretDoorSearch', label: 'Search for secret doors' },
@@ -88,6 +89,10 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
     case 'doorOpened': {
       const d = q.doors[0] ?? q.secretDoors[0];
       return d ? good({ type, door: d.id }) : bad('Add a door first.');
+    }
+    case 'zoneEntered': {
+      const z = q.zones[0];
+      return z ? good({ type, zone: z.id }) : bad('Add a zone first.');
     }
     case 'squareEntered':
       return good({ type, cell: firstCell(q) });
@@ -233,6 +238,8 @@ export function triggerSummary(t: Trigger): string {
       return `${t.area} revealed`;
     case 'areaEntered':
       return `Hero enters ${t.area}`;
+    case 'zoneEntered':
+      return `Hero enters zone ${t.zone}`;
     case 'doorOpened':
       return `Door ${t.door} opened`;
     case 'squareEntered':

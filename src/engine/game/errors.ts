@@ -1,5 +1,7 @@
 export type EventErrorCode =
   | 'UNKNOWN_DOOR'
+  | 'UNKNOWN_ZONE'
+  | 'ZONE_NOT_SEEN'
   | 'DOOR_NOT_SEEN'
   | 'ALREADY_OPEN'
   | 'BAD_CELL'
