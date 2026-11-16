@@ -219,6 +219,13 @@
   "markers": [{ "id": "k1", "label": "X", "cell": [5, 11], "visible": "editor" }],
   "notes": [
     {
+      "id": "n-start",
+      "trigger": { "type": "questStart" },
+      "effects": [
+        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+      ]
+    },
+    {
       "id": "n-A",
       "letter": "A",
       "at": [3, 13],
@@ -300,7 +307,7 @@
       "cell": [5, 11],
       "defend": 2,
       "body": 2,
-      "text": "The hero who opened his cell door moves him: after that hero's normal turn, roll 1 red die and move Ragnar. He cannot attack and rolls 2 defend dice. Ragnar is down to 2 Body Points. He must reach the stairs alive."
+      "text": ""
     }
   ]
 }

@@ -409,6 +409,13 @@
   "markers": [],
   "notes": [
     {
+      "id": "n-start",
+      "trigger": { "type": "questStart" },
+      "effects": [
+        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+      ]
+    },
+    {
       "id": "n-A",
       "letter": "A",
       "at": [10, 11],

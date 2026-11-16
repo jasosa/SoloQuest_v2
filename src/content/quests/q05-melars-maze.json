@@ -385,6 +385,13 @@
   "markers": [],
   "notes": [
     {
+      "id": "n-start",
+      "trigger": { "type": "questStart" },
+      "effects": [
+        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+      ]
+    },
+    {
       "id": "n-A",
       "letter": "A",
       "at": [8, 5],
@@ -416,7 +423,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The gargoyle in this room is a stone figure and stays motionless. It wakes only when a hero opens the door leading from this room onward into the next one. Until it has acted once, treat it as unharmable."
+          "text": "A statue of a gargoyle stands in this room."
         }
       ]
     },
@@ -515,7 +522,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Searching this wall turns up nothing. Only a treasure search opens the way past the throne."
+          "text": "Searching this wall turns up nothing."
         }
       ]
     },
@@ -528,7 +535,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The wall on this side hides nothing. Only a treasure search in the throne room opens the way."
+          "text": "Searching this wall turns up nothing."
         }
       ]
     }

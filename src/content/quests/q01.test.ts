@@ -184,7 +184,7 @@ describe('quest 1: walk-through', () => {
 
 describe('quest 1: notes', () => {
   it('has the five notes A to E at the letters on the map', () => {
-    expect(quest.notes.map((n) => n.letter)).toEqual(['A', 'B', 'C', 'D', 'E']);
+    expect(quest.notes.map((n) => n.letter).filter(Boolean)).toEqual(['A', 'B', 'C', 'D', 'E']);
     expect(note('A')?.at).toEqual([11, 14]);
     expect(note('B')?.at).toEqual([17, 15]);
     expect(note('C')?.at).toEqual([7, 2]);
@@ -220,16 +220,18 @@ describe('quest 1: notes', () => {
 
   it('C really fires when R02 is revealed, and shows in the journal and on the map', () => {
     const before = run(open('d1'), ...toRow9, open('d8'), open('d10'));
-    expect(before.notesFired).toEqual([]);
+    expect(before.notesFired).toEqual(['n-start']);
     expect(mapLetters(level, before)).toEqual([]);
     const r = reduce(level, before, open('d11'));
-    expect(r.state.notesFired).toEqual(['n-C']);
+    expect(r.state.notesFired).toEqual(['n-start', 'n-C']);
     expect(r.prompts.filter((p) => p.kind === 'note')).toEqual([
       expect.objectContaining({ noteId: 'n-C', letter: 'C', at: [7, 2], consumesTreasure: false }),
     ]);
-    expect(journal(level, r.state).map((j) => [j.id, j.letter, j.at])).toEqual([
-      ['n-C', 'C', [7, 2]],
-    ]);
+    expect(journal(level, r.state).map((j) => j.id)).toEqual(['n-start', 'n-C']);
+    expect(journal(level, r.state).find((j) => j.id === 'n-C')).toMatchObject({
+      letter: 'C',
+      at: [7, 2],
+    });
     expect(mapLetters(level, r.state)).toEqual([{ note: 'n-C', letter: 'C', at: [7, 2] }]);
   });
 

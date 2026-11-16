@@ -41,7 +41,7 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
             <div className="nm">
               {n.name} <span className="st">Defend {n.defend}</span>
             </div>
-            <p>{n.text}</p>
+            {n.text && <p>{n.text}</p>}
           </li>
         ))}
       </ul>

@@ -120,7 +120,7 @@ describe('quest 2: walk-through', () => {
     expect(s.seenMonsters.has('m7')).toBe(true); // orc
     expect(s.seenDoors.has('d10')).toBe(true);
     expect(s.revealedRooms.has('R13')).toBe(false);
-    expect(s.notesFired).toEqual([]);
+    expect(s.notesFired).toEqual(['n-start']);
   });
 
   it('d2 shows R12 with a goblin and trapped chest A', () => {
@@ -212,8 +212,8 @@ describe('quest 2: the alarm', () => {
   const r = reduce(level, before, open('d10'));
 
   it('opening the cell door fires the alarm note once', () => {
-    expect(before.notesFired).toEqual([]);
-    expect(r.state.notesFired).toEqual(['n-alarm']);
+    expect(before.notesFired).toEqual(['n-start']);
+    expect(r.state.notesFired).toEqual(['n-start', 'n-alarm']);
     expect(r.state.flags['alarm']).toBe(true);
     expect(r.state.revealedRooms.has('R13')).toBe(true);
   });

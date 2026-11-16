@@ -348,6 +348,13 @@
   ],
   "notes": [
     {
+      "id": "n-start",
+      "trigger": { "type": "questStart" },
+      "effects": [
+        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+      ]
+    },
+    {
       "id": "n-witch-seen",
       "trigger": {
         "type": "areaRevealed",

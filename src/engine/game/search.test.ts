@@ -346,7 +346,7 @@ describe('SEARCH_TREASURE: quest 1 notes A and D (decision 17)', () => {
     });
     const b = reduce(lv, a.state, treasure('R18', 'elf', true));
     expect(kinds(b.prompts)).toEqual(['drawCard']);
-    expect(b.state.notesFired).toEqual(['n-A']);
+    expect(b.state.notesFired).toEqual(['n-start', 'n-A']);
   });
 
   it('note D: the first searcher gets the gold text and item, the next one draws', () => {
