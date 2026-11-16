@@ -29,12 +29,11 @@ async function endTheTurn(page: Page) {
 }
 
 test.describe('quest and team select', () => {
-  test('quests that are not encoded are disabled; start needs a hero', async ({ page }) => {
+  test('all 14 quests are encoded; start needs a hero', async ({ page }) => {
     await page.goto('/?nosave=1');
     await shot(page, 'select-start');
     await expect(page.locator('.qcard')).toHaveCount(14);
-    await expect(page.getByRole('button', { name: /Quest 3/ })).toBeDisabled();
-    await expect(page.getByText('Not encoded yet')).toHaveCount(12);
+    await expect(page.getByText('Not encoded yet')).toHaveCount(0);
     const start = page.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();

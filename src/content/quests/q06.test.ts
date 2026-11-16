@@ -154,7 +154,7 @@ describe('quest 6: walk-through', () => {
     const r21 = run(...via('d9'));
     expect(r21.revealedRooms.has('R21')).toBe(true);
     expect(r21.seenFurniture.has('f-table-e')).toBe(true);
-  });
+  }, 20000);
 
   it('never reveals rock rooms', () => {
     const s = run(

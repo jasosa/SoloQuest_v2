@@ -35,18 +35,18 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 |---|---|---|---|---|---|---|---|
 | 1 | The Trial | done | A to E | ok | ok | ok (src/content/quests/q01.test.ts) | |
 | 2 | The Rescue of Sir Ragnar | done | A, B, alarm, cell, home | ok | ok | ok (src/content/quests/q02.test.ts) | |
-| 3 | Lair of the Orc Warlord | | | | | | |
-| 4 | Prince Magnus' Gold | | | | | | |
-| 5 | Melar's Maze | | | | | | |
-| 6 | Legacy of the Orc Warlord | | | | | | |
-| 7 | The Lost Wizard | | | | | | |
-| 8 | The Fire Mage | | | | | | |
-| 9 | Race Against Time | | | | | | |
-| 10 | Castle of Mystery | | | | | | |
-| 11 | Bastion of Dread | | | | | | |
-| 12 | Barak Tor: Barrow of the Witch Lord | | | | | | |
-| 13 | Quest for the Spirit Blade | | | | | | |
-| 14 | Return to Barak Tor | | | | | | |
+| 3 | Lair of the Orc Warlord | done | A, B | ok | ok | ok (src/content/quests/q03.test.ts) | |
+| 4 | Prince Magnus' Gold | done | A, home | ok | ok | ok (src/content/quests/q04.test.ts) | |
+| 5 | Melar's Maze | done | A to E, gargoyle wake, throne search notes | ok | ok | ok (src/content/quests/q05.test.ts) | |
+| 6 | Legacy of the Orc Warlord | done | start, cell, A, B, Grak dead | ok | ok | ok (src/content/quests/q06.test.ts) | |
+| 7 | The Lost Wizard | done | A to D | ok | ok | ok (src/content/quests/q07.test.ts) | |
+| 8 | The Fire Mage | done | A, Balur appears, escape, XX | ok | ok | ok (src/content/quests/q08.test.ts) | |
+| 9 | Race Against Time | done | A to C, stairs | ok | ok | ok (src/content/quests/q09.test.ts) | |
+| 10 | Castle of Mystery | done | start, A, B, door teleport choices | ok | ok | ok (src/content/quests/q10.test.ts) | |
+| 11 | Bastion of Dread | done | A to C, gargoyle wake and disarm | ok | ok | ok (src/content/quests/q11.test.ts) | |
+| 12 | Barak Tor: Barrow of the Witch Lord | done | A to E | ok | ok | ok (src/content/quests/q12.test.ts) | |
+| 13 | Quest for the Spirit Blade | done | A, B, falling-block squares, stairs | ok | ok | ok (src/content/quests/q13.test.ts) | |
+| 14 | Return to Barak Tor | done | A, Witch Lord placed and dead | ok | ok | ok (src/content/quests/q14.test.ts) | |
 
 ## Known special mechanics (must be covered by the walk-through tests)
 
