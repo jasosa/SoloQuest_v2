@@ -424,45 +424,6 @@
       "consumesTreasure": true
     },
     {
-      "id": "n-stairs-seen",
-      "trigger": {
-        "type": "areaRevealed",
-        "area": "R17"
-      },
-      "effects": [
-        {
-          "type": "setFlag",
-          "flag": "stairsSeen",
-          "value": true
-        }
-      ]
-    },
-    {
-      "id": "n-B",
-      "letter": "B",
-      "at": [7, 13],
-      "trigger": {
-        "type": "manual",
-        "label": "All surviving heroes have left by the stairs"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The heroes escaped the stronghold."
-        },
-        {
-          "type": "completeObjective",
-          "objective": "o1"
-        }
-      ],
-      "when": [
-        {
-          "flag": "stairsSeen",
-          "is": true
-        }
-      ]
-    },
-    {
       "id": "n-grak-dead",
       "trigger": {
         "type": "monsterKilled",
@@ -486,7 +447,13 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Find your equipment and escape by the stairs"
+      "text": "Find your equipment and escape by the stairs",
+      "confirm": "All surviving heroes have left by the stairs",
+      "confirmWhen": [
+        {
+          "areaRevealed": "R17"
+        }
+      ]
     }
   ],
   "rewards": "",

@@ -10,6 +10,7 @@ import { initialState, reduce, replay } from '../../engine/game/reducer';
 import {
   availableEndings,
   endSummary,
+  objectiveConfirms,
   journal,
   mapLetters,
   npcsInPlay,
@@ -273,7 +274,7 @@ describe('quest 2: the end', () => {
   it('the objective is done only after the players say Sir Ragnar is back on the stairs', () => {
     const before = reduce(level, run(...intoCell), open('d10')).state;
     expect(objectivesStatus(level, before).goalDone).toBe(false);
-    const r = reduce(level, before, { type: 'MANUAL_TRIGGER', note: 'n-home' });
+    const r = reduce(level, before, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' });
     expect(r.state.objectivesDone).toContain('o1');
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
     expect(quest.rewards).toContain('240');
@@ -294,8 +295,9 @@ describe('quest 2: the end', () => {
     });
   });
 
-  it('the stairs note only works after the alarm', () => {
-    expect(quest.notes.find((n) => n.id === 'n-home')?.when).toEqual([{ flag: 'alarm', is: true }]);
+  it('the confirm button only works after the alarm', () => {
+    expect(quest.objectives[0]?.confirmWhen).toEqual([{ flag: 'alarm', is: true }]);
+    expect(objectiveConfirms(level, run(open('d1')))).toEqual([]);
     expect(objectivesStatus(level, run(open('d1'))).goalDone).toBe(false);
   });
 

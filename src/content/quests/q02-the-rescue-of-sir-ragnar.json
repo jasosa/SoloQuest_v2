@@ -6,7 +6,9 @@
   "intro": {
     "summary": "Sir Ragnar, a knight of the King, has been captured, probably by the orc warlord Ulag. The heroes must find him and lead him safely back to the stairs. Prince Magnus pays 240 gold coins, shared among the heroes, but only if Sir Ragnar survives the escape."
   },
-  "start": { "area": "R11" },
+  "start": {
+    "area": "R11"
+  },
   "rock": {
     "rooms": ["R01", "R02", "R03", "R06", "R07", "R08", "R15", "R16", "R19", "R20", "R21", "R22"],
     "cells": [
@@ -101,24 +103,78 @@
     ]
   },
   "doors": [
-    { "id": "d1", "a": [10, 11], "b": [10, 12] },
-    { "id": "d2", "a": [2, 9], "b": [2, 10] },
-    { "id": "d3", "a": [15, 5], "b": [15, 6] },
-    { "id": "d4", "a": [16, 3], "b": [17, 3] },
-    { "id": "d5", "a": [19, 4], "b": [19, 5] },
-    { "id": "d6", "a": [20, 6], "b": [21, 6] },
-    { "id": "d7", "a": [23, 8], "b": [23, 9] },
-    { "id": "d8", "a": [11, 17], "b": [11, 18] },
-    { "id": "d9", "a": [8, 15], "b": [9, 15] },
-    { "id": "d10", "a": [6, 11], "b": [7, 11] }
+    {
+      "id": "d1",
+      "a": [10, 11],
+      "b": [10, 12]
+    },
+    {
+      "id": "d2",
+      "a": [2, 9],
+      "b": [2, 10]
+    },
+    {
+      "id": "d3",
+      "a": [15, 5],
+      "b": [15, 6]
+    },
+    {
+      "id": "d4",
+      "a": [16, 3],
+      "b": [17, 3]
+    },
+    {
+      "id": "d5",
+      "a": [19, 4],
+      "b": [19, 5]
+    },
+    {
+      "id": "d6",
+      "a": [20, 6],
+      "b": [21, 6]
+    },
+    {
+      "id": "d7",
+      "a": [23, 8],
+      "b": [23, 9]
+    },
+    {
+      "id": "d8",
+      "a": [11, 17],
+      "b": [11, 18]
+    },
+    {
+      "id": "d9",
+      "a": [8, 15],
+      "b": [9, 15]
+    },
+    {
+      "id": "d10",
+      "a": [6, 11],
+      "b": [7, 11]
+    }
   ],
-  "secretDoors": [{ "id": "s1", "a": [8, 12], "b": [8, 13] }],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [8, 12],
+      "b": [8, 13]
+    }
+  ],
   "falseDoors": [],
   "blocks": [
-    { "cells": [[1, 9]] },
-    { "cells": [[24, 9]] },
-    { "cells": [[9, 18]] },
-    { "cells": [[14, 18]] },
+    {
+      "cells": [[1, 9]]
+    },
+    {
+      "cells": [[24, 9]]
+    },
+    {
+      "cells": [[9, 18]]
+    },
+    {
+      "cells": [[14, 18]]
+    },
     {
       "cells": [
         [12, 5],
@@ -170,8 +226,18 @@
         [17, 8]
       ]
     },
-    { "id": "f-chest-b", "type": "chest", "cells": [[19, 8]], "letter": "B" },
-    { "id": "f-chest-a", "type": "chest", "cells": [[2, 13]], "letter": "A" },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [[19, 8]],
+      "letter": "B"
+    },
+    {
+      "id": "f-chest-a",
+      "type": "chest",
+      "cells": [[2, 13]],
+      "letter": "A"
+    },
     {
       "id": "f-table-sw",
       "type": "table",
@@ -186,27 +252,111 @@
     }
   ],
   "monsters": [
-    { "id": "m1", "type": "goblin", "cell": [3, 9] },
-    { "id": "m2", "type": "goblin", "cell": [23, 9] },
-    { "id": "m3", "type": "goblin", "cell": [14, 6] },
-    { "id": "m4", "type": "goblin", "cell": [16, 6] },
-    { "id": "m5", "type": "goblin", "cell": [2, 12] },
-    { "id": "m6", "type": "abomination", "cell": [8, 11] },
-    { "id": "m7", "type": "orc", "cell": [7, 12] },
-    { "id": "m8", "type": "orc", "cell": [8, 14] },
-    { "id": "m9", "type": "orc", "cell": [7, 15] },
-    { "id": "m10", "type": "orc", "cell": [9, 15] },
-    { "id": "m11", "type": "goblin", "cell": [10, 18] },
-    { "id": "m12", "type": "goblin", "cell": [16, 12] },
-    { "id": "m13", "type": "orc", "cell": [15, 3] },
-    { "id": "m14", "type": "orc", "cell": [16, 4] },
-    { "id": "m15", "type": "goblin", "cell": [18, 4] },
-    { "id": "m16", "type": "orc", "cell": [19, 3] },
-    { "id": "m17", "type": "goblin", "cell": [18, 7] },
-    { "id": "m18", "type": "orc", "cell": [19, 7] },
-    { "id": "m19", "type": "goblin", "cell": [20, 7] },
-    { "id": "m20", "type": "orc", "cell": [23, 6] },
-    { "id": "m21", "type": "orc", "cell": [24, 7] }
+    {
+      "id": "m1",
+      "type": "goblin",
+      "cell": [3, 9]
+    },
+    {
+      "id": "m2",
+      "type": "goblin",
+      "cell": [23, 9]
+    },
+    {
+      "id": "m3",
+      "type": "goblin",
+      "cell": [14, 6]
+    },
+    {
+      "id": "m4",
+      "type": "goblin",
+      "cell": [16, 6]
+    },
+    {
+      "id": "m5",
+      "type": "goblin",
+      "cell": [2, 12]
+    },
+    {
+      "id": "m6",
+      "type": "abomination",
+      "cell": [8, 11]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [7, 12]
+    },
+    {
+      "id": "m8",
+      "type": "orc",
+      "cell": [8, 14]
+    },
+    {
+      "id": "m9",
+      "type": "orc",
+      "cell": [7, 15]
+    },
+    {
+      "id": "m10",
+      "type": "orc",
+      "cell": [9, 15]
+    },
+    {
+      "id": "m11",
+      "type": "goblin",
+      "cell": [10, 18]
+    },
+    {
+      "id": "m12",
+      "type": "goblin",
+      "cell": [16, 12]
+    },
+    {
+      "id": "m13",
+      "type": "orc",
+      "cell": [15, 3]
+    },
+    {
+      "id": "m14",
+      "type": "orc",
+      "cell": [16, 4]
+    },
+    {
+      "id": "m15",
+      "type": "goblin",
+      "cell": [18, 4]
+    },
+    {
+      "id": "m16",
+      "type": "orc",
+      "cell": [19, 3]
+    },
+    {
+      "id": "m17",
+      "type": "goblin",
+      "cell": [18, 7]
+    },
+    {
+      "id": "m18",
+      "type": "orc",
+      "cell": [19, 7]
+    },
+    {
+      "id": "m19",
+      "type": "goblin",
+      "cell": [20, 7]
+    },
+    {
+      "id": "m20",
+      "type": "orc",
+      "cell": [23, 6]
+    },
+    {
+      "id": "m21",
+      "type": "orc",
+      "cell": [24, 7]
+    }
   ],
   "traps": [
     {
@@ -216,20 +366,37 @@
       "effect": "A poison needle pricks the hero who searches the chest: that hero loses 1 Body Point."
     }
   ],
-  "markers": [{ "id": "k1", "label": "X", "cell": [5, 11], "visible": "editor" }],
+  "markers": [
+    {
+      "id": "k1",
+      "label": "X",
+      "cell": [5, 11],
+      "visible": "editor"
+    }
+  ],
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {
       "id": "n-A",
       "letter": "A",
       "at": [3, 13],
-      "trigger": { "type": "treasureSearch", "area": "R12", "first": true },
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R12",
+        "first": true
+      },
       "effects": [
         {
           "type": "showText",
@@ -242,7 +409,11 @@
       "id": "n-B",
       "letter": "B",
       "at": [20, 8],
-      "trigger": { "type": "treasureSearch", "area": "R09", "first": true },
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R09",
+        "first": true
+      },
       "effects": [
         {
           "type": "showText",
@@ -257,40 +428,64 @@
     },
     {
       "id": "n-alarm",
-      "trigger": { "type": "doorOpened", "door": "d10" },
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d10"
+      },
       "effects": [
         {
           "type": "showText",
           "title": "Sir Ragnar is found",
           "text": "An alarm sounds. Place every monster, door and furniture piece still hidden on the board. Every door on the board stands open from now on. Put the Dread sorcerer figure on the X square: it is Sir Ragnar. The hero who opened the cell door plays a normal turn, then rolls 1 red die and moves Sir Ragnar, and does the same after each of their turns. Sir Ragnar cannot attack and rolls 2 defend dice. Ragnar is down to 2 Body Points."
         },
-        { "type": "setFlag", "flag": "alarm", "value": true },
-        { "type": "revealAll" },
-        { "type": "openAllDoors" },
-        { "type": "spawnNpc", "npc": "ragnar" }
+        {
+          "type": "setFlag",
+          "flag": "alarm",
+          "value": true
+        },
+        {
+          "type": "revealAll"
+        },
+        {
+          "type": "openAllDoors"
+        },
+        {
+          "type": "spawnNpc",
+          "npc": "ragnar"
+        }
       ]
     },
     {
       "id": "n-cell",
-      "trigger": { "type": "treasureSearch", "area": "R13" },
-      "effects": [{ "type": "showText", "text": "Heroes cannot search for treasure in the cell." }],
-      "blocksSearch": true
-    },
-    {
-      "id": "n-home",
-      "trigger": { "type": "manual", "label": "Sir Ragnar is back on the stairs, alive" },
-      "when": [{ "flag": "alarm", "is": true }],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R13"
+      },
       "effects": [
-        { "type": "completeObjective", "objective": "o1" },
         {
           "type": "showText",
-          "text": "Sir Ragnar is safe. The heroes share the reward of 240 gold coins."
+          "text": "Heroes cannot search for treasure in the cell."
+        }
+      ],
+      "blocksSearch": true
+    }
+  ],
+  "wandering": {
+    "monster": "orc"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Free Sir Ragnar and bring him to the stairs alive",
+      "confirm": "Sir Ragnar is back on the stairs, alive",
+      "confirmWhen": [
+        {
+          "flag": "alarm",
+          "is": true
         }
       ]
     }
   ],
-  "wandering": { "monster": "orc" },
-  "objectives": [{ "id": "o1", "text": "Free Sir Ragnar and bring him to the stairs alive" }],
   "rewards": "240 gold coins, shared among the heroes. Nothing if Sir Ragnar dies during the escape.",
   "rules": {},
   "endings": [

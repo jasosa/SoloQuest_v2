@@ -559,6 +559,21 @@ export function validateQuestIssues(
     const where = `objective ${o.id}`;
     const ref: IssueRef = { kind: 'objective', id: o.id };
     const d = o.done;
+    const checkObjectiveCondition = (c: Condition) => {
+      if ('firstTime' in c) err(`${where}: firstTime has no meaning in an objective`, ref);
+      if ('monster' in c && !monsterIds.has(c.monster))
+        err(`${where}: unknown monster ${c.monster}`, ref);
+      if ('monsterSeen' in c && !monsterIds.has(c.monsterSeen))
+        err(`${where}: unknown monster ${c.monsterSeen}`, ref);
+      if ('doorOpened' in c && !doorIds.has(c.doorOpened))
+        err(`${where}: unknown door ${c.doorOpened}`, ref);
+      if ('areaRevealed' in c && !rooms.has(c.areaRevealed))
+        err(`${where}: ${c.areaRevealed} is not a room`, ref);
+      if ('flag' in c && c.is && !flagsSet.has(c.flag))
+        err(`${where}: flag ${c.flag} is never set`, ref);
+    };
+    if (o.confirmWhen && !o.confirm) err(`${where}: confirmWhen needs a confirm label`, ref);
+    o.confirmWhen?.forEach(checkObjectiveCondition);
     if (!d) {
       if (!completed.has(o.id) && !o.confirm)
         err(`${where}: no done rule and no completeObjective effect`, ref);
@@ -570,20 +585,7 @@ export function validateQuestIssues(
       for (const m of d.allKilled)
         if (!monsterIds.has(m)) err(`${where}: unknown monster ${m}`, ref);
     if ('flag' in d && !flagsSet.has(d.flag)) err(`${where}: flag ${d.flag} is never set`, ref);
-    if ('when' in d)
-      for (const c of d.when) {
-        if ('firstTime' in c) err(`${where}: firstTime has no meaning in an objective`, ref);
-        if ('monster' in c && !monsterIds.has(c.monster))
-          err(`${where}: unknown monster ${c.monster}`, ref);
-        if ('monsterSeen' in c && !monsterIds.has(c.monsterSeen))
-          err(`${where}: unknown monster ${c.monsterSeen}`, ref);
-        if ('doorOpened' in c && !doorIds.has(c.doorOpened))
-          err(`${where}: unknown door ${c.doorOpened}`, ref);
-        if ('areaRevealed' in c && !rooms.has(c.areaRevealed))
-          err(`${where}: ${c.areaRevealed} is not a room`, ref);
-        if ('flag' in c && c.is && !flagsSet.has(c.flag))
-          err(`${where}: flag ${c.flag} is never set`, ref);
-      }
+    if ('when' in d) d.when.forEach(checkObjectiveCondition);
   }
 
   // ---- editor-only checks

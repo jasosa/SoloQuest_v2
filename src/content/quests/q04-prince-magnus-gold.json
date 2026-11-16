@@ -410,9 +410,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {
@@ -429,23 +435,6 @@
           "text": "The three chests carry the royal seal of Prince Magnus. Every chest is locked and holds 250 gold coins plus goods for the Prince and the King. Each hero carries at most one chest, and a hero with a chest moves with 1 red die only. None of the gold in the chests may be kept by the heroes."
         }
       ]
-    },
-    {
-      "id": "n-home",
-      "trigger": {
-        "type": "manual",
-        "label": "All three chests are on the stairs"
-      },
-      "effects": [
-        {
-          "type": "completeObjective",
-          "objective": "o1"
-        },
-        {
-          "type": "showText",
-          "text": "The chests are home with all their gold. The heroes share the reward of 240 gold coins."
-        }
-      ]
     }
   ],
   "wandering": {
@@ -454,7 +443,8 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Bring all three chests, with all their gold, back to the stairs"
+      "text": "Bring all three chests, with all their gold, back to the stairs",
+      "confirm": "All three chests are on the stairs"
     }
   ],
   "rewards": "240 gold coins, shared among the heroes. The gold inside the chests is not theirs to keep.",

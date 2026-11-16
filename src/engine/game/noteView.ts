@@ -122,7 +122,12 @@ export interface ObjectiveConfirm {
 export function objectiveConfirms(level: Level, state: GameState): ObjectiveConfirm[] {
   const out: ObjectiveConfirm[] = [];
   for (const o of level.quest.objectives)
-    if (o.confirm && !isDone(level, o, state)) out.push({ objective: o.id, label: o.confirm });
+    if (
+      o.confirm &&
+      !isDone(level, o, state) &&
+      (!o.confirmWhen || objectiveConditionsHold(level, state, o.confirmWhen))
+    )
+      out.push({ objective: o.id, label: o.confirm });
   return out;
 }
 

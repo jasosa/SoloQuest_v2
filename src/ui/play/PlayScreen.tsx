@@ -15,6 +15,7 @@ import {
   journal,
   livingHeroes,
   manualTriggers,
+  objectiveConfirms,
   monstersInPlay,
   npcsInPlay,
   objectivesStatus,
@@ -139,6 +140,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
   const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
   const manual = useMemo(() => manualTriggers(level, state), [level, state]);
+  const confirms = useMemo(() => objectiveConfirms(level, state), [level, state]);
   const enterable = useMemo(() => enterableAreas(level, state), [level, state]);
 
   const choose = (next: Selection | null) => {
@@ -624,6 +626,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <Journal entries={journalEntries} onRead={(id) => setReread(id)} />
           <QuestActions
             actions={manual}
+            confirms={confirms}
+            onConfirm={(objective) => dispatch({ type: 'CONFIRM_OBJECTIVE', objective })}
             onPress={(note) => dispatch({ type: 'MANUAL_TRIGGER', note })}
           />
         </div>

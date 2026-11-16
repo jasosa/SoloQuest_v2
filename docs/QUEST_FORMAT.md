@@ -118,7 +118,7 @@ State conditions (decision 67): `{ "areaRevealed": "R17" }` (the room is reveale
 
 ### Objectives with their own rules
 
-An objective `done` may be `{ "when": [conditions] }`: done when all hold, checked after every event. An objective may also have `"confirm": "label"`: a button in the Quest sheet that completes it (event `CONFIRM_OBJECTIVE`), for goals the app cannot see. An objective with `confirm` needs no `done` rule and no helper note.
+An objective `done` may be `{ "when": [conditions] }`: done when all hold, checked after every event. An objective may also have `"confirm": "label"`: a button in the Quest sheet that completes it (event `CONFIRM_OBJECTIVE`), for goals the app cannot see. An objective with `confirm` needs no `done` rule and no helper note. `confirmWhen: [conditions]` hides the button until they hold (for example the stairs room is revealed). Quests 2, 4, 6, 9 and 13 end their goal this way.
 
 ### Effects
 

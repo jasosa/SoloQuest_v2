@@ -248,6 +248,8 @@ const ObjectiveSchema = z.strictObject({
     .optional(),
   /** A button in the Quest sheet that completes the objective: for goals the app cannot see. */
   confirm: nonEmpty.optional(),
+  /** The confirm button only shows while all these conditions hold. */
+  confirmWhen: z.array(ConditionSchema).min(1).optional(),
 });
 
 const RulesSchema = z.strictObject({

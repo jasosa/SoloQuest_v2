@@ -42,7 +42,7 @@ Every element kind has a small fixed list of **events** an action can listen to.
 | Room or corridor | revealed, entered, searched for treasure, searched for secret doors |
 | Quest | started, Zargon turn n, objective done |
 
-`tapped` is the new one. It means: the players tap the element and press a labelled button. It replaces `manual` and the Quest actions block. The button label is the paraphrased action ("The last hero has crossed this square").
+`tapped` is the new one. In the data it keeps the stored name `manual` (a rename would change nothing in behavior); a `manual` note with a `target` is a tapped action of that element, and one without a target shows in the Quest sheet. It means: the players tap the element and press a labelled button. It replaces `manual` and the Quest actions block. The button label is the paraphrased action ("The last hero has crossed this square").
 
 An **action** is: `{ id, on: event, when?: conditions, effects, letter? }`. Same effects and conditions as today. Nothing about effects changes.
 

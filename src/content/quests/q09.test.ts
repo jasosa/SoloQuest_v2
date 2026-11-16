@@ -143,7 +143,7 @@ describe('quest 9: the way to the stairs', () => {
   it('the stairs end the quest', () => {
     const s = run(...via('d4'), open('d3'));
     expect(objectivesStatus(level, s).goalDone).toBe(false);
-    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-stairs' });
+    const r = reduce(level, s, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' });
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
   });
 

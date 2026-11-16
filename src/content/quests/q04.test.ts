@@ -172,7 +172,7 @@ describe('quest 4: the chests (A) and the end', () => {
   it('the objective is done only when the players report the chests on the stairs', () => {
     const s = run(...toD8, open('d8'), { type: 'MONSTER_KILL', monster: 'm-gulthor' });
     expect(objectivesStatus(level, s).goalDone).toBe(false);
-    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-home' });
+    const r = reduce(level, s, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' });
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
     expect(quest.rewards).toContain('240');
   });

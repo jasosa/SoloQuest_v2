@@ -6,9 +6,9 @@ import { board } from '../../engine/board/board';
 import { buildLevel, cellKey } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
-import { manualTriggers, squareMarkers } from '../../engine/game/noteView';
+import { squareMarkers } from '../../engine/game/noteView';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { objectivesStatus } from '../../engine/game/view';
+import { objectiveConfirms, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -238,11 +238,11 @@ describe('quest 13: letters and the end', () => {
 
   it('the stairs button appears only after the blade is found, and completes the goal', () => {
     const before = run(...via('d13'), ...clear('R22'));
-    expect(manualTriggers(level, before)).toEqual([]);
+    expect(objectiveConfirms(level, before)).toEqual([]);
     const found = reduce(level, before, search('R22')).state;
-    expect(manualTriggers(level, found).map((t) => t.note)).toEqual(['n-stairs']);
+    expect(objectiveConfirms(level, found).map((t) => t.objective)).toEqual(['o1']);
     expect(objectivesStatus(level, found).goalDone).toBe(false);
-    const done = reduce(level, found, { type: 'MANUAL_TRIGGER', note: 'n-stairs' }).state;
+    const done = reduce(level, found, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' }).state;
     expect(objectivesStatus(level, done).goalDone).toBe(true);
   });
 });

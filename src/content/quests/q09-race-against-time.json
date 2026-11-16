@@ -430,43 +430,6 @@
         }
       ],
       "consumesTreasure": true
-    },
-    {
-      "id": "n-stairs-seen",
-      "trigger": {
-        "type": "areaRevealed",
-        "area": "R08"
-      },
-      "effects": [
-        {
-          "type": "setFlag",
-          "flag": "stairsSeen",
-          "value": true
-        }
-      ]
-    },
-    {
-      "id": "n-stairs",
-      "trigger": {
-        "type": "manual",
-        "label": "All surviving heroes have left by the stairs"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The heroes made it out of the maze."
-        },
-        {
-          "type": "completeObjective",
-          "objective": "o1"
-        }
-      ],
-      "when": [
-        {
-          "flag": "stairsSeen",
-          "is": true
-        }
-      ]
     }
   ],
   "wandering": {
@@ -475,7 +438,13 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Escape the maze by the stairway"
+      "text": "Escape the maze by the stairway",
+      "confirm": "All surviving heroes have left by the stairs",
+      "confirmWhen": [
+        {
+          "areaRevealed": "R08"
+        }
+      ]
     }
   ],
   "rules": {},

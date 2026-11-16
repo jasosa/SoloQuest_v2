@@ -1,6 +1,12 @@
 /** Pieces of the right column for the notes engine. Presentational. */
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
-import type { JournalEntry, ManualTrigger, NpcView, ObjectivesView } from '../../engine/game/view';
+import type {
+  JournalEntry,
+  ManualTrigger,
+  NpcView,
+  ObjectiveConfirm,
+  ObjectivesView,
+} from '../../engine/game/view';
 
 export function Objectives({ view, intro }: { view: ObjectivesView; intro: string }) {
   return (
@@ -86,18 +92,28 @@ export function Journal({
 
 export function QuestActions({
   actions,
+  confirms = [],
   onPress,
+  onConfirm,
 }: {
   actions: readonly ManualTrigger[];
+  /** Confirm buttons of objectives (decision 67). */
+  confirms?: readonly ObjectiveConfirm[];
   onPress(note: string): void;
+  onConfirm?(objective: string): void;
 }) {
-  if (actions.length === 0) return null;
+  if (actions.length === 0 && confirms.length === 0) return null;
   return (
     <section>
       <div className="lbl">Quest actions</div>
       {actions.map((a) => (
         <button key={a.note} className="btn alt" onClick={() => onPress(a.note)}>
           {a.label}
+        </button>
+      ))}
+      {confirms.map((c) => (
+        <button key={c.objective} className="btn alt" onClick={() => onConfirm?.(c.objective)}>
+          {c.label}
         </button>
       ))}
     </section>

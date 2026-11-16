@@ -7,7 +7,7 @@ import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { journal, manualTriggers, objectivesStatus } from '../../engine/game/view';
+import { journal, objectiveConfirms, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -182,13 +182,12 @@ describe('quest 6: letters A and B', () => {
     expect(journal(level, r.state).map((j) => j.letter)).toContain('A');
   });
 
-  it('B: the stairs end the quest for the hero who reaches them', () => {
-    expect(note('B')?.trigger.type).toBe('manual');
-    expect(manualTriggers(level, run())).toEqual([]); // no stairs button before the room is seen
+  it('the confirm button of the goal waits for the stairs room', () => {
+    expect(objectiveConfirms(level, run())).toEqual([]); // no stairs button before the room is seen
     const s = run(...via('d7'));
     expect(objectivesStatus(level, s).goalDone).toBe(false);
-    expect(manualTriggers(level, s).map((m) => m.note)).toEqual(['n-B']);
-    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-B' });
+    expect(objectiveConfirms(level, s).map((m) => m.objective)).toEqual(['o1']);
+    const r = reduce(level, s, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' });
     expect(r.state.objectivesDone).toContain('o1');
     expect(objectivesStatus(level, r.state).goalDone).toBe(true);
   });

@@ -501,29 +501,6 @@
         }
       ],
       "consumesTreasure": true
-    },
-    {
-      "id": "n-stairs",
-      "trigger": {
-        "type": "manual",
-        "label": "A hero with the Spirit Blade is on the stairs"
-      },
-      "when": [
-        {
-          "flag": "blade",
-          "is": true
-        }
-      ],
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The Spirit Blade is back at the stairway, out of reach of the Witch Lord."
-        },
-        {
-          "type": "completeObjective",
-          "objective": "o1"
-        }
-      ]
     }
   ],
   "wandering": {
@@ -532,7 +509,14 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Find the Spirit Blade and bring it back to the stairway"
+      "text": "Find the Spirit Blade and bring it back to the stairway",
+      "confirm": "A hero with the Spirit Blade is on the stairs",
+      "confirmWhen": [
+        {
+          "flag": "blade",
+          "is": true
+        }
+      ]
     }
   ],
   "rewards": "",
