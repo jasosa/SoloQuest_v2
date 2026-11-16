@@ -103,7 +103,7 @@ const MonsterSchema = z
   });
 
 /** A reusable monster definition (decision 70). A monster of the quest points at it. */
-const EnemyDefSchema = z.strictObject({
+export const EnemyDefSchema = z.strictObject({
   id,
   name: nonEmpty,
   /** The core type it behaves like (target rules, base stats). */
@@ -116,14 +116,14 @@ const EnemyDefSchema = z.strictObject({
   traits: z.array(nonEmpty).optional(),
 });
 
-const AbilityDefSchema = z.strictObject({
+export const AbilityDefSchema = z.strictObject({
   id,
   name: nonEmpty,
   text: nonEmpty,
   kind: z.enum(['ability', 'weakness', 'immunity']).optional(),
 });
 
-const SpellDefSchema = z
+export const SpellDefSchema = z
   .strictObject({
     id,
     name: nonEmpty,
@@ -394,6 +394,23 @@ export type Note = z.infer<typeof NoteSchema>;
 export type NoteTarget = z.infer<typeof TargetSchema>;
 export type ZoneDef = z.infer<typeof ZoneSchema>;
 export type EnemyDef = z.infer<typeof EnemyDefSchema>;
+
+/** A hero for the library (decision 70): a name and a picture. Not used in play yet. */
+export const HeroDefSchema = z.strictObject({ id, name: nonEmpty, image: ImageSchema.optional() });
+export type HeroDef = z.infer<typeof HeroDefSchema>;
+
+/** A companion for the library: the helper characters of a quest (Sir Ragnar), reusable. */
+export const CompanionDefSchema = z.strictObject({
+  id,
+  name: nonEmpty,
+  defend: z.number().int().min(0),
+  body: z.number().int().min(0),
+  text: z.string(),
+  image: ImageSchema.optional(),
+});
+export type CompanionDef = z.infer<typeof CompanionDefSchema>;
+export type AbilityDefData = z.infer<typeof AbilityDefSchema>;
+export type SpellDefData = z.infer<typeof SpellDefSchema>;
 export type DoorDef = z.infer<typeof DoorSchema>;
 export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;
