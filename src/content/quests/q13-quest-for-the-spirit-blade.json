@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 1,
+  "id": "q13-quest-for-the-spirit-blade",
+  "number": 13,
+  "title": "Quest for the Spirit Blade",
+  "intro": {
+    "summary": "The Witch Lord is awake, and before the coming war he means to march his undead host on the King's army. The heroes must stop him, and the key is the Spirit Blade, the single weapon that can wound him. Dwarves of World End Mountain forged it and the elves of the Fountain of Leben tempered it, and it now rests in a ruined temple of great age. Find the blade and bring it to safety."
+  },
+  "zargonInfo": "The heroes start on the stairs in the center room. There are no secret doors. Two spear traps lie in the northern corridor. The six falling-block squares work by the quest rule in the first note: a hero rolls 1 red die on entering and a 4, 5 or 6 costs 1 Body Point (helmet: only a 6). Monsters ignore these squares.",
+  "start": {
+    "area": "R11"
+  },
+  "rock": {
+    "rooms": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R10",
+      "R15",
+      "R16",
+      "R18",
+      "R19"
+    ],
+    "cells": [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [4, 0],
+      [5, 0],
+      [6, 0],
+      [7, 0],
+      [8, 0],
+      [9, 0],
+      [10, 0],
+      [11, 0],
+      [12, 0],
+      [13, 0],
+      [14, 0],
+      [15, 0],
+      [16, 0],
+      [17, 0],
+      [18, 0],
+      [19, 0],
+      [20, 0],
+      [21, 0],
+      [22, 0],
+      [23, 0],
+      [24, 0],
+      [25, 0],
+      [0, 1],
+      [12, 1],
+      [13, 1],
+      [25, 1],
+      [0, 2],
+      [12, 2],
+      [13, 2],
+      [25, 2],
+      [0, 3],
+      [12, 3],
+      [13, 3],
+      [25, 3],
+      [0, 4],
+      [12, 4],
+      [13, 4],
+      [25, 4],
+      [0, 5],
+      [25, 5],
+      [0, 6],
+      [25, 6],
+      [25, 7],
+      [25, 8],
+      [21, 9],
+      [22, 9],
+      [23, 9],
+      [24, 9],
+      [25, 9],
+      [25, 10],
+      [25, 11],
+      [0, 12],
+      [25, 12],
+      [0, 13],
+      [25, 13],
+      [0, 14],
+      [25, 14],
+      [0, 15],
+      [25, 15],
+      [0, 16],
+      [25, 16],
+      [0, 17],
+      [25, 17],
+      [0, 18],
+      [25, 18]
+    ]
+  },
+  "doors": [
+    {
+      "id": "d1",
+      "a": [2, 9],
+      "b": [2, 10]
+    },
+    {
+      "id": "d2",
+      "a": [7, 9],
+      "b": [7, 10]
+    },
+    {
+      "id": "d3",
+      "a": [4, 11],
+      "b": [5, 11]
+    },
+    {
+      "id": "d4",
+      "a": [2, 13],
+      "b": [2, 14]
+    },
+    {
+      "id": "d5",
+      "a": [3, 17],
+      "b": [3, 18]
+    },
+    {
+      "id": "d6",
+      "a": [4, 17],
+      "b": [5, 17]
+    },
+    {
+      "id": "d7",
+      "a": [9, 9],
+      "b": [10, 9]
+    },
+    {
+      "id": "d8",
+      "a": [15, 9],
+      "b": [16, 9]
+    },
+    {
+      "id": "d9",
+      "a": [12, 6],
+      "b": [12, 7]
+    },
+    {
+      "id": "d10",
+      "a": [12, 11],
+      "b": [12, 12]
+    },
+    {
+      "id": "d11",
+      "a": [19, 8],
+      "b": [19, 9]
+    },
+    {
+      "id": "d12",
+      "a": [19, 17],
+      "b": [19, 18]
+    },
+    {
+      "id": "d13",
+      "a": [22, 17],
+      "b": [22, 18]
+    }
+  ],
+  "secretDoors": [],
+  "falseDoors": [],
+  "blocks": [
+    {
+      "cells": [[0, 7]]
+    },
+    {
+      "cells": [[0, 11]]
+    },
+    {
+      "cells": [[6, 9]]
+    },
+    {
+      "cells": [[1, 18]]
+    },
+    {
+      "cells": [[24, 18]]
+    },
+    {
+      "cells": [[20, 9]]
+    },
+    {
+      "cells": [
+        [12, 5],
+        [13, 5]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [14, 7],
+        [15, 7],
+        [14, 8],
+        [15, 8]
+      ]
+    },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [[6, 11]],
+      "letter": "B"
+    },
+    {
+      "id": "f-table-1",
+      "type": "table",
+      "cells": [
+        [6, 13],
+        [7, 13],
+        [8, 13],
+        [6, 14],
+        [7, 14],
+        [8, 14]
+      ]
+    },
+    {
+      "id": "f-table-2",
+      "type": "table",
+      "cells": [
+        [3, 14],
+        [4, 14],
+        [3, 15],
+        [4, 15],
+        [3, 16],
+        [4, 16]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m1",
+      "type": "orc",
+      "cell": [2, 11]
+    },
+    {
+      "id": "m2",
+      "type": "orc",
+      "cell": [1, 15]
+    },
+    {
+      "id": "m3",
+      "type": "orc",
+      "cell": [2, 15]
+    },
+    {
+      "id": "m4",
+      "type": "orc",
+      "cell": [7, 16]
+    },
+    {
+      "id": "m5",
+      "type": "orc",
+      "cell": [12, 13]
+    },
+    {
+      "id": "m6",
+      "type": "orc",
+      "cell": [13, 13]
+    },
+    {
+      "id": "m7",
+      "type": "orc",
+      "cell": [16, 12]
+    },
+    {
+      "id": "m8",
+      "type": "goblin",
+      "cell": [6, 15]
+    },
+    {
+      "id": "m9",
+      "type": "goblin",
+      "cell": [6, 16]
+    },
+    {
+      "id": "m10",
+      "type": "goblin",
+      "cell": [7, 17]
+    },
+    {
+      "id": "m11",
+      "type": "abomination",
+      "cell": [3, 12]
+    },
+    {
+      "id": "m12",
+      "type": "abomination",
+      "cell": [2, 17]
+    },
+    {
+      "id": "m13",
+      "type": "abomination",
+      "cell": [12, 18]
+    },
+    {
+      "id": "m14",
+      "type": "dreadWarrior",
+      "cell": [3, 11]
+    },
+    {
+      "id": "m15",
+      "type": "dreadWarrior",
+      "cell": [22, 15]
+    },
+    {
+      "id": "m16",
+      "type": "mummy",
+      "cell": [20, 17]
+    },
+    {
+      "id": "m17",
+      "type": "skeleton",
+      "cell": [21, 15]
+    },
+    {
+      "id": "m18",
+      "type": "skeleton",
+      "cell": [24, 15]
+    },
+    {
+      "id": "m19",
+      "type": "skeleton",
+      "cell": [22, 16]
+    },
+    {
+      "id": "m20",
+      "type": "skeleton",
+      "cell": [23, 16]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t1",
+      "kind": "spear",
+      "cell": [11, 6]
+    },
+    {
+      "id": "t2",
+      "kind": "spear",
+      "cell": [14, 6]
+    }
+  ],
+  "markers": [],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block squares",
+          "text": "On this map, the six marked falling-block squares follow a special rule. Whenever a hero steps onto one, roll 1 red die: a 4, 5 or 6 costs 1 Body Point, but with a helmet only a 6 does. Monsters ignore these squares. Leave the block tiles in the box; the squares never stop a hero from walking over them. Tap the marker on such a square each time a hero steps on it."
+        }
+      ]
+    },
+    {
+      "id": "n-fall1",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [0, 9],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-fall2",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [9, 11],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-fall3",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [12, 14],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-fall4",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [13, 16],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-fall5",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [19, 17],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-fall6",
+      "trigger": {
+        "type": "squareEntered",
+        "cell": [19, 9],
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Falling-block square",
+          "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [23, 15],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R22",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "The Spirit Blade",
+          "text": "The Spirit Blade is here, and the first hero to search the room takes it. It is a magic item, and its rules are on its card."
+        },
+        {
+          "type": "giveItem",
+          "text": "The Spirit Blade (artifact, see its card)"
+        },
+        {
+          "type": "setFlag",
+          "flag": "blade",
+          "value": true
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [6, 12],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R13",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "Treasure chest",
+          "text": "The chest holds 200 gold coins."
+        },
+        {
+          "type": "giveItem",
+          "text": "200 gold coins"
+        }
+      ],
+      "consumesTreasure": true
+    },
+    {
+      "id": "n-stairs",
+      "trigger": {
+        "type": "manual",
+        "label": "A hero with the Spirit Blade is on the stairs"
+      },
+      "when": [
+        {
+          "flag": "blade",
+          "is": true
+        }
+      ],
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The Spirit Blade is back at the stairway, out of reach of the Witch Lord."
+        },
+        {
+          "type": "completeObjective",
+          "objective": "o1"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "dreadWarrior"
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find the Spirit Blade and bring it back to the stairway"
+    }
+  ],
+  "rewards": "",
+  "rules": {},
+  "npcs": []
+}
