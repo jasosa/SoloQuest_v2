@@ -139,6 +139,16 @@ describe('quest 5: walk-through', () => {
     expect(s.seenDoors.has('s1')).toBe(false);
   });
 
+  it('the throne is furniture of R07, seen with the room; the secret door s1 sits behind it', () => {
+    const throne = quest.furniture.find((f) => f.type === 'throne')!;
+    expect(throne.cells).toEqual([[4, 7]]);
+    expect(areaOf(throne.cells[0] as [number, number])).toBe('R07');
+    expect(quest.secretDoors.find((d) => d.id === 's1')?.a).toEqual([4, 7]);
+    const s = run(...toR07);
+    expect(s.seenFurniture.has(throne.id)).toBe(true);
+    expect(s.seenDoors.has('s1')).toBe(false);
+  });
+
   it('the top corridor shows the mummy of row 0 from afar', () => {
     const s = run(...toD2);
     expect(s.seenMonsters.has('m15')).toBe(true);

@@ -372,7 +372,12 @@ export function validateQuestIssues(
     for (const d of list)
       for (const c of [d.a, d.b]) {
         const other = solid.get(key(c));
-        if (other)
+        // A throne may sit on a secret door: it hides the door until a treasure search (Q5).
+        const hidingThrone =
+          label === 'secret door' &&
+          other !== undefined &&
+          quest.furniture.some((f) => other === `furniture ${f.id}` && f.type === 'throne');
+        if (other && !hidingThrone)
           err(`${label} ${d.id}: cell ${key(c)} is under ${other}`, {
             kind: 'door',
             id: d.id,

@@ -90,6 +90,8 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 
 Migration: `endings` and `blocksSearch` are optional, so old files stay valid and `schemaVersion` stays `1`.
 
+A **throne** may stand on a secret door's square (it hides the door until a treasure search, quest 5): the validator allows that one case. Any other furniture on a door square is an error.
+
 ### Note target (decision 67)
 
 A note may name the quest element it belongs to: `"target": { "kind": "door" | "furniture" | "monster" | "trap" | "marker" | "area" | "square", "id": "..." }` (`square` ids are `"x,y"`). The target is derived from the trigger when missing (a `doorOpened` note belongs to its door, a `treasureSearch` note to its room, a `squareEntered` note to its square). A `manual` note with a target is a button of that element: it shows under **For this quest** in the element's margin note (the square keeps its ring marker while the button can be pressed), not in the Quest sheet. A `manual` note without a target shows in the Quest sheet. The validator checks that the target exists.

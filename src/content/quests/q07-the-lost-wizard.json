@@ -363,13 +363,8 @@
     },
     {
       "id": "m16",
-      "type": "dreadWarrior",
-      "cell": [19, 17],
-      "overrides": {
-        "def": 5
-      },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"],
-      "name": "Gargoyle"
+      "type": "gargoyle",
+      "cell": [19, 17]
     }
   ],
   "traps": [

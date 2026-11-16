@@ -194,6 +194,11 @@
       "letter": "A"
     },
     {
+      "id": "f-throne",
+      "type": "throne",
+      "cells": [[4, 7]]
+    },
+    {
       "id": "f-table",
       "type": "table",
       "cells": [
@@ -386,9 +391,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {

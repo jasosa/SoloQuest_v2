@@ -55,7 +55,8 @@ describe('quest 7: data', () => {
     expect(quest.monsters.filter((m) => m.type === 'skeleton')).toHaveLength(10);
     expect(quest.monsters.filter((m) => m.type === 'mummy')).toHaveLength(1);
     expect(quest.monsters.filter((m) => m.type === 'zombie')).toHaveLength(1);
-    expect(quest.monsters.filter((m) => m.type === 'dreadWarrior')).toHaveLength(5);
+    expect(quest.monsters.filter((m) => m.type === 'dreadWarrior')).toHaveLength(4);
+    expect(quest.monsters.filter((m) => m.type === 'gargoyle').map((m) => m.id)).toEqual(['m16']);
     expect(quest.wandering).toEqual({ monster: 'mummy' });
     expect(quest.start).toEqual({ area: 'R08' });
   });
@@ -99,7 +100,6 @@ describe('quest 7: start and letter A', () => {
       [16, 6],
       [9, 12],
       [16, 12],
-      [19, 17],
     ]);
     for (const m of dws) expect(statsOf(m).def).toBe(5);
   });
