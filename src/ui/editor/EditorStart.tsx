@@ -15,13 +15,15 @@ export interface EditorStartProps {
   /** `clean` is the saved quest when the opened quest is a draft with unsaved changes. */
   onOpen(quest: Quest, clean: Quest): void;
   onBack(): void;
+  /** Open the Designer (the library of abilities, spells, enemies, heroes, companions). */
+  onDesigner?(): void;
 }
 
 interface Row extends UserQuestSummary {
   draft: boolean;
 }
 
-export function EditorStart({ store, onOpen, onBack }: EditorStartProps) {
+export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
   const [rows, setRows] = useState<Row[]>([]);
   const [title, setTitle] = useState('');
   const [number, setNumber] = useState('1');
@@ -95,7 +97,16 @@ export function EditorStart({ store, onOpen, onBack }: EditorStartProps) {
       <header>
         <span className="qn">Editor</span>
         <h1>Your quests</h1>
-        <button className="link" onClick={onBack} style={{ marginLeft: 'auto' }}>
+        {onDesigner && (
+          <button className="btn alt" onClick={onDesigner} style={{ marginLeft: 'auto' }}>
+            Designer
+          </button>
+        )}
+        <button
+          className="link"
+          onClick={onBack}
+          style={onDesigner ? undefined : { marginLeft: 'auto' }}
+        >
           Back
         </button>
       </header>

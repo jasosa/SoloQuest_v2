@@ -18,6 +18,8 @@ import { devTestLevel, levelOfNumber } from './quests';
 import { SelectScreen, type StartChoice } from './select/SelectScreen';
 import { EditorScreen } from './editor/EditorScreen';
 import { EditorStart } from './editor/EditorStart';
+import { DesignerScreen } from './designer/DesignerScreen';
+import { DexieLibraryStore, MemoryLibraryStore, type LibraryStore } from '../persist/library';
 import { createEditorStore, type EditorStore } from './editor/editorStore';
 import {
   DexieUserQuestStore,
@@ -131,6 +133,11 @@ function Game({ params }: { params: URLSearchParams }) {
     () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
     [params],
   );
+  const libraryStore = useMemo<LibraryStore>(
+    () => (params.has('nosave') ? new MemoryLibraryStore() : new DexieLibraryStore()),
+    [params],
+  );
+  const [designer, setDesigner] = useState(false);
   const [playtest, setPlaytest] = useState<{ game: GameStore; editor: EditorStore } | null>(null);
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
@@ -209,10 +216,12 @@ function Game({ params }: { params: URLSearchParams }) {
         playtest={{ onBack: () => setPlaytest(null) }}
       />
     );
+  if (designer) return <DesignerScreen store={libraryStore} onBack={() => setDesigner(false)} />;
   if (editor === 'start')
     return (
       <EditorStart
         store={userStore}
+        onDesigner={() => setDesigner(true)}
         onBack={() => setEditor(null)}
         onOpen={(quest, clean) => setEditor(createEditorStore({ quest, clean, store: userStore }))}
       />
