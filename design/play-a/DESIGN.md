@@ -167,7 +167,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 1. Header: small caps "Quest 5", the title, Close.
 2. **At the start**: the start instruction (the text of the `questStart` note), so it can be read again.
 3. **Goal**: one row per objective with a tick box (same as today). A row that has a `confirm` button and is not done shows the button under it (`btn alt`, full width, 48 px): for example "All surviving heroes have left by the stairs". A button whose `confirmWhen` does not hold yet is not shown.
-4. **Tell the app** (only when it has rows): buttons of notes with no element (a `manual` note with no `target`), each with a one-line hint under the label. Nothing here ends the quest.
+4. **Tell the app** (working title, the name is open; "When it happens" is a candidate; only when it has rows): buttons of notes with no element (a `manual` note with no `target`), each with a one-line hint under the label. Nothing here ends the quest. **A button only shows while its conditions hold** (the room or square it is about is seen, a flag is set): it never appears before the players could need it. The same holds for element buttons and objective confirm buttons.
 5. **Notes read**: letter chip or bullet, first sentence, tap to read again (the message sheet opens above the Quest sheet).
 6. **What happened**: the log, newest first, one line each with the turn number: door opened, room revealed, monster slain, trap sprung, search made, hero fell, note read, monster added. Tap a note line to read it again. The log is derived from the events, so undo removes the line.
 
