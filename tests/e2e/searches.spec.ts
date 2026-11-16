@@ -49,6 +49,9 @@ test.describe('treasure and wandering monster (quest 1)', () => {
 
     // it was a wandering monster
     await btn(page, 'It was a wandering monster').click();
+    // the players put it next to the hero and tap its square (decision 66)
+    await expect(page.getByTestId('pick-banner')).toContainText('next to the Elf');
+    await page.locator('[data-pick-cell="9,13"]').click();
     // no questions (decision 33): the card says where to put it and that it attacks at once
     await expect(dialog(page)).toContainText('free square next to the Elf');
     await expect(dialog(page)).toContainText('attacks the Elf at once');
@@ -60,7 +63,8 @@ test.describe('treasure and wandering monster (quest 1)', () => {
     await expect(wanderer).toHaveCount(1);
     await expect(rows(page)).toHaveCount(5); // 4 seen monsters + the wanderer
     await shot(page, 'wandering-roster');
-    // the wanderer has a callout but no token
+    // the wanderer has a token on the square the players entered, and a callout
+    await expect(page.locator('[data-monster="w1"], [data-token="w1"]').first()).toBeAttached();
     await wanderer.click();
     await expect(dialog(page)).toContainText('Wandering');
   });

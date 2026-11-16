@@ -1,5 +1,6 @@
 import type { Cell } from '../board/board';
 import type { Hero } from '../data/heroes';
+import type { MonsterType } from '../quest/schema';
 
 /**
  * Every change to the game is one of these events. The event log is the save file:
@@ -30,7 +31,15 @@ export type GameEvent =
       readonly override?: boolean | undefined;
     }
   /** A treasure card said "wandering monster": the quest's wandering monster joins the roster. */
-  | { readonly type: 'WANDERING_MONSTER'; readonly room: string; readonly hero: Hero }
+  | {
+      readonly type: 'WANDERING_MONSTER';
+      readonly room: string;
+      readonly hero: Hero;
+      /** The square the players put it on, next to the hero (decision 66). */
+      readonly cell?: Cell | undefined;
+    }
+  /** A monster the players add in play (a spell, an event): a type and the square they put it on. */
+  | { readonly type: 'ADD_MONSTER'; readonly monsterType: MonsterType; readonly cell: Cell }
   /** Search for secret doors in a room (`area`) or in a corridor in sight of `cell`. */
   | {
       readonly type: 'SEARCH_SECRET_DOORS';

@@ -14,7 +14,13 @@ import { keyOf, type CellKey, type Level } from '../board/level';
 import { EventError } from './errors';
 import type { GameEvent } from './events';
 import type { Prompt } from './prompts';
-import { searchSecretDoors, searchTraps, searchTreasure, wanderingMonster } from './search';
+import {
+  addMonster,
+  searchSecretDoors,
+  searchTraps,
+  searchTreasure,
+  wanderingMonster,
+} from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
 import { HEROES } from '../data/heroes';
@@ -140,6 +146,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       return searchTreasure(level, state, event);
     case 'WANDERING_MONSTER':
       return wanderingMonster(level, state, event);
+    case 'ADD_MONSTER':
+      return addMonster(level, state, event);
     case 'SEARCH_SECRET_DOORS':
       return searchSecretDoors(level, state, event);
     case 'SEARCH_TRAPS':

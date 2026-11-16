@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { z } from 'zod';
 import { HEROES, type Hero } from '../engine/data/heroes';
+import { MONSTER_TYPES } from '../engine/quest/schema';
 import type { Level } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
 import { replay } from '../engine/game/reducer';
@@ -36,7 +37,17 @@ export const EventSchema = z.discriminatedUnion('type', [
     override: z.boolean().optional(),
   }),
   // An old save may carry `adjacent`: z.object drops unknown keys, so it still parses.
-  z.object({ type: z.literal('WANDERING_MONSTER'), room: z.string(), hero: z.enum(HEROES) }),
+  z.object({
+    type: z.literal('WANDERING_MONSTER'),
+    room: z.string(),
+    hero: z.enum(HEROES),
+    cell: CellSchema.optional(),
+  }),
+  z.object({
+    type: z.literal('ADD_MONSTER'),
+    monsterType: z.enum(MONSTER_TYPES),
+    cell: CellSchema,
+  }),
   z.object({
     // An old save may carry `hero`: unknown keys are dropped when parsing.
     type: z.literal('SEARCH_SECRET_DOORS'),

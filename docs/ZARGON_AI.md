@@ -188,3 +188,7 @@ The grudge hero and the tie lists assume the team is fixed for the whole quest. 
 ## Heroes who die mid-turn
 
 When a hero falls, the rules available to monsters that have not acted yet are drawn again from the living heroes, so the rule shown for a pending monster can change after a death. The draw stays deterministic.
+
+## Behavior prompts and added monsters (decision 71)
+
+A monster may carry a `behavior`: `waitsFor` (a hero in sight, in its room, next to it) and `goesToward` (the strongest hero, the weakest hero, nobody, or a marked square). They are shown as the first lines of its order and are never enforced. A monster the players added in play has a normal order from its first Zargon turn; a wandering monster still attacks at once and has its order from the next turn.

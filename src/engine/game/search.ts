@@ -13,7 +13,7 @@ import { EventError } from './errors';
 import type { Prompt } from './prompts';
 import { blockingSearchNotes, runTriggers, type TriggerEvent } from './notes';
 import { springTrap } from './traps';
-import { draftOf, type GameState } from './state';
+import { draftOf, type GameState, type WandererRecord } from './state';
 import { isDormant, liveMonstersInRoom } from './monstersIn';
 
 export { liveMonstersInRoom };
@@ -154,6 +154,41 @@ export function searchTraps(
 
 // ---- wandering monster
 
+/** A square a monster can stand on: on the board, not rock. Throws BAD_CELL otherwise. */
+function floorCell(level: Level, cell: Cell): Cell {
+  const [x, y] = cell;
+  if (!Number.isInteger(x) || !Number.isInteger(y) || !inBoard(level.board, x, y))
+    throw new EventError('BAD_CELL', `Cell ${x},${y} is outside the board`);
+  if (areaAt(level.board, x, y) === undefined || level.rock.has(`${x},${y}`))
+    throw new EventError('BAD_CELL', `Cell ${x},${y} is not a floor square`);
+  return [x, y];
+}
+
+/** Put a monster that joined in play on the roster (seen, with its Body Points) and give it an id. */
+function joinRoster(level: Level, d: ReturnType<typeof draftOf>, rec: WandererRecord): string {
+  let n = d.wanderCount + 1;
+  while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
+  const id = `w${n}`;
+  d.wanderCount = n;
+  d.wanderers[id] = rec;
+  d.seenMonsters.add(id);
+  d.monsters[id] = { body: statsOf({ type: rec.type }).body, dead: false };
+  return id;
+}
+
+/** The players add a monster in play (decision 66): it gets the square they enter, nothing else. */
+export function addMonster(
+  level: Level,
+  state: GameState,
+  event: Extract<GameEvent, { type: 'ADD_MONSTER' }>,
+): Reduced {
+  const cell = floorCell(level, event.cell);
+  const d = draftOf(state);
+  const room = areaAt(level.board, cell[0], cell[1]) ?? 'C';
+  joinRoster(level, d, { type: event.monsterType, room, fresh: false, cell, added: true });
+  return { state: d, prompts: [] };
+}
+
 export function wanderingMonster(
   level: Level,
   state: GameState,
@@ -166,13 +201,14 @@ export function wanderingMonster(
   if ('text' in w) return { state, prompts: [{ kind: 'wanderingText', text: w.text }] };
 
   const d = draftOf(state);
-  let n = d.wanderCount + 1;
-  while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
-  const id = `w${n}`;
-  d.wanderCount = n;
-  d.wanderers[id] = { type: w.monster, room, wanderAt: hero, fresh: true };
-  d.seenMonsters.add(id);
-  d.monsters[id] = { body: statsOf({ type: w.monster }).body, dead: false };
+  const cell = event.cell ? floorCell(level, event.cell) : undefined;
+  const id = joinRoster(level, d, {
+    type: w.monster,
+    room,
+    wanderAt: hero,
+    fresh: true,
+    ...(cell ? { cell } : {}),
+  });
   return {
     state: d,
     prompts: [

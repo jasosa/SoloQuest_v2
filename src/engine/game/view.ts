@@ -27,9 +27,13 @@ export interface MonsterView {
   readonly stoneTurns?: number;
   /** The square the quest names for a monster placed by a note. Text for the players. */
   readonly placeAt?: Cell;
-  /** Wandering monster: in the roster, no square. */
+  /** Wandering monster (decision 33). */
   readonly wandering?: boolean;
   readonly wanderAt?: Hero;
+  /** Added by the players in play (decision 66). */
+  readonly added?: boolean;
+  /** The square the players put a wandering or added monster on. */
+  readonly cell?: Cell;
   /** True until the end of the Zargon turn after it appeared ("attacks now"). */
   readonly fresh?: boolean;
   /** Story-critical monster: ring and star (decision 69). */
@@ -94,8 +98,10 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       maxBody: stats.body,
       dead: rec.dead,
       state: 'active',
-      wandering: true,
-      wanderAt: w.wanderAt,
+      wandering: w.added !== true,
+      ...(w.wanderAt ? { wanderAt: w.wanderAt } : {}),
+      ...(w.added ? { added: true } : {}),
+      ...(w.cell ? { cell: [w.cell[0], w.cell[1]] as Cell } : {}),
       fresh: w.fresh,
       special: false,
       abilities: [],

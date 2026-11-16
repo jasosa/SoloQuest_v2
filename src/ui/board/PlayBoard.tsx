@@ -71,6 +71,8 @@ export interface PlayBoardProps {
   onLetter(note: string): void;
   /** Squares to point out (a monster to put there). */
   highlight?: readonly Cell[];
+  /** While set, every square the heroes know is tappable and the tap goes here (adding a monster). */
+  onPickCell?: (cell: Cell) => void;
   /** Playtest only: also draw everything the heroes have not seen (a view, not a game change). */
   zargonView?: boolean;
 }
@@ -103,6 +105,7 @@ export function PlayBoard({
   onSelect,
   onLetter,
   highlight = [],
+  onPickCell,
   zargonView = false,
 }: PlayBoardProps) {
   const { board } = level;
@@ -136,6 +139,7 @@ export function PlayBoard({
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const monsterAt = new Map<string, string>();
+  for (const m of monsters) if (m.cell && !m.dead) monsterAt.set(keyOf(m.cell), m.id);
   for (const m of level.quest.monsters)
     if (state.seenMonsters.has(m.id)) {
       const c = state.placedMonsterCells[m.id] ?? m.cell;
@@ -483,7 +487,7 @@ export function PlayBoard({
   const monsterHits: ReactNode[] = [];
   for (const m of monsters) {
     const def = level.quest.monsters.find((q) => q.id === m.id);
-    const at = def && (state.placedMonsterCells[m.id] ?? def.cell);
+    const at = def ? (state.placedMonsterCells[m.id] ?? def.cell) : m.cell;
     if (!at || m.dead) continue;
     const [mx, my] = at;
     const cx = (mx + 0.5) * S;
@@ -803,6 +807,28 @@ export function PlayBoard({
       );
     });
 
+  // Adding a monster: every known floor square takes the tap (it sits above everything else).
+  const pickLayer: ReactNode[] = [];
+  if (onPickCell)
+    for (const k of state.seenCells) {
+      const [x, y] = parseKey(k);
+      pickLayer.push(
+        <rect
+          key={`pk${k}`}
+          className="hit pickcell"
+          data-hit
+          data-pick-cell={`${x},${y}`}
+          x={x * S}
+          y={y * S}
+          width={S}
+          height={S}
+          fill={color.sel}
+          fillOpacity={0.18}
+          {...press(`Square ${x}, ${y}`, () => onPickCell([x, y]))}
+        />,
+      );
+    }
+
   const selCell = selection?.kind === 'cell' ? selection.at : null;
   const selRoom: ReactNode[] = [];
   if (selection?.kind === 'room')
@@ -958,6 +984,7 @@ export function PlayBoard({
       {monsterHits}
       {letterHits}
       {doorHits}
+      {pickLayer}
       {hoverLabel}
     </svg>
   );

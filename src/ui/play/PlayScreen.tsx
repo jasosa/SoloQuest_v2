@@ -4,6 +4,7 @@ import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
+import { MONSTER_TYPES, type MonsterType } from '../../engine/quest/schema';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import type { Prompt } from '../../engine/game/prompts';
@@ -246,6 +247,36 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
 
   const wandering = quest.wandering;
 
+  // Adding a monster in play (decision 66): the players choose a type, then tap the square they put
+  // it on. A wandering monster asks for its square the same way.
+  const [adding, setAdding] = useState<
+    | { t: 'type'; type: MonsterType }
+    | { t: 'pick'; type: MonsterType }
+    | { t: 'wander'; room: string; hero: Hero; anchor: Anchor }
+    | null
+  >(null);
+  const pickedCell = (picked: readonly [number, number]) => {
+    const cell: [number, number] = [picked[0], picked[1]];
+    if (!adding) return;
+    if (adding.t === 'pick') {
+      if (
+        run(
+          { type: 'ADD_MONSTER', monsterType: adding.type, cell },
+          toMap(cell[0] + 0.5, cell[1] + 0.5),
+        )
+      )
+        setAdding(null);
+    } else if (adding.t === 'wander') {
+      if (
+        run(
+          { type: 'WANDERING_MONSTER', room: adding.room, hero: adding.hero, cell },
+          adding.anchor,
+        )
+      )
+        setAdding(null);
+    }
+  };
+
   let note: React.ReactNode = null;
   if (res) {
     const { hero, room } = res;
@@ -253,7 +284,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     const askWandering =
       hero && room && res.prompts.some((p) => p.kind === 'drawCard')
         ? () => {
-            run({ type: 'WANDERING_MONSTER', room, hero }, res.anchor);
+            // The players put it next to the hero and tell the app the square (decision 66).
+            setRes(null);
+            setAdding({ t: 'wander', room, hero, anchor: res.anchor });
           }
         : undefined;
     note = (
@@ -582,11 +615,12 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         >
           {m.wandering && (
             <p className="warn">
-              {m.fresh
-                ? `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`
+              {m.fresh && m.wanderAt
+                ? `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`
                 : 'Wandering monster'}
             </p>
           )}
+          {m.added && <p className="warn">Added in play. The app never moves it.</p>}
           {m.state === 'stone' && (
             <p className="warn">
               {m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone'}. It does not
@@ -686,6 +720,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           onSelect={choose}
           onLetter={(id) => setReread(id)}
           highlight={sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []}
+          {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
           zargonView={zargonView}
         />
         {sheet?.t === 'place' && sheet.p.cell ? (
@@ -740,11 +775,54 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             <b>{'monster' in wandering ? MONSTER_NAMES[wandering.monster] : wandering.text}</b>
           </p>
         )}
+        {adding?.t === 'type' ? (
+          <div className="add-monster" data-testid="add-monster">
+            <label>
+              Monster
+              <select
+                aria-label="Monster to add"
+                value={adding.type}
+                onChange={(e) => setAdding({ t: 'type', type: e.target.value as MonsterType })}
+              >
+                {MONSTER_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {MONSTER_NAMES[t]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="btn" onClick={() => setAdding({ t: 'pick', type: adding.type })}>
+              Choose its square
+            </button>
+            <button className="btn alt" onClick={() => setAdding(null)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            className="btn alt add-monster-btn"
+            data-testid="add-monster-btn"
+            onClick={() => setAdding({ t: 'type', type: 'goblin' })}
+          >
+            Add a monster
+          </button>
+        )}
         <button className="zargon-btn" onClick={() => setZOpen(true)}>
           Zargon&apos;s turn
           <small>{progressLabel(progress)}</small>
         </button>
       </aside>
+
+      {(adding?.t === 'pick' || adding?.t === 'wander') && (
+        <div className="pick-banner" role="status" data-testid="pick-banner">
+          {adding.t === 'pick'
+            ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
+            : `Tap the square where you put the wandering monster, next to the ${HERO_NAMES[adding.hero]}.`}
+          <button className="link" onClick={() => setAdding(null)}>
+            Cancel
+          </button>
+        </div>
+      )}
 
       {questOpen && !end && (
         <QuestSheet
@@ -959,7 +1037,9 @@ function RosterRow({
 function rosterLine(m: MonsterView): string {
   if (m.state === 'stone')
     return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
-  if (m.wandering && m.fresh) return `Wandering · next to the ${HERO_NAMES[m.wanderAt as Hero]}`;
+  if (m.added) return 'Added in play';
+  if (m.wandering && m.fresh && m.wanderAt)
+    return `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`;
   if (m.placeAt) return 'Placed by a quest note';
   return `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`;
 }

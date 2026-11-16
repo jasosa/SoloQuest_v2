@@ -117,6 +117,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
       }
     }
     await btn(page, 'It was a wandering monster').click();
+    await page.locator('[data-pick-cell="9,13"]').click();
     await expect(dlg(page)).toContainText('attacks the Elf at once');
     await expect(btn(page, 'Placed next to the Elf')).toHaveCount(0); // no choices (decision 33)
     await btn(page, 'Done').click();

@@ -644,3 +644,55 @@ header .goalline b {
     0 0 2px var(--ink),
     0 0 3px var(--ink);
 }
+
+/* ---------- adding a monster in play (decision 66) ---------- */
+.add-monster-btn {
+  margin-top: 8px;
+}
+.add-monster {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+}
+.add-monster label {
+  display: grid;
+  gap: 4px;
+  font: 700 12px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.add-monster select {
+  min-height: 44px;
+  font:
+    16px 'Pagella',
+    Georgia,
+    serif;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--text);
+}
+.pick-banner {
+  position: absolute;
+  left: 20px;
+  top: 72px;
+  z-index: 30;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 700 16px 'Bonum';
+}
+.pick-banner .link {
+  color: var(--on-ink);
+  min-height: 44px;
+}
+#board .hit.pickcell {
+  fill: var(--sel);
+  fill-opacity: 0.2;
+}

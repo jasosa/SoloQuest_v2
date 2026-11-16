@@ -17,15 +17,23 @@ export interface MonsterRecord {
   readonly dead: boolean;
 }
 
-/** A wandering monster: in the roster, never on a square. */
+/**
+ * A monster that joined in play: a wandering monster (decision 33) or one the players added
+ * (a spell, for instance). The players enter the square they put it on (decision 66), only so it is
+ * drawn, can be slain and acts on Zargon's turn. The app never moves it.
+ */
 export interface WandererRecord {
   readonly type: MonsterType;
-  /** The room where the search happened. */
+  /** The room where the search happened, or the area of its square. */
   readonly room: AreaId;
-  /** The hero it came for. */
-  readonly wanderAt: Hero;
+  /** The hero a wandering monster came for. */
+  readonly wanderAt?: Hero;
   /** True from the moment it appears until the end of the Zargon turn ("attacks now"). */
   readonly fresh: boolean;
+  /** The square the players put it on. */
+  readonly cell?: readonly [number, number];
+  /** Added by the players, not a wandering monster. */
+  readonly added?: boolean;
 }
 
 /** A trap that is not armed any more. An armed trap has no entry. */

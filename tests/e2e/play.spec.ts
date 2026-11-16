@@ -30,6 +30,32 @@ async function endTheTurn(page: Page) {
   }
 }
 
+test.describe('adding a monster in play (decision 66)', () => {
+  test('type, then tap its square: it is drawn, in the roster, and can be slain', async ({
+    page,
+  }) => {
+    await startQuest1(page, ['Dwarf', 'Elf']);
+    await expect(rosterRows(page)).toHaveCount(0);
+    await page.getByTestId('add-monster-btn').click();
+    await page.getByLabel('Monster to add').selectOption('goblin');
+    await page.getByRole('button', { name: 'Choose its square' }).click();
+    await expect(page.getByTestId('pick-banner')).toContainText('Goblin');
+    const cell = page.locator('[data-pick-cell="4,17"]');
+    const at = '4,17';
+    await cell.click();
+    await expect(page.getByTestId('pick-banner')).toHaveCount(0);
+    await expect(rosterRows(page)).toHaveCount(1);
+    await expect(rosterRows(page).first()).toContainText('Added in play');
+    await expect(page.locator('[data-monster="w1"]')).toHaveCount(1);
+    await shot(page, 'monster-added');
+    expect(at).toMatch(/^\d+,\d+$/);
+    // Cancel leaves nothing behind
+    await page.getByTestId('add-monster-btn').click();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(page.getByTestId('add-monster')).toHaveCount(0);
+  });
+});
+
 test.describe('quest and team select', () => {
   test('all 14 quests are encoded; start needs a hero', async ({ page }) => {
     await page.goto('/?nosave=1');
