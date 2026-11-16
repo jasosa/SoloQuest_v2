@@ -9,6 +9,7 @@ import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
 import type { GameState } from './state';
 
 export * from './noteView';
+export * from './log';
 
 export interface MonsterView {
   readonly id: string;
