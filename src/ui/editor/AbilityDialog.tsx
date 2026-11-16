@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { removeAbility, updateAbility } from '../../engine/editor';
+import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
 
 const KINDS = [
@@ -17,6 +18,8 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
   const { quest, abilityId } = useStore(store);
   const st = store.getState();
   const head = useRef<HTMLHeadingElement>(null);
+  const lib = useLibrary();
+  const [saved, setSaved] = useState('');
   const a = abilityId ? quest.abilityDefs.find((x) => x.id === abilityId) : undefined;
 
   useEffect(() => {
@@ -100,6 +103,20 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
               ? 'No monster uses it yet.'
               : `Used by: ${used.map((m) => m.name ?? m.id).join(', ')}`}
           </p>
+          <button
+            className="btn alt"
+            data-testid="save-in-library"
+            onClick={() =>
+              void lib.save('ability', a).then((m) => setSaved(m || 'Saved in the library.'))
+            }
+          >
+            Save in the library
+          </button>
+          {saved && (
+            <p className="ed-note" role="status">
+              {saved}
+            </p>
+          )}
           <button
             className="btn alt"
             onClick={() => {

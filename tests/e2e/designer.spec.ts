@@ -97,4 +97,53 @@ test.describe('designer: the library', () => {
     await page.getByRole('button', { name: /^Abilities/ }).click();
     await expect(page.getByRole('button', { name: 'Imported' })).toBeVisible();
   });
+
+  test('use the library in a quest: an enemy on a monster, an ability from the library, save an ability', async ({
+    page,
+  }) => {
+    await open(page);
+    // an enemy with a letter, in the library
+    await page.getByRole('button', { name: /^Abilities/ }).click();
+    await page.getByRole('button', { name: 'New ability' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Bog skin');
+    await page.getByLabel('What it does').fill('Mud spells fail on it.');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByRole('button', { name: /^Enemies/ }).click();
+    await page.getByRole('button', { name: 'New enemy' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Marsh Skeleton');
+    await page.getByLabel('Behaves like').selectOption('skeleton');
+    await page.getByLabel('Letter (1 or 2)').fill('M');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+
+    // a new quest with a monster
+    await page.getByLabel('Title').first().fill('Marsh');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    const box = (await page.locator('#editor-board').boundingBox())!;
+    const k = box.width / (26 * 34 + 4);
+    const at = (x: number, y: number) => ({
+      x: box.x + ((x + 0.5) * 34 + 2) * k,
+      y: box.y + ((y + 0.5) * 34 + 2) * k,
+    });
+    await page.mouse.click(at(4, 17).x, at(4, 17).y);
+    await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
+    await page.mouse.click(at(4, 17).x, at(4, 17).y);
+    const insp = page.locator('.ed-inspector');
+
+    // the monster becomes the library enemy: its type follows, the enemy is in the quest
+    await insp.getByLabel('Enemy', { exact: true }).selectOption('lib:marsh-skeleton');
+    await expect(page.getByTestId('selection-id')).toContainText('Skeleton');
+    await expect(insp.getByTestId('monster-enemy')).toContainText('letter M');
+    // the library ability is offered, and copied into the quest when added
+    await insp.getByLabel('Add an ability').selectOption('lib:bog-skin');
+    await insp.getByRole('button', { name: 'Add', exact: true }).first().click();
+    await expect(insp.locator('[data-ability="bog-skin"]')).toBeVisible();
+    // an ability made in the quest can be saved to the library
+    await insp.getByRole('button', { name: 'New ability…' }).click();
+    await page.getByRole('dialog', { name: 'Ability' }).getByLabel('Name').fill('Quick feet');
+    await page.getByRole('dialog', { name: 'Ability' }).getByLabel('Name').blur();
+    await page.getByTestId('save-in-library').click();
+    await expect(page.getByText('Saved in the library.')).toBeVisible();
+  });
 });

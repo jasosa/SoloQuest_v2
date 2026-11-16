@@ -8,6 +8,8 @@
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
 import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+import { updateMonster } from './ops';
+import { fail, type EditResult } from './result';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -84,4 +86,45 @@ export function takeLibraryEnemy(q: Quest, def: EnemyDef, lib: LibraryContent): 
     def.id,
   );
   return { quest: { ...quest, enemyDefs: [...quest.enemyDefs, { ...copy, id }] }, id };
+}
+
+/** Give a monster an ability from the library (a copy goes into the quest if it is not core). */
+export function addLibraryAbilityToMonster(
+  q: Quest,
+  monsterId: string,
+  def: AbilityDefData,
+): EditResult {
+  const m = q.monsters.find((x) => x.id === monsterId);
+  if (!m) return fail(`There is no monster ${monsterId}.`);
+  const t = takeLibraryAbility(q, def);
+  const mine = m.abilities ?? [];
+  if (mine.includes(t.id)) return fail('That monster already has that ability.');
+  return updateMonster(t.quest, monsterId, { abilities: [...mine, t.id] });
+}
+
+/** Give a monster a spell from the library (a copy goes into the quest if it is not core). */
+export function addLibrarySpellToMonster(
+  q: Quest,
+  monsterId: string,
+  def: SpellDefData,
+): EditResult {
+  const m = q.monsters.find((x) => x.id === monsterId);
+  if (!m) return fail(`There is no monster ${monsterId}.`);
+  const t = takeLibrarySpell(q, def);
+  return updateMonster(t.quest, monsterId, { spells: [...(m.spells ?? []), t.id] });
+}
+
+/**
+ * Make a monster an enemy from the library: the enemy is copied into the quest and the monster
+ * takes its type (the enemy's base). Its own name and stat overrides stay as they are.
+ */
+export function setMonsterEnemyFromLibrary(
+  q: Quest,
+  monsterId: string,
+  def: EnemyDef,
+  lib: LibraryContent,
+): EditResult {
+  if (!q.monsters.some((x) => x.id === monsterId)) return fail(`There is no monster ${monsterId}.`);
+  const t = takeLibraryEnemy(q, def, lib);
+  return updateMonster(t.quest, monsterId, { type: def.base, enemy: t.id });
 }

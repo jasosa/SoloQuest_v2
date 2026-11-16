@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { removeSpell, updateSpell } from '../../engine/editor';
 import {
@@ -7,6 +7,7 @@ import {
   isSpellTag,
   type SpellTag,
 } from '../../engine/data/spells';
+import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
 
 /**
@@ -18,6 +19,8 @@ export function SpellDialog({ store }: { store: EditorStore }) {
   const { quest, spellId } = useStore(store);
   const st = store.getState();
   const head = useRef<HTMLHeadingElement>(null);
+  const lib = useLibrary();
+  const [saved, setSaved] = useState('');
   const sp = spellId ? quest.spellDefs.find((x) => x.id === spellId) : undefined;
 
   useEffect(() => {
@@ -156,6 +159,20 @@ export function SpellDialog({ store }: { store: EditorStore }) {
               ? 'No monster knows it yet.'
               : `Known by: ${used.map((m) => m.name ?? m.id).join(', ')}`}
           </p>
+          <button
+            className="btn alt"
+            data-testid="save-in-library"
+            onClick={() =>
+              void lib.save('spell', sp).then((m) => setSaved(m || 'Saved in the library.'))
+            }
+          >
+            Save in the library
+          </button>
+          {saved && (
+            <p className="ed-note" role="status">
+              {saved}
+            </p>
+          )}
           <button
             className="btn alt"
             onClick={() => {

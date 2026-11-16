@@ -2,6 +2,7 @@ export * from './ops';
 export * from './notes';
 export * from './meta';
 export * from './io';
+export * from './library';
 export * from './ids';
 export { referencesTo, type RefTarget } from './refs';
 export {

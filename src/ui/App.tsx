@@ -19,6 +19,7 @@ import { SelectScreen, type StartChoice } from './select/SelectScreen';
 import { EditorScreen } from './editor/EditorScreen';
 import { EditorStart } from './editor/EditorStart';
 import { DesignerScreen } from './designer/DesignerScreen';
+import { LibraryProvider } from './designer/LibraryContext';
 import { DexieLibraryStore, MemoryLibraryStore, type LibraryStore } from '../persist/library';
 import { createEditorStore, type EditorStore } from './editor/editorStore';
 import {
@@ -228,12 +229,14 @@ function Game({ params }: { params: URLSearchParams }) {
     );
   if (editor)
     return (
-      <EditorScreen
-        store={editor}
-        onBack={() => setEditor('start')}
-        reference={referenceStore}
-        onPlaytest={playtestQuest}
-      />
+      <LibraryProvider store={libraryStore}>
+        <EditorScreen
+          store={editor}
+          onBack={() => setEditor('start')}
+          reference={referenceStore}
+          onPlaytest={playtestQuest}
+        />
+      </LibraryProvider>
     );
   if (game === 'resume' || game === 'dev') return <div className="app" />;
   if (game)

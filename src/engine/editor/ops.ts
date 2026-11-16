@@ -786,6 +786,8 @@ export interface MonsterPatch {
   special?: boolean | null;
   /** Ability ids (core or the quest's own). `null` or `[]` clears them. */
   abilities?: string[] | null;
+  /** An enemy of the quest (`enemyDefs`) that gives defaults (decision 70). `null` clears it. */
+  enemy?: string | null;
 }
 
 /**
@@ -831,6 +833,11 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     const bad = patch.spells?.find((s) => !known.has(s));
     if (bad) return fail(`Unknown spell "${bad}". Known spells: ${[...known.keys()].join(', ')}.`);
     set('spells', patch.spells?.length ? patch.spells : null);
+  }
+  if (patch.enemy !== undefined) {
+    if (patch.enemy !== null && !q.enemyDefs.some((e) => e.id === patch.enemy))
+      return fail(`Unknown enemy "${patch.enemy}".`);
+    set('enemy', patch.enemy);
   }
   if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);
   if (patch.hidden !== undefined) set('hidden', patch.hidden === true ? true : null);

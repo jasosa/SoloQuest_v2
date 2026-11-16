@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
-import { addAbility, addSpell, updateMonster } from '../../engine/editor';
+import {
+  addAbility,
+  addLibraryAbilityToMonster,
+  addLibrarySpellToMonster,
+  addSpell,
+  setMonsterEnemyFromLibrary,
+  updateMonster,
+} from '../../engine/editor';
+import { useLibrary } from '../designer/LibraryContext';
 import { abilityLookup } from '../../engine/data/abilities';
 import { spellLookup, spellQuestions } from '../../engine/data/spells';
 import type { MonsterDef } from '../../engine/quest/schema';
@@ -24,10 +32,13 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
   const { quest } = useStore(store);
   const st = store.getState();
   const [pick, setPick] = useState('');
+  const lib = useLibrary();
   const lookup = abilityLookup(quest);
   const mine = monster.abilities ?? [];
   const patch = (p: Patch) => st.apply((q) => updateMonster(q, monster.id, p));
   const free = [...lookup.values()].filter((a) => !mine.includes(a.id));
+  // library abilities the quest does not have yet (a copy is made when one is added)
+  const fromLib = lib.abilities.filter((a) => !lookup.has(a.id));
 
   return (
     <section data-testid="monster-abilities">
@@ -69,11 +80,26 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
               {a.name}
             </option>
           ))}
+          {fromLib.length > 0 && (
+            <optgroup label="From the library">
+              {fromLib.map((a) => (
+                <option key={a.id} value={`lib:${a.id}`}>
+                  {a.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
         <button
           className="btn"
           disabled={pick === ''}
           onClick={() => {
+            if (pick.startsWith('lib:')) {
+              const def = lib.abilities.find((a) => a.id === pick.slice(4));
+              if (def && st.apply((q) => addLibraryAbilityToMonster(q, monster.id, def)))
+                setPick('');
+              return;
+            }
             if (patch({ abilities: [...mine, pick] })) setPick('');
           }}
         >
@@ -107,6 +133,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
   const { quest } = useStore(store);
   const st = store.getState();
   const [pick, setPick] = useState('');
+  const lib = useLibrary();
   const lookup = spellLookup(quest);
   const list = monster.spells ?? [];
   const ids = [...new Set(list)];
@@ -124,6 +151,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
     patch(next.length === 0 ? { spells: null, spellLimit: null } : { spells: next });
   };
   const free = [...lookup.values()].filter((s) => !ids.includes(s.id));
+  const fromLib = lib.spells.filter((s) => !lookup.has(s.id));
 
   return (
     <section data-testid="monster-spells">
@@ -179,11 +207,25 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
               {s.name}
             </option>
           ))}
+          {fromLib.length > 0 && (
+            <optgroup label="From the library">
+              {fromLib.map((s) => (
+                <option key={s.id} value={`lib:${s.id}`}>
+                  {s.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
         <button
           className="btn"
           disabled={pick === ''}
           onClick={() => {
+            if (pick.startsWith('lib:')) {
+              const def = lib.spells.find((s) => s.id === pick.slice(4));
+              if (def && st.apply((q) => addLibrarySpellToMonster(q, monster.id, def))) setPick('');
+              return;
+            }
             if (patch({ spells: [...list, pick] })) setPick('');
           }}
         >
@@ -210,6 +252,73 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
       >
         One spell each turn
       </button>
+    </section>
+  );
+}
+
+/**
+ * The enemy of a monster (decision 70): none (the plain type), an enemy the quest already has, or
+ * one from the library (copied into the quest). An enemy gives the name, stats, abilities, spells,
+ * letter and picture as defaults; the monster's own fields win.
+ */
+export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: MonsterDef }) {
+  const { quest } = useStore(store);
+  const st = store.getState();
+  const lib = useLibrary();
+  const mine = new Set(quest.enemyDefs.map((e) => e.id));
+  const fromLib = lib.enemies.filter((e) => !mine.has(e.id));
+  const current = quest.enemyDefs.find((e) => e.id === monster.enemy);
+
+  return (
+    <section data-testid="monster-enemy">
+      <label className="ed-field">
+        Enemy
+        <select
+          className="es-select"
+          aria-label="Enemy"
+          value={monster.enemy ?? ''}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v.startsWith('lib:')) {
+              const def = lib.enemies.find((x) => x.id === v.slice(4));
+              if (def)
+                st.apply((q) =>
+                  setMonsterEnemyFromLibrary(q, monster.id, def, {
+                    abilities: lib.abilities,
+                    spells: lib.spells,
+                  }),
+                );
+              return;
+            }
+            const def = quest.enemyDefs.find((x) => x.id === v);
+            st.apply((q) =>
+              updateMonster(q, monster.id, def ? { enemy: v, type: def.base } : { enemy: null }),
+            );
+          }}
+        >
+          <option value="">None (the plain type)</option>
+          {quest.enemyDefs.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.name}
+            </option>
+          ))}
+          {fromLib.length > 0 && (
+            <optgroup label="From the library">
+              {fromLib.map((e) => (
+                <option key={e.id} value={`lib:${e.id}`}>
+                  {e.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      </label>
+      {current && (
+        <p className="ed-note">
+          {current.name}: letter {current.letter ?? 'of its type'}
+          {current.image ? ', has a picture' : ', no picture'}. Edit enemies in the Designer.
+        </p>
+      )}
     </section>
   );
 }

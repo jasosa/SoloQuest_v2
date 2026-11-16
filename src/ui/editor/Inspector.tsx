@@ -31,7 +31,7 @@ import {
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { SubjectActions } from './ActionsSection';
-import { MonsterAbilities, MonsterSpells } from './MonsterLists';
+import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { elementOf } from './elementActions';
 import { ActionsPanel } from './ActionsPanel';
 import { ProblemsPanel } from './ProblemsPanel';
@@ -376,6 +376,7 @@ function MonsterFields({ store, monster }: { store: EditorStore; monster: Monste
       >
         Special monster (story-critical)
       </button>
+      <MonsterEnemy store={store} monster={monster} />
       <MonsterAbilities store={store} monster={monster} />
 
       <label className="ed-field">
