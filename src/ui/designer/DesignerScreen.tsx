@@ -24,6 +24,9 @@ import { shrinkImage } from './imageFile';
 
 type Data = Record<string, unknown>;
 
+/** Core items are editable for now. Set this to true to lock them (read only, no reset). */
+const LOCK_CORE = false;
+
 /** The quests to look at for the "Used in" panel. */
 export type QuestSource = () => Promise<readonly { title: string; quest: Quest }[]>;
 
@@ -40,6 +43,8 @@ interface Row {
   readonly id: string;
   readonly name: string;
   readonly core: boolean;
+  /** A core item that has been changed (saved in the library under its own id). */
+  readonly edited?: boolean;
   readonly data: Data;
   readonly image?: string;
 }
@@ -88,7 +93,11 @@ function coreRows(kind: LibraryKind): Row[] {
     case 'ability':
       return CORE_ABILITIES.map((a) => ({ id: a.id, name: a.name, core: true, data: { ...a } }));
     case 'spell':
-      return CORE_SPELLS.map((s) => ({ id: s.id, name: s.name, core: true, data: { ...s } }));
+      return CORE_SPELLS.map((s) => {
+        const { core: _flag, ...rest } = s;
+        void _flag;
+        return { id: s.id, name: s.name, core: true, data: { ...rest } as Data };
+      });
     case 'enemy':
       return MONSTER_TYPES.map((t) => ({
         id: t,
@@ -426,8 +435,14 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
     void refresh();
   }, [refresh]);
 
-  const mine = items.filter((i) => i.kind === kind);
-  const cores = coreRows(kind);
+  const kindItems = items.filter((i) => i.kind === kind);
+  const baseCores = coreRows(kind);
+  const coreIds = new Set(baseCores.map((c) => c.id));
+  const cores: Row[] = baseCores.map((c) => {
+    const saved = kindItems.find((i) => i.id === c.id);
+    return saved ? { ...c, name: saved.name, data: saved.data, edited: true } : c;
+  });
+  const mine = kindItems.filter((i) => !coreIds.has(i.id));
   const rows: Row[] = [
     ...cores,
     ...mine.map((i) => ({
@@ -440,7 +455,15 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
   ];
   const sel = rows.find((r) => r.id === selected);
   const isCore = sel?.core === true;
-  const data: Data | null = sel ? (sel.core ? sel.data : (draft ?? sel.data)) : null;
+  const locked = isCore && LOCK_CORE;
+  const data: Data | null = sel ? (draft ?? sel.data) : null;
+  const sourceLabel = !isCore
+    ? 'Mine (this device)'
+    : LOCK_CORE
+      ? 'Core (read only)'
+      : sel?.edited
+        ? 'Core (changed)'
+        : 'Core (you can change it)';
 
   // Where the selected item is used: the quests made here (the bundled ones are not read).
   const usageKind: UsageKind | null =
@@ -476,7 +499,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
   /** Change the selected "Mine" item: kept in the draft and saved at once when it is valid. */
   const change = (next: Data) => {
     setDraft(next);
-    if (!selected || isCore || !checkedItem(kind, next)) return;
+    if (!selected || locked || !checkedItem(kind, next)) return;
     void store
       .save(kind, next, stamp())
       .then(refresh)
@@ -511,9 +534,13 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
     });
   };
   const remove = async () => {
-    if (!selected || isCore) return;
+    if (!selected || locked) return;
     await store.remove(kind, selected);
-    pick(null);
+    // a core item goes back to the core data, a made one is gone
+    if (isCore) {
+      const row = coreRows(kind).find((c) => c.id === selected);
+      setDraft(row ? structuredClone(row.data) : null);
+    } else pick(null);
     await refresh();
   };
   const exportFile = async () => {
@@ -539,8 +566,9 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
   };
 
   const count = (k: LibraryKind) => {
-    const c = coreRows(k).length;
-    const m = items.filter((i) => i.kind === k).length;
+    const ids = new Set(coreRows(k).map((x) => x.id));
+    const c = ids.size;
+    const m = items.filter((i) => i.kind === k && !ids.has(i.id)).length;
     return c && m ? `${c} core · ${m}` : c ? `${c} core` : String(m);
   };
 
@@ -608,14 +636,14 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
               <input
                 className="fr-in"
                 aria-label="Name"
-                disabled={isCore}
+                disabled={locked}
                 value={str(d, 'name')}
                 onChange={(e) => change(put(d, 'name', e.target.value))}
               />
             </Fld>
             <Fld label="Source">
               <select className="fr-sel" aria-label="Source" disabled value="x">
-                <option value="x">{isCore ? 'Core (read only)' : 'Mine (this device)'}</option>
+                <option value="x">{sourceLabel}</option>
               </select>
             </Fld>
           </div>
@@ -626,7 +654,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                   className="fr-in"
                   aria-label={s}
                   inputMode="numeric"
-                  disabled={isCore}
+                  disabled={locked}
                   value={String(stats[s])}
                   onChange={(e) => {
                     const n = Number(e.target.value);
@@ -645,8 +673,8 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
               </Fld>
             ))}
           </div>
-          <Fld label={isCore ? 'Hunts' : 'Behaves like'}>
-            {isCore ? (
+          <Fld label={locked ? 'Hunts' : 'Behaves like'}>
+            {locked ? (
               <select className="fr-sel" aria-label="Hunts" disabled value="x">
                 <option value="x">The hero it can reach first (core rule)</option>
               </select>
@@ -675,7 +703,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                 <p>{abilityText(id)}</p>
                 <button
                   className="x"
-                  disabled={isCore}
+                  disabled={locked}
                   aria-label={`Remove ${abilityName(id)}`}
                   onClick={() =>
                     change(
@@ -696,7 +724,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             <select
               className="fr-sel"
               aria-label="Add an ability"
-              disabled={isCore}
+              disabled={locked}
               value={abPick}
               onChange={(e) => setAbPick(e.target.value)}
             >
@@ -709,7 +737,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             </select>
             <button
               className="btn"
-              disabled={isCore || abPick === ''}
+              disabled={locked || abPick === ''}
               aria-label="Add the ability"
               onClick={() => {
                 change(put(d, 'abilities', [...abilities, abPick]));
@@ -720,7 +748,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             </button>
             <button
               className="btn alt"
-              disabled={isCore}
+              disabled={locked}
               onClick={() => setPopup({ kind: 'ability', draft: blank('ability', 'new-ability') })}
             >
               New ability…
@@ -747,7 +775,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                   </p>
                   <button
                     className="x"
-                    disabled={isCore}
+                    disabled={locked}
                     aria-label={`Remove ${sp?.name ?? id}`}
                     onClick={() => setCount(id, 0)}
                   >
@@ -757,7 +785,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                     <select
                       className="fr-sel"
                       aria-label={`${sp?.name ?? id} cast limit`}
-                      disabled={isCore}
+                      disabled={locked}
                       value={String(n)}
                       onChange={(e) => setCount(id, Number(e.target.value))}
                     >
@@ -776,7 +804,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             <select
               className="fr-sel"
               aria-label="Add a spell"
-              disabled={isCore}
+              disabled={locked}
               value={spPick}
               onChange={(e) => setSpPick(e.target.value)}
             >
@@ -789,7 +817,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             </select>
             <button
               className="btn"
-              disabled={isCore || spPick === ''}
+              disabled={locked || spPick === ''}
               aria-label="Add the spell"
               onClick={() => {
                 change(put(d, 'spells', [...spells, spPick]));
@@ -800,7 +828,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             </button>
             <button
               className="btn alt"
-              disabled={isCore}
+              disabled={locked}
               onClick={() => setPopup({ kind: 'spell', draft: blank('spell', 'new-spell') })}
             >
               New spell…
@@ -820,19 +848,19 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             <input
               className="fr-in"
               aria-label="Name"
-              disabled={isCore}
+              disabled={locked}
               value={str(d, 'name')}
               onChange={(e) => change(put(d, 'name', e.target.value))}
             />
           </Fld>
           <Fld label="Source">
             <select className="fr-sel" aria-label="Source" disabled value="x">
-              <option value="x">{isCore ? 'Core (read only)' : 'Mine (this device)'}</option>
+              <option value="x">{sourceLabel}</option>
             </select>
           </Fld>
         </div>
-        {kind === 'ability' && <AbilityFields data={d} onChange={change} disabled={isCore} />}
-        {kind === 'spell' && <SpellFields data={d} onChange={change} disabled={isCore} />}
+        {kind === 'ability' && <AbilityFields data={d} onChange={change} disabled={locked} />}
+        {kind === 'spell' && <SpellFields data={d} onChange={change} disabled={locked} />}
         {kind === 'companion' && (
           <>
             <div className="fr-row2">
@@ -864,7 +892,9 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
           </>
         )}
         {kind === 'hero' && isCore && (
-          <p className="fr-help">A core hero. Make a copy to add a hero of your own.</p>
+          <p className="fr-help">
+            A core hero. You can rename it, give it a picture, or make a copy.
+          </p>
         )}
       </Panel>
     );
@@ -900,6 +930,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                   <li key={r.id} className={r.id === selected ? 'on' : undefined}>
                     <button className="fr-pick" onClick={() => pick(r.id)}>
                       {r.name}
+                      {r.edited && <span className="sub">changed</span>}
                     </button>
                   </li>
                 ))}
@@ -935,13 +966,13 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
           {data && sel ? (
             <>
               {centre(data)}
-              {!isCore && (
+              {!locked && (!isCore || sel.edited) && (
                 <button
                   className="btn alt"
                   style={{ alignSelf: 'flex-start' }}
                   onClick={() => void remove()}
                 >
-                  Delete {ONE[kind]}
+                  {isCore ? 'Reset to core' : `Delete ${ONE[kind]}`}
                 </button>
               )}
             </>
@@ -982,18 +1013,18 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                 <input
                   className="fr-in"
                   aria-label="Letter (1 or 2)"
-                  disabled={isCore}
+                  disabled={locked}
                   maxLength={2}
                   value={str(data, 'letter')}
                   onChange={(e) => change(put(data, 'letter', e.target.value.slice(0, 2)))}
                 />
               </Fld>
-              <Picture data={data} onChange={change} disabled={isCore} />
+              <Picture data={data} onChange={change} disabled={locked} />
             </Panel>
           )}
           {data && sel && (kind === 'hero' || kind === 'companion') && (
             <Panel title="Picture">
-              <Picture data={data} onChange={change} disabled={isCore} />
+              <Picture data={data} onChange={change} disabled={locked} />
             </Panel>
           )}
           <Panel title="Library file">

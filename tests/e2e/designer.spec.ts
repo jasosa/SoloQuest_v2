@@ -31,19 +31,32 @@ const make = (page: Page, one: string) =>
 const name = (page: Page, v: string) => card(page).getByLabel('Name', { exact: true }).fill(v);
 
 test.describe('designer: the library', () => {
-  test('core items are listed and read only; Copy makes one of your own', async ({ page }) => {
+  test('core items are listed and can be changed, and reset; Copy makes one of your own', async ({
+    page,
+  }) => {
     await open(page);
     await expect(lib(page).getByRole('button', { name: /^Enemies \(9 core\)/ })).toBeVisible();
     await expect(lib(page).getByRole('button', { name: /^Heroes \(4 core\)/ })).toBeVisible();
     await items(page).getByRole('button', { name: 'Orc', exact: true }).click();
-    await expect(card(page).getByLabel('Name', { exact: true })).toBeDisabled();
-    await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Orc');
-    await expect(page.getByLabel('Source')).toContainText('Core (read only)');
+    await expect(page.getByLabel('Source')).toContainText('Core (you can change it)');
     await expect(page.getByLabel('att')).toHaveValue('3');
     await shot(page, 'designer-core-enemy');
+    // change a core enemy: it is marked as changed, and can be reset
+    await page.getByLabel('att').fill('5');
+    await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('changed');
+    await expect(page.getByLabel('Source')).toContainText('Core (changed)');
+    await page.getByRole('button', { name: 'Reset to core' }).click();
+    await expect(page.getByLabel('att')).toHaveValue('3');
+    await expect(items(page).getByRole('button', { name: /^Orc/ })).not.toContainText('changed');
+    // a core hero can be renamed
+    await kind(page, /^Heroes/);
+    await items(page).getByRole('button', { name: 'Elf', exact: true }).click();
+    await name(page, 'Elf of the Wood');
+    await expect(items(page).getByRole('button', { name: /^Elf of the Wood/ })).toBeVisible();
+    await kind(page, /^Enemies/);
+    await items(page).getByRole('button', { name: 'Orc', exact: true }).click();
     await items(page).getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Orc copy');
-    await expect(card(page).getByLabel('Name', { exact: true })).toBeEnabled();
     await expect(lib(page).getByRole('button', { name: /^Enemies \(9 core · 1\)/ })).toBeVisible();
   });
 

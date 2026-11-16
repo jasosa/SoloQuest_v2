@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { CORE_ABILITIES } from '../data/abilities';
+import { CORE_SPELLS } from '../data/spells';
 import { addMonster, emptyQuest, updateMonster } from './ops';
 import {
+  abilityChanged,
   addLibraryAbilityToMonster,
   addLibrarySpellToMonster,
   setMonsterEnemyFromLibrary,
+  spellChanged,
   takeLibraryAbility,
   takeLibraryEnemy,
   takeLibrarySpell,
@@ -27,13 +31,12 @@ describe('taking library items into a quest', () => {
     expect(b.id).toBe('bog-2');
     expect(b.quest.abilityDefs.map((x) => x.id)).toEqual(['bog', 'bog-2']);
   });
-  it('core ids are never copied', () => {
-    expect(
-      takeLibraryAbility(q(), { id: 'stone', name: 'Stone', text: 'x' }).quest.abilityDefs,
-    ).toEqual([]);
-    expect(
-      takeLibrarySpell(q(), { id: 'fear', name: 'Fear', tags: ['heroAdjacent'] }).quest.spellDefs,
-    ).toEqual([]);
+  it('an untouched core item is never copied', () => {
+    const a = CORE_ABILITIES[0]!;
+    expect(takeLibraryAbility(q(), { ...a }).quest.abilityDefs).toEqual([]);
+    const { core: _flag, ...fear } = CORE_SPELLS.find((s) => s.id === 'fear')!;
+    void _flag;
+    expect(takeLibrarySpell(q(), fear as never).quest.spellDefs).toEqual([]);
   });
   it('an enemy brings the abilities and spells it lists', () => {
     const r = takeLibraryEnemy(
@@ -92,5 +95,34 @@ describe('library items on a monster', () => {
   it('refuses an enemy the quest does not have', () => {
     const r = updateMonster(withOrc(), 'm1', { enemy: 'nope' });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe('changed core items', () => {
+  it('a core ability that was changed is copied into the quest under a new id', () => {
+    const same = takeLibraryAbility(q(), {
+      id: 'stone',
+      name: 'Made of stone',
+      text: 'x',
+      kind: 'ability',
+    });
+    expect(same.quest.abilityDefs.length).toBe(1); // text differs from the core one: a copy
+    expect(same.id).toBe('stone-2');
+  });
+  it('an untouched core item stays a reference', () => {
+    const r = takeLibraryAbility(q(), {
+      id: 'stone',
+      name: CORE_ABILITIES[0]!.name,
+      text: CORE_ABILITIES[0]!.text,
+      kind: CORE_ABILITIES[0]!.kind,
+    });
+    expect(r.id).toBe('stone');
+    expect(r.quest.abilityDefs).toEqual([]);
+  });
+  it('a changed core spell is copied', () => {
+    const r = takeLibrarySpell(q(), { id: 'fear', name: 'Terror', tags: ['heroAdjacent'] });
+    expect(r.id).toBe('fear-2');
+    expect(spellChanged({ id: 'fear', name: 'Terror', tags: ['heroAdjacent'] })).toBe(true);
+    expect(abilityChanged({ id: 'unknown', name: 'x', text: 'y' })).toBe(false);
   });
 });

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
+  abilityChanged,
   addAbility,
   addLibraryAbilityToMonster,
   addLibrarySpellToMonster,
   addSpell,
   setMonsterEnemyFromLibrary,
+  spellChanged,
   updateMonster,
 } from '../../engine/editor';
 import { useLibrary } from '../designer/LibraryContext';
@@ -38,7 +40,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
   const patch = (p: Patch) => st.apply((q) => updateMonster(q, monster.id, p));
   const free = [...lookup.values()].filter((a) => !mine.includes(a.id));
   // library abilities the quest does not have yet (a copy is made when one is added)
-  const fromLib = lib.abilities.filter((a) => !lookup.has(a.id));
+  const fromLib = lib.abilities.filter((a) => !lookup.has(a.id) || abilityChanged(a));
 
   return (
     <section data-testid="monster-abilities">
@@ -151,7 +153,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
     patch(next.length === 0 ? { spells: null, spellLimit: null } : { spells: next });
   };
   const free = [...lookup.values()].filter((s) => !ids.includes(s.id));
-  const fromLib = lib.spells.filter((s) => !lookup.has(s.id));
+  const fromLib = lib.spells.filter((s) => !lookup.has(s.id) || spellChanged(s));
 
   return (
     <section data-testid="monster-spells">

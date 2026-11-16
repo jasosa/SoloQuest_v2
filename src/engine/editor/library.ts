@@ -18,6 +18,33 @@ function freeId(taken: readonly string[], want: string): string {
   for (let n = 2; ; n++) if (!taken.includes(`${want}-${n}`)) return `${want}-${n}`;
 }
 
+/** True when a library ability has the id of a core one but other content (a core item that was changed). */
+export function abilityChanged(def: AbilityDefData): boolean {
+  const core = CORE_ABILITIES.find((a) => a.id === def.id);
+  return (
+    core !== undefined &&
+    (core.name !== def.name || core.text !== def.text || core.kind !== (def.kind ?? 'ability'))
+  );
+}
+
+/** The same for a spell. */
+export function spellChanged(def: SpellDefData): boolean {
+  const core = CORE_SPELLS.find((s) => s.id === def.id);
+  if (!core) return false;
+  const { core: _flag, ...rest } = core;
+  void _flag;
+  const norm = (x: Record<string, unknown>) =>
+    JSON.stringify({
+      name: x.name,
+      text: x.text ?? null,
+      tags: x.tags ?? [],
+      question: x.question ?? null,
+      warning: x.warning ?? null,
+      offerWhen: x.offerWhen ?? 'always',
+    });
+  return norm(rest) !== norm(def as unknown as Record<string, unknown>);
+}
+
 export interface Added {
   readonly quest: Quest;
   /** The id the item has in the quest. */
@@ -25,7 +52,8 @@ export interface Added {
 }
 
 export function takeLibraryAbility(q: Quest, def: AbilityDefData): Added {
-  if (CORE_ABILITIES.some((a) => a.id === def.id)) return { quest: q, id: def.id };
+  if (CORE_ABILITIES.some((a) => a.id === def.id) && !abilityChanged(def))
+    return { quest: q, id: def.id };
   const own = q.abilityDefs.find((a) => a.id === def.id);
   if (own && same(own, def)) return { quest: q, id: def.id };
   const taken = [...CORE_ABILITIES.map((a) => a.id), ...q.abilityDefs.map((a) => a.id)];
@@ -34,7 +62,8 @@ export function takeLibraryAbility(q: Quest, def: AbilityDefData): Added {
 }
 
 export function takeLibrarySpell(q: Quest, def: SpellDefData): Added {
-  if (CORE_SPELLS.some((s) => s.id === def.id)) return { quest: q, id: def.id };
+  if (CORE_SPELLS.some((s) => s.id === def.id) && !spellChanged(def))
+    return { quest: q, id: def.id };
   const own = q.spellDefs.find((s) => s.id === def.id);
   if (own && same(own, def)) return { quest: q, id: def.id };
   const taken = [...CORE_SPELLS.map((s) => s.id), ...q.spellDefs.map((s) => s.id)];

@@ -72,19 +72,20 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
   };
 
   /** Save an imported quest and show what the import said. */
-  const take = async (text: string) => {
+  const take = async (text: string): Promise<Quest | undefined> => {
     const r = importQuest(text, { takenIds: rows.map((x) => x.id) });
     if (!r.ok) {
       setProblems(r.errors);
       setNotes([]);
       setImported(null);
-      return;
+      return undefined;
     }
     await store.save(r.quest, Date.now());
     setProblems([]);
     setNotes(r.warnings);
     setImported(r.quest);
     await refresh();
+    return r.quest;
   };
 
   const onFile = async (file: File | undefined) => {
@@ -300,6 +301,23 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
               >
                 Make a copy
               </button>
+              <button
+                className="btn"
+                disabled={copyOf === ''}
+                onClick={() => {
+                  const q = bundled.find((b) => String(b.number) === copyOf)?.level?.quest;
+                  if (!q) return;
+                  setPopup(null);
+                  void take(exportQuest(q)).then((made) => {
+                    if (made) onOpen(made, made);
+                  });
+                }}
+              >
+                Edit it now
+              </button>
+              <p className="fr-help">
+                A bundled quest is edited as your own copy. The original stays as it is.
+              </p>
             </>
           )}
         </Dialog>

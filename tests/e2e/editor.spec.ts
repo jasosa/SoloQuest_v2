@@ -260,6 +260,15 @@ test.describe('editor: storage and files', () => {
     await expect(page.getByRole('alert')).toContainText('not valid JSON');
   });
 
+  test('edit a bundled quest now: it opens in the editor as your own copy', async ({ page }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await btn(page, 'Edit it now').click();
+    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('[data-monster]')).toHaveCount(24);
+  });
+
   test('copy a bundled quest from the list', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
     await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
