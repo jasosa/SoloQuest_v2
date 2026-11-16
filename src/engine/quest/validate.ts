@@ -519,6 +519,22 @@ export function validateQuestIssues(
       err(`${where}: blocksSearch only makes sense for a treasureSearch trigger`, noteRef);
     if (n.blocksSearch && n.consumesTreasure)
       err(`${where}: blocksSearch and consumesTreasure cannot both be set`, noteRef);
+    if (n.target) {
+      const tg = n.target;
+      const known =
+        tg.kind === 'door'
+          ? doorIds.has(tg.id)
+          : tg.kind === 'furniture'
+            ? furnitureIds.has(tg.id)
+            : tg.kind === 'monster'
+              ? monsterIds.has(tg.id)
+              : tg.kind === 'trap'
+                ? trapIds.has(tg.id)
+                : tg.kind === 'marker'
+                  ? quest.markers.some((m) => m.id === tg.id)
+                  : areas.has(tg.id);
+      if (!known) err(`${where}: target ${tg.kind} ${tg.id} does not exist`, noteRef);
+    }
     (n.when ?? []).forEach((c) => checkCondition(where, c));
     n.effects.forEach((e) => checkEffect(where, e));
   }

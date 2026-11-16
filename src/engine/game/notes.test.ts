@@ -1332,3 +1332,32 @@ describe('conditions on state (decision 67) and objectives with own rules', () =
     expect(msgs.some((m) => m.includes('firstTime'))).toBe(true);
   });
 });
+
+describe('note target (decision 67)', () => {
+  it('an explicit target must name an element of the quest', () => {
+    const ok = lvOf({
+      notes: [
+        {
+          id: 'b',
+          trigger: { type: 'manual', label: 'Pull' },
+          target: { kind: 'door', id: 'd2' },
+          effects: [text('x')],
+        },
+      ],
+    });
+    expect(validateQuest(ok.quest, board).filter((m) => m.includes('target'))).toEqual([]);
+    const bad = lvOf({
+      notes: [
+        {
+          id: 'b',
+          trigger: { type: 'manual', label: 'Pull' },
+          target: { kind: 'monster', id: 'nope' },
+          effects: [text('x')],
+        },
+      ],
+    });
+    expect(validateQuest(bad.quest, board).some((m) => m.includes('target monster nope'))).toBe(
+      true,
+    );
+  });
+});
