@@ -300,7 +300,8 @@
       "traits": [
         "Carries a staff that works like the armory staff",
         "Wears a Wizard's Cloak (see the note when he dies)"
-      ]
+      ],
+      "special": true
     },
     {
       "id": "m18",

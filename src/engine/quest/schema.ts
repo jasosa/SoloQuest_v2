@@ -78,12 +78,23 @@ const MonsterSchema = z
     spellLimit: z.enum(['onePerTurn']).optional(),
     /** Paraphrased special rules of a named monster, shown first on its Zargon order. */
     traits: z.array(nonEmpty).optional(),
+    /** Story-critical monster (decision 69): drawn with a ring and a star. Not the same as having an ability. */
+    special: z.boolean().optional(),
+    /** Reusable abilities by id: the core ones (`stone`, `fireImmune`...) or the quest's `abilityDefs`. */
+    abilities: z.array(id).optional(),
     hidden: z.boolean().optional(),
   })
   .refine((m) => m.hidden === true || m.cell !== undefined, {
     message: 'a monster needs a cell unless it is hidden',
     path: ['cell'],
   });
+
+const AbilityDefSchema = z.strictObject({
+  id,
+  name: nonEmpty,
+  text: nonEmpty,
+  kind: z.enum(['ability', 'weakness', 'immunity']).optional(),
+});
 
 const TrapSchema = z
   .strictObject({
@@ -315,6 +326,8 @@ export const QuestSchema = z.strictObject({
   traps: z.array(TrapSchema).default([]),
   markers: z.array(MarkerSchema).default([]),
   zones: z.array(ZoneSchema).default([]),
+  /** The quest's own abilities, next to the core library (decision 69). */
+  abilityDefs: z.array(AbilityDefSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   wandering: WanderingSchema.optional(),
   objectives: z.array(ObjectiveSchema).default([]),

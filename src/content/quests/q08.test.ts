@@ -115,7 +115,8 @@ describe('quest 8: data', () => {
     expect([...b.spells!].sort()).toEqual(
       ['ballOfFlame', 'escape', 'fear', 'firestorm', 'summon', 'tempest'].sort(),
     );
-    expect(b.traits?.join(' ')).toContain('Immune to fire');
+    expect(b.abilities).toEqual(['fireImmune']);
+    expect(b.special).toBe(true);
     expect(new Set(b.spells).size).toBe(6);
     expect(areaOf(b.cell!)).toBe('R01');
   });

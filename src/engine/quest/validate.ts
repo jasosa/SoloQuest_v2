@@ -14,6 +14,7 @@ import {
   type Level,
 } from '../board/level';
 import { footprintShapeProblem } from './footprint';
+import { CORE_ABILITIES } from '../data/abilities';
 import { SPELL_KEYS, isSpellKey } from '../zargon/spells';
 import { forEachEffect } from './effects';
 import type { Condition, Effect, Quest } from './schema';
@@ -203,6 +204,15 @@ export function validateQuestIssues(
     quest.monsters.map((m) => m.id),
     'monster',
   );
+  const abilityIds = new Set<string>(CORE_ABILITIES.map((a) => a.id));
+  for (const a of quest.abilityDefs) {
+    if (abilityIds.has(a.id)) err(`ability ${a.id}: the id is already taken`, { kind: 'quest' });
+    abilityIds.add(a.id);
+  }
+  for (const m of quest.monsters)
+    for (const a of m.abilities ?? [])
+      if (!abilityIds.has(a))
+        err(`monster ${m.id}: unknown ability ${a}`, { kind: 'monster', id: m.id });
   const trapIds = unique(
     'traps',
     quest.traps.map((t) => t.id),

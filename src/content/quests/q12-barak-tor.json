@@ -244,7 +244,8 @@
     {
       "id": "m-star",
       "type": "zombie",
-      "cell": [11, 9]
+      "cell": [11, 9],
+      "special": true
     },
     {
       "id": "m7",
@@ -293,10 +294,9 @@
       },
       "spells": ["summon", "fear", "command", "ballOfFlame"],
       "spellLimit": "onePerTurn",
-      "traits": [
-        "Immune to every weapon and spell except the Spirit Blade",
-        "Walks only 1 square per turn"
-      ]
+      "traits": ["Walks only 1 square per turn"],
+      "special": true,
+      "abilities": ["spiritBladeOnly"]
     }
   ],
   "traps": [

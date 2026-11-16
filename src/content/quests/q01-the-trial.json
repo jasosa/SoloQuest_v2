@@ -6,7 +6,9 @@
   "intro": {
     "summary": "Deep in the catacombs by Fellmarg's tomb lurks Verag, a gargoyle. The heroes must track it down and kill it. This is their first real trial."
   },
-  "start": { "area": "R20" },
+  "start": {
+    "area": "R20"
+  },
   "rock": {
     "rooms": ["R04", "R05", "R06", "R09", "R10", "R13", "R14", "R15", "R16", "R21", "R22"],
     "cells": [
@@ -82,31 +84,85 @@
     ]
   },
   "doors": [
-    { "id": "d1", "a": [3, 17], "b": [3, 18] },
-    { "id": "d2", "a": [7, 17], "b": [7, 18] },
-    { "id": "d3", "a": [8, 15], "b": [9, 15] },
-    { "id": "d4", "a": [10, 12], "b": [10, 13] },
-    { "id": "d5", "a": [13, 15], "b": [14, 15] },
-    { "id": "d6", "a": [15, 9], "b": [16, 9] },
-    { "id": "d7", "a": [0, 11], "b": [1, 11] },
-    { "id": "d8", "a": [3, 8], "b": [3, 9] },
-    { "id": "d9", "a": [7, 8], "b": [7, 9] },
-    { "id": "d10", "a": [3, 3], "b": [3, 4] },
-    { "id": "d11", "a": [4, 2], "b": [5, 2] },
-    { "id": "d12", "a": [8, 2], "b": [9, 2] }
+    {
+      "id": "d1",
+      "a": [3, 17],
+      "b": [3, 18]
+    },
+    {
+      "id": "d2",
+      "a": [7, 17],
+      "b": [7, 18]
+    },
+    {
+      "id": "d3",
+      "a": [8, 15],
+      "b": [9, 15]
+    },
+    {
+      "id": "d4",
+      "a": [10, 12],
+      "b": [10, 13]
+    },
+    {
+      "id": "d5",
+      "a": [13, 15],
+      "b": [14, 15]
+    },
+    {
+      "id": "d6",
+      "a": [15, 9],
+      "b": [16, 9]
+    },
+    {
+      "id": "d7",
+      "a": [0, 11],
+      "b": [1, 11]
+    },
+    {
+      "id": "d8",
+      "a": [3, 8],
+      "b": [3, 9]
+    },
+    {
+      "id": "d9",
+      "a": [7, 8],
+      "b": [7, 9]
+    },
+    {
+      "id": "d10",
+      "a": [3, 3],
+      "b": [3, 4]
+    },
+    {
+      "id": "d11",
+      "a": [4, 2],
+      "b": [5, 2]
+    },
+    {
+      "id": "d12",
+      "a": [8, 2],
+      "b": [9, 2]
+    }
   ],
   "secretDoors": [],
   "falseDoors": [],
   "blocks": [
-    { "cells": [[0, 1]] },
+    {
+      "cells": [[0, 1]]
+    },
     {
       "cells": [
         [12, 5],
         [13, 5]
       ]
     },
-    { "cells": [[17, 9]] },
-    { "cells": [[14, 18]] }
+    {
+      "cells": [[17, 9]]
+    },
+    {
+      "cells": [[14, 18]]
+    }
   ],
   "furniture": [
     {
@@ -131,7 +187,12 @@
         [11, 3]
       ]
     },
-    { "id": "f-chest-d", "type": "chest", "cells": [[10, 5]], "letter": "D" },
+    {
+      "id": "f-chest-d",
+      "type": "chest",
+      "cells": [[10, 5]],
+      "letter": "D"
+    },
     {
       "id": "f-sorc",
       "type": "sorcerersTable",
@@ -199,7 +260,12 @@
       ],
       "letter": "A"
     },
-    { "id": "f-chest-e", "type": "chest", "cells": [[11, 7]], "letter": "E" },
+    {
+      "id": "f-chest-e",
+      "type": "chest",
+      "cells": [[11, 7]],
+      "letter": "E"
+    },
     {
       "id": "f-fire",
       "type": "fireplace",
@@ -209,7 +275,11 @@
         [14, 7]
       ]
     },
-    { "id": "f-throne", "type": "throne", "cells": [[10, 8]] },
+    {
+      "id": "f-throne",
+      "type": "throne",
+      "cells": [[10, 8]]
+    },
     {
       "id": "f-table-c",
       "type": "table",
@@ -231,7 +301,12 @@
         [17, 13]
       ]
     },
-    { "id": "f-chest-b", "type": "chest", "cells": [[17, 16]], "letter": "B" },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [[17, 16]],
+      "letter": "B"
+    },
     {
       "id": "f-bookcase-e",
       "type": "bookcase",
@@ -243,46 +318,157 @@
     }
   ],
   "monsters": [
-    { "id": "m1", "type": "skeleton", "cell": [2, 2] },
-    { "id": "m2", "type": "skeleton", "cell": [3, 2] },
-    { "id": "m3", "type": "zombie", "cell": [6, 1] },
-    { "id": "m4", "type": "mummy", "cell": [6, 2], "overrides": { "att": 4 } },
-    { "id": "m5", "type": "zombie", "cell": [6, 3] },
-    { "id": "m6", "type": "skeleton", "cell": [9, 1] },
-    { "id": "m7", "type": "skeleton", "cell": [9, 3] },
-    { "id": "m8", "type": "mummy", "cell": [9, 4] },
-    { "id": "m9", "type": "orc", "cell": [4, 5] },
-    { "id": "m10", "type": "goblin", "cell": [3, 6] },
-    { "id": "m11", "type": "goblin", "cell": [6, 7] },
-    { "id": "m12", "type": "goblin", "cell": [7, 7] },
-    { "id": "m13", "type": "goblin", "cell": [2, 11] },
-    { "id": "m14", "type": "orc", "cell": [2, 12] },
-    { "id": "m15", "type": "orc", "cell": [7, 14] },
-    { "id": "m16", "type": "orc", "cell": [8, 15] },
-    { "id": "m17", "type": "goblin", "cell": [10, 14] },
-    { "id": "m18", "type": "abomination", "cell": [10, 16] },
-    { "id": "m-verag", "type": "gargoyle", "cell": [12, 8], "name": "Verag" },
-    { "id": "m19", "type": "orc", "cell": [14, 8] },
-    { "id": "m20", "type": "orc", "cell": [11, 11] },
-    { "id": "m21", "type": "dreadWarrior", "cell": [14, 11] },
-    { "id": "m22", "type": "dreadWarrior", "cell": [16, 15] },
-    { "id": "m23", "type": "dreadWarrior", "cell": [15, 16] }
+    {
+      "id": "m1",
+      "type": "skeleton",
+      "cell": [2, 2]
+    },
+    {
+      "id": "m2",
+      "type": "skeleton",
+      "cell": [3, 2]
+    },
+    {
+      "id": "m3",
+      "type": "zombie",
+      "cell": [6, 1]
+    },
+    {
+      "id": "m4",
+      "type": "mummy",
+      "cell": [6, 2],
+      "overrides": {
+        "att": 4
+      }
+    },
+    {
+      "id": "m5",
+      "type": "zombie",
+      "cell": [6, 3]
+    },
+    {
+      "id": "m6",
+      "type": "skeleton",
+      "cell": [9, 1]
+    },
+    {
+      "id": "m7",
+      "type": "skeleton",
+      "cell": [9, 3]
+    },
+    {
+      "id": "m8",
+      "type": "mummy",
+      "cell": [9, 4]
+    },
+    {
+      "id": "m9",
+      "type": "orc",
+      "cell": [4, 5]
+    },
+    {
+      "id": "m10",
+      "type": "goblin",
+      "cell": [3, 6]
+    },
+    {
+      "id": "m11",
+      "type": "goblin",
+      "cell": [6, 7]
+    },
+    {
+      "id": "m12",
+      "type": "goblin",
+      "cell": [7, 7]
+    },
+    {
+      "id": "m13",
+      "type": "goblin",
+      "cell": [2, 11]
+    },
+    {
+      "id": "m14",
+      "type": "orc",
+      "cell": [2, 12]
+    },
+    {
+      "id": "m15",
+      "type": "orc",
+      "cell": [7, 14]
+    },
+    {
+      "id": "m16",
+      "type": "orc",
+      "cell": [8, 15]
+    },
+    {
+      "id": "m17",
+      "type": "goblin",
+      "cell": [10, 14]
+    },
+    {
+      "id": "m18",
+      "type": "abomination",
+      "cell": [10, 16]
+    },
+    {
+      "id": "m-verag",
+      "type": "gargoyle",
+      "cell": [12, 8],
+      "name": "Verag",
+      "special": true
+    },
+    {
+      "id": "m19",
+      "type": "orc",
+      "cell": [14, 8]
+    },
+    {
+      "id": "m20",
+      "type": "orc",
+      "cell": [11, 11]
+    },
+    {
+      "id": "m21",
+      "type": "dreadWarrior",
+      "cell": [14, 11]
+    },
+    {
+      "id": "m22",
+      "type": "dreadWarrior",
+      "cell": [16, 15]
+    },
+    {
+      "id": "m23",
+      "type": "dreadWarrior",
+      "cell": [15, 16]
+    }
   ],
   "traps": [],
   "markers": [],
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {
       "id": "n-A",
       "letter": "A",
       "at": [11, 14],
-      "trigger": { "type": "treasureSearch", "area": "R18", "first": true },
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R18",
+        "first": true
+      },
       "effects": [
         {
           "type": "showText",
@@ -295,15 +481,27 @@
       "id": "n-B",
       "letter": "B",
       "at": [17, 15],
-      "trigger": { "type": "treasureSearch", "area": "R19", "first": true },
-      "effects": [{ "type": "showText", "text": "The chest in this room is empty." }],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R19",
+        "first": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest in this room is empty."
+        }
+      ],
       "consumesTreasure": true
     },
     {
       "id": "n-C",
       "letter": "C",
       "at": [7, 2],
-      "trigger": { "type": "areaRevealed", "area": "R02" },
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R02"
+      },
       "effects": [
         {
           "type": "showText",
@@ -315,13 +513,20 @@
       "id": "n-D",
       "letter": "D",
       "at": [11, 5],
-      "trigger": { "type": "treasureSearch", "area": "R03", "first": true },
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R03",
+        "first": true
+      },
       "effects": [
         {
           "type": "showText",
           "text": "The chest holds 84 gold coins. They go to the first hero who searches here."
         },
-        { "type": "giveItem", "text": "84 gold coins" }
+        {
+          "type": "giveItem",
+          "text": "84 gold coins"
+        }
       ],
       "consumesTreasure": true
     },
@@ -329,20 +534,35 @@
       "id": "n-E",
       "letter": "E",
       "at": [10, 7],
-      "trigger": { "type": "treasureSearch", "area": "R11", "first": true },
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R11",
+        "first": true
+      },
       "effects": [
         {
           "type": "showText",
           "text": "The chest holds 120 gold coins. They go to the first hero who searches here."
         },
-        { "type": "giveItem", "text": "120 gold coins" }
+        {
+          "type": "giveItem",
+          "text": "120 gold coins"
+        }
       ],
       "consumesTreasure": true
     }
   ],
-  "wandering": { "monster": "orc" },
+  "wandering": {
+    "monster": "orc"
+  },
   "objectives": [
-    { "id": "o1", "text": "Find and destroy Verag", "done": { "monsterKilled": "m-verag" } }
+    {
+      "id": "o1",
+      "text": "Find and destroy Verag",
+      "done": {
+        "monsterKilled": "m-verag"
+      }
+    }
   ],
   "rules": {},
   "npcs": []

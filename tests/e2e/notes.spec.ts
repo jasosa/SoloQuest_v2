@@ -269,6 +269,32 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(btn(page, 'Look from here')).toHaveCount(0); // nothing left to see from here
   });
 
+  test('a special monster has a ring, a star and its abilities; an ability alone does not', async ({
+    page,
+  }) => {
+    await fixture(page, 'd1,d2');
+    await expect(page.locator('[data-special]')).toHaveCount(0); // not seen yet
+    await door(page, 'd3').click();
+    await btn(page, 'Open the door').click();
+    await btn(page, 'Pull the lever').click(); // the door's choice
+    await btn(page, 'Continue').click();
+    await page.waitForTimeout(900);
+    await expect(page.locator('[data-special]')).toHaveCount(1);
+    await expect(page.locator('[data-special-row]')).toHaveCount(1);
+    const goblin = page.locator('.roster li', { hasText: 'Goblin' });
+    await expect(goblin).toContainText('Fireproof');
+    await expect(goblin).toHaveAttribute('title', /Special monster/);
+    await expect(goblin).toHaveAttribute('title', /Fire spells have no effect on it\./);
+    // the orc has no ability and is not special
+    const orc = page.locator('.roster li', { hasText: 'Orc' }).first();
+    await expect(orc).not.toContainText('Fireproof');
+    await expect(orc).not.toHaveAttribute('title', /Special monster/);
+    await goblin.getByRole('button').click();
+    await expect(page.getByTestId('abilities')).toContainText('Fireproof.');
+    await expect(page.getByRole('dialog')).toContainText('Special monster');
+    await shot(page, 'monster-special');
+  });
+
   test('a zone (a set of squares) gets one label; a tap says "A hero enters" once', async ({
     page,
   }) => {

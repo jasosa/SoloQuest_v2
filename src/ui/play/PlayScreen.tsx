@@ -39,6 +39,7 @@ import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
 import { ForThisQuest } from './ForThisQuest';
+import { abilityLine, monsterTip } from './monsterTip';
 import { QuestSheet } from './QuestSheet';
 import { Helpers, Heroes } from './sidebar';
 import {
@@ -593,6 +594,16 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             </p>
           )}
           {m.placeAt && <p className="warn">Placed by a quest note.</p>}
+          {m.special && <p className="special-note">Special monster</p>}
+          {m.abilities.length > 0 && (
+            <ul className="abilities" data-testid="abilities">
+              {m.abilities.map((a) => (
+                <li key={a.id}>
+                  <b>{a.name}.</b> {a.text}
+                </li>
+              ))}
+            </ul>
+          )}
           <p>
             Body {m.body} of {m.maxBody} · Mind {m.stats.mind}
           </p>
@@ -904,13 +915,27 @@ function RosterRow({
     <li
       ref={ref}
       className={[fresh ? 'new' : '', selected ? 'sel' : '', m.dead ? 'dead' : ''].join(' ').trim()}
+      title={monsterTip(m, code)}
     >
       <button data-hit disabled={m.dead} onClick={onTap}>
         <span className={'coin' + (m.dead ? ' off' : '')}>{code}</span>
         <span>
-          <span className="nm">{m.name}</span>
+          <span className="nm">
+            {m.name}
+            {m.special && (
+              <span className="star" role="img" aria-label="Special monster" data-special-row>
+                ★
+              </span>
+            )}
+          </span>
           <br />
           <span className="st">{rosterLine(m)}</span>
+          {m.abilities.length > 0 && (
+            <>
+              <br />
+              <span className="ab">{abilityLine(m)}</span>
+            </>
+          )}
         </span>
         <span className="bp">
           {acted && !m.dead && (

@@ -323,7 +323,8 @@
       },
       "spells": ["summon", "fear", "fear", "ballOfFlame", "command", "tempest"],
       "spellLimit": "onePerTurn",
-      "traits": ["Nothing but the Spirit Blade can hurt him"]
+      "special": true,
+      "abilities": ["spiritBladeOnly"]
     }
   ],
   "traps": [
@@ -349,9 +350,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {

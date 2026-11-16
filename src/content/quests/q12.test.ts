@@ -127,7 +127,8 @@ describe('quest 12: data', () => {
       spellLimit: 'onePerTurn',
     });
     expect([...w.spells!].sort()).toEqual(['ballOfFlame', 'command', 'fear', 'summon']);
-    expect(w.traits?.join(' ')).toContain('Spirit Blade');
+    expect(w.abilities).toEqual(['spiritBladeOnly']);
+    expect(w.special).toBe(true);
     expect(areaOf(w.cell!)).toBe('R12');
   });
 });

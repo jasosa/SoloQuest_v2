@@ -1,4 +1,5 @@
 /** Read-only selectors over the game state, for the UI. Pure. */
+import { abilityLookup, type AbilityDef } from '../data/abilities';
 import { MONSTER_NAMES, statsOf, type MonsterStats } from '../data/monsters';
 import { areaAt, roomIds, type AreaId, type Cell } from '../board/board';
 import type { Level } from '../board/level';
@@ -31,11 +32,28 @@ export interface MonsterView {
   readonly wanderAt?: Hero;
   /** True until the end of the Zargon turn after it appeared ("attacks now"). */
   readonly fresh?: boolean;
+  /** Story-critical monster: ring and star (decision 69). */
+  readonly special: boolean;
+  /** Its abilities, resolved from the core library and the quest's own. */
+  readonly abilities: readonly AbilityDef[];
+}
+
+function abilitiesOf(
+  lookup: ReadonlyMap<string, AbilityDef>,
+  ids: readonly string[] | undefined,
+): AbilityDef[] {
+  const out: AbilityDef[] = [];
+  for (const id of ids ?? []) {
+    const a = lookup.get(id);
+    if (a) out.push(a);
+  }
+  return out;
 }
 
 /** Monsters the heroes have seen, in quest order. Hidden or unseen monsters are not listed. */
 export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
   const out: MonsterView[] = [];
+  const lookup = abilityLookup(level.quest);
   for (const m of level.quest.monsters) {
     const rec = state.monsters[m.id];
     if (!state.seenMonsters.has(m.id) || !rec || isDormant(m, state)) continue;
@@ -51,6 +69,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       maxBody: stats.body,
       dead: rec.dead,
       state: st.state,
+      special: m.special === true,
+      abilities: abilitiesOf(lookup, m.abilities),
       ...(st.turns !== undefined ? { stoneTurns: st.turns } : {}),
       ...(placeAt ? { placeAt } : {}),
     });
@@ -71,6 +91,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       wandering: true,
       wanderAt: w.wanderAt,
       fresh: w.fresh,
+      special: false,
+      abilities: [],
     });
   }
   return out;

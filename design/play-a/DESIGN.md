@@ -209,3 +209,7 @@ The editor has no "notes". The inspector tabs are **Element**, **Actions** and *
 - **Zones tool.** "Zones" in the tools column: click squares to add them to the active zone or take them out; a square of another zone makes that zone active; the chip **New zone** starts another. Zone squares are tinted with a dashed outline and the id at the first square. A selected zone shows its number of squares and "Edit its squares".
 - **Markers** can be edited after they are placed (label, editor only or players see) and take actions on their square.
 
+### Special monsters and abilities (decision 69)
+
+A monster the quest marks special has a second ink ring around its token and a small star (`--sel` fill, ink outline) at its top left; its roster row has a star after the name; its margin note has a small caps line "Special monster". Abilities are listed as short names in italics under the roster stats, and as "Name. Text" lines in the margin note. Hovering a token or a roster row shows a tooltip: code and name, "Special monster" when it is, the stats line and one line per ability (touch users read the same facts in the margin note). A regular monster with an ability gets the ability text but no ring and no star. Zargon's order lists the abilities after the quest's free-text rules.
+

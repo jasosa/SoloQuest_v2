@@ -151,6 +151,8 @@ describe('monstersInPlay', () => {
         maxBody: 1,
         dead: true,
         state: 'active',
+        special: false,
+        abilities: [],
       },
     ]);
   });

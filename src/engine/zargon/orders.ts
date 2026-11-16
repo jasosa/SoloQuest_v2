@@ -4,6 +4,7 @@
  * reload. Nothing here reads or changes `state.rng`, and no positions or hero Body Points exist.
  */
 import type { Level } from '../board/level';
+import type { AbilityDef } from '../data/abilities';
 import { HEROES, HERO_NAMES, type Hero } from '../data/heroes';
 import { next } from '../game/rng';
 import type { GameState } from '../game/state';
@@ -120,9 +121,10 @@ function drawRule(
  * Special rules from the quest data: its `traits` first, then a line for every stat override that
  * is present in the def (even when equal to the base table: named monsters carry their own stats).
  */
-function specialRules(def: MonsterDef | undefined): string[] {
+function specialRules(def: MonsterDef | undefined, abilities: readonly AbilityDef[]): string[] {
   if (!def) return [];
   const out: string[] = [...(def.traits ?? [])];
+  for (const a of abilities) out.push(`${a.name}: ${a.text}`);
   const o = def.overrides;
   if (o?.att !== undefined) out.push(`Rolls ${o.att} attack ${o.att === 1 ? 'die' : 'dice'}`);
   if (o?.def !== undefined) out.push(`Rolls ${o.def} defend ${o.def === 1 ? 'die' : 'dice'}`);
@@ -195,7 +197,7 @@ function buildOrder(
     ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
       ? {}
       : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),
-    special: specialRules(def),
+    special: specialRules(def, view.abilities),
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
     turn,
     done,

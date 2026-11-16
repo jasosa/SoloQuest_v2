@@ -585,3 +585,37 @@ header .goalline b {
   font-style: italic;
   margin: 4px 0 6px;
 }
+
+/* ---------- special monsters and abilities (decision 69) ---------- */
+.roster .star {
+  color: var(--ink);
+  margin-left: 6px;
+  font-size: 15px;
+}
+.roster .ab {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  font-style: italic;
+}
+.special-note {
+  font:
+    700 12px 'Bonum',
+    serif !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink) !important;
+  margin-bottom: 6px !important;
+}
+.abilities {
+  list-style: none;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.abilities li + li {
+  margin-top: 4px;
+}
+.abilities b {
+  color: var(--ink);
+  font-family: 'Bonum', serif;
+}

@@ -323,7 +323,8 @@
       "id": "m-wardoz",
       "type": "zombie",
       "cell": [16, 14],
-      "name": "Wardoz"
+      "name": "Wardoz",
+      "special": true
     },
     {
       "id": "m12",
@@ -332,7 +333,7 @@
       "overrides": {
         "def": 5
       },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+      "abilities": ["stone"]
     },
     {
       "id": "m13",
@@ -341,7 +342,7 @@
       "overrides": {
         "def": 5
       },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+      "abilities": ["stone"]
     },
     {
       "id": "m14",
@@ -350,7 +351,7 @@
       "overrides": {
         "def": 5
       },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+      "abilities": ["stone"]
     },
     {
       "id": "m15",
@@ -359,7 +360,7 @@
       "overrides": {
         "def": 5
       },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+      "abilities": ["stone"]
     },
     {
       "id": "m16",

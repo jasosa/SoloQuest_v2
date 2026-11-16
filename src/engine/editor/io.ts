@@ -31,6 +31,7 @@ const TOP_KEYS = [
   'traps',
   'markers',
   'zones',
+  'abilityDefs',
   'notes',
   'wandering',
   'objectives',

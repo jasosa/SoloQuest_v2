@@ -87,7 +87,8 @@ describe('quest 14: data', () => {
     expect([...w.spells!].sort()).toEqual(
       ['ballOfFlame', 'command', 'fear', 'fear', 'summon', 'tempest'].sort(),
     );
-    expect(w.traits?.join(' ')).toContain('Spirit Blade');
+    expect(w.abilities).toEqual(['spiritBladeOnly']);
+    expect(w.special).toBe(true);
     const x = quest.markers.find((m) => m.label === 'X')!;
     expect(x.cell).toEqual([23, 3]);
   });

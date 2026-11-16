@@ -351,7 +351,8 @@
       },
       "spells": ["ballOfFlame", "firestorm", "tempest", "summon", "fear", "escape"],
       "spellLimit": "onePerTurn",
-      "traits": ["Immune to fire spells"]
+      "special": true,
+      "abilities": ["fireImmune"]
     }
   ],
   "traps": [
@@ -423,9 +424,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {

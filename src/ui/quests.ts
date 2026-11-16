@@ -51,7 +51,14 @@ export async function devTestLevel(): Promise<Level | undefined> {
       // A statue in the start room that wakes when door d3 opens (dormant monster, decision 28).
       monsters: [
         // m3 is hidden until the quest places it: give it two Dread spells (a caster).
-        ...base.monsters.map((m) => (m.id === 'm3' ? { ...m, spells: ['fear', 'sleep'] } : m)),
+        ...base.monsters.map((m) =>
+          m.id === 'm3'
+            ? { ...m, spells: ['fear', 'sleep'] }
+            : // m2 is a special monster with an ability (decision 69).
+              m.id === 'm2'
+              ? { ...m, special: true, abilities: ['fireImmune'] }
+              : m,
+        ),
         { id: 'm-statue', type: 'gargoyle', name: 'The statue', cell: [4, 16], state: 'dormant' },
       ],
       npcs: [

@@ -356,7 +356,8 @@
         "def": 5,
         "body": 2,
         "mind": 3
-      }
+      },
+      "special": true
     },
     {
       "id": "m12",
@@ -405,9 +406,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {

@@ -14,6 +14,7 @@ import {
   zoneLabels,
   trapsInView,
 } from '../../engine/game/view';
+import { monsterTip } from '../play/monsterTip';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
@@ -33,6 +34,17 @@ export const reducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Keyboard and screen reader access for a tap area: button role, focusable, Enter or Space. */
+/** The points of a five-pointed star centered at (cx, cy) with outer radius r. */
+function starPoints(cx: number, cy: number, r: number): string {
+  const pts: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const a = (Math.PI / 5) * i - Math.PI / 2;
+    const rad = i % 2 === 0 ? r : r * 0.45;
+    pts.push(`${(cx + rad * Math.cos(a)).toFixed(2)},${(cy + rad * Math.sin(a)).toFixed(2)}`);
+  }
+  return pts.join(' ');
+}
+
 function press(label: string, onPress: () => void) {
   return {
     role: 'button' as const,
@@ -505,6 +517,18 @@ export function PlayBoard({
           >
             {codes.get(m.id)}
           </text>
+          {m.special && (
+            <g data-special={m.id} pointerEvents="none">
+              <circle cx={cx} cy={cy} r={17.5} fill="none" stroke={color.ink} strokeWidth={2.5} />
+              <polygon
+                points={starPoints(cx - 12, cy - 12, 6.5)}
+                fill={color.sel}
+                stroke={color.ink}
+                strokeWidth={1.2}
+                strokeLinejoin="round"
+              />
+            </g>
+          )}
           {hurt && (
             <circle
               cx={cx + 11}
@@ -531,7 +555,9 @@ export function PlayBoard({
         {...press(`${codes.get(m.id)} ${MONSTER_NAMES[m.type]}`, () =>
           onSelect({ kind: 'monster', id: m.id }),
         )}
-      />,
+      >
+        <title>{monsterTip(m, codes.get(m.id) ?? '')}</title>
+      </rect>,
     );
   }
 

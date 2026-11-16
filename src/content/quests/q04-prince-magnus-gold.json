@@ -321,7 +321,8 @@
       "id": "m-gulthor",
       "type": "dreadWarrior",
       "cell": [11, 9],
-      "name": "Gulthor"
+      "name": "Gulthor",
+      "special": true
     },
     {
       "id": "m11",
