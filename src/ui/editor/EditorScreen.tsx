@@ -10,7 +10,9 @@ import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, Tool } from './editorStore';
 import { countLabel } from './problems';
+import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
+import { SpellDialog } from './SpellDialog';
 import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
@@ -202,6 +204,8 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
       </div>
 
       <ActionDialog store={store} />
+      <AbilityDialog store={store} />
+      <SpellDialog store={store} />
 
       {ref.aligning && ref.state && <AlignDialog api={ref} say={s.say} />}
 

@@ -350,7 +350,10 @@ test.describe('editor: inspector', () => {
     await insp(page).getByLabel('att').fill('5');
     await insp(page).getByLabel('Traits (one per line)').fill('Likes gold');
     await insp(page).getByRole('button', { name: 'Dormant', exact: true }).click();
-    await insp(page).getByRole('button', { name: 'Fear', exact: true }).click();
+    const spells = page.getByTestId('monster-spells');
+    await spells.getByLabel('Add a spell').selectOption({ label: 'Fear' });
+    await spells.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(spells.locator('[data-spell="fear"]')).toBeVisible();
     await expect(insp(page).getByLabel('Name')).toHaveValue('Grub');
     await expect(insp(page).getByLabel('att')).toHaveValue('5');
     await expect(insp(page).getByLabel('Traits (one per line)')).toHaveValue('Likes gold');
@@ -674,71 +677,115 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
   });
 });
 
-test.describe('editor: special monsters and abilities (decision 69)', () => {
-  const insp = (page: Page) => page.locator('.ed-inspector');
+test.describe('editor: abilities and spells of a monster (decisions 69 and 70)', () => {
+  const abilityDlg = (page: Page) => page.getByRole('dialog', { name: 'Ability' });
+  const spellDlg = (page: Page) => page.getByRole('dialog', { name: 'Spell' });
 
-  test('a monster is special with one chip; abilities are chips, the quest can add its own', async ({
-    page,
-  }) => {
+  async function selectedMonster(page: Page) {
     await newQuest(page);
-    // the quest's own ability, written in the quest fields
-    await btn(page, 'Add an ability').click();
-    await expect(page.getByTestId('ability-row')).toHaveCount(1);
-    const name = insp(page).getByLabel('Ability ab1 name');
-    await name.fill('Bog skin');
-    await name.blur();
-    const text = insp(page).getByLabel('Ability ab1 text');
-    await text.fill('Mud spells fail.');
-    await text.blur();
-    await insp(page).getByRole('button', { name: 'Immunity', exact: true }).click();
-    await shot(page, 'editor-ability');
-
-    // a monster takes it, plus a core one, and becomes special
     await tool(page, 'Monsters').click();
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
+  }
+
+  test('abilities: a dropdown and Add, no chips; a new ability opens its popup', async ({
+    page,
+  }) => {
+    await selectedMonster(page);
+    const section = page.getByTestId('monster-abilities');
+    await expect(section.locator('.chip').filter({ hasText: 'Fireproof' })).toHaveCount(0);
+
+    // pick from the core library with the dropdown and Add
+    const add = section.getByRole('button', { name: 'Add', exact: true });
+    await expect(add).toBeDisabled();
+    await section.getByLabel('Add an ability').selectOption({ label: 'Fireproof' });
+    await add.click();
+    await expect(section.locator('[data-ability="fireImmune"]')).toContainText(
+      'Fire spells have no effect on it.',
+    );
+    // the ability that is on the monster is not offered again
+    await expect(section.getByLabel('Add an ability').locator('option')).not.toContainText([
+      'Fireproof',
+    ]);
+
+    // a new ability: made, added to the monster, and opened in its popup
+    await section.getByRole('button', { name: 'New ability…' }).click();
+    await expect(abilityDlg(page)).toBeVisible();
+    await abilityDlg(page).getByLabel('Name').fill('Bog skin');
+    await abilityDlg(page).getByLabel('Name').blur();
+    await abilityDlg(page).getByLabel('Kind').selectOption('immunity');
+    const text = abilityDlg(page).getByLabel('What it does');
+    await text.fill('Mud spells fail.');
+    await text.blur();
+    await expect(page.getByTestId('ability-used')).toContainText('m1');
+    await shot(page, 'editor-ability-popup');
+    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('Bog skin');
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('Mud spells fail.');
+
+    // an ability is taken off with its row button
+    await section.getByRole('button', { name: 'Remove Fireproof' }).click();
+    await expect(section.locator('[data-ability="fireImmune"]')).toHaveCount(0);
+  });
+
+  test('spells: dropdown and Add, a cast limit, a new spell with situations from a dropdown', async ({
+    page,
+  }) => {
+    await selectedMonster(page);
+    const section = page.getByTestId('monster-spells');
+    await section.getByLabel('Add a spell').selectOption({ label: 'Sleep' });
+    await section.getByRole('button', { name: 'Add', exact: true }).click();
+    const row = section.locator('[data-spell="sleep"]');
+    await expect(row).toContainText('Is a hero with high attack next to it?');
+    await expect(row.getByLabel('Sleep cast limit')).toHaveValue('1');
+    await row.getByLabel('Sleep cast limit').selectOption({ label: 'Twice' });
+    await expect(row.getByLabel('Sleep cast limit')).toHaveValue('2');
+    await row.getByLabel('Sleep cast limit').selectOption({ label: 'Once in the quest' });
+
+    // a new spell: its popup lists the situations with their questions
+    await section.getByRole('button', { name: 'New spell…' }).click();
+    await expect(spellDlg(page)).toBeVisible();
+    await expect(page.getByTestId('spell-tags')).toContainText('Could it cast it?');
+    await spellDlg(page).getByLabel('Name').fill('Mud');
+    await spellDlg(page).getByLabel('Name').blur();
+    await spellDlg(page).getByLabel('Add a situation').selectOption('heroAdjacent');
+    await expect(page.getByTestId('spell-tags')).toContainText('Is any hero next to it?');
+    await spellDlg(page).getByRole('button', { name: 'Remove any' }).click();
+    await expect(page.locator('[data-tag="any"]')).toHaveCount(0);
+    // the last situation cannot go without a question of the author's own
+    await spellDlg(page).getByRole('button', { name: 'Remove heroAdjacent' }).click();
+    await expect(page.locator('.toast')).toContainText('needs a situation or a question');
+    await spellDlg(page)
+      .getByLabel('Or one question of your own (replaces the situations)')
+      .fill('Is it raining?');
+    await spellDlg(page).getByLabel('Or one question of your own (replaces the situations)').blur();
+    await spellDlg(page).getByLabel('Offer it only when').selectOption('escapePoint');
+    await shot(page, 'editor-spell-popup');
+    await spellDlg(page).getByRole('button', { name: 'Close' }).click();
+    await expect(section.locator('[data-spell="sp1"]')).toContainText('Is it raining?');
+    await expect(section.locator('[data-spell="sp1"]').getByLabel('Mud cast limit')).toHaveValue(
+      '1',
+    );
+
+    // the special flag is a single toggle
     const special = page.getByTestId('special-chip');
-    await expect(special).toHaveAttribute('aria-pressed', 'false');
     await special.click();
     await expect(special).toHaveAttribute('aria-pressed', 'true');
-    const chips = page.getByTestId('ability-chips');
-    await expect(chips.getByRole('button')).toHaveText([
-      'Made of stone',
-      'Fireproof',
-      'Only the Spirit Blade',
-      'Statue',
-      'Bog skin',
-    ]);
-    await chips.getByRole('button', { name: 'Bog skin' }).click();
-    await chips.getByRole('button', { name: 'Fireproof' }).click();
-    await expect(chips.getByRole('button', { name: 'Bog skin' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await expect(chips.getByRole('button', { name: 'Fireproof' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await expect(chips.getByRole('button', { name: 'Statue' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
-    await shot(page, 'editor-monster-special');
-    for (const c of await chips.getByRole('button').all())
-      expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  });
 
-    // a second tap takes an ability off again
-    await chips.getByRole('button', { name: 'Fireproof' }).click();
-    await expect(chips.getByRole('button', { name: 'Fireproof' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
-
-    // removing the quest ability warns about the monster that lists it
-    await page.keyboard.press('Escape');
+  test('the quest fields list its own abilities and spells; deleting one warns', async ({
+    page,
+  }) => {
+    await selectedMonster(page);
+    const section = page.getByTestId('monster-abilities');
+    await section.getByRole('button', { name: 'New ability…' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
     await clickAt(page, 12, 3); // an empty square: nothing selected, the quest fields show
-    await insp(page).getByRole('button', { name: 'Remove ability ab1' }).click();
+    const own = page.getByTestId('abilities-section');
+    await expect(own).toContainText('New ability');
+    await own.getByRole('button', { name: 'Edit ability ab1' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Delete ability' }).click();
     await expect(page.locator('.ed-warnings')).toContainText('ab1');
   });
 });

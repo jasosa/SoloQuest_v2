@@ -10,14 +10,13 @@ import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
   addAbility,
+  addSpell,
   addEnding,
   addObjective,
-  removeAbility,
   removeEnding,
   removeObjective,
   setRules,
   setWandering,
-  updateAbility,
   updateEnding,
   updateObjective,
 } from '../../engine/editor';
@@ -145,74 +144,73 @@ export function QuestPanel({ store }: { store: EditorStore }) {
       </section>
 
       <section data-testid="abilities-section">
-        <div className="lbl">Abilities of this quest</div>
-        {quest.abilityDefs.map((a) => (
-          <div className="ed-row" key={a.id} data-testid="ability-row" data-ability={a.id}>
-            <div className="ed-row-head">
-              <span>{a.id}</span>
+        <div className="lbl">Abilities and spells of this quest</div>
+        <ul className="ed-items">
+          {quest.abilityDefs.map((a) => (
+            <li key={a.id} data-ability={a.id}>
+              <b>{a.name}</b>
+              <p>
+                {a.kind === 'weakness'
+                  ? 'Weakness'
+                  : a.kind === 'immunity'
+                    ? 'Immunity'
+                    : 'Ability'}
+                : {a.text}
+              </p>
               <button
                 className="chip"
-                aria-label={`Remove ability ${a.id}`}
-                onClick={() => st.apply((q) => removeAbility(q, a.id))}
+                aria-label={`Edit ability ${a.id}`}
+                onClick={() => st.setAbilityId(a.id)}
               >
-                Remove
+                Edit
               </button>
-            </div>
-            <label className="ed-field">
-              Name
-              <input
-                key={`${a.id}:n:${a.name}`}
-                defaultValue={a.name}
-                aria-label={`Ability ${a.id} name`}
-                onBlur={(ev) => {
-                  const v = ev.target.value.trim();
-                  if (v === a.name) return;
-                  if (!st.apply((q) => updateAbility(q, a.id, { name: v })))
-                    ev.target.value = a.name;
-                }}
-              />
-            </label>
-            <label className="ed-field">
-              What it does
-              <textarea
-                key={`${a.id}:t:${a.text}`}
-                defaultValue={a.text}
-                rows={2}
-                aria-label={`Ability ${a.id} text`}
-                onBlur={(ev) => {
-                  const v = ev.target.value.trim();
-                  if (v === a.text) return;
-                  if (!st.apply((q) => updateAbility(q, a.id, { text: v })))
-                    ev.target.value = a.text;
-                }}
-              />
-            </label>
-            <div className="ed-chips" role="group" aria-label={`Ability ${a.id} kind`}>
-              {(['ability', 'weakness', 'immunity'] as const).map((k) => (
-                <button
-                  key={k}
-                  className="chip"
-                  aria-pressed={(a.kind ?? 'ability') === k}
-                  onClick={() => st.apply((q) => updateAbility(q, a.id, { kind: k }))}
-                >
-                  {k === 'ability' ? 'Ability' : k === 'weakness' ? 'Weakness' : 'Immunity'}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+            </li>
+          ))}
+          {quest.spellDefs.map((sp) => (
+            <li key={sp.id} data-spell={sp.id}>
+              <b>{sp.name}</b>
+              <p>Spell: {sp.question ?? sp.tags.join(', ')}</p>
+              <button
+                className="chip"
+                aria-label={`Edit spell ${sp.id}`}
+                onClick={() => st.setSpellId(sp.id)}
+              >
+                Edit
+              </button>
+            </li>
+          ))}
+        </ul>
         <p className="ed-note">
-          Your own abilities show next to the core ones (stone, fireproof...) on every monster. A
+          Your own abilities and spells show next to the core ones when you add them to a monster. A
           monster with an ability is not a special monster.
         </p>
-        <button
-          className="btn"
-          onClick={() =>
-            st.apply((q) => addAbility(q, { name: 'New ability', text: 'Write what it does.' }))
-          }
-        >
-          Add an ability
-        </button>
+        <div className="ed-addrow">
+          <button
+            className="btn"
+            onClick={() => {
+              if (
+                !st.apply((q) =>
+                  addAbility(q, { name: 'New ability', text: 'Write what it does.' }),
+                )
+              )
+                return;
+              const made = store.getState().quest.abilityDefs.at(-1);
+              if (made) st.setAbilityId(made.id);
+            }}
+          >
+            Add an ability
+          </button>
+          <button
+            className="btn"
+            onClick={() => {
+              if (!st.apply((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
+              const made = store.getState().quest.spellDefs.at(-1);
+              if (made) st.setSpellId(made.id);
+            }}
+          >
+            Add a spell
+          </button>
+        </div>
       </section>
 
       <section>

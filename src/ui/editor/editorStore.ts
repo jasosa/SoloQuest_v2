@@ -105,6 +105,10 @@ export interface EditorState {
   readonly panel: Panel;
   /** The note open in the note builder. */
   readonly noteId: string | null;
+  /** The ability of the quest open in its popup (decision 70). */
+  readonly abilityId: string | null;
+  /** The spell of the quest open in its popup. */
+  readonly spellId: string | null;
   /** Set while the note builder waits for a click on the board. */
   readonly picking: PickRequest | null;
   /** First square of a double block, waiting for the second click. */
@@ -126,6 +130,8 @@ export interface EditorState {
   select(sel: EditSelection): void;
   setPanel(panel: Panel): void;
   setNoteId(id: string | null): void;
+  setAbilityId(id: string | null): void;
+  setSpellId(id: string | null): void;
   setPicking(req: PickRequest | null): void;
   setPendingBlock(cell: Cell | null): void;
   /** Open the thing a problem names: select it, show its tab, flash it on the board. */
@@ -182,6 +188,8 @@ export function createEditorStore(init: EditorInit): EditorStore {
       selection: null,
       panel: 'element',
       noteId: null,
+      abilityId: null,
+      spellId: null,
       picking: null,
       pendingBlock: null,
       toast: null,
@@ -253,6 +261,8 @@ export function createEditorStore(init: EditorInit): EditorStore {
           panel === 'notes' ? { panel, picking: null, selection: null } : { panel, picking: null },
         ),
       setNoteId: (noteId) => set({ noteId, picking: null }),
+      setAbilityId: (abilityId) => set({ abilityId }),
+      setSpellId: (spellId) => set({ spellId }),
       setPicking: (picking) => set({ picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
       jump(ref) {

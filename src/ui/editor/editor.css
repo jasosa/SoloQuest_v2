@@ -643,3 +643,65 @@
   text-transform: uppercase;
   margin: 10px 0 2px;
 }
+
+/* ---------- dropdown-add lists and popups of abilities and spells (decision 70) ---------- */
+.ed-items {
+  list-style: none;
+}
+.ed-items li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  margin-bottom: 6px;
+}
+.ed-items li b {
+  font:
+    700 16px 'Bonum',
+    serif;
+  color: var(--ink);
+}
+.ed-items li p {
+  grid-column: 1;
+  font-size: 14px;
+  color: var(--muted);
+}
+.ed-items li .chip {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  padding: 0 12px;
+}
+.ed-items li .ed-q {
+  font-style: italic;
+  color: var(--ink-2);
+}
+.ed-items li .ed-ctl {
+  grid-column: 1 / span 2;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ed-items li .ed-edit,
+.ed-items li > .ed-edit {
+  grid-column: 1 / span 2;
+  justify-self: start;
+  min-height: 44px;
+}
+.ed-addrow {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.ed-addrow .es-select {
+  flex: 1 1 160px;
+  min-height: 44px;
+}
+.ed-addrow .btn {
+  width: auto;
+  padding: 0 14px;
+  min-height: 44px;
+}

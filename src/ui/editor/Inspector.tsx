@@ -20,7 +20,6 @@ import {
   type MonsterKind,
   type TrapKind,
 } from '../../engine/editor';
-import { abilityLookup } from '../../engine/data/abilities';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
 import {
   MONSTER_TYPES,
@@ -29,16 +28,16 @@ import {
   type Quest,
   type TrapDef,
 } from '../../engine/quest/schema';
-import { SPELL_KEYS, SPELL_NAMES, isSpellKey } from '../../engine/zargon/spells';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { SubjectActions } from './ActionsSection';
+import { MonsterAbilities, MonsterSpells } from './MonsterLists';
 import { elementOf } from './elementActions';
 import { ActionsPanel } from './ActionsPanel';
 import { ProblemsPanel } from './ProblemsPanel';
 import { QuestPanel } from './QuestPanel';
 import { parseMapLetter } from './noteForms';
-import { STAT_KEYS, parseLines, parseOverrides, toggleIn, type StatKey } from './inspectorForms';
+import { STAT_KEYS, parseLines, parseOverrides, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
 
 export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
@@ -349,12 +348,8 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
 
 function MonsterFields({ store, monster }: { store: EditorStore; monster: MonsterDef }) {
   const st = store.getState();
-  const { quest } = useStore(store);
-  const abilities = [...abilityLookup(quest).values()];
-  const has = (id: string) => (monster.abilities ?? []).includes(id);
   const patch = (p: Parameters<typeof updateMonster>[2]) =>
     st.apply((q) => updateMonster(q, monster.id, p));
-  const spells = (monster.spells ?? []).filter(isSpellKey);
   const state = monster.state ?? 'active';
 
   return (
@@ -381,31 +376,7 @@ function MonsterFields({ store, monster }: { store: EditorStore; monster: Monste
       >
         Special monster (story-critical)
       </button>
-      <div className="lbl">Abilities</div>
-      <div
-        className="ed-chips ed-small"
-        role="group"
-        aria-label="Abilities"
-        data-testid="ability-chips"
-      >
-        {abilities.map((a) => (
-          <button
-            key={a.id}
-            className="chip"
-            aria-pressed={has(a.id)}
-            title={a.text}
-            onClick={() =>
-              patch({
-                abilities: has(a.id)
-                  ? (monster.abilities ?? []).filter((x) => x !== a.id)
-                  : [...(monster.abilities ?? []), a.id],
-              })
-            }
-          >
-            {a.name}
-          </button>
-        ))}
-      </div>
+      <MonsterAbilities store={store} monster={monster} />
 
       <label className="ed-field">
         Name
@@ -451,31 +422,7 @@ function MonsterFields({ store, monster }: { store: EditorStore; monster: Monste
         onSave={(o) => patch({ overrides: o })}
       />
 
-      <div className="lbl">Spells</div>
-      <div className="ed-chips ed-small">
-        {SPELL_KEYS.map((k) => (
-          <button
-            key={k}
-            className="chip"
-            aria-pressed={spells.includes(k)}
-            onClick={() => {
-              const next = toggleIn(spells, k, SPELL_KEYS);
-              // a spell limit without spells is refused: drop it with the last spell
-              patch(next.length === 0 ? { spells: null, spellLimit: null } : { spells: next });
-            }}
-          >
-            {SPELL_NAMES[k]}
-          </button>
-        ))}
-      </div>
-      <button
-        className="chip ed-wide"
-        aria-pressed={monster.spellLimit === 'onePerTurn'}
-        disabled={spells.length === 0}
-        onClick={() => patch({ spellLimit: monster.spellLimit ? null : 'onePerTurn' })}
-      >
-        One spell each turn
-      </button>
+      <MonsterSpells store={store} monster={monster} />
 
       <label className="ed-field">
         Traits (one per line)

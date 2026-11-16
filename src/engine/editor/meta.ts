@@ -5,6 +5,7 @@
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
 import { CORE_ABILITIES } from '../data/abilities';
+import { CORE_SPELLS, isSpellTag, type OfferWhen, type SpellTag } from '../data/spells';
 import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
@@ -54,6 +55,82 @@ export function removeAbility(q: Quest, id: string): EditResult {
   if (!q.abilityDefs.some((a) => a.id === id))
     return fail(`There is no ability ${id} of this quest.`);
   const quest = { ...q, abilityDefs: q.abilityDefs.filter((a) => a.id !== id) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** A spell of the quest (decision 70), next to the core spells. */
+export interface SpellInput {
+  name?: string;
+  text?: string | null;
+  tags?: SpellTag[];
+  /** One question of its own; replaces the tags. `null` clears it. */
+  question?: string | null;
+  warning?: string | null;
+  offerWhen?: OfferWhen;
+}
+
+export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditResult {
+  const name = (input.name ?? '').trim();
+  if (name === '') return fail('A spell needs a name.');
+  const tags = input.tags ?? [];
+  const question = input.question?.trim() || undefined;
+  if (tags.length === 0 && !question) return fail('A spell needs a situation or a question.');
+  const bad = tags.find((t) => !isSpellTag(t));
+  if (bad) return fail(`Unknown situation "${bad}".`);
+  let id = input.id;
+  if (id !== undefined) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The spell id "${id}" is not valid.`);
+    if (CORE_SPELLS.some((s) => s.id === id) || q.spellDefs.some((s) => s.id === id))
+      return fail(`A spell with id ${id} already exists.`);
+  } else id = nextId('sp', [...CORE_SPELLS.map((s) => s.id), ...q.spellDefs.map((s) => s.id)]);
+  const def = clean({
+    id,
+    name,
+    text: input.text?.trim() || undefined,
+    tags: [...new Set(tags)],
+    question,
+    warning: input.warning?.trim() || undefined,
+    offerWhen: input.offerWhen && input.offerWhen !== 'always' ? input.offerWhen : undefined,
+  });
+  const quest = { ...q, spellDefs: [...q.spellDefs, def] };
+  return ok(quest, newIssues(q, quest));
+}
+
+export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult {
+  const s = q.spellDefs.find((x) => x.id === id);
+  if (!s) return fail(`There is no spell ${id} of this quest.`);
+  const name = patch.name === undefined ? s.name : patch.name.trim();
+  if (name === '') return fail('A spell needs a name.');
+  const tags = patch.tags === undefined ? [...s.tags] : [...new Set(patch.tags)];
+  const bad = tags.find((t) => !isSpellTag(t));
+  if (bad) return fail(`Unknown situation "${bad}".`);
+  const question =
+    patch.question === undefined
+      ? s.question
+      : patch.question === null
+        ? undefined
+        : patch.question.trim() || undefined;
+  if (tags.length === 0 && !question) return fail('A spell needs a situation or a question.');
+  const pick = (cur: string | undefined, v: string | null | undefined) =>
+    v === undefined ? cur : v === null ? undefined : v.trim() || undefined;
+  const next = clean({
+    id,
+    name,
+    text: pick(s.text, patch.text),
+    tags,
+    question,
+    warning: pick(s.warning, patch.warning),
+    offerWhen:
+      (patch.offerWhen ?? s.offerWhen) === 'escapePoint' ? ('escapePoint' as const) : undefined,
+  });
+  const quest = { ...q, spellDefs: q.spellDefs.map((x) => (x.id === id ? next : x)) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** Remove a spell of the quest. Monsters and notes that still use it come back as warnings. */
+export function removeSpell(q: Quest, id: string): EditResult {
+  if (!q.spellDefs.some((s) => s.id === id)) return fail(`There is no spell ${id} of this quest.`);
+  const quest = { ...q, spellDefs: q.spellDefs.filter((s) => s.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
 
