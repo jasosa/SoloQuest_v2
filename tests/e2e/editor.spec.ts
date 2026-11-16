@@ -674,6 +674,75 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
   });
 });
 
+test.describe('editor: special monsters and abilities (decision 69)', () => {
+  const insp = (page: Page) => page.locator('.ed-inspector');
+
+  test('a monster is special with one chip; abilities are chips, the quest can add its own', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    // the quest's own ability, written in the quest fields
+    await btn(page, 'Add an ability').click();
+    await expect(page.getByTestId('ability-row')).toHaveCount(1);
+    const name = insp(page).getByLabel('Ability ab1 name');
+    await name.fill('Bog skin');
+    await name.blur();
+    const text = insp(page).getByLabel('Ability ab1 text');
+    await text.fill('Mud spells fail.');
+    await text.blur();
+    await insp(page).getByRole('button', { name: 'Immunity', exact: true }).click();
+    await shot(page, 'editor-ability');
+
+    // a monster takes it, plus a core one, and becomes special
+    await tool(page, 'Monsters').click();
+    await clickAt(page, 4, 17);
+    await tool(page, 'Select').click();
+    await clickAt(page, 4, 17);
+    const special = page.getByTestId('special-chip');
+    await expect(special).toHaveAttribute('aria-pressed', 'false');
+    await special.click();
+    await expect(special).toHaveAttribute('aria-pressed', 'true');
+    const chips = page.getByTestId('ability-chips');
+    await expect(chips.getByRole('button')).toHaveText([
+      'Made of stone',
+      'Fireproof',
+      'Only the Spirit Blade',
+      'Statue',
+      'Bog skin',
+    ]);
+    await chips.getByRole('button', { name: 'Bog skin' }).click();
+    await chips.getByRole('button', { name: 'Fireproof' }).click();
+    await expect(chips.getByRole('button', { name: 'Bog skin' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(chips.getByRole('button', { name: 'Fireproof' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(chips.getByRole('button', { name: 'Statue' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await shot(page, 'editor-monster-special');
+    for (const c of await chips.getByRole('button').all())
+      expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+
+    // a second tap takes an ability off again
+    await chips.getByRole('button', { name: 'Fireproof' }).click();
+    await expect(chips.getByRole('button', { name: 'Fireproof' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    // removing the quest ability warns about the monster that lists it
+    await page.keyboard.press('Escape');
+    await clickAt(page, 12, 3); // an empty square: nothing selected, the quest fields show
+    await insp(page).getByRole('button', { name: 'Remove ability ab1' }).click();
+    await expect(page.locator('.ed-warnings')).toContainText('ab1');
+  });
+});
+
 test.describe('editor: reference image', () => {
   /** A small PNG made in the page: a pale sheet with a dark frame (not a quest map). */
   async function makePng(page: Page): Promise<Buffer> {

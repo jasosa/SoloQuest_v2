@@ -9,12 +9,15 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
+  addAbility,
   addEnding,
   addObjective,
+  removeAbility,
   removeEnding,
   removeObjective,
   setRules,
   setWandering,
+  updateAbility,
   updateEnding,
   updateObjective,
 } from '../../engine/editor';
@@ -138,6 +141,77 @@ export function QuestPanel({ store }: { store: EditorStore }) {
           onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
         >
           Add an ending
+        </button>
+      </section>
+
+      <section data-testid="abilities-section">
+        <div className="lbl">Abilities of this quest</div>
+        {quest.abilityDefs.map((a) => (
+          <div className="ed-row" key={a.id} data-testid="ability-row" data-ability={a.id}>
+            <div className="ed-row-head">
+              <span>{a.id}</span>
+              <button
+                className="chip"
+                aria-label={`Remove ability ${a.id}`}
+                onClick={() => st.apply((q) => removeAbility(q, a.id))}
+              >
+                Remove
+              </button>
+            </div>
+            <label className="ed-field">
+              Name
+              <input
+                key={`${a.id}:n:${a.name}`}
+                defaultValue={a.name}
+                aria-label={`Ability ${a.id} name`}
+                onBlur={(ev) => {
+                  const v = ev.target.value.trim();
+                  if (v === a.name) return;
+                  if (!st.apply((q) => updateAbility(q, a.id, { name: v })))
+                    ev.target.value = a.name;
+                }}
+              />
+            </label>
+            <label className="ed-field">
+              What it does
+              <textarea
+                key={`${a.id}:t:${a.text}`}
+                defaultValue={a.text}
+                rows={2}
+                aria-label={`Ability ${a.id} text`}
+                onBlur={(ev) => {
+                  const v = ev.target.value.trim();
+                  if (v === a.text) return;
+                  if (!st.apply((q) => updateAbility(q, a.id, { text: v })))
+                    ev.target.value = a.text;
+                }}
+              />
+            </label>
+            <div className="ed-chips" role="group" aria-label={`Ability ${a.id} kind`}>
+              {(['ability', 'weakness', 'immunity'] as const).map((k) => (
+                <button
+                  key={k}
+                  className="chip"
+                  aria-pressed={(a.kind ?? 'ability') === k}
+                  onClick={() => st.apply((q) => updateAbility(q, a.id, { kind: k }))}
+                >
+                  {k === 'ability' ? 'Ability' : k === 'weakness' ? 'Weakness' : 'Immunity'}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <p className="ed-note">
+          Your own abilities show next to the core ones (stone, fireproof...) on every monster. A
+          monster with an ability is not a special monster.
+        </p>
+        <button
+          className="btn"
+          onClick={() =>
+            st.apply((q) => addAbility(q, { name: 'New ability', text: 'Write what it does.' }))
+          }
+        >
+          Add an ability
         </button>
       </section>
 

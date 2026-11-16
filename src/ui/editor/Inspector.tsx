@@ -20,6 +20,7 @@ import {
   type MonsterKind,
   type TrapKind,
 } from '../../engine/editor';
+import { abilityLookup } from '../../engine/data/abilities';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
 import {
   MONSTER_TYPES,
@@ -348,6 +349,9 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
 
 function MonsterFields({ store, monster }: { store: EditorStore; monster: MonsterDef }) {
   const st = store.getState();
+  const { quest } = useStore(store);
+  const abilities = [...abilityLookup(quest).values()];
+  const has = (id: string) => (monster.abilities ?? []).includes(id);
   const patch = (p: Parameters<typeof updateMonster>[2]) =>
     st.apply((q) => updateMonster(q, monster.id, p));
   const spells = (monster.spells ?? []).filter(isSpellKey);
@@ -365,6 +369,40 @@ function MonsterFields({ store, monster }: { store: EditorStore; monster: Monste
             onClick={() => patch({ type: t })}
           >
             {MONSTER_NAMES[t]}
+          </button>
+        ))}
+      </div>
+
+      <button
+        className="chip ed-wide"
+        aria-pressed={monster.special === true}
+        data-testid="special-chip"
+        onClick={() => patch({ special: monster.special !== true })}
+      >
+        Special monster (story-critical)
+      </button>
+      <div className="lbl">Abilities</div>
+      <div
+        className="ed-chips ed-small"
+        role="group"
+        aria-label="Abilities"
+        data-testid="ability-chips"
+      >
+        {abilities.map((a) => (
+          <button
+            key={a.id}
+            className="chip"
+            aria-pressed={has(a.id)}
+            title={a.text}
+            onClick={() =>
+              patch({
+                abilities: has(a.id)
+                  ? (monster.abilities ?? []).filter((x) => x !== a.id)
+                  : [...(monster.abilities ?? []), a.id],
+              })
+            }
+          >
+            {a.name}
           </button>
         ))}
       </div>

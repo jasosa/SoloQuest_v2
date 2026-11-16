@@ -12,6 +12,7 @@
  * The board is the fixed game board.
  */
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
+import { abilityLookup } from '../data/abilities';
 import { isSpellKey, SPELL_KEYS } from '../zargon/spells';
 import { QuestSchema, type FurnitureDef, type MonsterDef, type Quest } from '../quest/schema';
 import type { Issue } from '../quest/validate';
@@ -781,6 +782,10 @@ export interface MonsterPatch {
   spellLimit?: NonNullable<MonsterDef['spellLimit']> | null;
   traits?: string[] | null;
   hidden?: boolean | null;
+  /** Story-critical monster (decision 69). `null` or `false` clears it. */
+  special?: boolean | null;
+  /** Ability ids (core or the quest's own). `null` or `[]` clears them. */
+  abilities?: string[] | null;
 }
 
 /**
@@ -828,6 +833,13 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
   }
   if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);
   if (patch.hidden !== undefined) set('hidden', patch.hidden === true ? true : null);
+  if (patch.special !== undefined) set('special', patch.special === true ? true : null);
+  if (patch.abilities !== undefined) {
+    const known = abilityLookup(q);
+    const bad = patch.abilities?.find((a) => !known.has(a));
+    if (bad) return fail(`Unknown ability "${bad}".`);
+    set('abilities', patch.abilities?.length ? [...new Set(patch.abilities)] : null);
+  }
   if (next.spellLimit && !(next.spells as string[] | undefined)?.length)
     return fail('A spell limit needs at least one spell.');
   const cell = m.cell;

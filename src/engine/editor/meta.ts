@@ -4,8 +4,58 @@
  * Half done work is allowed (an objective that points at a missing monster): that comes back as
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
+import { CORE_ABILITIES } from '../data/abilities';
 import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
+
+/** An ability of the quest (decision 69), next to the core library. */
+export interface NewAbility {
+  name: string;
+  text: string;
+  kind?: 'ability' | 'weakness' | 'immunity';
+  id?: string;
+}
+
+export function addAbility(q: Quest, input: NewAbility): EditResult {
+  const name = input.name.trim();
+  const text = input.text.trim();
+  if (name === '') return fail('An ability needs a name.');
+  if (text === '') return fail('An ability needs text.');
+  let id = input.id;
+  if (id !== undefined) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return fail(`The ability id "${id}" is not valid.`);
+    if (CORE_ABILITIES.some((a) => a.id === id) || q.abilityDefs.some((a) => a.id === id))
+      return fail(`An ability with id ${id} already exists.`);
+  } else id = nextId('ab', [...CORE_ABILITIES.map((a) => a.id), ...q.abilityDefs.map((a) => a.id)]);
+  const def = clean({ id, name, text, kind: input.kind });
+  const quest = { ...q, abilityDefs: [...q.abilityDefs, def] };
+  return ok(quest, newIssues(q, quest));
+}
+
+export function updateAbility(
+  q: Quest,
+  id: string,
+  patch: { name?: string; text?: string; kind?: 'ability' | 'weakness' | 'immunity' },
+): EditResult {
+  const a = q.abilityDefs.find((x) => x.id === id);
+  if (!a) return fail(`There is no ability ${id} of this quest.`);
+  const name = patch.name === undefined ? a.name : patch.name.trim();
+  const text = patch.text === undefined ? a.text : patch.text.trim();
+  if (name === '') return fail('An ability needs a name.');
+  if (text === '') return fail('An ability needs text.');
+  const next = clean({ ...a, name, text, kind: patch.kind ?? a.kind });
+  const quest = { ...q, abilityDefs: q.abilityDefs.map((x) => (x.id === id ? next : x)) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** Remove an ability of the quest. Monsters that still list it come back as warnings. */
+export function removeAbility(q: Quest, id: string): EditResult {
+  if (!q.abilityDefs.some((a) => a.id === id))
+    return fail(`There is no ability ${id} of this quest.`);
+  const quest = { ...q, abilityDefs: q.abilityDefs.filter((a) => a.id !== id) };
+  return ok(quest, newIssues(q, quest));
+}
 
 /** What a wandering monster is: a monster type, free text, or `null` for none. */
 export type WanderingInput = { monster: MonsterType } | { text: string } | null;
