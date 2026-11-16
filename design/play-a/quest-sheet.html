@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SoloQuest · Quest sheet mockup</title>
+<meta name="viewport" content="width=1194, initial-scale=1">
+<link rel="stylesheet" href="play.css">
+<link rel="stylesheet" href="quest-sheet.css">
+</head>
+<body class="qs-page">
+<div class="app">
+  <header>
+    <span class="qn">Quest 1</span>
+    <h1>The Trial</h1>
+    <span class="goalline"><b>Goal</b> Find and destroy Verag</span>
+    <span class="turn">Turn <b id="turn">3</b></span>
+    <button class="chip hdr" id="undo" data-act="undo">Undo</button>
+    <button class="chip hdr" id="qchip" type="button">Quest</button>
+    <button class="chip hdr" type="button">End quest</button>
+  </header>
+
+  <div class="map">
+    <svg id="board" role="img" aria-label="Dungeon map"></svg>
+    <div class="callout" id="callout" hidden></div>
+  </div>
+
+  <aside>
+    <section class="goal">
+      <div class="lbl">Your goal</div>
+      <p>Find and destroy Verag, the gargoyle hiding in the catacombs.</p>
+    </section>
+    <p class="zinfo"></p>
+    <section>
+      <div class="lbl">Monsters in play</div>
+      <ul class="roster" id="roster"></ul>
+    </section>
+    <section>
+      <div class="lbl">Quest notes</div>
+      <ul class="journal" id="journal"></ul>
+    </section>
+    <p class="wander">Wandering monster: <b>Orc</b></p>
+    <button class="zargon-btn" id="zbtn" data-act="zargon">Zargon's turn<small></small></button>
+  </aside>
+
+  <section class="zpage" id="zpage" aria-label="Zargon's turn">
+    <div class="zh"><h2>Zargon's turn</h2><span id="zturn"></span><button class="link" data-act="zclose">Back to the map</button></div>
+    <div class="seg" id="seg" data-mode="priority">
+      <span class="thumb"></span>
+      <button data-act="mode" data-mode="priority" aria-pressed="true">Priority list</button>
+      <button data-act="mode" data-mode="detail" aria-pressed="false">Who can it reach?</button>
+    </div>
+    <p class="seg-help" id="seghelp"></p>
+    <ol class="orders" id="orders"></ol>
+    <div class="zfoot"><button class="btn" data-act="zend">End Zargon's turn</button></div>
+  </section>
+
+  <div id="notehost"></div>
+  <div id="toasthost"></div>
+</div>
+
+<nav class="qs-nav" aria-label="Mockup states">
+  <b>Mockup of decision 67.</b> Board and sample texts are from quest 1; the sheet content is only an example.
+  <a href="?state=none&amp;s=board">1 Title band and side column</a>
+  <a href="?state=none&amp;s=sheet">2 Quest sheet</a>
+  <a href="?state=idle&amp;s=element">3 Element: For this quest</a>
+  <a href="?state=none&amp;s=room">4 Room label</a>
+  <a href="?state=none&amp;s=message">5 Message sheet</a>
+  <a href="?state=none&amp;s=start">6 Start sheet</a>
+</nav>
+<script src="quest1.js"></script>
+<script src="play.js"></script>
+<script src="quest-sheet.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* Mockup of the Quest sheet (decision 67). Only existing tokens from play.css. */
+html, body.qs-page { overflow: auto; height: auto; }
+.qs-nav { width: 1194px; padding: 12px 28px 28px; font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; }
+.qs-nav b { color: var(--ink); font-family: "Bonum"; width: 100%; }
+.qs-nav a { color: var(--ink); border-bottom: 1px solid currentColor; text-decoration: none; padding: 8px 0; }
+
+/* title band */
+header { align-items: center; height: 64px; padding-top: 0; }
+header .goalline { font-size: 16px; color: var(--muted); margin-left: 8px; max-width: 330px; }
+header .goalline b { font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
+.chip.hdr { min-height: 44px; padding: 0 14px; position: relative; }
+.chip.hdr + .chip.hdr { margin-left: -6px; }
+header .turn { margin-left: auto; }
+.chip.hdr.dot::after { content: ""; position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.chip.hdr[aria-pressed="true"] { background: var(--ink); color: #F4ECDD; }
+.chip.hdr[aria-pressed="true"].dot::after { background: #F4ECDD; }
+
+/* side column after the change */
+aside .goal, aside .zinfo, aside section:has(#journal) { display: none; }
+aside .heroes { display: flex; gap: 8px; margin-bottom: 4px; }
+aside .heroes .chip { flex: 1; font-size: 14px; }
+.npcs { list-style: none; }
+.npcs li { border-bottom: 1px solid var(--paper-2); padding: 4px 0 8px; }
+.npcs li .nm { font-size: 16px; }
+.npcs .st { font-size: 15px; color: var(--ink-2); }
+
+/* Quest sheet */
+.qsheet { position: absolute; right: 0; top: 64px; bottom: 0; width: 420px; z-index: 15; background: var(--paper-3); border-left: 2px solid var(--ink); box-shadow: -6px 0 0 var(--sel); padding: 16px 22px 24px; overflow: auto; animation: slidein .22s var(--ease-ink) both; }
+@keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
+.qsheet .qh { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.qsheet .qh .kind { font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.qsheet .qh h2 { font: 700 24px/1.1 "Bonum"; color: var(--ink); }
+.qsheet .qh .x { margin-left: auto; width: 44px; height: 44px; border: 1.5px solid var(--ink); background: none; font-size: 22px; color: var(--ink); }
+.qsheet section { border-top: 1px solid var(--rock-line); padding: 12px 0 6px; }
+.qsheet p { font-size: 16px; margin-bottom: 8px; }
+.qsheet .hint { font-size: 14px; color: var(--muted); font-style: italic; margin: -2px 0 10px; }
+.goals-list { list-style: none; }
+.goals-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 16px; padding: 4px 0; }
+.goals-list .box { flex: none; width: 20px; height: 20px; border: 2px solid var(--ink); margin-top: 3px; display: grid; place-items: center; font-size: 14px; line-height: 1; }
+.goals-list .done .box { background: var(--ink); color: #F4ECDD; }
+.goals-list .done span:last-child { color: var(--muted); text-decoration: line-through; }
+.qsheet .btn { margin: 6px 0 4px; min-height: 48px; }
+.read { list-style: none; }
+.read li button { display: flex; gap: 10px; align-items: center; width: 100%; min-height: 44px; border: 0; background: none; text-align: left; font-size: 15px; color: var(--muted); }
+.read li b, .fq .nr b { flex: none; width: 28px; height: 28px; background: var(--ink); color: #F4ECDD; font: 700 16px "Bonum"; display: grid; place-items: center; }
+.log { list-style: none; font-size: 14.5px; color: var(--muted); }
+.log li { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px dotted var(--off); }
+.log li i { flex: none; width: 52px; font-style: normal; color: var(--ink); font-family: "Bonum"; font-size: 13px; padding-top: 1px; }
+.qsheet .more { font-style: italic; color: var(--ink); border: 0; background: none; border-bottom: 1px solid currentColor; padding: 10px 0 2px; }
+
+/* element buttons inside a margin note */
+.fq { border-top: 1px solid var(--rock-line); margin-top: 12px; padding-top: 10px; }
+.fq .lbl { margin-bottom: 4px; }
+.fq .nr { display: flex; gap: 10px; align-items: center; min-height: 44px; width: 100%; border: 0; background: none; text-align: left; font-size: 14.5px; color: var(--muted); }
+.fq .btn { margin-top: 6px; }
+
+/* room label on the map */
+.roomlabel { position: absolute; width: 44px; height: 44px; border: 0; background: none; z-index: 4; display: grid; place-items: center; }
+.roomlabel span { width: 28px; height: 28px; background: var(--ink); display: grid; place-items: center; }
+.roomlabel svg { display: block; }
+
+/* message sheet with the light veil */
+.veil.light { background: transparent; pointer-events: none; }
+.veil.light .note { pointer-events: auto; box-shadow: 6px 6px 0 var(--sel), 0 0 0 1px var(--paper); }
+.note .btn { margin-top: 4px; }
+.note .tag { font-size: 14px; color: var(--muted); font-style: italic; margin: -8px 0 12px; }

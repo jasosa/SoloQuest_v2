@@ -156,6 +156,8 @@ A local picture (a photo or scan of a map) to trace from. It stays on this devic
 
 Goal: the board stays the center, the side column stops growing, and every message and button has one clear home. Inspired by the focused overlays of Imperial Commander 2: a clear hierarchy, and sheets that leave the board readable around them. No new colors, fonts or control styles.
 
+**Mockup.** Open `design/play-a/quest-sheet.html` (six clickable states: title band and side column, Quest sheet, element button, room label, message sheet, start sheet). Screenshots are in `design/play-a/shots/qs-*.png`. The mockup uses the quest 1 board with sample texts, so the content of the sheet is an example, not quest data.
+
 **Title band.** Quest, turn, then a second line with the **current goal**: the first objective that is not done, in one line ("Goal: Find the Talisman of Lore"). Buttons on the right, all 44 px tall `btn alt` chips: **Quest**, Undo, End quest. A small ink dot on the Quest chip means a confirm button is available now (an objective with `confirm` whose `confirmWhen` holds). End quest stays its own menu and is never reached from a quest button.
 
 **Side column (right), after the change.** Heroes, Companions, Monsters in play (alive only), the wandering monster line, the Zargon's turn button. No objectives list, no journal, no Quest actions block. Less scrolling: the list of monsters is the only part that can grow.
