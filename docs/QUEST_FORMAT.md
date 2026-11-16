@@ -110,7 +110,7 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 | `allKilled` | `monsters` (ids) | the last of them is slain |
 | `spellCast` | `monster?`, `spell?` | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him dormant, a door note places him again. |
 | `zargonTurn` | `n?`, `every?` | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k) |
-| `manual` | `label` | a button on the quest panel |
+| `manual` | `label`, `hint?` | a button. With a `target` it is a button of that element (under **For this quest**); without one it is in the Quest sheet. `hint` is one plain line shown above the button. |
 
 Falling-block squares in the Q13 style (a block may fall each time a hero enters) are modeled with `squareEntered` notes with `repeat: true` and a `showText` effect, NOT with `fallingBlock` trap objects. The trap kind `fallingBlock` is the one-shot official trap that leaves a permanent block.
 

@@ -369,38 +369,12 @@
       ]
     },
     {
-      "id": "n-C",
-      "letter": "C",
-      "at": [1, 0],
-      "trigger": {
-        "type": "squareEntered",
-        "cell": [0, 0]
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "title": "This square",
-          "text": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, tap this square again."
-        },
-        {
-          "type": "setFlag",
-          "flag": "cWatch",
-          "value": true
-        }
-      ]
-    },
-    {
       "id": "n-C-done",
       "trigger": {
         "type": "manual",
-        "label": "The last hero has crossed this square"
+        "label": "The last hero has crossed this square",
+        "hint": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button."
       },
-      "when": [
-        {
-          "flag": "cWatch",
-          "is": true
-        }
-      ],
       "effects": [
         {
           "type": "placeBlock",

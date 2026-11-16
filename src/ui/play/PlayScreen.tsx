@@ -445,6 +445,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             </button>
           </>
         )}
+        {hints.some((c) => c[0] === sel.at[0] && c[1] === sel.at[1]) && (
+          <button
+            className="btn alt"
+            onClick={() => act({ type: 'LOOK_FROM', cell: [sel.at[0], sel.at[1]] })}
+          >
+            Look from here
+          </button>
+        )}
         {forQuest('square', `${sel.at[0]},${sel.at[1]}`)}
       </MarginNote>
     );

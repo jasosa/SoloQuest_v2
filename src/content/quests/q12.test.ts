@@ -222,38 +222,37 @@ describe('quest 12: letter B, the Star of the West', () => {
   });
 });
 
-describe('quest 12: letter C, the square that needs watching', () => {
+describe('quest 12: the square that needs watching (no letter, no note)', () => {
   const seen = () => run(...lookUntil(via([], 'd12'), (st) => st.seenCells.has('0,0')));
+  const hint =
+    'Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button.';
 
-  it('the square shows a marker once seen, and the button waits for the first note', () => {
+  it('the ring appears once the square is seen, with the message and the button together', () => {
     const s = seen();
-    expect(squareMarkers(level, s).map((m) => m.cell)).toEqual([[0, 0]]);
-    expect(elementQuest(level, s, 'square', '0,0').buttons).toEqual([]);
+    expect(squareMarkers(level, s)).toEqual([{ cell: [0, 0], repeat: false, step: false }]);
+    expect(manualTriggers(level, s)).toEqual([]); // not in the Quest sheet
+    expect(elementQuest(level, s, 'square', '0,0').buttons).toEqual([
+      { note: 'n-C-done', label: 'The last hero has crossed this square', hint },
+    ]);
   });
 
-  it('tapping the square asks for the button, then the button blocks (0,0) for good', () => {
+  it('there is no note C and no letter on the map', () => {
+    expect(quest.notes.some((n) => n.letter === 'C')).toBe(false);
+    expect(quest.notes.some((n) => n.trigger.type === 'squareEntered')).toBe(false);
+  });
+
+  it('the button blocks (0,0) for good, and the ring goes with it', () => {
     const s = seen();
     expect(s.placedBlocks.has('0,0')).toBe(false);
-    const r1 = reduce(level, s, { type: 'SQUARE_TRIGGER', cell: [0, 0] });
-    expect(noteIds(r1.prompts)).toEqual(['n-C']);
-    // the button belongs to the square: not in the Quest sheet, and the marker stays for it
-    expect(manualTriggers(level, r1.state)).toEqual([]);
-    expect(squareMarkers(level, r1.state)).toEqual([{ cell: [0, 0], repeat: false, step: false }]);
-    expect(elementQuest(level, r1.state, 'square', '0,0').buttons).toEqual([
-      { note: 'n-C-done', label: 'The last hero has crossed this square' },
-    ]);
-    const r2 = reduce(level, r1.state, { type: 'MANUAL_TRIGGER', note: 'n-C-done' });
-    expect(r2.state.placedBlocks.has('0,0')).toBe(true);
-    expect(elementQuest(level, r2.state, 'square', '0,0').buttons).toEqual([]);
-    expect(squareMarkers(level, r2.state)).toEqual([]);
+    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-done' });
+    expect(r.state.placedBlocks.has('0,0')).toBe(true);
+    expect(elementQuest(level, r.state, 'square', '0,0').buttons).toEqual([]);
+    expect(squareMarkers(level, r.state)).toEqual([]);
   });
 
   it('the texts never say what falls', () => {
-    const text = JSON.stringify(
-      quest.notes
-        .filter((n) => n.id.startsWith('n-C'))
-        .flatMap((n) => n.effects.filter((e) => e.type === 'showText')),
-    );
+    const n = quest.notes.find((x) => x.id === 'n-C-done')!;
+    const text = JSON.stringify([n.trigger, ...n.effects.filter((e) => e.type === 'showText')]);
     expect(text).not.toMatch(/rock|falling|stone|boulder/i);
   });
 });

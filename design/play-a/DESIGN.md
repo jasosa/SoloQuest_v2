@@ -180,7 +180,7 @@ The line is not drawn when there is nothing to show, so most notes stay as they 
 
 **Room label.** A revealed room that has a quest action (an `areaEntered` note, or a `manual` note with that room as `target`) shows a small label at its top-left floor square: the existing arrow glyph in a 44 x 44 hit area, drawn like the furniture name label (dark paper text on ink) with the glyph only, no text. The label is an indicator: a tap anywhere on the room floor opens the room's margin note ("A hero enters", search, and its buttons under **For this quest**), as before. A room gets the label while it has an `areaEntered` note waiting or a button of its own that can be pressed.
 
-**Square marker.** Unchanged: a neutral dashed ring with a dot on a seen square that has a `squareEntered` note. It never says what it is. When the note fires, its letter is drawn there as for any note.
+**Square marker.** A dashed ring with a dot on a seen square that has a `squareEntered` note or a button of its own (a `manual` note with a `square` target). A button-only square opens a margin note "This square" with the button's `hint` line above the button (no letter, no "Did a hero step here?"). The ring replaces the eye glyph on its square: the margin note then offers "Look from here" when that square is a look square.
 
 **Message sheet.** The existing note card, used for every triggered text. Without a choice it uses the **light veil** (no dim, the board stays readable) and one button "Continue". With a choice it keeps the dim veil and cannot be skipped. A message never repeats a reward or an item that the end card or the log already shows. Every message goes into the log and can be read again from the Quest sheet.
 

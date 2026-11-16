@@ -251,6 +251,19 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(marker).toHaveCount(0); // nothing left to do here
   });
 
+  test('a ring on a look-from-here square hides the eye and offers "Look from here" in its note', async ({
+    page,
+  }) => {
+    await fixture(page, 'd1');
+    await expect(page.locator('[data-square="1,18"]')).toHaveCount(1);
+    await expect(page.locator('[data-eye="1,18"]')).toHaveCount(0); // no ring on top of an eye
+    await page.locator('[data-square="1,18"]').click();
+    await expect(page.locator('.fq')).toContainText('A scratch on the floor.');
+    await expect(btn(page, 'Yes')).toHaveCount(0); // a button-only square asks nothing
+    await expect(btn(page, 'Look from here')).toBeVisible();
+    await shot(page, 'notes-ring-look');
+  });
+
   test('a room with an areaEntered note offers "A hero enters"', async ({ page }) => {
     await fixture(page, 'd1,d2');
     await page.waitForTimeout(900);

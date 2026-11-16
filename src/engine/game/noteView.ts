@@ -146,6 +146,19 @@ export function roomLabelAreas(level: Level, state: GameState): AreaId[] {
 export interface ManualTrigger {
   readonly note: string;
   readonly label: string;
+  readonly hint?: string;
+}
+
+/** The button of a `manual` note: its label and, when it has one, its hint. */
+function buttonOf(n: {
+  id: string;
+  trigger: { type: string; label?: string; hint?: string };
+}): ManualTrigger {
+  return {
+    note: n.id,
+    label: n.trigger.label ?? '',
+    ...(n.trigger.hint ? { hint: n.trigger.hint } : {}),
+  };
 }
 
 /**
@@ -161,7 +174,7 @@ export function manualTriggers(level: Level, state: GameState): ManualTrigger[] 
       isAvailable(n, state) &&
       conditionsHold(level, state, n)
     )
-      out.push({ note: n.id, label: n.trigger.label });
+      out.push(buttonOf(n));
   return out;
 }
 
@@ -189,7 +202,7 @@ export function elementQuest(
       isAvailable(n, state) &&
       conditionsHold(level, state, n)
     )
-      buttons.push({ note: n.id, label: n.trigger.label });
+      buttons.push(buttonOf(n));
   return { read, buttons };
 }
 

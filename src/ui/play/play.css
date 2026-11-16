@@ -578,3 +578,10 @@ header .goalline b {
 .fq .btn {
   margin-top: 6px;
 }
+.fq .hint,
+.qsheet .hint {
+  font-size: 14.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin: 4px 0 6px;
+}

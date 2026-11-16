@@ -681,8 +681,10 @@ export function PlayBoard({
   ));
 
   // The eye glyph on squares where "Look from here" can show more.
+  // A square with a marker of its own shows the ring only: "Look from here" is in its note.
+  const ringCells = new Set(squareMarkers(level, state).map((m) => cellKey(m.cell[0], m.cell[1])));
   const eyes = hints
-    .filter(([x, y]) => !monsterAt.has(cellKey(x, y)))
+    .filter(([x, y]) => !monsterAt.has(cellKey(x, y)) && !ringCells.has(cellKey(x, y)))
     .map(([x, y]) => {
       const cx = (x + 0.5) * S;
       const cy = (y + 0.5) * S;

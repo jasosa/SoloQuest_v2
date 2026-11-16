@@ -105,9 +105,12 @@ export function QuestSheet(p: QuestSheetProps) {
         <section>
           <div className="lbl">Tell the app</div>
           {p.actions.map((a) => (
-            <button key={a.note} className="btn alt" onClick={() => p.onPress(a.note)}>
-              {a.label}
-            </button>
+            <div key={a.note}>
+              {a.hint && <p className="hint">{a.hint}</p>}
+              <button className="btn alt" onClick={() => p.onPress(a.note)}>
+                {a.label}
+              </button>
+            </div>
           ))}
         </section>
       )}

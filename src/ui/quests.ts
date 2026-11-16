@@ -102,6 +102,12 @@ export async function devTestLevel(): Promise<Level | undefined> {
           ],
         },
         {
+          id: 'n-eye-btn',
+          target: { kind: 'square', id: '1,18' },
+          trigger: { type: 'manual', label: 'Mark the spot', hint: 'A scratch on the floor.' },
+          effects: [{ type: 'showText', text: 'You mark the spot.' }],
+        },
+        {
           id: 'n-sq-btn',
           target: { kind: 'square', id: '4,18' },
           when: [{ flag: 'draft', is: true }],

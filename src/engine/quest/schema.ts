@@ -142,7 +142,8 @@ const TriggerSchema = z.discriminatedUnion('type', [
     n: z.number().int().min(1).optional(),
     every: z.number().int().min(1).optional(),
   }),
-  z.strictObject({ type: z.literal('manual'), label: nonEmpty }),
+  /** `hint`: one plain line shown with the button (what to do, or what the players need to know). */
+  z.strictObject({ type: z.literal('manual'), label: nonEmpty, hint: nonEmpty.optional() }),
 ]);
 
 const ConditionSchema = z.union([

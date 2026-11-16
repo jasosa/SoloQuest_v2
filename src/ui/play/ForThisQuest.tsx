@@ -29,9 +29,12 @@ export function ForThisQuest({
         </button>
       ))}
       {view.buttons.map((b) => (
-        <button key={b.note} className="btn alt" onClick={() => onPress(b.note)}>
-          {b.label}
-        </button>
+        <div key={b.note}>
+          {b.hint && <p className="hint">{b.hint}</p>}
+          <button className="btn alt" onClick={() => onPress(b.note)}>
+            {b.label}
+          </button>
+        </div>
       ))}
     </div>
   );
