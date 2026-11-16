@@ -458,10 +458,6 @@
       },
       "when": [
         {
-          "monster": "m-wardoz",
-          "alive": false
-        },
-        {
           "firstTime": true
         }
       ],

@@ -324,12 +324,6 @@
       "id": "t5",
       "kind": "pit",
       "cell": [16, 12]
-    },
-    {
-      "id": "t-c",
-      "kind": "scripted",
-      "cell": [0, 0],
-      "effect": "Falling block C does not spring when a hero steps on it. It drops on its own once the last hero is beyond it, and the way back to the stairs stays shut afterwards."
     }
   ],
   "markers": [
@@ -389,7 +383,7 @@
       "at": [1, 0],
       "trigger": {
         "type": "manual",
-        "label": "Every hero is past square C"
+        "label": "The last hero has passed the falling rock"
       },
       "effects": [
         {

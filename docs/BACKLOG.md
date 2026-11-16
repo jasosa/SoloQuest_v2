@@ -101,7 +101,7 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 Do these before M8 polish. Quest owner review (M7) comes after step 8.
 
 - [x] Step 1: README and backlog reconciled, slain monsters leave the roster, `zargonInfo` removed from format and quests, marker visibility `editor`
-- [ ] Step 2, quest data pass: quests 2, 3, 5, 6, 7, 8, 9, 10, 12 as in the plan section 5; a start instruction in every quest; no repeated rewards or spoilers
+- [ ] Step 2, quest data pass (done so far: start note in every quest, Q2 helper text, Q3 spoilers, Q5 gargoyle and secret wall texts, Q6 and Q9 all heroes escape, Q7 note D check, Q8 XX and Balur text, Q12 falling rock as a note. Waiting for step 3: Q5 throne, Q6 stairs button condition, Q7 note A and D5 label, Q9 note B chests, Q10, Q11; Q6 roster codes with step 5): quests 2, 3, 5, 6, 7, 8, 9, 10, 12 as in the plan section 5; a start instruction in every quest; no repeated rewards or spoilers
 - [ ] Step 3, engine and format: `monsterSeen` trigger, conditions on manual triggers, `allSeenKilled` objective rule, rock-door exception for `doorTeleport`, throne next to a secret door, objectives with their own `done` triggers
 - [ ] Step 4, messages: message sheet for every triggered text, Quest sheet (start text, objective, notes read, actions), start sheet, journal as the full log, less scrolling, "Things to confirm" block apart from "End the quest"
 - [ ] Step 5, monsters: special mark and tooltips, abilities library (quest extras, editor builder), dormant and waiting prompts

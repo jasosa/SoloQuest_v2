@@ -435,12 +435,12 @@
       "id": "n-stairs",
       "trigger": {
         "type": "manual",
-        "label": "A hero stands on the stairs"
+        "label": "All surviving heroes have left by the stairs"
       },
       "effects": [
         {
           "type": "showText",
-          "text": "A hero on the stairs has made it out of the maze."
+          "text": "The heroes made it out of the maze."
         },
         {
           "type": "completeObjective",

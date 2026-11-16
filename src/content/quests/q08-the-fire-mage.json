@@ -481,7 +481,7 @@
         },
         {
           "type": "showText",
-          "text": "Keep him off the board. He joins on XX once the center door is opened.",
+          "text": "Balur vanishes. Keep his figure off the board for now.",
           "title": "Balur escapes"
         }
       ]
@@ -507,7 +507,7 @@
         },
         {
           "type": "showText",
-          "text": "Balur vanishes in a flash and reappears on the XX square in the center room, whose door is already open. Move his figure there.",
+          "text": "Balur vanishes in a flash and reappears elsewhere in the castle.",
           "title": "Balur escapes"
         }
       ]
@@ -537,7 +537,7 @@
         },
         {
           "type": "showText",
-          "text": "The door of the center room opens, and Balur stands on the XX square, where his escape spell sent him.",
+          "text": "The door opens and Balur is here.",
           "title": "Balur is here"
         }
       ]

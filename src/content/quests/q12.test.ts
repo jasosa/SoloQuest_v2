@@ -100,7 +100,7 @@ describe('quest 12: data', () => {
     expect(quest.monsters).toHaveLength(14);
   });
 
-  it('has 3 spear traps, 2 pits and the scripted falling block at (0,0)', () => {
+  it('has 3 spear traps and 2 pits (the falling rock is a note, not a trap)', () => {
     expect(quest.traps.filter((t) => t.kind === 'spear')).toHaveLength(3);
     expect(quest.traps.filter((t) => t.kind === 'pit')).toHaveLength(2);
     expect(quest.traps.filter((t) => t.kind === 'spear').map((t) => t.cell)).toEqual([
@@ -112,7 +112,7 @@ describe('quest 12: data', () => {
       [25, 6],
       [16, 12],
     ]);
-    expect(quest.traps.find((t) => t.kind === 'scripted')).toMatchObject({ cell: [0, 0] });
+    expect(quest.traps.some((t) => t.kind === 'scripted')).toBe(false);
   });
 
   it('the Witch Lord moves 1, attacks with 2 dice, has four spells and only the Spirit Blade harms him', () => {
@@ -225,12 +225,6 @@ describe('quest 12: letter B, the Star of the West', () => {
 });
 
 describe('quest 12: letter C, the falling block', () => {
-  it('the trap is scripted: stepping on it does nothing', () => {
-    const s = run(...lookUntil(via([], 'd12'), (st) => st.seenTraps.has('t-c')));
-    expect(s.seenTraps.has('t-c')).toBe(true);
-    expect(() => reduce(level, s, { type: 'TRAP_STEP', trap: 't-c' })).toThrow();
-  });
-
   it('the manual note blocks square (0,0) for good', () => {
     const s = run(...via([], 'd12'));
     expect(s.placedBlocks.has('0,0')).toBe(false);

@@ -429,12 +429,12 @@
       "at": [7, 13],
       "trigger": {
         "type": "manual",
-        "label": "A hero stands on the stairs"
+        "label": "All surviving heroes have left by the stairs"
       },
       "effects": [
         {
           "type": "showText",
-          "text": "The stairs are the way out. A hero who steps onto the stair tile has escaped."
+          "text": "The heroes escaped the stronghold."
         },
         {
           "type": "completeObjective",
