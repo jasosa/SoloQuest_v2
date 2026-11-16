@@ -171,7 +171,19 @@ function Spell({ order: o, onYes, onNo }: { order: Order; onYes(): void; onNo():
       </div>
       <div className="scond">{sp.effect}</div>
       {o.fallbackPlan && <div className="scond">If it cannot cast: {o.fallbackPlan}</div>}
-      <div className="sask">Could it cast it?</div>
+      {sp.warning && <div className="scond warn">{sp.warning}</div>}
+      <div className="sask">
+        {sp.questions.length > 1
+          ? 'Is any of these true?'
+          : (sp.questions[0] ?? 'Could it cast it?')}
+      </div>
+      {sp.questions.length > 1 && (
+        <ul className="squestions">
+          {sp.questions.map((q) => (
+            <li key={q}>{q}</li>
+          ))}
+        </ul>
+      )}
       <div className="row">
         <button className="btn" onClick={onYes}>
           Yes, it cast it

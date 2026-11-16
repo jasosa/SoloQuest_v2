@@ -395,14 +395,17 @@ describe('casters, random spell and tracking', () => {
     const back = undo(l, SEED, [...events, turnEnd]);
     expect(ordersFor(l, back.state, TEAM)).toEqual(ordersFor(l, replay(l, SEED, events), TEAM));
     const picks = new Set<string>();
-    for (let seed = 1; seed <= 60; seed++)
-      picks.add(
-        ordersFor(l, replay(l, seed, seen), TEAM).find((x) => x.monster === 'g')!.spell!.spell,
-      );
+    for (let seed = 1; seed <= 60; seed++) {
+      // on 1 turn in 4 the caster casts nothing (decision 47)
+      const sp = ordersFor(l, replay(l, seed, seen), TEAM).find((x) => x.monster === 'g')!.spell;
+      if (sp) picks.add(sp.spell);
+    }
     expect(picks.size).toBe(3);
     const perTurn = new Set<string>();
-    for (let t = 0; t < 30; t++)
-      perTurn.add(orderOf([...seen, ...Array<GameEvent>(t).fill(turnEnd)]).spell!.spell);
+    for (let t = 0; t < 30; t++) {
+      const sp = orderOf([...seen, ...Array<GameEvent>(t).fill(turnEnd)]).spell;
+      if (sp) perTurn.add(sp.spell);
+    }
     expect(perTurn.size).toBeGreaterThan(1);
   });
 
@@ -423,7 +426,7 @@ describe('casters, random spell and tracking', () => {
     expect(new Set(offered).size).toBe(3);
     const last = orderOf(events);
     expect(last.spell).toBeUndefined();
-    expect(last.spellNote).toBe('No spell this turn.');
+    expect(last.spellNote).toBe('Three spells could not be cast: it uses its normal plan.');
     expect(last.plan).toBe(PLAN_TEXT.caster);
     expect(last.fallbackPlan).toBeUndefined();
     expect(last.declined).toEqual(offered);
@@ -478,7 +481,7 @@ describe('casters, random spell and tracking', () => {
     const picks = new Set<string>();
     for (let seed = 1; seed <= 40; seed++) {
       const o = ordersFor(all, replay(all, seed, seen), ['dwarf']).find((x) => x.monster === 'g')!;
-      picks.add(o.spell!.spell);
+      if (o.spell) picks.add(o.spell.spell);
     }
     expect([...picks].sort()).toEqual(['firestorm', 'summon']);
   });

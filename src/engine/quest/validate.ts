@@ -15,7 +15,7 @@ import {
 } from '../board/level';
 import { footprintShapeProblem } from './footprint';
 import { CORE_ABILITIES } from '../data/abilities';
-import { SPELL_KEYS, isSpellKey } from '../zargon/spells';
+import { CORE_SPELLS } from '../data/spells';
 import { forEachEffect } from './effects';
 import type { Condition, Effect, Quest } from './schema';
 
@@ -204,6 +204,11 @@ export function validateQuestIssues(
     quest.monsters.map((m) => m.id),
     'monster',
   );
+  const spellIds = new Set<string>(CORE_SPELLS.map((s) => s.id));
+  for (const sp of quest.spellDefs) {
+    if (spellIds.has(sp.id)) err(`spell ${sp.id}: the id is already taken`, { kind: 'quest' });
+    spellIds.add(sp.id);
+  }
   const abilityIds = new Set<string>(CORE_ABILITIES.map((a) => a.id));
   for (const a of quest.abilityDefs) {
     if (abilityIds.has(a.id)) err(`ability ${a.id}: the id is already taken`, { kind: 'quest' });
@@ -325,8 +330,8 @@ export function validateQuestIssues(
     inside(`monster ${m.id}`, m.cell, ref);
     if (m.cell && !m.hidden) occupy(`monster ${m.id}`, m.cell, ref);
     for (const sp of m.spells ?? [])
-      if (!isSpellKey(sp))
-        err(`monster ${m.id}: unknown spell "${sp}" (known: ${SPELL_KEYS.join(', ')})`, ref);
+      if (!spellIds.has(sp))
+        err(`monster ${m.id}: unknown spell "${sp}" (known: ${[...spellIds].join(', ')})`, ref);
     if (m.spellLimit && (m.spells ?? []).length === 0)
       err(`monster ${m.id}: spellLimit needs a spells list`, ref);
   }
@@ -528,7 +533,7 @@ export function validateQuestIssues(
       case 'spellCast':
         if (t.monster && !monsterIds.has(t.monster))
           err(`${where}: unknown monster ${t.monster}`, noteRef);
-        if (t.spell && !isSpellKey(t.spell)) err(`${where}: unknown spell "${t.spell}"`, noteRef);
+        if (t.spell && !spellIds.has(t.spell)) err(`${where}: unknown spell "${t.spell}"`, noteRef);
         if (t.monster && t.spell) {
           const m = quest.monsters.find((x) => x.id === t.monster);
           if (m && !(m.spells ?? []).includes(t.spell))

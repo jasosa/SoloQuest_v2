@@ -4,6 +4,7 @@
  * live in `validate.ts`.
  */
 import { z } from 'zod';
+import { SPELL_TAG_IDS } from '../data/spells';
 
 export const SCHEMA_VERSION = 1;
 
@@ -95,6 +96,21 @@ const AbilityDefSchema = z.strictObject({
   text: nonEmpty,
   kind: z.enum(['ability', 'weakness', 'immunity']).optional(),
 });
+
+const SpellDefSchema = z
+  .strictObject({
+    id,
+    name: nonEmpty,
+    text: nonEmpty.optional(),
+    tags: z.array(z.enum(SPELL_TAG_IDS)).default([]),
+    question: nonEmpty.optional(),
+    warning: nonEmpty.optional(),
+    offerWhen: z.enum(['always', 'escapePoint']).optional(),
+  })
+  .refine((s) => s.tags.length > 0 || s.question !== undefined, {
+    message: 'a spell needs situation tags or a question of its own',
+    path: ['tags'],
+  });
 
 const TrapSchema = z
   .strictObject({
@@ -328,6 +344,8 @@ export const QuestSchema = z.strictObject({
   zones: z.array(ZoneSchema).default([]),
   /** The quest's own abilities, next to the core library (decision 69). */
   abilityDefs: z.array(AbilityDefSchema).default([]),
+  /** The quest's own spells, next to the core ones (decision 70). */
+  spellDefs: z.array(SpellDefSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   wandering: WanderingSchema.optional(),
   objectives: z.array(ObjectiveSchema).default([]),

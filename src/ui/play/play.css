@@ -619,3 +619,14 @@ header .goalline b {
   color: var(--ink);
   font-family: 'Bonum', serif;
 }
+
+/* ---------- spell questions (decision 48) ---------- */
+.squestions {
+  list-style: disc inside;
+  font-size: 15px;
+  margin: 2px 0 8px 4px;
+}
+.scond.warn {
+  color: var(--ink);
+  font-style: italic;
+}

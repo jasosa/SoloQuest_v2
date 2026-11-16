@@ -32,6 +32,7 @@ const TOP_KEYS = [
   'markers',
   'zones',
   'abilityDefs',
+  'spellDefs',
   'notes',
   'wandering',
   'objectives',

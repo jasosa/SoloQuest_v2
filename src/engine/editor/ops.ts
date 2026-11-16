@@ -13,7 +13,7 @@
  */
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
 import { abilityLookup } from '../data/abilities';
-import { isSpellKey, SPELL_KEYS } from '../zargon/spells';
+import { spellLookup } from '../data/spells';
 import { QuestSchema, type FurnitureDef, type MonsterDef, type Quest } from '../quest/schema';
 import type { Issue } from '../quest/validate';
 import { footprintShapeProblem } from '../quest/footprint';
@@ -827,8 +827,9 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
   if (patch.spells !== undefined) {
     if (patch.spells?.some((t) => t.trim() === ''))
       return fail('Traits and spells cannot be empty text.');
-    const bad = patch.spells?.find((s) => !isSpellKey(s));
-    if (bad) return fail(`Unknown spell "${bad}". Known spells: ${SPELL_KEYS.join(', ')}.`);
+    const known = spellLookup(q);
+    const bad = patch.spells?.find((s) => !known.has(s));
+    if (bad) return fail(`Unknown spell "${bad}". Known spells: ${[...known.keys()].join(', ')}.`);
     set('spells', patch.spells?.length ? patch.spells : null);
   }
   if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);

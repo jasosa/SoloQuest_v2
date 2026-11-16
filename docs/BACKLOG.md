@@ -130,8 +130,8 @@ Do these before M8 polish. Quest owner review (M7) comes after step 8.
 
 ## Zargon spell tags (core, can land before M9)
 
-- [ ] Casters: 25% of turns no spell (seeded), situation tags order and question, app-checked hurt tags when monster BP are tracked, at most 3 "no" answers, Escape only with an escape point (decisions 47, 48; `ZARGON_AI.md`)
-- [ ] Core Dread spell tag table in `dreadSpells.ts`, with warnings
+- [x] Casters: 25% of turns no spell (seeded), the question of each situation tag, at most 3 "no" answers, Escape only with an escape point (decisions 47, 48, 70). Not built: app-checked hurt tags when monster BP are tracked
+- [x] Core Dread spell tag table with warnings (`src/engine/data/spells.ts`)
 
 ## M9 · Pack layer
 

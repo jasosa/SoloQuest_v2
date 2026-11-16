@@ -11,7 +11,8 @@ import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
 import type { MonsterDef, MonsterType } from '../quest/schema';
 import { rngFor, shuffled } from './hash';
-import { SPELL_EFFECT_TEXT, SPELL_NAMES, isSpellKey } from './spells';
+import { SPELL_EFFECT_TEXT } from './spells';
+import { hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
 import { pickSpell } from './spellPick';
 import { PLAN_TEXT, RULE_TEXT, noTargetText } from './texts';
 import { isCaster, profileOf, weightsOf, type Profile, type RuleKey } from './weights';
@@ -23,8 +24,12 @@ export interface SpellPick {
   readonly name: string;
   /** Casts left for this spell, this one included (a spell listed twice in the quest has 2). */
   readonly left: number;
-  /** Always "Read the Dread spell card." */
+  /** "Read the Dread spell card." for a core spell, or the quest's own text. */
   readonly effect: string;
+  /** The question(s) the players answer: one per situation tag, or the spell's own question. The spell can be cast if any is true (decision 48). */
+  readonly questions: readonly string[];
+  /** A warning to show with the spell (it also hits monsters, for example). */
+  readonly warning?: string;
 }
 
 export type OrderStatus = 'act' | 'stone' | 'fresh';
@@ -147,6 +152,7 @@ export function spellsLeft(
 }
 
 function buildOrder(
+  level: Level,
   state: GameState,
   team: readonly Hero[],
   seed: number,
@@ -204,7 +210,14 @@ function buildOrder(
   };
   if (profile !== 'caster' || !isCaster(caps)) return order;
 
-  const left = def ? spellsLeft(def, state, id) : {};
+  const lookup = spellLookup(level.quest);
+  // A spell that needs an escape point is only offered when the quest has one (decision 47).
+  const left = Object.fromEntries(
+    Object.entries(def ? spellsLeft(def, state, id) : {}).filter(([k]) => {
+      const sp = lookup.get(k);
+      return !sp || sp.offerWhen !== 'escapePoint' || hasEscapePoint(level.quest, k);
+    }),
+  );
   // Casting was its action for the turn: no plan then.
   if (!fresh && state.castThisTurn.includes(id)) {
     const { plan: _plan, ...rest } = order;
@@ -212,13 +225,26 @@ function buildOrder(
     return { ...rest, declined: [], spellNote: 'It already cast a spell this turn.' };
   }
   const declined = state.spellsFailed[id] ?? [];
-  const pick = pickSpell(seed, turn, id, Object.keys(left), declined);
-  if (pick === undefined)
+  if (Object.keys(left).length === 0)
+    return { ...order, declined: [...declined], spellNote: 'No spells left.' };
+  // On 1 turn in 4 (seeded) a caster goes straight to its normal plan (decision 47).
+  const [roll] = next(rngFor(seed, turn, id, 'nospell'));
+  if (roll < 0.25)
+    return {
+      ...order,
+      declined: [],
+      spellNote: 'This turn it casts no spell: it uses its normal plan.',
+    };
+  // At most 3 spells are asked in one turn; after 3 "no" answers the normal plan (decision 47).
+  if (declined.length >= 3)
     return {
       ...order,
       declined: [...declined],
-      spellNote: Object.keys(left).length === 0 ? 'No spells left.' : 'No spell this turn.',
+      spellNote: 'Three spells could not be cast: it uses its normal plan.',
     };
+  const pick = pickSpell(seed, turn, id, Object.keys(left), declined);
+  if (pick === undefined)
+    return { ...order, declined: [...declined], spellNote: 'No spell this turn.' };
   const { plan: _plan, ...rest } = order;
   void _plan;
   return {
@@ -226,9 +252,11 @@ function buildOrder(
     declined: [...declined],
     spell: {
       spell: pick,
-      name: isSpellKey(pick) ? SPELL_NAMES[pick] : pick,
+      name: lookup.get(pick)?.name ?? pick,
       left: left[pick]!,
-      effect: SPELL_EFFECT_TEXT,
+      effect: lookup.get(pick)?.text ?? SPELL_EFFECT_TEXT,
+      questions: lookup.get(pick) ? spellQuestions(lookup.get(pick)!) : ['Could it cast it?'],
+      ...(lookup.get(pick)?.warning ? { warning: lookup.get(pick)!.warning } : {}),
     },
     fallbackPlan: PLAN_TEXT.caster,
   };
@@ -255,7 +283,7 @@ export function ordersFor(
   const defs = new Map(level.quest.monsters.map((m) => [m.id, m]));
   return monstersInPlay(level, state)
     .filter((v) => !v.dead)
-    .map((view) => buildOrder(state, team, seed, view, defs.get(view.id)));
+    .map((view) => buildOrder(level, state, team, seed, view, defs.get(view.id)));
 }
 
 export interface TurnProgress {

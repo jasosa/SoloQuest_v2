@@ -136,7 +136,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await expect(dlg(page)).toContainText('All monsters have acted');
   });
 
-  test('a caster asks "Could it cast it?": No shows the next spell, Yes ends its casting', async ({
+  test('a caster asks the question of its spell: No shows the next spell, Yes ends its casting', async ({
     page,
   }) => {
     await fixture(page, 'd1');
@@ -147,7 +147,9 @@ test.describe("Zargon's turn, one monster at a time", () => {
     const spell = dlg(page).locator('.spell');
     await expect(spell).toContainText('Read the Dread spell card.');
     await expect(spell).toContainText('If it cannot cast:');
-    await expect(spell).toContainText('Could it cast it?');
+    // the situation tags of Fear and Sleep give their questions (decision 48)
+    await expect(spell).toContainText('Is any of these true?');
+    await expect(spell).toContainText('Is a hero with high attack next to it?');
     const first = await spell.locator('.sname b').innerText();
     await shot(page, 'zargon-spell');
     await btn(page, 'No').click();

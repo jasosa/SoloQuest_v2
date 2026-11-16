@@ -13,6 +13,9 @@ export const SPELL_KEYS = [
   'firestorm',
   'tempest',
   'command',
+  'lightningBolt',
+  'cloudOfDread',
+  'rust',
 ] as const;
 export type SpellKey = (typeof SPELL_KEYS)[number];
 
@@ -25,6 +28,9 @@ export const SPELL_NAMES: Readonly<Record<SpellKey, string>> = {
   firestorm: 'Firestorm',
   tempest: 'Tempest',
   command: 'Command',
+  lightningBolt: 'Lightning Bolt',
+  cloudOfDread: 'Cloud of Dread',
+  rust: 'Rust',
 };
 
 export const SPELL_EFFECT_TEXT = 'Read the Dread spell card.';
