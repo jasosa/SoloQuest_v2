@@ -25,11 +25,15 @@ describe('noteTarget', () => {
     });
   });
 
-  it('has no element for quest-wide, square and type-only triggers', () => {
+  it('a square trigger belongs to its square', () => {
+    expect(noteTarget(note('s', { trigger: { type: 'squareEntered', cell: [1, 1] } }))).toEqual({
+      kind: 'square',
+      id: '1,1',
+    });
+  });
+
+  it('has no element for quest-wide and type-only triggers', () => {
     expect(noteTarget(note('a', {}))).toBeUndefined();
-    expect(
-      noteTarget(note('b', { trigger: { type: 'squareEntered', cell: [1, 1] } })),
-    ).toBeUndefined();
     expect(
       noteTarget(note('c', { trigger: { type: 'monsterKilled', monsterType: 'orc' } })),
     ).toBeUndefined();

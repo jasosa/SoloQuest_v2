@@ -380,8 +380,8 @@ describe('Q10 style squareEntered', () => {
   it('markers show only seen squares, with no content', () => {
     const s = initialState(lv, SEED);
     expect(squareMarkers(lv, s)).toEqual([
-      { cell: [3, 16], repeat: true },
-      { cell: [2, 16], repeat: false },
+      { cell: [3, 16], repeat: true, step: true },
+      { cell: [2, 16], repeat: false, step: true },
     ]);
     expect(JSON.stringify(squareMarkers(lv, s))).not.toContain('Roll');
     const t = replay(lv, SEED, [open('d2')]);

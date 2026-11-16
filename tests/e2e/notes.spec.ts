@@ -240,7 +240,15 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(page.getByRole('dialog', { name: 'A cold draft' })).toContainText('cold draft');
     await btn(page, 'Continue').click();
     await expect(page.locator('[data-letter="n-sq"]')).toHaveCount(1);
-    await expect(marker).toHaveCount(0); // the note fired once
+    // the marker stays while the square has a button of its own (decision 67)
+    await expect(marker).toHaveCount(1);
+    await marker.click();
+    await expect(btn(page, 'Yes')).toHaveCount(0); // no "Did a hero step here?" any more
+    await expect(page.locator('.fq')).toContainText('A cold draft');
+    await page.locator('.fq').getByRole('button', { name: 'Seal the crack' }).click();
+    await expect(dialog(page)).toContainText('The crack is sealed.');
+    await btn(page, 'Continue').click();
+    await expect(marker).toHaveCount(0); // nothing left to do here
   });
 
   test('a room with an areaEntered note offers "A hero enters"', async ({ page }) => {

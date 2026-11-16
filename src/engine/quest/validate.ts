@@ -71,6 +71,12 @@ function edgeOpenForWalk(
 
 const cellOf = (c: C): [number, number] => [c[0], c[1]];
 
+/** A square target is written "x,y" and lies on the board. */
+const squareOk = (id: string, board: Board) => {
+  const m = /^(\d+),(\d+)$/.exec(id);
+  return m !== null && Number(m[1]) < board.width && Number(m[2]) < board.height;
+};
+
 export function validateQuestIssues(
   quest: Quest,
   board: Board,
@@ -84,6 +90,7 @@ export function validateQuestIssues(
     issues.push(ref ? { message, severity: 'warning', ref } : { message, severity: 'warning' });
   const rooms = new Set(roomIds(board));
   const areas = new Set<string>([...rooms, 'C']);
+  const isBoardSquare = (id: string) => squareOk(id, board);
 
   /**
    * Rooms with content that the heroes can never reach from the start room. Normal and secret
@@ -532,7 +539,9 @@ export function validateQuestIssues(
                 ? trapIds.has(tg.id)
                 : tg.kind === 'marker'
                   ? quest.markers.some((m) => m.id === tg.id)
-                  : areas.has(tg.id);
+                  : tg.kind === 'square'
+                    ? isBoardSquare(tg.id)
+                    : areas.has(tg.id);
       if (!known) err(`${where}: target ${tg.kind} ${tg.id} does not exist`, noteRef);
     }
     (n.when ?? []).forEach((c) => checkCondition(where, c));

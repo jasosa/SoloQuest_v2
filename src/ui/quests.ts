@@ -90,7 +90,7 @@ export async function devTestLevel(): Promise<Level | undefined> {
         {
           id: 'n-sq',
           letter: 'S',
-          at: [4, 18],
+          at: [5, 18],
           trigger: { type: 'squareEntered', cell: [4, 18] },
           effects: [
             {
@@ -98,7 +98,15 @@ export async function devTestLevel(): Promise<Level | undefined> {
               title: 'A cold draft',
               text: 'A cold draft comes from a crack in the wall.',
             },
+            { type: 'setFlag', flag: 'draft', value: true },
           ],
+        },
+        {
+          id: 'n-sq-btn',
+          target: { kind: 'square', id: '4,18' },
+          when: [{ flag: 'draft', is: true }],
+          trigger: { type: 'manual', label: 'Seal the crack' },
+          effects: [{ type: 'showText', text: 'The crack is sealed.' }],
         },
         {
           id: 'n-area',

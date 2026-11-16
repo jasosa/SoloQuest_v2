@@ -7,7 +7,7 @@ import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { squareMarkers } from '../../engine/game/noteView';
+import { elementQuest, squareMarkers } from '../../engine/game/noteView';
 import { manualTriggers, monstersInPlay, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
@@ -176,12 +176,9 @@ describe('quest 12: walk-through', () => {
     expect(r.state.openDoors.has('x1')).toBe(false);
   });
 
-  it('letter A is a manual note about the false doors', () => {
-    const n = quest.notes.find((x) => x.letter === 'A')!;
-    expect(n.trigger).toMatchObject({ type: 'manual' });
-    const s = run(...toCenter());
-    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-A' });
-    expect(noteIds(r.prompts)).toEqual(['n-A']);
+  it('the false doors have no note: only the "cannot be opened" answer', () => {
+    expect(quest.notes.some((n) => n.letter === 'A')).toBe(false);
+    expect(quest.notes.some((n) => n.trigger.type === 'manual' && !n.target)).toBe(false);
   });
 });
 
@@ -231,7 +228,7 @@ describe('quest 12: letter C, the square that needs watching', () => {
   it('the square shows a marker once seen, and the button waits for the first note', () => {
     const s = seen();
     expect(squareMarkers(level, s).map((m) => m.cell)).toEqual([[0, 0]]);
-    expect(manualTriggers(level, s).map((m) => m.note)).not.toContain('n-C-done');
+    expect(elementQuest(level, s, 'square', '0,0').buttons).toEqual([]);
   });
 
   it('tapping the square asks for the button, then the button blocks (0,0) for good', () => {
@@ -239,10 +236,16 @@ describe('quest 12: letter C, the square that needs watching', () => {
     expect(s.placedBlocks.has('0,0')).toBe(false);
     const r1 = reduce(level, s, { type: 'SQUARE_TRIGGER', cell: [0, 0] });
     expect(noteIds(r1.prompts)).toEqual(['n-C']);
-    expect(manualTriggers(level, r1.state).map((m) => m.note)).toContain('n-C-done');
+    // the button belongs to the square: not in the Quest sheet, and the marker stays for it
+    expect(manualTriggers(level, r1.state)).toEqual([]);
+    expect(squareMarkers(level, r1.state)).toEqual([{ cell: [0, 0], repeat: false, step: false }]);
+    expect(elementQuest(level, r1.state, 'square', '0,0').buttons).toEqual([
+      { note: 'n-C-done', label: 'The last hero has crossed this square' },
+    ]);
     const r2 = reduce(level, r1.state, { type: 'MANUAL_TRIGGER', note: 'n-C-done' });
     expect(r2.state.placedBlocks.has('0,0')).toBe(true);
-    expect(manualTriggers(level, r2.state).map((m) => m.note)).not.toContain('n-C-done');
+    expect(elementQuest(level, r2.state, 'square', '0,0').buttons).toEqual([]);
+    expect(squareMarkers(level, r2.state)).toEqual([]);
   });
 
   it('the texts never say what falls', () => {

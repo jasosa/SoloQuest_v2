@@ -16,6 +16,7 @@ import {
   livingHeroes,
   manualTriggers,
   elementQuest,
+  squareMarkers,
   eventLog,
   objectiveConfirms,
   startTexts,
@@ -424,19 +425,27 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       </MarginNote>
     );
   } else if (sel?.kind === 'square') {
+    const marker = squareMarkers(level, state).find(
+      (m) => m.cell[0] === sel.at[0] && m.cell[1] === sel.at[1],
+    );
     note = (
       <MarginNote
         anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
         kind="Square with a note"
-        title="Did a hero step here?"
+        title={marker?.step === false ? 'This square' : 'Did a hero step here?'}
         onClose={closeNote}
       >
-        <button className="btn" onClick={() => act({ type: 'SQUARE_TRIGGER', cell: sel.at })}>
-          Yes
-        </button>
-        <button className="btn alt" onClick={closeNote}>
-          No
-        </button>
+        {marker?.step !== false && (
+          <>
+            <button className="btn" onClick={() => act({ type: 'SQUARE_TRIGGER', cell: sel.at })}>
+              Yes
+            </button>
+            <button className="btn alt" onClick={closeNote}>
+              No
+            </button>
+          </>
+        )}
+        {forQuest('square', `${sel.at[0]},${sel.at[1]}`)}
       </MarginNote>
     );
   } else if (sel?.kind === 'trap') {

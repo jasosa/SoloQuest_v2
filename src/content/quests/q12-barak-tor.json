@@ -349,21 +349,6 @@
       ]
     },
     {
-      "id": "n-A",
-      "letter": "A",
-      "at": [18, 1],
-      "trigger": {
-        "type": "manual",
-        "label": "Doors marked A"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The three doors marked A are just paint on the wall. They look real, but no hero can get one open, whatever they try."
-        }
-      ]
-    },
-    {
       "id": "n-B",
       "letter": "B",
       "at": [11, 10],
@@ -395,7 +380,7 @@
         {
           "type": "showText",
           "title": "This square",
-          "text": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button \"The last hero has crossed this square\" in the quest actions."
+          "text": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, tap this square again."
         },
         {
           "type": "setFlag",
@@ -426,7 +411,11 @@
           "title": "Behind you",
           "text": "The passage collapses behind the last hero. The square is blocked for good: nobody can go back through it."
         }
-      ]
+      ],
+      "target": {
+        "kind": "square",
+        "id": "0,0"
+      }
     },
     {
       "id": "n-D",

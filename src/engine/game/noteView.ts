@@ -79,6 +79,8 @@ export interface SquareMarker {
   readonly cell: Cell;
   /** The marker stays after a tap (the note repeats). */
   readonly repeat: boolean;
+  /** A `squareEntered` note waits here ("Did a hero step here?"). False for a button-only square. */
+  readonly step: boolean;
 }
 
 /** Seen squares with a note waiting. Neutral marker: nothing about the content. */
@@ -90,7 +92,21 @@ export function squareMarkers(level: Level, state: GameState): SquareMarker[] {
     const k = keyOf(t.cell);
     if (!state.seenCells.has(k) || !isAvailable(n, state)) continue;
     const repeat = t.repeat === true || out.get(k)?.repeat === true;
-    out.set(k, { cell: parseKey(k), repeat });
+    out.set(k, { cell: parseKey(k), repeat, step: true });
+  }
+  // A seen square with a button of its own that can be pressed keeps its marker (decision 67).
+  for (const n of level.quest.notes) {
+    const tg = n.target;
+    if (
+      n.trigger.type !== 'manual' ||
+      tg?.kind !== 'square' ||
+      out.has(tg.id) ||
+      !state.seenCells.has(tg.id) ||
+      !isAvailable(n, state) ||
+      !conditionsHold(level, state, n)
+    )
+      continue;
+    out.set(tg.id, { cell: parseKey(tg.id), repeat: false, step: false });
   }
   return [...out.values()];
 }

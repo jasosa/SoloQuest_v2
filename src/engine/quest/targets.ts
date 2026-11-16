@@ -23,8 +23,9 @@ export function noteTarget(note: Note): NoteTarget | undefined {
     case 'treasureSearch':
     case 'secretDoorSearch':
       return { kind: 'area', id: t.area };
-    case 'questStart':
     case 'squareEntered':
+      return { kind: 'square', id: `${t.cell[0]},${t.cell[1]}` };
+    case 'questStart':
     case 'allKilled':
     case 'zargonTurn':
     case 'manual':

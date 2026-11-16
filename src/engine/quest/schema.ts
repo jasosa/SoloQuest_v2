@@ -208,7 +208,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
 
 /** The quest element a note belongs to (decision 67). Derived from the trigger when missing. */
 const TargetSchema = z.strictObject({
-  kind: z.enum(['door', 'furniture', 'monster', 'trap', 'marker', 'area']),
+  kind: z.enum(['door', 'furniture', 'monster', 'trap', 'marker', 'area', 'square']),
   id: nonEmpty,
 });
 
