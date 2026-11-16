@@ -1,0 +1,87 @@
+/**
+ * Using a library item in a quest (decision 70). The quest keeps its own copy of everything it
+ * uses, so a quest file works on any device. Each helper returns the quest with the item added
+ * (and what the item needs) and the id the item has in the quest. If the quest already has an
+ * item with that id and the same content it is reused; if the id is taken by something else the
+ * copy gets a free id. Pure.
+ */
+import { CORE_ABILITIES } from '../data/abilities';
+import { CORE_SPELLS } from '../data/spells';
+import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+function freeId(taken: readonly string[], want: string): string {
+  if (!taken.includes(want)) return want;
+  for (let n = 2; ; n++) if (!taken.includes(`${want}-${n}`)) return `${want}-${n}`;
+}
+
+export interface Added {
+  readonly quest: Quest;
+  /** The id the item has in the quest. */
+  readonly id: string;
+}
+
+export function takeLibraryAbility(q: Quest, def: AbilityDefData): Added {
+  if (CORE_ABILITIES.some((a) => a.id === def.id)) return { quest: q, id: def.id };
+  const own = q.abilityDefs.find((a) => a.id === def.id);
+  if (own && same(own, def)) return { quest: q, id: def.id };
+  const taken = [...CORE_ABILITIES.map((a) => a.id), ...q.abilityDefs.map((a) => a.id)];
+  const id = freeId(taken, def.id);
+  return { quest: { ...q, abilityDefs: [...q.abilityDefs, { ...def, id }] }, id };
+}
+
+export function takeLibrarySpell(q: Quest, def: SpellDefData): Added {
+  if (CORE_SPELLS.some((s) => s.id === def.id)) return { quest: q, id: def.id };
+  const own = q.spellDefs.find((s) => s.id === def.id);
+  if (own && same(own, def)) return { quest: q, id: def.id };
+  const taken = [...CORE_SPELLS.map((s) => s.id), ...q.spellDefs.map((s) => s.id)];
+  const id = freeId(taken, def.id);
+  return { quest: { ...q, spellDefs: [...q.spellDefs, { ...def, id }] }, id };
+}
+
+/** What the library knows, to find the abilities and spells an enemy lists. */
+export interface LibraryContent {
+  readonly abilities: readonly AbilityDefData[];
+  readonly spells: readonly SpellDefData[];
+}
+
+/**
+ * Copy an enemy into the quest with the abilities and spells it lists that are not core. An ability
+ * or spell the library does not have is dropped from the copy (the quest could not know it).
+ */
+export function takeLibraryEnemy(q: Quest, def: EnemyDef, lib: LibraryContent): Added {
+  let quest = q;
+  const abilities: string[] = [];
+  for (const id of def.abilities ?? []) {
+    const item = lib.abilities.find((a) => a.id === id);
+    if (item) {
+      const r = takeLibraryAbility(quest, item);
+      quest = r.quest;
+      abilities.push(r.id);
+    } else if (CORE_ABILITIES.some((a) => a.id === id)) abilities.push(id);
+  }
+  const spells: string[] = [];
+  for (const id of def.spells ?? []) {
+    const item = lib.spells.find((s) => s.id === id);
+    if (item) {
+      const r = takeLibrarySpell(quest, item);
+      quest = r.quest;
+      spells.push(r.id);
+    } else if (CORE_SPELLS.some((s) => s.id === id)) spells.push(id);
+  }
+  const copy: EnemyDef = {
+    ...def,
+    ...(abilities.length ? { abilities } : { abilities: undefined }),
+    ...(spells.length ? { spells } : { spells: undefined }),
+  };
+  if (!copy.abilities) delete (copy as { abilities?: unknown }).abilities;
+  if (!copy.spells) delete (copy as { spells?: unknown }).spells;
+  const own = quest.enemyDefs.find((e) => e.id === def.id);
+  if (own && same(own, copy)) return { quest, id: def.id };
+  const id = freeId(
+    quest.enemyDefs.map((e) => e.id),
+    def.id,
+  );
+  return { quest: { ...quest, enemyDefs: [...quest.enemyDefs, { ...copy, id }] }, id };
+}
