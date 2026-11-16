@@ -150,6 +150,10 @@ const ConditionSchema = z.union([
   z.strictObject({ counter: nonEmpty, gte: z.number() }),
   z.strictObject({ monster: id, alive: z.boolean() }),
   z.strictObject({ monstersAliveIn: areaId, is: z.number().int().min(0) }),
+  /** The room is revealed, the door is open, the monster was seen (decision 67). */
+  z.strictObject({ areaRevealed: areaId }),
+  z.strictObject({ doorOpened: id }),
+  z.strictObject({ monsterSeen: id }),
   z.strictObject({ firstTime: z.literal(true) }),
 ]);
 
@@ -202,8 +206,15 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
   ]),
 );
 
+/** The quest element a note belongs to (decision 67). Derived from the trigger when missing. */
+const TargetSchema = z.strictObject({
+  kind: z.enum(['door', 'furniture', 'monster', 'trap', 'marker', 'area']),
+  id: nonEmpty,
+});
+
 const NoteSchema = z.strictObject({
   id,
+  target: TargetSchema.optional(),
   letter: z.string().min(1).optional(),
   at: cell.optional(),
   trigger: TriggerSchema,
@@ -231,8 +242,12 @@ const ObjectiveSchema = z.strictObject({
       /** Every monster the players have seen is slain (and at least one was seen). */
       z.strictObject({ allSeenKilled: z.literal(true) }),
       z.strictObject({ flag: nonEmpty }),
+      /** Done when all these conditions hold (checked after every event). `firstTime` is not allowed. */
+      z.strictObject({ when: z.array(ConditionSchema).min(1) }),
     ])
     .optional(),
+  /** A button in the Quest sheet that completes the objective: for goals the app cannot see. */
+  confirm: nonEmpty.optional(),
 });
 
 const RulesSchema = z.strictObject({
@@ -293,6 +308,7 @@ export type QuestInput = z.input<typeof QuestSchema>;
 export type Trigger = z.infer<typeof TriggerSchema>;
 export type Condition = z.infer<typeof ConditionSchema>;
 export type Note = z.infer<typeof NoteSchema>;
+export type NoteTarget = z.infer<typeof TargetSchema>;
 export type DoorDef = z.infer<typeof DoorSchema>;
 export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;

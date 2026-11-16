@@ -60,6 +60,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('AREA_ENTER'), area: z.string() }),
   z.object({ type: z.literal('SQUARE_TRIGGER'), cell: CellSchema }),
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
+  z.object({ type: z.literal('CONFIRM_OBJECTIVE'), objective: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
   z.object({ type: z.literal('HERO_DIED'), hero: z.enum(HEROES) }),
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),

@@ -60,6 +60,8 @@ export type GameEvent =
   | { readonly type: 'AREA_ENTER'; readonly area: string }
   /** A hero is on a seen square that has a `squareEntered` note. */
   | { readonly type: 'SQUARE_TRIGGER'; readonly cell: Cell }
+  /** The players pressed the confirm button of an objective (Quest sheet). */
+  | { readonly type: 'CONFIRM_OBJECTIVE'; readonly objective: string }
   /** The players pressed the button of a `manual` note. */
   | { readonly type: 'MANUAL_TRIGGER'; readonly note: string }
   /** The players picked option number `option` (0-based) of a pending `promptChoice`. */

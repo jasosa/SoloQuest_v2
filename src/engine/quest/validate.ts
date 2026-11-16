@@ -406,6 +406,11 @@ export function validateQuestIssues(
     if ('monster' in c && !monsterIds.has(c.monster))
       err(`${where}: unknown monster ${c.monster}`, noteRef);
     if ('monstersAliveIn' in c) needArea(where, c.monstersAliveIn);
+    if ('areaRevealed' in c) needRoom(where, c.areaRevealed);
+    if ('doorOpened' in c && !doorIds.has(c.doorOpened))
+      err(`${where}: unknown door ${c.doorOpened}`, noteRef);
+    if ('monsterSeen' in c && !monsterIds.has(c.monsterSeen))
+      err(`${where}: unknown monster ${c.monsterSeen}`, noteRef);
     if ('flag' in c && c.is && !flagsSet.has(c.flag))
       err(`${where}: flag ${c.flag} is never set`, noteRef);
     if ('counter' in c && c.gte > 0 && !countersAdded.has(c.counter))
@@ -539,7 +544,8 @@ export function validateQuestIssues(
     const ref: IssueRef = { kind: 'objective', id: o.id };
     const d = o.done;
     if (!d) {
-      if (!completed.has(o.id)) err(`${where}: no done rule and no completeObjective effect`, ref);
+      if (!completed.has(o.id) && !o.confirm)
+        err(`${where}: no done rule and no completeObjective effect`, ref);
       continue;
     }
     if ('monsterKilled' in d && !monsterIds.has(d.monsterKilled))
@@ -548,6 +554,20 @@ export function validateQuestIssues(
       for (const m of d.allKilled)
         if (!monsterIds.has(m)) err(`${where}: unknown monster ${m}`, ref);
     if ('flag' in d && !flagsSet.has(d.flag)) err(`${where}: flag ${d.flag} is never set`, ref);
+    if ('when' in d)
+      for (const c of d.when) {
+        if ('firstTime' in c) err(`${where}: firstTime has no meaning in an objective`, ref);
+        if ('monster' in c && !monsterIds.has(c.monster))
+          err(`${where}: unknown monster ${c.monster}`, ref);
+        if ('monsterSeen' in c && !monsterIds.has(c.monsterSeen))
+          err(`${where}: unknown monster ${c.monsterSeen}`, ref);
+        if ('doorOpened' in c && !doorIds.has(c.doorOpened))
+          err(`${where}: unknown door ${c.doorOpened}`, ref);
+        if ('areaRevealed' in c && !rooms.has(c.areaRevealed))
+          err(`${where}: ${c.areaRevealed} is not a room`, ref);
+        if ('flag' in c && c.is && !flagsSet.has(c.flag))
+          err(`${where}: flag ${c.flag} is never set`, ref);
+      }
   }
 
   // ---- editor-only checks

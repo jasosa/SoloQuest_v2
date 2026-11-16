@@ -131,6 +131,16 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       const d = draftOf(state);
       return { state: d, prompts: squareTrigger(level, state, d, event.cell).prompts };
     }
+    case 'CONFIRM_OBJECTIVE': {
+      const o = level.quest.objectives.find((x) => x.id === event.objective);
+      if (!o?.confirm)
+        throw new EventError('NOT_A_TRIGGER', `Objective ${event.objective} has no confirm button`);
+      if (state.objectivesDone.includes(o.id))
+        throw new EventError('NOT_A_TRIGGER', `Objective ${o.id} is already done`);
+      const d = draftOf(state);
+      d.objectivesDone = [...state.objectivesDone, o.id];
+      return { state: d, prompts: [] };
+    }
     case 'MANUAL_TRIGGER': {
       const d = draftOf(state);
       return { state: d, prompts: manualTrigger(level, state, d, event.note).prompts };

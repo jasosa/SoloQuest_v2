@@ -114,6 +114,12 @@ Falling-block squares in the Q13 style (a block may fall each time a hero enters
 
 `{ "flag": "alarm", "is": true }`, `{ "counter": "kills", "gte": 3 }`, `{ "monster": "m1", "alive": false }`, `{ "monstersAliveIn": "R18", "is": 0 }`, `{ "firstTime": true }`.
 
+State conditions (decision 67): `{ "areaRevealed": "R17" }` (the room is revealed), `{ "doorOpened": "d3" }` (the door is open), `{ "monsterSeen": "m1" }` (the monster was seen). They replace silent "set a flag" notes. `firstTime` is not allowed in an objective.
+
+### Objectives with their own rules
+
+An objective `done` may be `{ "when": [conditions] }`: done when all hold, checked after every event. An objective may also have `"confirm": "label"`: a button in the Quest sheet that completes it (event `CONFIRM_OBJECTIVE`), for goals the app cannot see. An objective with `confirm` needs no `done` rule and no helper note.
+
 ### Effects
 
 | `type` | Params |

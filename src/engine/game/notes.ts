@@ -163,7 +163,20 @@ function conditionHolds(level: Level, d: GameState, c: Condition, note: Note): b
   if ('monster' in c) return (d.monsters[c.monster]?.dead !== true) === c.alive;
   if ('monstersAliveIn' in c)
     return liveMonstersInRoom(level, d, c.monstersAliveIn).length === c.is;
+  if ('areaRevealed' in c) return d.revealedRooms.has(c.areaRevealed);
+  if ('doorOpened' in c) return d.openDoors.has(c.doorOpened);
+  if ('monsterSeen' in c) return d.seenMonsters.has(c.monsterSeen);
   return !d.notesFired.includes(note.id); // firstTime
+}
+
+/** Conditions of an objective: all hold now. `firstTime` has no meaning here and never holds. */
+export function objectiveConditionsHold(
+  level: Level,
+  d: GameState,
+  when: readonly Condition[],
+): boolean {
+  const none = { id: '', trigger: { type: 'questStart' }, effects: [] } as Note;
+  return when.every((c) => !('firstTime' in c) && conditionHolds(level, d, c, none));
 }
 
 /**

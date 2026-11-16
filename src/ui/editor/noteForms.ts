@@ -42,6 +42,9 @@ export const CONDITION_TYPES = [
   { key: 'counter', label: 'A counter is at least' },
   { key: 'monster', label: 'A monster is alive or slain' },
   { key: 'monstersAliveIn', label: 'Monsters alive in an area' },
+  { key: 'areaRevealed', label: 'A room is revealed' },
+  { key: 'doorOpened', label: 'A door is open' },
+  { key: 'monsterSeen', label: 'A monster was seen' },
   { key: 'firstTime', label: 'First time only' },
 ] as const;
 export type ConditionKey = (typeof CONDITION_TYPES)[number]['key'];
@@ -51,6 +54,9 @@ export function conditionKey(c: Condition): ConditionKey {
   if ('counter' in c) return 'counter';
   if ('monster' in c) return 'monster';
   if ('monstersAliveIn' in c) return 'monstersAliveIn';
+  if ('areaRevealed' in c) return 'areaRevealed';
+  if ('doorOpened' in c) return 'doorOpened';
+  if ('monsterSeen' in c) return 'monsterSeen';
   return 'firstTime';
 }
 
@@ -161,6 +167,16 @@ export function defaultCondition(q: Quest, key: ConditionKey): Made<Condition> {
     }
     case 'monstersAliveIn':
       return good({ monstersAliveIn: q.start.area, is: 0 });
+    case 'areaRevealed':
+      return good({ areaRevealed: q.start.area });
+    case 'doorOpened': {
+      const d = q.doors[0];
+      return d ? good({ doorOpened: d.id }) : bad('Add a door first.');
+    }
+    case 'monsterSeen': {
+      const m = q.monsters[0];
+      return m ? good({ monsterSeen: m.id }) : bad('Add a monster first.');
+    }
     case 'firstTime':
       return good({ firstTime: true });
   }

@@ -22,6 +22,7 @@ import {
   mapLetters,
   monstersInPlay,
   npcsInPlay,
+  objectiveConfirms,
   objectivesStatus,
   pendingChoice,
   squareMarkers,
@@ -1250,5 +1251,84 @@ describe('review fixes', () => {
     const s1 = reduce(lv, s0, open('d2')).state;
     expect(manualTriggers(lv, s1)).toHaveLength(1);
     expect(manualTriggers(lv, reduce(lv, s1, manual('btn')).state)).toEqual([]);
+  });
+});
+
+describe('conditions on state (decision 67) and objectives with own rules', () => {
+  const lv = lvOf({
+    objectives: [
+      {
+        id: 'o1',
+        text: 'Open two doors',
+        done: { when: [{ doorOpened: 'd2' }, { doorOpened: 'd3' }] },
+      },
+      { id: 'o2', text: 'Leave together', confirm: 'All survivors left' },
+    ],
+    notes: [
+      {
+        id: 'gated',
+        trigger: { type: 'manual', label: 'Needs d3' },
+        when: [{ doorOpened: 'd3' }],
+        effects: [text('ok')],
+      },
+      {
+        id: 'seen',
+        trigger: { type: 'manual', label: 'Needs m1 seen' },
+        when: [{ monsterSeen: 'm1' }],
+        effects: [text('ok')],
+      },
+    ],
+  });
+
+  it('a manual button waits for its door condition', () => {
+    const s0 = replay(lv, SEED, [open('d2')]);
+    expect(manualTriggers(lv, s0).map((m) => m.note)).not.toContain('gated');
+    const s1 = reduce(lv, s0, open('d3')).state;
+    expect(manualTriggers(lv, s1).map((m) => m.note)).toContain('gated');
+  });
+
+  it('monsterSeen holds once the monster was seen', () => {
+    const s0 = initialState(lv, SEED);
+    expect(s0.seenMonsters.has('m1')).toBe(false);
+    expect(manualTriggers(lv, s0).map((m) => m.note)).not.toContain('seen');
+    const s1 = replay(lv, SEED, [open('d2'), open('d3')]);
+    expect(
+      manualTriggers(lv, s1)
+        .map((m) => m.note)
+        .includes('seen'),
+    ).toBe(s1.seenMonsters.has('m1'));
+  });
+
+  it('an objective with `when` is done when all its conditions hold', () => {
+    const s1 = reduce(lv, initialState(lv, SEED), open('d2')).state;
+    expect(objectivesStatus(lv, s1).items[0]?.done).toBe(false);
+    const s2 = reduce(lv, s1, open('d3')).state;
+    expect(objectivesStatus(lv, s2).items[0]?.done).toBe(true);
+  });
+
+  it('CONFIRM_OBJECTIVE completes an objective with a confirm button, once', () => {
+    const s0 = initialState(lv, SEED);
+    expect(objectiveConfirms(lv, s0)).toEqual([{ objective: 'o2', label: 'All survivors left' }]);
+    const r = reduce(lv, s0, { type: 'CONFIRM_OBJECTIVE', objective: 'o2' });
+    expect(objectivesStatus(lv, r.state).items[1]?.done).toBe(true);
+    expect(objectiveConfirms(lv, r.state)).toEqual([]);
+    expect(code(() => reduce(lv, r.state, { type: 'CONFIRM_OBJECTIVE', objective: 'o2' }))).toBe(
+      'NOT_A_TRIGGER',
+    );
+    expect(code(() => reduce(lv, s0, { type: 'CONFIRM_OBJECTIVE', objective: 'o1' }))).toBe(
+      'NOT_A_TRIGGER',
+    );
+  });
+
+  it('the validator accepts the quest and rejects bad ids and firstTime in an objective', () => {
+    expect(validateQuest(lv.quest, board).filter((m) => m.includes('objective'))).toEqual([]);
+    const bad = lvOf({
+      objectives: [
+        { id: 'o1', text: 'x', done: { when: [{ doorOpened: 'nope' }, { firstTime: true }] } },
+      ],
+    });
+    const msgs = validateQuest(bad.quest, board);
+    expect(msgs.some((m) => m.includes('unknown door nope'))).toBe(true);
+    expect(msgs.some((m) => m.includes('firstTime'))).toBe(true);
   });
 });

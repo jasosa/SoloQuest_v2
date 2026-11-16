@@ -864,6 +864,36 @@ function ConditionFields({
         />
       </>
     );
+  if ('areaRevealed' in c)
+    return (
+      <AreaField
+        store={store}
+        label="Room"
+        value={c.areaRevealed}
+        onChange={(areaRevealed) => onChange({ ...c, areaRevealed })}
+      />
+    );
+  if ('doorOpened' in c)
+    return (
+      <Choose
+        label="Door"
+        value={c.doorOpened}
+        options={[
+          ...quest.doors.map((d) => ({ value: d.id, label: d.id })),
+          ...quest.secretDoors.map((d) => ({ value: d.id, label: `${d.id} (secret)` })),
+        ]}
+        onChange={(doorOpened) => onChange({ ...c, doorOpened })}
+      />
+    );
+  if ('monsterSeen' in c)
+    return (
+      <Choose
+        label="Monster"
+        value={c.monsterSeen}
+        options={monsterOptions(quest)}
+        onChange={(monsterSeen) => onChange({ ...c, monsterSeen })}
+      />
+    );
   return <p className="ed-note">Only the first time this note fires.</p>;
 }
 

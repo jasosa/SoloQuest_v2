@@ -3,7 +3,7 @@ import type { AreaId, Cell } from '../board/board';
 import { keyOf, parseKey, type Level } from '../board/level';
 import { forEachEffect, textsOf } from '../quest/effects';
 import type { ObjectiveDef } from '../quest/schema';
-import { conditionsHold, isAvailable } from './notes';
+import { conditionsHold, isAvailable, objectiveConditionsHold } from './notes';
 import type { GameState, PendingChoice } from './state';
 
 // ---- journal
@@ -113,6 +113,19 @@ export function manualTriggers(level: Level, state: GameState): ManualTrigger[] 
   return out;
 }
 
+export interface ObjectiveConfirm {
+  readonly objective: string;
+  readonly label: string;
+}
+
+/** Confirm buttons of objectives that are not done yet (shown in the Quest sheet). */
+export function objectiveConfirms(level: Level, state: GameState): ObjectiveConfirm[] {
+  const out: ObjectiveConfirm[] = [];
+  for (const o of level.quest.objectives)
+    if (o.confirm && !isDone(level, o, state)) out.push({ objective: o.id, label: o.confirm });
+  return out;
+}
+
 /** The choice the players have to answer now (the oldest one), if any. */
 export function pendingChoice(state: GameState): PendingChoice | undefined {
   return state.pendingChoices[0];
@@ -132,12 +145,13 @@ export interface ObjectivesView {
   readonly goalDone: boolean;
 }
 
-function isDone(o: ObjectiveDef, state: GameState): boolean {
+function isDone(level: Level, o: ObjectiveDef, state: GameState): boolean {
   if (state.objectivesDone.includes(o.id)) return true;
   const d = o.done;
   if (!d) return false;
   if ('monsterKilled' in d) return state.monsters[d.monsterKilled]?.dead === true;
   if ('allKilled' in d) return d.allKilled.every((id) => state.monsters[id]?.dead === true);
+  if ('when' in d) return objectiveConditionsHold(level, state, d.when);
   if ('allSeenKilled' in d) {
     const seen = [...state.seenMonsters];
     return seen.length > 0 && seen.every((id) => state.monsters[id]?.dead === true);
@@ -149,7 +163,7 @@ export function objectivesStatus(level: Level, state: GameState): ObjectivesView
   const items = level.quest.objectives.map((o) => ({
     id: o.id,
     text: o.text,
-    done: isDone(o, state),
+    done: isDone(level, o, state),
   }));
   return { items, goalDone: items.length > 0 && items.every((i) => i.done) };
 }
