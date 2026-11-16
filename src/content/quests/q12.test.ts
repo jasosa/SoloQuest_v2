@@ -7,6 +7,7 @@ import { buildLevel } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
+import { squareMarkers } from '../../engine/game/noteView';
 import { manualTriggers, monstersInPlay, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
@@ -224,16 +225,33 @@ describe('quest 12: letter B, the Star of the West', () => {
   });
 });
 
-describe('quest 12: letter C, the falling block', () => {
-  it('the manual note blocks square (0,0) for good', () => {
-    const s = run(...via([], 'd12'));
+describe('quest 12: letter C, the square that needs watching', () => {
+  const seen = () => run(...lookUntil(via([], 'd12'), (st) => st.seenCells.has('0,0')));
+
+  it('the square shows a marker once seen, and the button waits for the first note', () => {
+    const s = seen();
+    expect(squareMarkers(level, s).map((m) => m.cell)).toEqual([[0, 0]]);
+    expect(manualTriggers(level, s).map((m) => m.note)).not.toContain('n-C-done');
+  });
+
+  it('tapping the square asks for the button, then the button blocks (0,0) for good', () => {
+    const s = seen();
     expect(s.placedBlocks.has('0,0')).toBe(false);
-    const n = quest.notes.find((x) => x.letter === 'C')!;
-    expect(n.trigger).toMatchObject({ type: 'manual' });
-    const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C' });
-    expect(r.state.placedBlocks.has('0,0')).toBe(true);
-    expect(noteIds(r.prompts)).toEqual(['n-C']);
-    expect(manualTriggers(level, r.state).map((m) => m.note)).not.toContain('n-C');
+    const r1 = reduce(level, s, { type: 'SQUARE_TRIGGER', cell: [0, 0] });
+    expect(noteIds(r1.prompts)).toEqual(['n-C']);
+    expect(manualTriggers(level, r1.state).map((m) => m.note)).toContain('n-C-done');
+    const r2 = reduce(level, r1.state, { type: 'MANUAL_TRIGGER', note: 'n-C-done' });
+    expect(r2.state.placedBlocks.has('0,0')).toBe(true);
+    expect(manualTriggers(level, r2.state).map((m) => m.note)).not.toContain('n-C-done');
+  });
+
+  it('the texts never say what falls', () => {
+    const text = JSON.stringify(
+      quest.notes
+        .filter((n) => n.id.startsWith('n-C'))
+        .flatMap((n) => n.effects.filter((e) => e.type === 'showText')),
+    );
+    expect(text).not.toMatch(/rock|falling|stone|boulder/i);
   });
 });
 

@@ -337,9 +337,15 @@
   "notes": [
     {
       "id": "n-start",
-      "trigger": { "type": "questStart" },
+      "trigger": {
+        "type": "questStart"
+      },
       "effects": [
-        { "type": "showText", "title": "Start", "text": "Place the heroes on the stairs." }
+        {
+          "type": "showText",
+          "title": "Start",
+          "text": "Place the heroes on the stairs."
+        }
       ]
     },
     {
@@ -382,9 +388,34 @@
       "letter": "C",
       "at": [1, 0],
       "trigger": {
-        "type": "manual",
-        "label": "The last hero has passed the falling rock"
+        "type": "squareEntered",
+        "cell": [0, 0]
       },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "This square",
+          "text": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button \"The last hero has crossed this square\" in the quest actions."
+        },
+        {
+          "type": "setFlag",
+          "flag": "cWatch",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "n-C-done",
+      "trigger": {
+        "type": "manual",
+        "label": "The last hero has crossed this square"
+      },
+      "when": [
+        {
+          "flag": "cWatch",
+          "is": true
+        }
+      ],
       "effects": [
         {
           "type": "placeBlock",
@@ -392,8 +423,8 @@
         },
         {
           "type": "showText",
-          "title": "The falling block drops",
-          "text": "The last hero has gone by, so the stones crash down onto square C and seal it permanently. The route back toward the stairs through that square no longer exists. Mark the square as blocked."
+          "title": "Behind you",
+          "text": "The passage collapses behind the last hero. The square is blocked for good: nobody can go back through it."
         }
       ]
     },

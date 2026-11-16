@@ -34,12 +34,13 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
   if (npcs.length === 0) return null;
   return (
     <section>
-      <div className="lbl">Helpers</div>
+      <div className="lbl">Companions</div>
       <ul className="npcs">
         {npcs.map((n) => (
           <li key={n.id}>
-            <div className="nm">
-              {n.name} <span className="st">Defend {n.defend}</span>
+            <div className="nm">{n.name}</div>
+            <div className="st">
+              Defend {n.defend} · Body {n.body}
             </div>
             {n.text && <p>{n.text}</p>}
           </li>

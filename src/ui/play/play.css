@@ -211,9 +211,8 @@ aside {
   font-size: 16px;
 }
 .npcs .st {
-  font-size: 13.5px;
-  color: var(--muted);
-  margin-left: 6px;
+  font-size: 15px;
+  color: var(--ink-2, var(--muted));
 }
 .npcs p {
   font-size: 14.5px;
