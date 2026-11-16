@@ -15,7 +15,9 @@ import {
   journal,
   livingHeroes,
   manualTriggers,
+  eventLog,
   objectiveConfirms,
+  startTexts,
   monstersInPlay,
   npcsInPlay,
   objectivesStatus,
@@ -32,7 +34,8 @@ import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
-import { Helpers, Heroes, Journal, Objectives, QuestActions } from './sidebar';
+import { QuestSheet } from './QuestSheet';
+import { Helpers, Heroes } from './sidebar';
 import {
   ChestBody,
   headingOf,
@@ -109,6 +112,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const [res, setRes] = useState<Result | null>(null);
   const [sheetPos, setSheetPos] = useState({ seq: -1, i: 0 });
   const [reread, setReread] = useState<string | null>(null);
+  const [questOpen, setQuestOpen] = useState(false);
+  /** A note was re-read from the Quest sheet: reopen the sheet when it closes. */
+  const [backToSheet, setBackToSheet] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
   const [zOpen, setZOpen] = useState(false);
   // Playtest only: show what the heroes cannot see. A view option, never a game event.
@@ -141,6 +147,12 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
   const manual = useMemo(() => manualTriggers(level, state), [level, state]);
   const confirms = useMemo(() => objectiveConfirms(level, state), [level, state]);
+  const log = useMemo(() => eventLog(level, state.seed, events), [level, state.seed, events]);
+  const needsYou = confirms.length > 0 || manual.length > 0;
+  /** The goal line of the title band: the first objective not done yet. */
+  const goalLine = objectives.goalDone
+    ? 'Done. Bring the heroes back to the stairs.'
+    : (objectives.items.find((o) => !o.done)?.text ?? '');
   const enterable = useMemo(() => enterableAreas(level, state), [level, state]);
 
   const choose = (next: Selection | null) => {
@@ -541,13 +553,26 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <header>
         <span className="qn">{playtest ? 'Playtest' : `Quest ${quest.number}`}</span>
         <h1>{quest.title}</h1>
+        {goalLine && (
+          <span className="goalline">
+            <b>Goal</b> {goalLine}
+          </span>
+        )}
         <span className="turn">
           Turn <b>{state.turn}</b>
         </span>
-        <button className="link" disabled={events.length === 0} onClick={() => undo()}>
+        <button className="chip hdr" disabled={events.length === 0} onClick={() => undo()}>
           Undo
         </button>
-        <button className="link" onClick={() => setEndOpen(true)}>
+        <button
+          className={'chip hdr' + (needsYou && !questOpen ? ' dot' : '')}
+          aria-pressed={questOpen}
+          data-testid="quest-chip"
+          onClick={() => setQuestOpen((v) => !v)}
+        >
+          Quest
+        </button>
+        <button className="chip hdr" onClick={() => setEndOpen(true)}>
           End quest
         </button>
         {playtest && (
@@ -595,7 +620,6 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       </div>
 
       <aside>
-        <Objectives view={objectives} intro={quest.intro.summary} />
         <div className="aside-scroll">
           <Heroes
             team={team}
@@ -623,13 +647,6 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               ))}
             </ul>
           </section>
-          <Journal entries={journalEntries} onRead={(id) => setReread(id)} />
-          <QuestActions
-            actions={manual}
-            confirms={confirms}
-            onConfirm={(objective) => dispatch({ type: 'CONFIRM_OBJECTIVE', objective })}
-            onPress={(note) => dispatch({ type: 'MANUAL_TRIGGER', note })}
-          />
         </div>
         {wandering && (
           <p className="wander">
@@ -642,6 +659,33 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <small>{progressLabel(progress)}</small>
         </button>
       </aside>
+
+      {questOpen && !end && (
+        <QuestSheet
+          number={playtest ? 'playtest' : quest.number}
+          title={quest.title}
+          startTexts={startTexts(level)}
+          objectives={objectives}
+          confirms={confirms}
+          actions={manual}
+          notes={journalEntries}
+          log={log}
+          onClose={() => setQuestOpen(false)}
+          onConfirm={(objective) => {
+            setQuestOpen(false);
+            dispatch({ type: 'CONFIRM_OBJECTIVE', objective });
+          }}
+          onPress={(note) => {
+            setQuestOpen(false);
+            dispatch({ type: 'MANUAL_TRIGGER', note });
+          }}
+          onRead={(id) => {
+            setQuestOpen(false);
+            setBackToSheet(true);
+            setReread(id);
+          }}
+        />
+      )}
 
       {end ? (
         <EndScreen
@@ -669,7 +713,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       ) : reread ? (
         <RereadSheet
           entry={journalEntries.find((e) => e.id === reread)}
-          onClose={() => setReread(null)}
+          onClose={() => {
+            setReread(null);
+            if (backToSheet) setQuestOpen(true);
+            setBackToSheet(false);
+          }}
         />
       ) : endOpen ? (
         <NoteCard kind="End quest" title="How did the quest end?" onClose={() => setEndOpen(false)}>

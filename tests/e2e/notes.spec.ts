@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, gotoQuest } from './helpers';
+import { closeQuestSheet, dismissStart, gotoQuest, openQuestSheet } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(400); // let the animations finish
@@ -12,7 +12,7 @@ const roomCell = (page: Page, key: string) => page.locator(`[data-room-cell="${k
 const rows = (page: Page) => page.locator('.roster li:not(.empty)');
 /** Rows of the journal, without the "Start" line every quest begins with. */
 const journalRows = (page: Page) =>
-  page.locator('.journal li').filter({ hasNotText: /^\W*Start\W*$/ });
+  page.locator('.qsheet .journal li').filter({ hasNotText: /^\W*Start\W*$/ });
 
 // Quest 1: corridor squares to look from, in order, to see the doors of the north-west rooms.
 const ROW9 = 'look@1:18,look@0:17,look@0:9';
@@ -41,7 +41,9 @@ test.describe('quest 1 notes', () => {
   }) => {
     await quest1(page, `d1,${ROW9},d8,d10`);
     await expect(page.locator('[data-letter]')).toHaveCount(0);
+    await openQuestSheet(page);
     await expect(journalRows(page)).toHaveCount(0);
+    await closeQuestSheet(page);
     await door(page, 'd11').click();
     await btn(page, 'Open the door').click();
     const card = page.getByRole('dialog', { name: 'Note C' });
@@ -52,8 +54,11 @@ test.describe('quest 1 notes', () => {
     await expect(dialog(page)).toHaveCount(0);
 
     await expect(page.locator('[data-letter="n-C"]')).toHaveCount(1);
+    await openQuestSheet(page);
     await expect(journalRows(page)).toHaveCount(1);
     await expect(journalRows(page).first()).toContainText('C');
+    await shot(page, 'notes-quest-sheet');
+    await closeQuestSheet(page);
     await shot(page, 'notes-letter-map');
 
     // tap the letter on the map, or the journal line, to read it again
@@ -61,9 +66,11 @@ test.describe('quest 1 notes', () => {
     await expect(page.getByRole('dialog', { name: 'Read again' })).toContainText('guardian');
     await page.keyboard.press('Escape');
     await expect(dialog(page)).toHaveCount(0);
+    await openQuestSheet(page);
     await journalRows(page).first().getByRole('button').click();
     await expect(dialog(page)).toContainText('4 attack dice');
     await btn(page, 'Close').click();
+    await expect(page.getByRole('dialog', { name: 'Quest sheet' })).toBeVisible(); // back to the sheet
   });
 
   test('search notes A and E give letters; an unread note leaves no trace', async ({ page }) => {
@@ -78,7 +85,9 @@ test.describe('quest 1 notes', () => {
     await btn(page, 'Continue').click();
     await expect(page.locator('[data-letter="n-A"]')).toHaveCount(1);
     await expect(page.locator('[data-letter="n-E"]')).toHaveCount(0);
+    await openQuestSheet(page);
     await expect(journalRows(page)).toHaveCount(1);
+    await closeQuestSheet(page);
     // the next search gives no note, only a card to draw
     await roomCell(page, '9,13').click();
     await btn(page, 'Search for treasure').click();
@@ -105,11 +114,14 @@ test.describe('quest 1 notes', () => {
     // slay Verag
     await rows(page).filter({ hasText: 'Verag' }).click();
     await btn(page, 'Slain').click();
-    await expect(page.locator('.goals li.done')).toHaveCount(1);
+    await expect(page.locator('header .goalline')).toContainText('Bring the heroes back');
+    await openQuestSheet(page);
+    await expect(page.locator('.qsheet .goals li.done')).toHaveCount(1);
     await expect(
       page.getByText('Goal done. Bring the heroes back to the stairs.').first(),
     ).toBeVisible();
     await shot(page, 'notes-goal-done');
+    await closeQuestSheet(page);
 
     // end the quest
     await btn(page, 'End quest').click();
@@ -172,8 +184,9 @@ test.describe('quest 1 notes', () => {
       .click();
     await btn(page, 'Resume').click();
     await expect(page.locator('[data-letter="n-A"]')).toHaveCount(1);
-    await expect(journalRows(page)).toHaveCount(1);
     await expect(dialog(page)).toHaveCount(0); // nothing is replayed as a sheet
+    await openQuestSheet(page);
+    await expect(journalRows(page)).toHaveCount(1);
   });
 });
 
@@ -204,6 +217,7 @@ test.describe('notes engine on the dev fixture', () => {
     await btn(page, 'Continue').click();
     await expect(dialog(page)).toHaveCount(0);
     // the chosen text is in the journal
+    await openQuestSheet(page);
     await expect(journalRows(page)).toHaveCount(1);
     await journalRows(page).first().getByRole('button').click();
     await expect(dialog(page)).toContainText('You chose: Pull the lever');
@@ -248,7 +262,9 @@ test.describe('notes engine on the dev fixture', () => {
     page,
   }) => {
     await fixture(page, 'd1');
-    await expect(page.getByText('Quest actions')).toBeVisible();
+    await expect(page.getByTestId('quest-chip')).toHaveClass(/dot/); // something to press
+    await openQuestSheet(page);
+    await expect(page.getByText('Tell the app')).toBeVisible();
     await expect(page.locator('.npcs')).toHaveCount(0);
     await btn(page, 'Call for help').click();
     await expect(page.getByRole('dialog')).toContainText('A knight steps out');
@@ -259,6 +275,7 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(btn(page, 'Call for help')).toHaveCount(0); // each button works once
     await shot(page, 'notes-npc');
 
+    await openQuestSheet(page);
     await btn(page, 'Wake the guardian').click();
     await expect(dialog(page)).toContainText('Put');
     await expect(dialog(page)).toContainText('on the marked square');

@@ -381,3 +381,162 @@ aside {
 .order .spell .row + .row {
   margin-top: 6px;
 }
+
+/* ---------- title band chips and the goal line (decision 67) ---------- */
+header {
+  align-items: center;
+  height: 64px;
+  padding-top: 0;
+}
+header .goalline {
+  font-size: 16px;
+  color: var(--muted);
+  margin-left: 8px;
+  max-width: 330px;
+  line-height: 1.2;
+}
+header .goalline b {
+  font:
+    700 12px 'Bonum',
+    serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-right: 6px;
+}
+.chip.hdr {
+  min-height: 44px;
+  padding: 0 14px;
+  position: relative;
+}
+.chip.hdr + .chip.hdr {
+  margin-left: -6px;
+}
+.chip.hdr.dot::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.chip.hdr[aria-pressed='true'].dot::after {
+  background: var(--on-ink);
+}
+
+/* ---------- Quest sheet ---------- */
+.qsheet {
+  position: absolute;
+  right: 0;
+  top: 64px;
+  bottom: 0;
+  width: 420px;
+  z-index: 15;
+  background: var(--paper-3);
+  border-left: 2px solid var(--ink);
+  box-shadow: -6px 0 0 var(--sel);
+  padding: 16px 22px 24px;
+  overflow: auto;
+  animation: slidein 0.22s var(--ease-ink) both;
+}
+@keyframes slidein {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.qsheet .qh {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.qsheet .qh .kind {
+  font:
+    700 12px 'Bonum',
+    serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.qsheet .qh h2 {
+  font:
+    700 24px/1.1 'Bonum',
+    serif;
+  color: var(--ink);
+}
+.qsheet .qh h2:focus {
+  outline: none;
+}
+.qsheet .qh .x {
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--ink);
+  background: none;
+  font-size: 22px;
+  color: var(--ink);
+}
+.qsheet section {
+  border-top: 1px solid var(--rock-line);
+  padding: 12px 0 6px;
+}
+.qsheet p {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.qsheet .btn {
+  margin: 6px 0 4px;
+  min-height: 48px;
+}
+.qsheet .goals li {
+  font-style: normal;
+}
+.qsheet .goals li.done span:last-child {
+  text-decoration: line-through;
+}
+.qsheet .goals li.done .tick {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.qsheet .log {
+  list-style: none;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.qsheet .log li {
+  display: flex;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px dotted var(--off);
+  align-items: baseline;
+}
+.qsheet .log li i {
+  flex: none;
+  width: 52px;
+  font-style: normal;
+  color: var(--ink);
+  font:
+    700 13px 'Bonum',
+    serif;
+}
+.qsheet .log .jl {
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  min-height: 44px;
+  padding: 0;
+}
+.qsheet .more {
+  font-style: italic;
+  color: var(--ink);
+  border: 0;
+  background: none;
+  border-bottom: 1px solid currentColor;
+  padding: 10px 0 2px;
+  min-height: 44px;
+}

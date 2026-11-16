@@ -110,7 +110,7 @@ test.describe('play quest 1', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     // a tap outside closes it as well
     await page.locator('[data-cell="4,18"]').click();
-    await page.locator('aside .goal').click();
+    await page.locator('aside .lbl').first().click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 

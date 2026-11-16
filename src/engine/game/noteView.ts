@@ -49,6 +49,12 @@ export function journal(level: Level, state: GameState): JournalEntry[] {
   return out;
 }
 
+/** The texts of the first `questStart` note: the start instruction for the Quest sheet. */
+export function startTexts(level: Level): string[] {
+  const note = level.quest.notes.find((n) => n.trigger.type === 'questStart');
+  return note ? textsOf(note.effects).texts : [];
+}
+
 export interface MapLetter {
   readonly note: string;
   readonly letter: string;

@@ -26,6 +26,7 @@ import {
   objectivesStatus,
   pendingChoice,
   squareMarkers,
+  startTexts,
 } from './view';
 
 const SEED = 7;
@@ -1359,5 +1360,21 @@ describe('note target (decision 67)', () => {
     expect(validateQuest(bad.quest, board).some((m) => m.includes('target monster nope'))).toBe(
       true,
     );
+  });
+});
+
+describe('startTexts', () => {
+  it('gives the texts of the first questStart note, or none', () => {
+    expect(startTexts(lvOf({ notes: [] }))).toEqual([]);
+    const lv = lvOf({
+      notes: [
+        {
+          id: 's',
+          trigger: { type: 'questStart' },
+          effects: [text('Place the heroes on the stairs.')],
+        },
+      ],
+    });
+    expect(startTexts(lv)).toEqual(['Place the heroes on the stairs.']);
   });
 });

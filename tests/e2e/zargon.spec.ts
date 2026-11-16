@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { gotoQuest } from './helpers';
+import { gotoQuest, openQuestSheet } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(450); // let the card settle
@@ -140,6 +140,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     page,
   }) => {
     await fixture(page, 'd1');
+    await openQuestSheet(page);
     await btn(page, 'Wake the guardian').click();
     await btn(page, 'Done').click();
     await zbutton(page).click();
@@ -170,8 +171,10 @@ test.describe("Zargon's turn, one monster at a time", () => {
 
   test('a stone monster is an info dialog with its countdown', async ({ page }) => {
     await fixture(page, 'd1');
+    await openQuestSheet(page);
     await btn(page, 'Wake the guardian').click();
     await btn(page, 'Done').click();
+    await openQuestSheet(page);
     await btn(page, 'Turn the guardian to stone').click();
     await expect(page.locator('.roster')).toContainText('Stone: 2 turns');
     await zbutton(page).click();
