@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { board } from '../engine/board/board';
 import { buildLevel } from '../engine/board/level';
 import type { Quest } from '../engine/quest/schema';
@@ -139,6 +139,15 @@ function Game({ params }: { params: URLSearchParams }) {
     [params],
   );
   const [designer, setDesigner] = useState(false);
+  // The quests made here, for the "Used in" panel of the Designer.
+  const questSource = useCallback(async () => {
+    const out: { title: string; quest: Quest }[] = [];
+    for (const r of await userStore.list()) {
+      const quest = (await userStore.loadDraft(r.id))?.quest ?? (await userStore.load(r.id));
+      if (quest) out.push({ title: r.title, quest });
+    }
+    return out;
+  }, [userStore]);
   const [playtest, setPlaytest] = useState<{ game: GameStore; editor: EditorStore } | null>(null);
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
@@ -217,7 +226,10 @@ function Game({ params }: { params: URLSearchParams }) {
         playtest={{ onBack: () => setPlaytest(null) }}
       />
     );
-  if (designer) return <DesignerScreen store={libraryStore} onBack={() => setDesigner(false)} />;
+  if (designer)
+    return (
+      <DesignerScreen store={libraryStore} quests={questSource} onBack={() => setDesigner(false)} />
+    );
   if (editor === 'start')
     return (
       <EditorStart
