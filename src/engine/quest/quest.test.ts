@@ -34,7 +34,7 @@ describe('parseQuest', () => {
 
   it('parses notes with trigger, conditions and nested effects', () => {
     const q = withPatch({
-      markers: [{ id: 'k1', label: 'X', cell: [4, 2], visible: 'zargon' }],
+      markers: [{ id: 'k1', label: 'X', cell: [4, 2], visible: 'editor' }],
       wandering: { monster: 'orc' },
       objectives: [{ id: 'o1', text: 'Kill it', done: { monsterKilled: 'm1' } }],
       rules: { fallingBlock: 'q13', bounty: { goblin: 10 } },
@@ -101,7 +101,16 @@ describe('parseQuest', () => {
 
 describe('migrateQuest', () => {
   it('accepts version 1 and rejects others with a clear message', () => {
-    expect(migrateQuest(testQuestData)).toBe(testQuestData);
+    expect(migrateQuest(testQuestData)).toEqual(testQuestData);
+    // Decision 66: old files with `zargonInfo` or a `zargon` marker still load.
+    const old = {
+      ...testQuestData,
+      zargonInfo: 'x',
+      markers: [{ id: 'k1', label: 'X', cell: [4, 2], visible: 'zargon' }],
+    };
+    const q = parseQuest(old);
+    expect('zargonInfo' in q).toBe(false);
+    expect(q.markers[0]?.visible).toBe('editor');
     expect(() => migrateQuest({ ...testQuestData, schemaVersion: 2 })).toThrow(QuestVersionError);
     expect(() => migrateQuest({ ...testQuestData, schemaVersion: 2 })).toThrow(/version 1/);
     expect(() => migrateQuest({})).toThrow(/no schemaVersion/);

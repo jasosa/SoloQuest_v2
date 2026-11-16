@@ -6,7 +6,6 @@
   "intro": {
     "summary": "A guide led the heroes deep into an underground maze said to hide a great secret. In a room with three doors he snuffed out his torch, laughed in the dark and slipped away. It was a trap. The heroes must fight their way back to the stairway, or be lost in this forgotten pit."
   },
-  "zargonInfo": "The heroes start in room A, with three doors. Besides the doors there are two secret doors: one in the south wall of room A, and one between the two chest rooms (in the wall of the west room, the one with the two plain chests, it leads to the little room with the trapped chest and a Dread warrior). The south secret door is the shortest way to the long corridor that runs to the stairs. There are no traps on the floor. The only trap is the poison gas in chest C.",
   "start": {
     "area": "R21"
   },

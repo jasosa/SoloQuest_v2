@@ -92,8 +92,7 @@ describe('quest 14: data', () => {
     expect(x.cell).toEqual([23, 3]);
   });
 
-  it('keeps the Spell Ring out of zargonInfo and intro', () => {
-    expect(quest.zargonInfo).not.toMatch(/(^|[^a-z])ring([^a-z]|$)/i);
+  it('keeps the Spell Ring out of the intro', () => {
     expect(quest.intro.summary).not.toMatch(/(^|[^a-z])ring([^a-z]|$)/i);
   });
 });

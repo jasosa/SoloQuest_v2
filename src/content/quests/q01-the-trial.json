@@ -6,7 +6,6 @@
   "intro": {
     "summary": "Deep in the catacombs by Fellmarg's tomb lurks Verag, a gargoyle. The heroes must track it down and kill it. This is their first real trial."
   },
-  "zargonInfo": "No traps and no secret doors here. Warn the players that this quest is hard: a hero who wanders off alone will not last.",
   "start": { "area": "R20" },
   "rock": {
     "rooms": ["R04", "R05", "R06", "R09", "R10", "R13", "R14", "R15", "R16", "R21", "R22"],

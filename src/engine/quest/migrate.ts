@@ -20,5 +20,19 @@ export function migrateQuest(raw: unknown): unknown {
     throw new QuestVersionError(
       `Unsupported quest schemaVersion ${JSON.stringify(v)}. This app reads version ${SCHEMA_VERSION}.`,
     );
-  return raw;
+  return dropLegacy(raw);
+}
+
+/** Same-version cleanups (decision 66): `zargonInfo` is gone, marker `zargon` became `editor`. */
+export function dropLegacy(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return raw;
+  const rest = { ...(raw as Record<string, unknown>) };
+  delete rest.zargonInfo;
+  if (Array.isArray(rest.markers))
+    rest.markers = rest.markers.map((m: unknown) =>
+      typeof m === 'object' && m !== null && (m as { visible?: unknown }).visible === 'zargon'
+        ? { ...m, visible: 'editor' }
+        : m,
+    );
+  return rest;
 }

@@ -1,6 +1,6 @@
 /**
  * The quest fields of the inspector (shown with nothing selected): the objectives, the text only
- * Zargon sees, the wandering monster and the two simple quest rules. Every change is an engine
+ * editor-only anchors, the wandering monster and the two simple quest rules. Every change is an engine
  * edit operation through the store (`meta.ts`), so undo works and a refused change shows the
  * engine sentence as a toast. Text fields save when they lose focus, chips save at once. Warnings
  * of a change (for example a note that completed a removed objective) show on the board, as for
@@ -15,7 +15,6 @@ import {
   removeObjective,
   setRules,
   setWandering,
-  setZargonInfo,
   updateEnding,
   updateObjective,
 } from '../../engine/editor';
@@ -140,23 +139,6 @@ export function QuestPanel({ store }: { store: EditorStore }) {
         >
           Add an ending
         </button>
-      </section>
-
-      <section>
-        <div className="lbl">For Zargon only</div>
-        <label className="ed-field">
-          Zargon info
-          <textarea
-            key={quest.zargonInfo ?? ''}
-            defaultValue={quest.zargonInfo ?? ''}
-            rows={3}
-            placeholder="Hints only Zargon reads"
-            onBlur={(e) => {
-              const v = e.target.value.trim();
-              if (v !== (quest.zargonInfo ?? '')) st.apply((q) => setZargonInfo(q, v));
-            }}
-          />
-        </label>
       </section>
 
       <section>

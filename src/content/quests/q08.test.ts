@@ -120,10 +120,10 @@ describe('quest 8: data', () => {
     expect(areaOf(b.cell!)).toBe('R01');
   });
 
-  it('XX is in the center room R11 and the markers are for Zargon', () => {
+  it('XX is in the center room R11 and the markers are editor-only', () => {
     const xx = quest.markers.find((m) => m.label === 'XX')!;
     expect(areaOf(xx.cell)).toBe('R11');
-    expect(xx.visible).toBe('zargon');
+    expect(xx.visible).toBe('editor');
   });
 });
 

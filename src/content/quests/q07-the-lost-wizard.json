@@ -6,7 +6,6 @@
   "intro": {
     "summary": "Wardoz, the king's own wizard, has vanished. The king fears he was murdered, or that he fell victim to his own Dread magic. The heroes must find out what happened to Wardoz and then return to the stairway. Each hero is promised 100 gold coins."
   },
-  "zargonInfo": "Every Dread warrior here is made of stone and defends with 5 dice instead of 4. Chest C is trapped with a poison needle and hides a flask of a strange purple liquid: keep its effect secret from the heroes until someone drinks it. The zombie in room D is Wardoz himself.",
   "start": {
     "area": "R08"
   },

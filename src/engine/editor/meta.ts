@@ -1,19 +1,11 @@
 /**
- * Quest-level operations: Zargon info, wandering monster, objectives and rules overrides.
+ * Quest-level operations: wandering monster, objectives and rules overrides.
  * Same style as `ops.ts`: pure, the input is never changed, ids stay stable.
  * Half done work is allowed (an objective that points at a missing monster): that comes back as
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
 import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
-
-/** Text for Zargon only. Empty text clears it. */
-export function setZargonInfo(q: Quest, text: string): EditResult {
-  const t = text.trim();
-  const { zargonInfo: _old, ...rest } = q;
-  void _old;
-  return ok(t === '' ? rest : { ...rest, zargonInfo: t });
-}
 
 /** What a wandering monster is: a monster type, free text, or `null` for none. */
 export type WanderingInput = { monster: MonsterType } | { text: string } | null;

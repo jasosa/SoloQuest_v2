@@ -19,7 +19,6 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "number": 1,
   "title": "The Trial",
   "intro": { "summary": "Find and destroy Verag, the gargoyle hiding in the catacombs." },
-  "zargonInfo": "No traps and no secret doors in this quest. It is a hard one: the heroes survive only if they fight together.",
   "start": { "area": "R20" },                 // area revealed at start (stairway room, or e.g. Q6 "Cell")
   "rock": { "rooms": ["R04", "R05"], "cells": [[12, 1], [13, 1]] },   // dark shaded on the map
   "doors": [ { "id": "d1", "a": [3, 17], "b": [3, 18] } ],
@@ -29,7 +28,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "furniture": [ { "id": "f1", "type": "weaponsRack", "cells": [[11, 15], [11, 16], [11, 17]], "letter": "A" } ],
   "monsters": [ { "id": "m1", "type": "orc", "cell": [7, 14] } ],
   "traps": [ { "id": "t1", "kind": "pit", "cell": [11, 18] } ],
-  "markers": [ { "id": "k1", "label": "X", "cell": [4, 2], "visible": "zargon" } ],
+  "markers": [ { "id": "k1", "label": "X", "cell": [4, 2], "visible": "editor" } ],
   "notes": [ /* see below */ ],
   "wandering": { "monster": "orc" },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
   "objectives": [ { "id": "o1", "text": "Destroy Verag", "done": { "monsterKilled": "m-verag" } } ],

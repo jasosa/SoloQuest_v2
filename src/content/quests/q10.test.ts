@@ -256,7 +256,6 @@ describe("quest 10: letter B (the mine, fool's gold)", () => {
     const text = JSON.stringify(b.effects);
     expect(text).toContain('5,000');
     expect(text).not.toContain("fool's");
-    expect(quest.zargonInfo).not.toContain("fool's");
     expect(quest.intro.summary).not.toContain('fool');
     expect(quest.rewards).toContain("fool's gold");
   });

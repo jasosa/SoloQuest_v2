@@ -34,13 +34,12 @@ describe('export', () => {
   });
   it('has a stable key order and compact cell pairs', () => {
     const text = exportQuest(q01);
-    expect(Object.keys(JSON.parse(text)).slice(0, 6)).toEqual([
+    expect(Object.keys(JSON.parse(text)).slice(0, 5)).toEqual([
       'schemaVersion',
       'id',
       'number',
       'title',
       'intro',
-      'zargonInfo',
     ]);
     expect(text).toContain('"a": [3, 17]');
     expect(text.endsWith('}\n')).toBe(true);

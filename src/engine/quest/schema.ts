@@ -106,7 +106,8 @@ const MarkerSchema = z.strictObject({
   id,
   label: nonEmpty,
   cell,
-  visible: z.enum(['zargon', 'players']).optional(),
+  /** `editor`: an anchor seen only in the editor (decision 66). Old files said `zargon`. */
+  visible: z.enum(['editor', 'players']).optional(),
 });
 
 // ---- notes
@@ -260,7 +261,6 @@ export const QuestSchema = z.strictObject({
   number: z.number().int().min(1),
   title: nonEmpty,
   intro: z.strictObject({ summary: nonEmpty, userText: z.string().optional() }),
-  zargonInfo: z.string().optional(),
   start: z.strictObject({ area: roomId }),
   rock: z
     .strictObject({

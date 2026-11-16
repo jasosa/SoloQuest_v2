@@ -43,11 +43,10 @@ describe('quest 1: data', () => {
     expect(validateQuest(quest, board)).toEqual([]);
   });
 
-  it('has no traps and no secret or false doors (Zargon info)', () => {
+  it('has no traps and no secret or false doors', () => {
     expect(quest.traps).toEqual([]);
     expect(quest.secretDoors).toEqual([]);
     expect(quest.falseDoors).toEqual([]);
-    expect(quest.zargonInfo).toBeTruthy();
   });
 
   it('has 12 doors, 4 blocks, 24 monsters and an orc as the wandering monster', () => {

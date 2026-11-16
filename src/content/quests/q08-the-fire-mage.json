@@ -6,7 +6,6 @@
   "intro": {
     "summary": "Orc raiders out of the Dark Mountains have been using fire magic, and the fire mage Balur is believed to be behind it. No fire spell can hurt him, so the King's wizards are helpless against him. The heroes must go into his lair under Darkfire Crag and destroy him, for 100 gold coins each."
   },
-  "zargonInfo": "Balur is played with the Dread sorcerer figure and starts on the X in the top left room. His stats are Movement 8, Attack 2, Defend 5, Body 3, Mind 7. Fire spells have no effect on him. He knows ball of flame, firestorm, tempest, summon orcs, fear and escape, each usable once in the quest, and he casts at most one spell per turn. Escape moves him to XX in the center room, but he is not put on that square until the heroes open the door of that room. The map has two secret doors, both leading into the small room southwest of the center room.",
   "start": {
     "area": "R10"
   },
@@ -412,13 +411,13 @@
       "id": "k1",
       "label": "X",
       "cell": [2, 3],
-      "visible": "zargon"
+      "visible": "editor"
     },
     {
       "id": "k2",
       "label": "XX",
       "cell": [12, 9],
-      "visible": "zargon"
+      "visible": "editor"
     }
   ],
   "notes": [

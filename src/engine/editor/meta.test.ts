@@ -7,7 +7,6 @@ import {
   removeObjective,
   setRules,
   setWandering,
-  setZargonInfo,
   updateObjective,
 } from './meta';
 import { emptyQuest, type EditResult } from './ops';
@@ -19,14 +18,6 @@ function ok(r: EditResult): Quest {
   if (!r.ok) throw new Error(r.error);
   return r.quest;
 }
-
-describe('setZargonInfo', () => {
-  it('sets, trims and clears', () => {
-    const q = ok(setZargonInfo(base(), '  Watch out.  '));
-    expect(q.zargonInfo).toBe('Watch out.');
-    expect('zargonInfo' in ok(setZargonInfo(q, '  '))).toBe(false);
-  });
-});
 
 describe('setWandering', () => {
   it('sets a monster, text, and clears', () => {

@@ -37,7 +37,8 @@ function via(events: GameEvent[], door: string, ...from: [number, number][]): Ga
     if (!hint) break;
     out.push({ type: 'LOOK_FROM', cell: hint });
   }
-  for (const cell of from) if (!run(...out).seenDoors.has(door)) out.push({ type: 'LOOK_FROM', cell });
+  for (const cell of from)
+    if (!run(...out).seenDoors.has(door)) out.push({ type: 'LOOK_FROM', cell });
   expect(run(...out).seenDoors.has(door)).toBe(true);
   return [...out, open(door)];
 }
@@ -108,12 +109,7 @@ describe('quest 11: start and walk-through', () => {
     expect(s.revealedRooms.has('R18')).toBe(true);
     expect(s.seenFurniture.has('f-fireplace')).toBe(true);
     const inR18 = quest.monsters.filter((m) => areaOf(m.cell!) === 'R18');
-    expect(inR18.map((m) => m.type).sort()).toEqual([
-      'goblin',
-      'goblin',
-      'goblin',
-      'orc',
-    ]);
+    expect(inR18.map((m) => m.type).sort()).toEqual(['goblin', 'goblin', 'goblin', 'orc']);
     for (const m of inR18) expect(s.seenMonsters.has(m.id)).toBe(true);
   });
 

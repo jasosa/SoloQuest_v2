@@ -670,7 +670,7 @@ export function addMarker(
   q: Quest,
   label: string,
   cell: Cell,
-  visible?: 'zargon' | 'players',
+  visible?: 'editor' | 'players',
   id?: string,
 ): EditResult {
   const text = label.trim();

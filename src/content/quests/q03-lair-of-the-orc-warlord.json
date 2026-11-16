@@ -6,7 +6,6 @@
   "intro": {
     "summary": "Prince Magnus orders the heroes to hunt down and destroy Ulag, the orc warlord who was behind the capture of Sir Ragnar. When Ulag is dead, the heroes share a reward of 180 gold coins. Loot the heroes find there is theirs personally."
   },
-  "zargonInfo": "Use the orc miniature with the big sword as Ulag. On the map he stands in the big room at the south end, with a dread warrior beside him. His stats are Movement 10, Attack 4, Defend 5, Body 2, Mind 3.",
   "start": {
     "area": "R03"
   },

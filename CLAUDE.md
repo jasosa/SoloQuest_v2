@@ -22,7 +22,7 @@ Owner: Juanan. Write code comments, docs and UI text in plain, short English. **
 ## Hard rules
 
 1. **No verbatim book text.** Never copy text from the Quest Book or rulebook into the repo (notes, parchment text, card text). Paraphrase in your own words, keep the game effect exact. Quest map images and PDFs never go into git (`reference/` is git-ignored).
-2. **The app does not track**: hero or monster positions and movement, hero Body/Mind Points, gold, equipment, artifacts between quests (the one exception: whether a hero has died, decision 32). No digital dice, no digital treasure deck. Do not add these "to help".
+2. **The app does not track**: hero or monster positions and movement, hero Body/Mind Points, gold, equipment, artifacts between quests (the one exception: whether a hero has died, decision 32). No digital dice, no digital treasure deck. The one exception to positions: a monster added in play (spell, wandering) gets a square the players enter, only so it is drawn, can be slain and acts on Zargon's turn (decision 66); the app never moves it. Do not add these "to help".
 3. **Engine is pure TypeScript** in `src/engine/`: no React, no DOM, no `Date.now()`, no `Math.random()`. All randomness goes through the seeded RNG in the game state. All changes to game state are events through the reducer (event sourcing, undo = drop last event).
 4. **Tests with every engine change.** Vitest unit tests next to the code (`*.test.ts`). Line of sight and reveal changes need a test case drawn on a small ASCII map.
 5. **Quests are data only** (`src/content/quests/qNN-*.json`), validated by the Zod schema. Quest-specific logic goes in notes/effects or `rules` overrides, never `if (quest === 7)` in the engine.

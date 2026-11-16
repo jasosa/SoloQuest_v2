@@ -36,7 +36,7 @@ export interface ToolOpts {
   readonly monsterType: MonsterKind;
   readonly trapKind: 'pit' | 'fallingBlock' | 'spear' | 'chest';
   readonly markerLabel: string;
-  readonly markerVisible: 'zargon' | 'players';
+  readonly markerVisible: 'editor' | 'players';
   readonly roomIds: boolean;
 }
 
@@ -49,7 +49,7 @@ export const DEFAULT_OPTS: ToolOpts = {
   monsterType: 'orc',
   trapKind: 'pit',
   markerLabel: 'A',
-  markerVisible: 'zargon',
+  markerVisible: 'editor',
   roomIds: false,
 };
 

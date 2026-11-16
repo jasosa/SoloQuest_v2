@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { USER_QUEST_PREFIX, isUserQuestId, newUserQuestId } from '../engine/editor/ids';
+import { dropLegacy } from '../engine/quest/migrate';
 import { QuestSchema, type Quest } from '../engine/quest/schema';
 
 /**
@@ -48,7 +49,7 @@ function checked(quest: Quest): Quest {
 
 /** The quest of a stored row, or undefined when the row is corrupt. Never throws. */
 function readBack(data: unknown): Quest | undefined {
-  const parsed = QuestSchema.safeParse(data);
+  const parsed = QuestSchema.safeParse(dropLegacy(data));
   return parsed.success ? parsed.data : undefined;
 }
 

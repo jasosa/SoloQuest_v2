@@ -6,7 +6,6 @@
   "intro": {
     "summary": "Sir Ragnar, a knight of the King, has been captured, probably by the orc warlord Ulag. The heroes must find him and lead him safely back to the stairs. Prince Magnus pays 240 gold coins, shared among the heroes, but only if Sir Ragnar survives the escape."
   },
-  "zargonInfo": "The cell of Sir Ragnar has no outer door: the way in is the secret door on the north wall of the room with the large table, then the cell door. When the heroes open the cell door, the alarm rings: place every monster, furniture piece and door on the board at once, and treat all doors as open.",
   "start": { "area": "R11" },
   "rock": {
     "rooms": ["R01", "R02", "R03", "R06", "R07", "R08", "R15", "R16", "R19", "R20", "R21", "R22"],
@@ -217,7 +216,7 @@
       "effect": "A poison needle pricks the hero who searches the chest: that hero loses 1 Body Point."
     }
   ],
-  "markers": [{ "id": "k1", "label": "X", "cell": [5, 11], "visible": "zargon" }],
+  "markers": [{ "id": "k1", "label": "X", "cell": [5, 11], "visible": "editor" }],
   "notes": [
     {
       "id": "n-A",
@@ -284,9 +283,7 @@
     }
   ],
   "wandering": { "monster": "orc" },
-  "objectives": [
-    { "id": "o1", "text": "Free Sir Ragnar and bring him to the stairs alive" }
-  ],
+  "objectives": [{ "id": "o1", "text": "Free Sir Ragnar and bring him to the stairs alive" }],
   "rewards": "240 gold coins, shared among the heroes. Nothing if Sir Ragnar dies during the escape.",
   "rules": {},
   "endings": [

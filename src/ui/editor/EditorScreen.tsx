@@ -295,8 +295,8 @@ function ToolOptions({ store }: { store: EditorStore }) {
             />
           </label>
           <div className="ed-chips">
-            {chip('Zargon sees', opts.markerVisible === 'zargon', () =>
-              set({ markerVisible: 'zargon' }),
+            {chip('Editor only', opts.markerVisible === 'editor', () =>
+              set({ markerVisible: 'editor' }),
             )}
             {chip('Players see', opts.markerVisible === 'players', () =>
               set({ markerVisible: 'players' }),

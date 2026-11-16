@@ -6,434 +6,165 @@
   "intro": {
     "summary": "The heroes now hold the Spirit Blade and must go back to Barak Tor to end the Witch Lord. The King has marched east to meet the orcs at Darkfire Pass. Should the heroes fall, the Witch Lord will lead his dead warriors against the King's army from the rear, and the land will lie open to the forces of Dread."
   },
-  "zargonInfo": "The Witch Lord waits on the X square in the top right room, beside the throne. Play him with the Dread sorcerer figure. He is stronger than before: Movement 10, Attack 5, Defend 6, Body 4, Mind 6. Weapons and spells do nothing to him, only the Spirit Blade. His spells are summon undead, fear (twice), ball of flame, command and tempest, and he casts at most one spell per turn. The map has one secret door: the east wall of the room in the upper middle, seen from the corridor beside it.",
   "start": {
     "area": "R20"
   },
   "rock": {
-    "rooms": [
-      "R04",
-      "R07",
-      "R08",
-      "R09",
-      "R10",
-      "R15",
-      "R16",
-      "R17",
-      "R18",
-      "R19",
-      "R21",
-      "R22"
-    ],
+    "rooms": ["R04", "R07", "R08", "R09", "R10", "R15", "R16", "R17", "R18", "R19", "R21", "R22"],
     "cells": [
-      [
-        0,
-        18
-      ],
-      [
-        1,
-        18
-      ],
-      [
-        2,
-        18
-      ],
-      [
-        3,
-        18
-      ],
-      [
-        4,
-        18
-      ],
-      [
-        5,
-        18
-      ],
-      [
-        6,
-        18
-      ],
-      [
-        7,
-        18
-      ],
-      [
-        8,
-        18
-      ],
-      [
-        9,
-        18
-      ],
-      [
-        10,
-        18
-      ],
-      [
-        11,
-        18
-      ],
-      [
-        12,
-        18
-      ],
-      [
-        13,
-        18
-      ],
-      [
-        14,
-        18
-      ],
-      [
-        15,
-        18
-      ],
-      [
-        16,
-        18
-      ],
-      [
-        17,
-        18
-      ],
-      [
-        18,
-        18
-      ],
-      [
-        19,
-        18
-      ],
-      [
-        20,
-        18
-      ],
-      [
-        21,
-        18
-      ],
-      [
-        22,
-        18
-      ],
-      [
-        23,
-        18
-      ],
-      [
-        24,
-        18
-      ],
-      [
-        25,
-        18
-      ],
-      [
-        25,
-        11
-      ],
-      [
-        25,
-        12
-      ],
-      [
-        25,
-        13
-      ],
-      [
-        25,
-        14
-      ],
-      [
-        25,
-        15
-      ],
-      [
-        25,
-        16
-      ],
-      [
-        25,
-        17
-      ],
-      [
-        12,
-        14
-      ],
-      [
-        12,
-        15
-      ],
-      [
-        12,
-        16
-      ],
-      [
-        12,
-        17
-      ],
-      [
-        13,
-        14
-      ],
-      [
-        13,
-        15
-      ],
-      [
-        13,
-        16
-      ],
-      [
-        13,
-        17
-      ]
+      [0, 18],
+      [1, 18],
+      [2, 18],
+      [3, 18],
+      [4, 18],
+      [5, 18],
+      [6, 18],
+      [7, 18],
+      [8, 18],
+      [9, 18],
+      [10, 18],
+      [11, 18],
+      [12, 18],
+      [13, 18],
+      [14, 18],
+      [15, 18],
+      [16, 18],
+      [17, 18],
+      [18, 18],
+      [19, 18],
+      [20, 18],
+      [21, 18],
+      [22, 18],
+      [23, 18],
+      [24, 18],
+      [25, 18],
+      [25, 11],
+      [25, 12],
+      [25, 13],
+      [25, 14],
+      [25, 15],
+      [25, 16],
+      [25, 17],
+      [12, 14],
+      [12, 15],
+      [12, 16],
+      [12, 17],
+      [13, 14],
+      [13, 15],
+      [13, 16],
+      [13, 17]
     ]
   },
   "doors": [
     {
       "id": "d1",
-      "a": [
-        3,
-        0
-      ],
-      "b": [
-        3,
-        1
-      ]
+      "a": [3, 0],
+      "b": [3, 1]
     },
     {
       "id": "d2",
-      "a": [
-        6,
-        0
-      ],
-      "b": [
-        6,
-        1
-      ]
+      "a": [6, 0],
+      "b": [6, 1]
     },
     {
       "id": "d3",
-      "a": [
-        18,
-        0
-      ],
-      "b": [
-        18,
-        1
-      ]
+      "a": [18, 0],
+      "b": [18, 1]
     },
     {
       "id": "d4",
-      "a": [
-        22,
-        0
-      ],
-      "b": [
-        22,
-        1
-      ]
+      "a": [22, 0],
+      "b": [22, 1]
     },
     {
       "id": "d5",
-      "a": [
-        12,
-        6
-      ],
-      "b": [
-        12,
-        7
-      ]
+      "a": [12, 6],
+      "b": [12, 7]
     },
     {
       "id": "d6",
-      "a": [
-        7,
-        9
-      ],
-      "b": [
-        7,
-        10
-      ]
+      "a": [7, 9],
+      "b": [7, 10]
     },
     {
       "id": "d7",
-      "a": [
-        0,
-        2
-      ],
-      "b": [
-        1,
-        2
-      ]
+      "a": [0, 2],
+      "b": [1, 2]
     },
     {
       "id": "d8",
-      "a": [
-        11,
-        2
-      ],
-      "b": [
-        12,
-        2
-      ]
+      "a": [11, 2],
+      "b": [12, 2]
     },
     {
       "id": "d9",
-      "a": [
-        8,
-        3
-      ],
-      "b": [
-        9,
-        3
-      ]
+      "a": [8, 3],
+      "b": [9, 3]
     },
     {
       "id": "d10",
-      "a": [
-        20,
-        3
-      ],
-      "b": [
-        21,
-        3
-      ]
+      "a": [20, 3],
+      "b": [21, 3]
     },
     {
       "id": "d11",
-      "a": [
-        9,
-        9
-      ],
-      "b": [
-        10,
-        9
-      ]
+      "a": [9, 9],
+      "b": [10, 9]
     },
     {
       "id": "d12",
-      "a": [
-        4,
-        11
-      ],
-      "b": [
-        5,
-        11
-      ]
+      "a": [4, 11],
+      "b": [5, 11]
     },
     {
       "id": "d13",
-      "a": [
-        6,
-        11
-      ],
-      "b": [
-        7,
-        11
-      ]
+      "a": [6, 11],
+      "b": [7, 11]
     },
     {
       "id": "d14",
-      "a": [
-        0,
-        16
-      ],
-      "b": [
-        1,
-        16
-      ]
+      "a": [0, 16],
+      "b": [1, 16]
     }
   ],
   "secretDoors": [
     {
       "id": "s1",
-      "a": [
-        11,
-        4
-      ],
-      "b": [
-        12,
-        4
-      ]
+      "a": [11, 4],
+      "b": [12, 4]
     }
   ],
   "falseDoors": [],
   "blocks": [
     {
-      "cells": [
-        [
-          0,
-          0
-        ]
-      ]
+      "cells": [[0, 0]]
+    },
+    {
+      "cells": [[7, 0]]
     },
     {
       "cells": [
-        [
-          7,
-          0
-        ]
+        [12, 3],
+        [13, 3]
       ]
     },
     {
-      "cells": [
-        [
-          12,
-          3
-        ],
-        [
-          13,
-          3
-        ]
-      ]
+      "cells": [[11, 6]]
+    },
+    {
+      "cells": [[14, 6]]
     },
     {
       "cells": [
-        [
-          11,
-          6
-        ]
+        [12, 13],
+        [13, 13]
       ]
     },
     {
-      "cells": [
-        [
-          14,
-          6
-        ]
-      ]
+      "cells": [[25, 10]]
     },
     {
-      "cells": [
-        [
-          12,
-          13
-        ],
-        [
-          13,
-          13
-        ]
-      ]
-    },
-    {
-      "cells": [
-        [
-          25,
-          10
-        ]
-      ]
-    },
-    {
-      "cells": [
-        [
-          0,
-          17
-        ]
-      ]
+      "cells": [[0, 17]]
     }
   ],
   "furniture": [
@@ -441,250 +172,146 @@
       "id": "f-stairs",
       "type": "stairs",
       "cells": [
-        [
-          1,
-          14
-        ],
-        [
-          2,
-          14
-        ],
-        [
-          1,
-          15
-        ],
-        [
-          2,
-          15
-        ]
+        [1, 14],
+        [2, 14],
+        [1, 15],
+        [2, 15]
       ]
     },
     {
       "id": "f-tomb",
       "type": "tomb",
       "cells": [
-        [
-          1,
-          11
-        ],
-        [
-          2,
-          11
-        ],
-        [
-          3,
-          11
-        ],
-        [
-          1,
-          12
-        ],
-        [
-          2,
-          12
-        ],
-        [
-          3,
-          12
-        ]
+        [1, 11],
+        [2, 11],
+        [3, 11],
+        [1, 12],
+        [2, 12],
+        [3, 12]
       ],
       "letter": "A"
     },
     {
       "id": "f-throne",
       "type": "throne",
-      "cells": [
-        [
-          24,
-          3
-        ]
-      ]
+      "cells": [[24, 3]]
     }
   ],
   "monsters": [
     {
       "id": "m-ske1",
       "type": "skeleton",
-      "cell": [
-        1,
-        2
-      ]
+      "cell": [1, 2]
     },
     {
       "id": "m-ske2",
       "type": "skeleton",
-      "cell": [
-        0,
-        3
-      ]
+      "cell": [0, 3]
     },
     {
       "id": "m-ske3",
       "type": "skeleton",
-      "cell": [
-        10,
-        3
-      ]
+      "cell": [10, 3]
     },
     {
       "id": "m-ske4",
       "type": "skeleton",
-      "cell": [
-        12,
-        1
-      ]
+      "cell": [12, 1]
     },
     {
       "id": "m-ske5",
       "type": "skeleton",
-      "cell": [
-        13,
-        1
-      ]
+      "cell": [13, 1]
     },
     {
       "id": "m-ske6",
       "type": "skeleton",
-      "cell": [
-        18,
-        2
-      ]
+      "cell": [18, 2]
     },
     {
       "id": "m-ske7",
       "type": "skeleton",
-      "cell": [
-        19,
-        2
-      ]
+      "cell": [19, 2]
     },
     {
       "id": "m-ske8",
       "type": "skeleton",
-      "cell": [
-        25,
-        7
-      ]
+      "cell": [25, 7]
     },
     {
       "id": "m-ske9",
       "type": "skeleton",
-      "cell": [
-        1,
-        9
-      ]
+      "cell": [1, 9]
     },
     {
       "id": "m-ske10",
       "type": "skeleton",
-      "cell": [
-        5,
-        11
-      ]
+      "cell": [5, 11]
     },
     {
       "id": "m-ske11",
       "type": "skeleton",
-      "cell": [
-        7,
-        11
-      ]
+      "cell": [7, 11]
     },
     {
       "id": "m-ske12",
       "type": "skeleton",
-      "cell": [
-        8,
-        11
-      ]
+      "cell": [8, 11]
     },
     {
       "id": "m-ske13",
       "type": "skeleton",
-      "cell": [
-        0,
-        15
-      ]
+      "cell": [0, 15]
     },
     {
       "id": "m-zom1",
       "type": "zombie",
-      "cell": [
-        10,
-        2
-      ]
+      "cell": [10, 2]
     },
     {
       "id": "m-zom2",
       "type": "zombie",
-      "cell": [
-        10,
-        4
-      ]
+      "cell": [10, 4]
     },
     {
       "id": "m-zom3",
       "type": "zombie",
-      "cell": [
-        19,
-        3
-      ]
+      "cell": [19, 3]
     },
     {
       "id": "m-zom4",
       "type": "zombie",
-      "cell": [
-        22,
-        3
-      ]
+      "cell": [22, 3]
     },
     {
       "id": "m-zom5",
       "type": "zombie",
-      "cell": [
-        12,
-        9
-      ]
+      "cell": [12, 9]
     },
     {
       "id": "m-mum1",
       "type": "mummy",
-      "cell": [
-        3,
-        2
-      ]
+      "cell": [3, 2]
     },
     {
       "id": "m-mum2",
       "type": "mummy",
-      "cell": [
-        23,
-        2
-      ]
+      "cell": [23, 2]
     },
     {
       "id": "m-mum3",
       "type": "mummy",
-      "cell": [
-        21,
-        4
-      ]
+      "cell": [21, 4]
     },
     {
       "id": "m-mum4",
       "type": "mummy",
-      "cell": [
-        11,
-        8
-      ]
+      "cell": [11, 8]
     },
     {
       "id": "m-witch",
       "type": "dreadSorcerer",
-      "cell": [
-        23,
-        3
-      ],
+      "cell": [23, 3],
       "name": "Witch Lord",
       "hidden": true,
       "overrides": {
@@ -694,47 +321,29 @@
         "body": 4,
         "mind": 6
       },
-      "spells": [
-        "summon",
-        "fear",
-        "fear",
-        "ballOfFlame",
-        "command",
-        "tempest"
-      ],
+      "spells": ["summon", "fear", "fear", "ballOfFlame", "command", "tempest"],
       "spellLimit": "onePerTurn",
-      "traits": [
-        "Nothing but the Spirit Blade can hurt him"
-      ]
+      "traits": ["Nothing but the Spirit Blade can hurt him"]
     }
   ],
   "traps": [
     {
       "id": "t1",
       "kind": "pit",
-      "cell": [
-        19,
-        1
-      ]
+      "cell": [19, 1]
     },
     {
       "id": "t2",
       "kind": "pit",
-      "cell": [
-        22,
-        1
-      ]
+      "cell": [22, 1]
     }
   ],
   "markers": [
     {
       "id": "k-x",
       "label": "X",
-      "cell": [
-        23,
-        3
-      ],
-      "visible": "zargon"
+      "cell": [23, 3],
+      "visible": "editor"
     }
   ],
   "notes": [
@@ -759,10 +368,7 @@
     {
       "id": "n-A",
       "letter": "A",
-      "at": [
-        3,
-        10
-      ],
+      "at": [3, 10],
       "trigger": {
         "type": "areaRevealed",
         "area": "R12"

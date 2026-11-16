@@ -95,7 +95,7 @@ describe('immutability', () => {
       removeMonster(q, 'm1'),
       addTrap(e, 'pit', { cell: [3, 16] }),
       removeTrap(q, 't1'),
-      addMarker(e, 'X', [3, 16], 'zargon'),
+      addMarker(e, 'X', [3, 16], 'editor'),
       setStartArea(e, 'R17'),
       renameQuest(e, 'Y'),
       setSummary(e, 'Y'),
@@ -497,10 +497,10 @@ describe('traps and markers', () => {
     expect(warned(removeTrap(q, 't1'))).toEqual(['note:n9']);
   });
   it('adds and removes markers', () => {
-    let q = good(addMarker(empty(), 'X', [3, 16], 'zargon'));
+    let q = good(addMarker(empty(), 'X', [3, 16], 'editor'));
     q = good(addMarker(q, 'A', [4, 16]));
     expect(q.markers).toEqual([
-      { id: 'k1', label: 'X', cell: [3, 16], visible: 'zargon' },
+      { id: 'k1', label: 'X', cell: [3, 16], visible: 'editor' },
       { id: 'k2', label: 'A', cell: [4, 16] },
     ]);
     expect(bad(addMarker(q, ' ', [4, 16]))).toMatch(/label/);

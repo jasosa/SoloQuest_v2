@@ -132,4 +132,4 @@ Engine changes in steps 3 and 6 follow `CLAUDE.md` (pure, tests with every chang
 4. Show room: free tool with a warning.
 5. Added and wandering monsters: players give a square (supersedes decision 33 for these monsters).
 6. `zargonInfo`: remove it.
-7. Markers: open. Zargon markers are used in quests 2, 8 (two) and 12 and 14 (one each) as "place the monster here" anchors, never drawn to players. Proposal: drop the word Zargon, keep them as internal anchors with no `visible` field (players never see them), and use `visible: players` only for drawn labels.
+7. Markers: editor-only visibility (done, decision 66). Old text: Zargon markers are used in quests 2, 8 (two) and 12 and 14 (one each) as "place the monster here" anchors, never drawn to players. Proposal: drop the word Zargon, keep them as internal anchors with no `visible` field (players never see them), and use `visible: players` only for drawn labels.

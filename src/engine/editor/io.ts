@@ -20,7 +20,6 @@ const TOP_KEYS = [
   'number',
   'title',
   'intro',
-  'zargonInfo',
   'start',
   'rock',
   'doors',

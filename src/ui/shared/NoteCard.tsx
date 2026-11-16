@@ -34,7 +34,9 @@ export function NoteCard({
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = ref.current;
-    const target = focusTitle ? root?.querySelector<HTMLElement>('h3') : root?.querySelector<HTMLElement>('button');
+    const target = focusTitle
+      ? root?.querySelector<HTMLElement>('h3')
+      : root?.querySelector<HTMLElement>('button');
     target?.focus();
   }, [focusTitle]);
   useEffect(() => {

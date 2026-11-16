@@ -28,7 +28,7 @@ import {
   type EditResult,
 } from './ops';
 import { addNote, setNoteText, updateNote } from './notes';
-import { addObjective, setRules, setWandering, setZargonInfo } from './meta';
+import { addObjective, setRules, setWandering } from './meta';
 
 const q01 = parseQuest(
   JSON.parse(
@@ -72,7 +72,6 @@ function rebuild(src: Quest): Quest {
       }),
     );
   for (const m of src.markers) q = ok(addMarker(q, m.label, m.cell as Cell, m.visible, m.id));
-  if (src.zargonInfo) q = ok(setZargonInfo(q, src.zargonInfo));
   if (src.wandering) q = ok(setWandering(q, src.wandering));
   for (const o of src.objectives)
     q = ok(addObjective(q, { id: o.id, text: o.text, ...(o.done ? { done: o.done } : {}) }));
@@ -135,7 +134,6 @@ describe('quest 1 rebuilt with the editing operations', () => {
     expect(built.wandering).toEqual(q01.wandering);
     expect(built.rules).toEqual(q01.rules);
     expect(built.npcs).toEqual(q01.npcs);
-    expect(built.zargonInfo).toEqual(q01.zargonInfo);
     expect(built.intro).toEqual(q01.intro);
     expect(built.title).toBe(q01.title);
   });

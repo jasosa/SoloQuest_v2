@@ -200,7 +200,7 @@ describe('an ok edit can always be saved as a draft', () => {
     const results = [
       addFurniture(q, 'chest', [[3, 16]], { letter: 'A' }),
       addMonster(q, 'orc', [3, 16], { name: 'Bob', traits: ['x'], overrides: { att: 4 } }),
-      addMarker(q, 'X', [3, 16], 'zargon'),
+      addMarker(q, 'X', [3, 16], 'editor'),
       addTrap(q, 'pit', { cell: [3, 16] }, { effect: 'ouch' }),
       addMonster(q, 'orc', [3, 16], { name: '  ' }),
       addMarker(q, ' ', [3, 16]),

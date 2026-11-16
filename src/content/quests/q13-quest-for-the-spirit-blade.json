@@ -6,7 +6,6 @@
   "intro": {
     "summary": "The Witch Lord is awake, and before the coming war he means to march his undead host on the King's army. The heroes must stop him, and the key is the Spirit Blade, the single weapon that can wound him. Dwarves of World End Mountain forged it and the elves of the Fountain of Leben tempered it, and it now rests in a ruined temple of great age. Find the blade and bring it to safety."
   },
-  "zargonInfo": "The heroes start on the stairs in the center room. There are no secret doors. Two spear traps lie in the northern corridor. The six falling-block squares work by the quest rule in the first note: a hero rolls 1 red die on entering and a 4, 5 or 6 costs 1 Body Point (helmet: only a 6). Monsters ignore these squares.",
   "start": {
     "area": "R11"
   },
