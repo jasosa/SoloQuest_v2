@@ -147,6 +147,15 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
   const manual = useMemo(() => manualTriggers(level, state), [level, state]);
   const confirms = useMemo(() => objectiveConfirms(level, state), [level, state]);
+  /** The start note is shown under "At the start", so it is not listed again as a note read. */
+  const sheetNotes = useMemo(() => {
+    const starts = new Set(
+      level.quest.notes
+        .filter((n) => n.trigger.type === 'questStart' && n.letter === undefined)
+        .map((n) => n.id),
+    );
+    return journalEntries.filter((e) => !starts.has(e.id));
+  }, [level, journalEntries]);
   const log = useMemo(() => eventLog(level, state.seed, events), [level, state.seed, events]);
   const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
@@ -668,7 +677,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           objectives={objectives}
           confirms={confirms}
           actions={manual}
-          notes={journalEntries}
+          notes={sheetNotes}
           log={log}
           onClose={() => setQuestOpen(false)}
           onConfirm={(objective) => {
