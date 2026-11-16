@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { dismissStart } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(300);
@@ -790,6 +791,7 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('header h1')).toHaveText('The Trial');
     await expect(page.getByTestId('playtest')).toBeEnabled();
     await page.getByTestId('playtest').click();
+    await dismissStart(page);
 
     await expect(page.locator('.app.play')).toBeVisible();
     await expect(page.locator('.qn')).toHaveText('Playtest');
@@ -879,14 +881,9 @@ test.describe('editor: quest fields', () => {
     await expect(page.getByTestId('objective-row')).toHaveCount(1);
   });
 
-  test('Zargon info, wandering monster and rules save and undo', async ({ page }) => {
+  test('wandering monster and rules save and undo', async ({ page }) => {
     await newQuest(page);
-    const info = insp(page).getByLabel('Zargon info');
-    await info.fill('Hard quest.');
-    await info.blur();
-    await btn(page, 'Undo').click();
-    await expect(insp(page).getByLabel('Zargon info')).toHaveValue('');
-
+    await expect(insp(page).getByLabel('Zargon info')).toHaveCount(0); // decision 66
     await insp(page).getByRole('button', { name: 'A monster', exact: true }).click();
     await expect(insp(page).getByRole('combobox', { name: 'Monster', exact: true })).toHaveValue(
       'orc',

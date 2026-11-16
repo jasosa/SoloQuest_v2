@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { gotoQuest } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(350); // let the pop animation finish
@@ -11,7 +12,7 @@ const trap = (page: Page, id: string) => page.locator(`[data-trap="${id}"]`);
 const rows = (page: Page) => page.locator('.roster li:not(.empty)');
 
 const quest1 = (page: Page, open: string, team = 'dwarf,elf') =>
-  page.goto(`/?quest=1&team=${team}&nosave=1&seed=1&open=${open}`);
+  gotoQuest(page, `/?quest=1&team=${team}&nosave=1&seed=1&open=${open}`);
 const fixture = (page: Page, open: string, extra = '') =>
   page.goto(`/?quest=test&team=dwarf,elf&nosave=1&seed=1&open=${open}${extra}`);
 

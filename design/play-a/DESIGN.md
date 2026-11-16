@@ -10,7 +10,7 @@
 - No hero Body Point tracking. Monster targets use only hero class and monster type.
 - No gold, equipment or artifact tracking between quests.
 
-**Layout.** Title band (quest, turn, undo) · board 26 x 19 at 34 px a square · right column: goal, Zargon info, monsters in play, quest notes read, wandering monster, Zargon's turn button.
+**Layout.** Title band (quest, turn, undo) · board 26 x 19 at 34 px a square · right column: goal, heroes, companions, monsters in play, wandering monster, Zargon's turn button. Notes read, objectives with their buttons and the log live in the Quest sheet (decision 67, see below).
 
 **Interactions** (one tap on the map, then a margin note next to the object):
 
@@ -43,15 +43,15 @@ Reduced motion: everything lands at once.
 
 ## Quest and team select (added in M2)
 
-Same shell as the play screen (title band, 920 px left area, right column). Left: 14 quest cards in a grid of five, 2 px ink outline, paper-3 fill; the chosen card takes the selection color (`--sel`) and the ink offset shadow; a quest that is not encoded is greyed out and says "Not encoded yet". Right column: quest title and summary, an optional "Saved game" box (turn, heroes, **Resume**), the four hero chips (toggle, 1 to 4), and one button at the bottom: "Start the quest", or "New game (replaces the saved one)" when a save exists. Roster: a slain monster stays in the list greyed and struck through, with "Slain" instead of Body Points. Toast: text on the dark ink-text bar, with an italic Undo for actions that can be undone (slain, end of turn).
+Same shell as the play screen (title band, 920 px left area, right column). Left: 14 quest cards in a grid of five, 2 px ink outline, paper-3 fill; the chosen card takes the selection color (`--sel`) and the ink offset shadow; a quest that is not encoded is greyed out and says "Not encoded yet". Right column: quest title and summary, an optional "Saved game" box (turn, heroes, **Resume**), the four hero chips (toggle, 1 to 4), and one button at the bottom: "Start the quest", or "New game (replaces the saved one)" when a save exists. Roster: a slain monster leaves the list (the log keeps the kill). Toast: text on the dark ink-text bar, with an italic Undo for actions that can be undone (slain, end of turn).
 
 ## Notes engine (added in M4)
 
 - **Note sheet**: centered card on a dim veil (prototype `.note`): letter chip, small caps kind, title, text, one button ("Continue"). Several notes from one event show one after the other. A choice (`promptChoice`) is the same card with one button per option and cannot be skipped.
 - **Letters**: a note that was read leaves its letter (ink square, light letter) on the map at its square; tap to read again. The right column "Quest notes" lists the same notes (letter or a bullet, first sentence). Notes that were never read leave no trace.
-- **Waiting notes**: a seen square with a `squareEntered` note shows a neutral dashed ring with a dot (tap: "Did a hero step here?" Yes / No). A revealed room with an `areaEntered` note shows a small arrow glyph at its top left, and its margin note gets "A hero enters". `manual` notes become buttons in "Quest actions" (right column, hidden when none).
+- **Waiting notes**: a seen square with a `squareEntered` note shows a neutral dashed ring with a dot (tap: "Did a hero step here?" Yes / No). A revealed room with an `areaEntered` note shows a small arrow glyph at its top left, and its margin note gets "A hero enters". `manual` notes (buttons for things the app cannot see) are replaced by the element buttons and the Quest sheet (decision 67, see below).
 - **Goal**: the right column lists the objectives with a tick box; when all are done: "Goal done. Bring the heroes back to the stairs." "End quest" in the title band asks "Heroes left by the stairs" or "All heroes fell", then the end card ("Quest complete" or "Quest over, goal not reached", objectives, rewards as text, "Back to the quests", "Undo the ending"). After the end the board is read-only (the card covers it); undo still works.
-- **Helpers**: an NPC is a text chip (name, defend dice, text) above the monsters. No Body Points.
+- **Companions**: an NPC is a row (name, then "Defend n · Body n" so the players can write the numbers down) above the monsters. The app does not track the Body Points.
 - **Statues**: a dormant monster is drawn as a small statue figure (line art, ink on white), not in the roster, not tappable. When a note wakes it, it stamps in like any monster. A monster placed by a note shows its token on the named square, a margin note "Put X here" and a pulsing ring on the square. Roster lines: "Stone: n turns", "Placed by a quest note".
 
 ## Zargon's turn: one monster at a time (decision 34)
@@ -108,13 +108,13 @@ The inspector has two tabs at the top, "Element" and "Notes" (the same chips as 
 
 **Note letters on the board.** Every lettered note shows its letter on the editor board in the play style (22 unit ink square, paper-colored Bonum letter, floor-colored outline). The square is the note's "Letter drawn at" square, else a corner (top right) of the furniture or marker that carries the letter. A letter on the map with no note yet is the same square in the missing style: white fill, dashed 2 px ink outline, ink letter. Unlettered notes show nothing. With the Select tool a tap on a letter opens the Notes tab: that note, or the list with "Add note A" when it is missing. The tap target is 44 units (about 34 px at the editor scale) on a note square and 18 units in the corner of a piece, so the piece itself can still be tapped. Other tools ignore the letters.
 
-### Quest fields (objectives, Zargon info, wandering monster, rules)
+### Quest fields (objectives, wandering monster, rules)
 
 The Element tab shows the quest fields whenever nothing is selected (below Title and Summary, under a hairline). Sections, each a "lbl" heading:
 
 - **Objectives.** One row per objective (same paper-3 row as notes): the id in Bonum (`o1`, `o2`...) so a note can name it, a "Remove" chip, and a text area "What the heroes must do" (saves on blur, one undo step). A short note says an objective is completed by the note effect "Complete an objective" with that id. An objective with a done rule says it keeps it. "Add an objective" adds one with placeholder text, to edit. With none, a line says the quest needs one. Removing one that a note completes shows the usual warning list on the board.
 - **Endings.** One row per custom ending (same paper-3 row): the id, a "Remove" chip, a "Label" field and a "Text for the players" text area (both save on blur, one undo step each; an empty label is refused). "Add an ending" adds one called "New ending". A short note says it shows in the End quest list and shows no reward.
-- **For Zargon only.** "Zargon info" text area.
+- **Author notes.** There is no Zargon info field any more (decision 66).
 - **Wandering monster.** Chips "None", "A monster" (then a monster dropdown), "Free text" (then a text field, which must not be empty).
 - **Rules.** "Falling block rule" (text) and "No equipment until note" (dropdown of the notes). The door teleport and bounty rules are not editable yet.
 
@@ -151,3 +151,40 @@ A local picture (a photo or scan of a map) to trace from. It stays on this devic
 **End card for a custom ending.** Title "Quest over" (never "Quest complete"), the ending label in bold, the ending text if there is one, then "The goal was done" or "The goal was not done" and the objective ticks. No rewards line. "Back to the quests" and "Undo the ending" as for the other endings.
 
 **Blocked search.** When a treasure search meets a note that blocks it, the note card opens as for any quest note, with one extra line in the `extra` style: "The search was not used. The hero keeps the action." No card is drawn, no result sheet follows, and the hero is not greyed in "Who searches?".
+
+## Quest sheet, element buttons and messages (decision 67)
+
+Goal: the board stays the center, the side column stops growing, and every message and button has one clear home. Inspired by the focused overlays of Imperial Commander 2: a clear hierarchy, and sheets that leave the board readable around them. No new colors, fonts or control styles.
+
+**Title band.** Quest, turn, then a second line with the **current goal**: the first objective that is not done, in one line ("Goal: Find the Talisman of Lore"). Buttons on the right, all 44 px tall `btn alt` chips: **Quest**, Undo, End quest. A small ink dot on the Quest chip means a confirm button is available now (an objective with `confirm` whose `confirmWhen` holds). End quest stays its own menu and is never reached from a quest button.
+
+**Side column (right), after the change.** Heroes, Companions, Monsters in play (alive only), the wandering monster line, the Zargon's turn button. No objectives list, no journal, no Quest actions block. Less scrolling: the list of monsters is the only part that can grow.
+
+**Quest sheet.** Opens from the Quest chip. A panel that slides in from the right over the side column and the right 150 px of the board (420 px wide, paper-3 fill, 2 px ink outline on its left edge, offset shadow like `.note`). The rest of the board stays visible and untinted (no dim veil); tapping the board, Esc or "Close" closes it. Focus moves to the heading; Tab stays inside while it is open. Slide-in 220 ms with the ink ease; instant with reduced motion. Content, top to bottom, scrolling inside the panel only:
+
+1. Header: small caps "Quest 5", the title, Close.
+2. **At the start**: the start instruction (the text of the `questStart` note), so it can be read again.
+3. **Goal**: one row per objective with a tick box (same as today). A row that has a `confirm` button and is not done shows the button under it (`btn alt`, full width, 48 px): for example "All surviving heroes have left by the stairs". A button whose `confirmWhen` does not hold yet is not shown.
+4. **Tell the app** (only when it has rows): buttons of notes with no element (a `manual` note with no `target`), each with a one-line hint under the label. Nothing here ends the quest.
+5. **Notes read**: letter chip or bullet, first sentence, tap to read again (the message sheet opens above the Quest sheet).
+6. **What happened**: the log, newest first, one line each with the turn number: door opened, room revealed, monster slain, trap sprung, search made, hero fell, note read, monster added. Tap a note line to read it again. The log is derived from the events, so undo removes the line.
+
+**Segmented control** between 5 and 6 is not used: both lists are short headings in one scroll. If the log grows, "What happened" shows the last 12 with a "Show all" link.
+
+**Element buttons.** Every tap on a door, furniture piece, monster, trap, marker or room label opens the usual margin note. When the element has quest notes, the margin note gets a hairline and a small caps line **For this quest** below its standard actions:
+- the notes already read for this element (letter chip or bullet, first sentence; tap to read again), then
+- its buttons (`manual` notes with that `target`), `btn alt`, one per row.
+The line is not drawn when there is nothing to show, so most notes stay as they are.
+
+**Room label.** A revealed room that has a quest action (an `areaEntered` note, or a `manual` note with that room as `target`) shows a small label at its top-left floor square: the existing arrow glyph in a 44 x 44 hit area, drawn like the furniture name label (dark paper text on ink) with the glyph only, no text. Tap opens the margin note for the room: "A hero enters" and its buttons under **For this quest**. Floor taps keep their meaning (look from here, search).
+
+**Square marker.** Unchanged: a neutral dashed ring with a dot on a seen square that has a `squareEntered` note. It never says what it is. When the note fires, its letter is drawn there as for any note.
+
+**Message sheet.** The existing note card, used for every triggered text. Without a choice it uses the **light veil** (no dim, the board stays readable) and one button "Continue". With a choice it keeps the dim veil and cannot be skipped. A message never repeats a reward or an item that the end card or the log already shows. Every message goes into the log and can be read again from the Quest sheet.
+
+**Start.** At the start of a quest the start instruction opens as a message sheet titled "Start" (for example "Place the heroes on the stairs."). It is also kept in the Quest sheet.
+
+**Touch and keyboard.** All hit areas 44 px or more. Quest sheet buttons are reachable by Tab in reading order. The goal line in the title band is plain text, not a control.
+
+**What changes in the code (for ui-dev).** New components in `src/ui/play/`: `QuestSheet`, `ForThisQuest` (inside the margin notes), `RoomLabel`. New engine views: `eventLog(level, events)` (pure, derived from the event list), and a lookup of notes by target (`notesOf`, exists). The sidebar loses `Objectives`, `Journal` and `QuestActions`. The title band gains the goal line and the Quest chip.
+

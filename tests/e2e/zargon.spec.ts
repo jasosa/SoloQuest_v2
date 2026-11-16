@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { gotoQuest } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(450); // let the card settle
@@ -9,7 +10,7 @@ const zbutton = (page: Page) => page.locator('.zargon-btn');
 const dlg = (page: Page) => page.getByRole('dialog');
 
 const quest1 = (page: Page, open: string, team = 'dwarf,elf,wizard', seed = 5) =>
-  page.goto(`/?quest=1&team=${team}&nosave=1&seed=${seed}&open=${open}`);
+  gotoQuest(page, `/?quest=1&team=${team}&nosave=1&seed=${seed}&open=${open}`);
 const fixture = (page: Page, open = '', team = 'dwarf,elf,wizard') =>
   page.goto(`/?quest=test&team=${team}&nosave=1&seed=3&open=${open}`);
 

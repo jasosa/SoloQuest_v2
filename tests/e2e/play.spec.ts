@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { dismissStart, gotoQuest } from './helpers';
 
 const shot = (page: Page, name: string) => page.screenshot({ path: `test-results/${name}.png` });
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
@@ -12,6 +13,7 @@ async function startQuest1(page: Page, heroes: string[]) {
     .click();
   for (const h of heroes) await page.getByRole('button', { name: h, exact: true }).click();
   await page.getByRole('button', { name: 'Start the quest' }).click();
+  await dismissStart(page);
 }
 
 /** Walk through Zargon's dialogs (Done, Next) and end the turn. */
@@ -136,14 +138,15 @@ test.describe('play quest 1', () => {
     await expect(page.getByRole('button', { name: /Wound/ })).toBeDisabled();
     await page.getByRole('button', { name: /Heal/ }).click();
     await expect(page.getByRole('dialog')).toContainText('Body 2 of 2');
+    const before = await rosterRows(page).count();
     await page.getByRole('button', { name: 'Slain' }).click();
-    await expect(page.locator('.roster li.dead')).toHaveCount(1);
+    await expect(rosterRows(page)).toHaveCount(before - 1); // a slain monster leaves the list
     await expect(page.locator('.toast')).toContainText('slain');
     await page.waitForTimeout(350); // let the pop animation finish
     await shot(page, 'monster-slain');
     // undo brings it back
     await page.locator('.toast').getByRole('button', { name: 'Undo' }).click();
-    await expect(page.locator('.roster li.dead')).toHaveCount(0);
+    await expect(rosterRows(page)).toHaveCount(before);
   });
 
   test('a door can be opened with the keyboard', async ({ page }) => {
@@ -158,13 +161,13 @@ test.describe('play quest 1', () => {
   });
 
   test('tap on a token opens its callout', async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1&open=d1,d2');
+    await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1&open=d1,d2');
     await page.locator('[data-monster]').first().click();
     await expect(page.getByRole('dialog')).toContainText('Move 8');
   });
 
   test("Zargon's turn button advances the turn counter", async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
+    await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1');
     await endTheTurn(page);
     await expect(page.locator('header .turn')).toContainText('Turn 2');
   });
@@ -206,6 +209,7 @@ test.describe('new game over a saved game', () => {
     await expect(page.getByText('Saved game')).toBeVisible();
     await page.getByRole('button', { name: /New game/ }).click();
     await page.getByRole('button', { name: 'Replace it' }).click();
+    await dismissStart(page);
     await expect(page.locator('header .turn')).toContainText('Turn 1');
     await expect(rosterRows(page)).toHaveCount(0);
   });
@@ -219,6 +223,7 @@ async function startQuestWithSave(page: Page) {
     .click();
   await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
   await page.getByRole('button', { name: 'Start the quest' }).click();
+  await dismissStart(page);
   for (const d of ['d1', 'd2']) {
     await door(page, d).click();
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
@@ -231,7 +236,7 @@ async function startQuestWithSave(page: Page) {
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
   test('everything lands at once', async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
+    await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
     await door(page, 'd2').click();
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
     // no ink mask and tokens are there at once

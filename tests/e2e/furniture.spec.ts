@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { gotoQuest } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(400);
@@ -8,7 +9,7 @@ const btn = (page: Page, name: string) => page.getByRole('button', { name, exact
 
 test.describe('furniture names', () => {
   test('hover shows the name, and so does keyboard focus', async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
+    await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1');
     const stairs = page.locator('[data-furniture="f-stairs"]');
     await expect(stairs).toHaveCount(1);
     await expect(page.locator('[data-furniture-label]')).toHaveCount(0);
@@ -22,7 +23,7 @@ test.describe('furniture names', () => {
   });
 
   test('a tap on furniture opens the room note headed by its name', async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
+    await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1');
     const stairs = page.locator('[data-furniture="f-stairs"]');
     const box = await stairs.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { dismissStart, gotoQuest } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(400); // let the animations finish
@@ -9,12 +10,14 @@ const dialog = (page: Page) => page.getByRole('dialog');
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
 const roomCell = (page: Page, key: string) => page.locator(`[data-room-cell="${key}"]`);
 const rows = (page: Page) => page.locator('.roster li:not(.empty)');
-const journalRows = (page: Page) => page.locator('.journal li');
+/** Rows of the journal, without the "Start" line every quest begins with. */
+const journalRows = (page: Page) =>
+  page.locator('.journal li').filter({ hasNotText: /^\W*Start\W*$/ });
 
 // Quest 1: corridor squares to look from, in order, to see the doors of the north-west rooms.
 const ROW9 = 'look@1:18,look@0:17,look@0:9';
 const quest1 = (page: Page, open: string, team = 'dwarf,elf') =>
-  page.goto(`/?quest=1&team=${team}&nosave=1&seed=1&open=${open}`);
+  gotoQuest(page, `/?quest=1&team=${team}&nosave=1&seed=1&open=${open}`);
 const fixture = (page: Page, open = '') =>
   page.goto(`/?quest=test&team=dwarf,elf&nosave=1&seed=1&open=${open}`);
 
@@ -38,7 +41,7 @@ test.describe('quest 1 notes', () => {
   }) => {
     await quest1(page, `d1,${ROW9},d8,d10`);
     await expect(page.locator('[data-letter]')).toHaveCount(0);
-    await expect(page.getByText('No quest note read yet.')).toBeVisible();
+    await expect(journalRows(page)).toHaveCount(0);
     await door(page, 'd11').click();
     await btn(page, 'Open the door').click();
     const card = page.getByRole('dialog', { name: 'Note C' });
@@ -148,6 +151,7 @@ test.describe('quest 1 notes', () => {
       .click();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await page.getByRole('button', { name: 'Start the quest' }).click();
+    await dismissStart(page);
     for (const d of ['d1', 'd2', 'd3']) {
       await door(page, d).click();
       await btn(page, 'Open the door').click();
@@ -251,7 +255,7 @@ test.describe('notes engine on the dev fixture', () => {
     await btn(page, 'Continue').click();
     await expect(page.locator('.npcs')).toContainText('Sir Test');
     await expect(page.locator('.npcs')).toContainText('Defend 2');
-    await expect(page.locator('.npcs')).not.toContainText('Body');
+    await expect(page.locator('.npcs')).toContainText('Body 3'); // the players write it down
     await expect(btn(page, 'Call for help')).toHaveCount(0); // each button works once
     await shot(page, 'notes-npc');
 
@@ -283,7 +287,7 @@ test.describe('false doors', () => {
 
 test.describe('quest 2 endings and blocked search', () => {
   const quest2 = (page: Page, open = '') =>
-    page.goto(`/?quest=2&team=dwarf,elf&nosave=1&seed=1&open=${open}`);
+    gotoQuest(page, `/?quest=2&team=dwarf,elf&nosave=1&seed=1&open=${open}`);
 
   test('end the quest by "Sir Ragnar died": the ending shows, no rewards, undo', async ({
     page,
