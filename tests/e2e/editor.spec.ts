@@ -626,6 +626,106 @@ test.describe('editor: reference image', () => {
     await expect(btn(page, 'Load image')).toBeVisible();
   });
 
+  /** A large scan sized PNG (3000 x 2200) with a dark frame and some texture. */
+  async function makeLargePng(page: Page): Promise<Buffer> {
+    const b64 = await page.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 3000;
+      c.height = 2200;
+      const g = c.getContext('2d')!;
+      g.fillStyle = '#e8e0c8';
+      g.fillRect(0, 0, 3000, 2200);
+      for (let i = 0; i < 4000; i++) {
+        g.fillStyle = `rgba(${(i * 37) % 120},60,40,0.15)`;
+        g.fillRect((i * 7919) % 3000, (i * 104729) % 2200, 40, 40);
+      }
+      g.strokeStyle = '#a03030';
+      g.lineWidth = 20;
+      g.strokeRect(100, 100, 2800, 2000);
+      return c.toDataURL('image/png').split(',')[1]!;
+    });
+    return Buffer.from(b64!, 'base64');
+  }
+
+  for (const how of ['touch', 'mouse'] as const) {
+    test(`a large image: four ${how} taps align it, it is drawn and kept after a reload`, async ({
+      page,
+    }) => {
+      await newQuest(page, 'Big map', '/?editor=1');
+      const png = await makeLargePng(page);
+      await page
+        .getByTestId('reference-file')
+        .setInputFiles({ name: 'scan.png', mimeType: 'image/png', buffer: png });
+      const dialog = page.getByRole('dialog', { name: 'Align the reference image' });
+      await expect(dialog).toBeVisible();
+      const img = dialog.getByAltText('Reference to align');
+      await expect.poll(() => img.evaluate((e: HTMLImageElement) => e.naturalWidth)).toBe(3000);
+      const box = (await img.boundingBox())!;
+      const tap = async (fx: number, fy: number) => {
+        const x = box.x + box.width * fx;
+        const y = box.y + box.height * fy;
+        if (how === 'touch') await page.touchscreen.tap(x, y);
+        else await page.mouse.click(x, y);
+      };
+      await tap(100 / 3000, 100 / 2200);
+      await expect(dialog).toContainText('top right');
+      await expect(dialog.locator('.ed-align-dot')).toHaveCount(1);
+      await tap(2900 / 3000, 100 / 2200);
+      await tap(2900 / 3000, 2100 / 2200);
+      await expect(dialog).toContainText('bottom left');
+      await tap(100 / 3000, 2100 / 2200);
+      await expect(dialog).toHaveCount(0);
+      const layerImg = page.getByTestId('reference-layer').locator('img');
+      await expect(layerImg).toHaveCount(1);
+      await expect
+        .poll(() => layerImg.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth))
+        .toBe(3000);
+      await shot(page, `editor-reference-large-${how}`);
+
+      // kept on this device: back to the list, open the quest again
+      await page.waitForTimeout(800);
+      await page.reload();
+      await btn(page, 'Open').first().click();
+      await expect(page.getByTestId('reference-layer')).toHaveCount(1);
+    });
+  }
+
+  test('corners that cross show the message above the picker and start again', async ({ page }) => {
+    await newQuest(page);
+    await page
+      .getByTestId('reference-file')
+      .setInputFiles({ name: 'sheet.png', mimeType: 'image/png', buffer: await makePng(page) });
+    const dialog = page.getByRole('dialog', { name: 'Align the reference image' });
+    const box = (await dialog.getByAltText('Reference to align').boundingBox())!;
+    const tap = (fx: number, fy: number) =>
+      page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
+    await tap(0.1, 0.1);
+    await tap(0.9, 0.9);
+    await tap(0.9, 0.1);
+    await tap(0.1, 0.9);
+    await expect(dialog).toContainText('four sided');
+    await expect(page.locator('.toast')).toBeVisible();
+    await expect(page.locator('.toast')).toBeInViewport();
+    expect(
+      await page.locator('.toast').evaluate((t) => {
+        const r = t.getBoundingClientRect();
+        return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === t;
+      }),
+    ).toBe(true);
+    await expect(dialog).toContainText('top left');
+  });
+
+  test('an image the browser cannot show gives a message and no picker', async ({ page }) => {
+    await newQuest(page);
+    await page.getByTestId('reference-file').setInputFiles({
+      name: 'broken.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('this is not a png'),
+    });
+    await expect(page.locator('.toast')).toContainText('cannot read that image');
+    await expect(page.getByRole('dialog', { name: 'Align the reference image' })).toHaveCount(0);
+  });
+
   test('a file that is not an image is refused', async ({ page }) => {
     await newQuest(page);
     await page

@@ -72,6 +72,8 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
   const [aligning, setAligning] = useState(false);
   const urlRef = useRef<string | null>(null);
   const loaded = useRef(false);
+  /** Set when the user loads a file, so a slower read of the stored image cannot replace it. */
+  const picked = useRef(false);
 
   const put = useCallback((next: ReferenceState | null) => {
     if (urlRef.current && urlRef.current !== next?.url) URL.revokeObjectURL(urlRef.current);
@@ -83,12 +85,13 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
   useEffect(() => {
     let live = true;
     loaded.current = false;
+    picked.current = false;
     void (async () => {
       const rec = await persist?.load(questId);
-      if (rec && live) {
+      if (rec && live && !picked.current) {
         try {
           const m = await measure(rec.image);
-          if (!live) return URL.revokeObjectURL(m.url);
+          if (!live || picked.current) return URL.revokeObjectURL(m.url);
           const ok = rec.corners && isConvexQuad(rec.corners);
           put({
             ...m,
@@ -141,6 +144,7 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
       if (!file.type.startsWith('image/')) return 'That file is not an image.';
       if (file.size > MAX_BYTES) return 'That image is too big. Use one under 40 MB.';
       try {
+        picked.current = true;
         const m = await measure(file);
         loaded.current = true;
         put(m);
@@ -211,6 +215,7 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
   const s = api.state!;
   const [points, setPoints] = useState<Pt[]>([]);
   const [zoom, setZoom] = useState<number>(0);
+  const [problem, setProblem] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const shown = points;
 
@@ -222,7 +227,8 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
     return () => window.removeEventListener('keydown', onKey);
   }, [api]);
 
-  const tap = (e: React.PointerEvent<HTMLImageElement>) => {
+  const tap = (e: React.MouseEvent<HTMLImageElement>) => {
+    setProblem(null);
     const r = imgRef.current!.getBoundingClientRect();
     const p: Pt = [
       ((e.clientX - r.left) / r.width) * s.width,
@@ -234,7 +240,9 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
       return;
     }
     if (!isConvexQuad(next)) {
-      say('Those corners do not make a four sided shape. Tap them again.');
+      const text = 'Those corners do not make a four sided shape.';
+      say(text);
+      setProblem(text);
       setPoints([]);
       return;
     }
@@ -247,7 +255,8 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
   return (
     <div className="ed-align" role="dialog" aria-label="Align the reference image">
       <div className="ed-align-bar">
-        <p className="ed-align-hint" role="status">
+        <p className="ed-align-hint" role="status" data-problem={problem ? 'true' : undefined}>
+          {problem ? `${problem} ` : ''}
           {`Tap the ${CORNER_NAMES[step]} corner of the map frame. (${step + 1} of 4)`}
         </p>
         <div className="ed-chips">
@@ -287,7 +296,11 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
             src={s.url}
             alt="Reference to align"
             draggable={false}
-            onPointerUp={tap}
+            onClick={tap}
+            onError={() => {
+              say('The browser could not show that image. Try a PNG or JPG.');
+              api.clear();
+            }}
           />
           {shown.map((p, i) => (
             <span

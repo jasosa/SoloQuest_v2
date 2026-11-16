@@ -436,6 +436,15 @@
   font-size: 17px;
   animation: rise 0.2s var(--ease-ink) both;
 }
+/* a toast must show above the full screen picker */
+.ed-align ~ .toast {
+  position: fixed;
+  z-index: 50;
+}
+.ed-align-hint[data-problem] {
+  background: var(--ink);
+  color: var(--paper);
+}
 .ed-align-view {
   flex: 1;
   min-height: 0;
