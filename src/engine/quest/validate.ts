@@ -494,11 +494,12 @@ export function validateQuestIssues(
       case 'trapDisarmed':
         if (!trapIds.has(t.trap)) err(`${where}: unknown trap ${t.trap}`, noteRef);
         break;
+      case 'monsterSeen':
       case 'monsterKilled':
         if (t.monster && !monsterIds.has(t.monster))
           err(`${where}: unknown monster ${t.monster}`, noteRef);
         if (t.monster && t.monsterType)
-          err(`${where}: monsterKilled takes a monster or a monsterType, not both`, noteRef);
+          err(`${where}: ${t.type} takes a monster or a monsterType, not both`, noteRef);
         break;
       case 'spellCast':
         if (t.monster && !monsterIds.has(t.monster))

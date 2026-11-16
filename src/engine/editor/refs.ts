@@ -28,6 +28,7 @@ function noteUses(note: Note, target: RefTarget, id: string): boolean {
     case 'monster':
       used =
         (t.type === 'monsterKilled' && t.monster === id) ||
+        (t.type === 'monsterSeen' && t.monster === id) ||
         (t.type === 'allKilled' && t.monsters.includes(id)) ||
         (t.type === 'spellCast' && t.monster === id) ||
         (note.when ?? []).some((c) => 'monster' in c && c.monster === id);

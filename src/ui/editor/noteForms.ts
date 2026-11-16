@@ -14,6 +14,7 @@ export const TRIGGER_TYPES: readonly { type: Trigger['type']; label: string }[] 
   { type: 'secretDoorSearch', label: 'Search for secret doors' },
   { type: 'trapSprung', label: 'A trap is sprung' },
   { type: 'trapDisarmed', label: 'A trap is disarmed' },
+  { type: 'monsterSeen', label: 'A monster comes into view' },
   { type: 'monsterKilled', label: 'A monster is slain' },
   { type: 'allKilled', label: 'All of some monsters are slain' },
   { type: 'spellCast', label: 'A spell is cast' },
@@ -95,6 +96,7 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
       const t = q.traps[0];
       return t ? good({ type, trap: t.id }) : bad('Add a trap first.');
     }
+    case 'monsterSeen':
     case 'monsterKilled': {
       const m = q.monsters[0];
       return m ? good({ type, monster: m.id }) : bad('Add a monster first.');
@@ -243,6 +245,8 @@ export function triggerSummary(t: Trigger): string {
       return `Trap ${t.trap} sprung`;
     case 'trapDisarmed':
       return `Trap ${t.trap} disarmed`;
+    case 'monsterSeen':
+      return `Seen: ${t.monster ?? t.monsterType ?? 'any monster'}`;
     case 'monsterKilled':
       return `Slain: ${t.monster ?? t.monsterType ?? 'any monster'}`;
     case 'allKilled':

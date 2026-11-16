@@ -37,6 +37,7 @@ export type TriggerEvent =
   | { readonly type: 'trapDisarmed'; readonly trap: string }
   | { readonly type: 'monsterKilled'; readonly monster: string; readonly monsterType: MonsterType }
   | { readonly type: 'spellCast'; readonly monster: string; readonly spell: string }
+  | { readonly type: 'monsterSeen'; readonly monster: string; readonly monsterType: MonsterType }
   /** `turn` is the Zargon turn that just ended. */
   | { readonly type: 'zargonTurn'; readonly turn: number }
   | { readonly type: 'manual'; readonly note: string };
@@ -128,6 +129,13 @@ function matches(note: Note, t: TriggerEvent, d: GameState): boolean {
     case 'trapSprung':
     case 'trapDisarmed':
       return n.trap === (t as { trap: string }).trap;
+    case 'monsterSeen': {
+      const tt = t as Extract<TriggerEvent, { type: 'monsterSeen' }>;
+      return (
+        (n.monster === undefined || n.monster === tt.monster) &&
+        (n.monsterType === undefined || n.monsterType === tt.monsterType)
+      );
+    }
     case 'monsterKilled': {
       const tt = t as Extract<TriggerEvent, { type: 'monsterKilled' }>;
       return (
@@ -232,6 +240,20 @@ export function runTriggers(
     triggers.map((t) => ({ kind: 'trigger', t, depth: 0 })),
     opts,
   );
+}
+
+/** `monsterSeen` triggers for monsters that just came into view (quest monsters and wanderers). */
+export function monsterSeenTriggers(
+  level: Level,
+  state: GameState,
+  ids: Iterable<string>,
+): TriggerEvent[] {
+  const out: TriggerEvent[] = [];
+  for (const id of ids) {
+    const type = level.quest.monsters.find((m) => m.id === id)?.type ?? state.wanderers[id]?.type;
+    if (type) out.push({ type: 'monsterSeen', monster: id, monsterType: type });
+  }
+  return out;
 }
 
 /** Run the effects of a chosen option as if the note ran them (CHOOSE). */

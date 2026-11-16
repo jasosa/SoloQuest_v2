@@ -617,7 +617,7 @@ function TriggerForm({
           onChange={(trap) => onChange({ ...t, trap })}
         />
       )}
-      {t.type === 'monsterKilled' && (
+      {(t.type === 'monsterKilled' || t.type === 'monsterSeen') && (
         <>
           <Chips
             value={t.monsterType !== undefined ? 'type' : 'one'}

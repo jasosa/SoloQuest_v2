@@ -70,8 +70,29 @@ describe('quest 7: start and letter A', () => {
     expect(s.seenDoors.has('d1')).toBe(true);
   });
 
-  it('A: every Dread warrior defends with 5 dice, the note is read at the start', () => {
-    expect(note('A')?.trigger).toEqual({ type: 'questStart' });
+  it('A: every Dread warrior defends with 5 dice; the note is read when the first one is seen', () => {
+    const a = quest.notes.find((n) => n.id === 'n-A')!;
+    expect(a.trigger).toEqual({ type: 'monsterSeen', monsterType: 'dreadWarrior' });
+    expect(a.letter).toBeUndefined(); // no cover on the map
+    expect(a.at).toBeUndefined();
+    const dwIds = quest.monsters.filter((m) => m.type === 'dreadWarrior').map((m) => m.id);
+    expect(initialState(level, 1).notesFired).not.toContain('n-A');
+    let sawOne = false;
+    for (const events of [
+      [],
+      [open('d1')],
+      toR12,
+      toR20,
+      toR17,
+      via('d8'),
+      [...via('d8'), open('d9')],
+    ]) {
+      const s = run(...events);
+      const seen = dwIds.some((id) => s.seenMonsters.has(id));
+      expect(s.notesFired.includes('n-A')).toBe(seen);
+      sawOne = sawOne || seen;
+    }
+    expect(sawOne).toBe(true);
     const dws = quest.monsters.filter((m) => m.type === 'dreadWarrior');
     expect(dws.map((m) => m.cell)).toEqual([
       [9, 6],

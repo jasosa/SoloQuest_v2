@@ -1435,3 +1435,44 @@ describe('element buttons (decision 67)', () => {
     expect(enterableAreas(lv2, s)).toEqual([]); // no "A hero enters" for a button only
   });
 });
+
+describe('monsterSeen trigger (decision 67)', () => {
+  const lv = lvOf({
+    notes: [
+      {
+        id: 'one',
+        trigger: { type: 'monsterSeen', monster: 'm1' },
+        effects: [text('m1 appears')],
+      },
+      {
+        id: 'kind',
+        trigger: { type: 'monsterSeen', monsterType: lvOf().quest.monsters[0]!.type },
+        effects: [text('first of its kind')],
+      },
+    ],
+  });
+
+  it('fires once, when the monster first comes into view, and not at the start', () => {
+    expect(initialState(lv, SEED).notesFired).not.toContain('one');
+    const all = replay(lv, SEED, [open('d2'), open('d3')]);
+    expect(all.seenMonsters.has('m1')).toBe(true);
+    expect(all.notesFired).toContain('one');
+    expect(all.notesFired.filter((id) => id === 'one')).toHaveLength(1);
+  });
+
+  it('a monster type note fires on the first monster of that kind only', () => {
+    const all = replay(lv, SEED, [open('d2'), open('d3')]);
+    expect(all.notesFired.filter((id) => id === 'kind')).toHaveLength(1);
+  });
+
+  it('shows its text in the prompts of the event that revealed the monster', () => {
+    let state = initialState(lv, SEED);
+    const shown: string[] = [];
+    for (const e of [open('d2'), open('d3')]) {
+      const r = reduce(lv, state, e);
+      shown.push(...texts(r.prompts));
+      state = r.state;
+    }
+    expect(shown).toContain('m1 appears');
+  });
+});

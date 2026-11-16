@@ -106,6 +106,7 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 | `treasureSearch` | `area`, `first?` | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search. |
 | `secretDoorSearch` | `area` | a hero searches the area for secret doors |
 | `trapSprung` / `trapDisarmed` | `trap` | trap state changes |
+| `monsterSeen` | `monster` or `monsterType` | the first time a matching monster comes into view (any reveal, also at the start). Fires once. |
 | `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
 | `allKilled` | `monsters` (ids) | the last of them is slain |
 | `spellCast` | `monster?`, `spell?` | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him dormant, a door note places him again. |

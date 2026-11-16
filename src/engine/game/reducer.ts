@@ -21,7 +21,15 @@ import { HEROES } from '../data/heroes';
 import { lookHintCells } from './hints';
 import type { MonsterDef } from '../quest/schema';
 import { isDormant, monsterStateOf } from './monstersIn';
-import { areaEnter, choose, manualTrigger, runTriggers, squareTrigger, tickStone } from './notes';
+import {
+  areaEnter,
+  choose,
+  manualTrigger,
+  monsterSeenTriggers,
+  runTriggers,
+  squareTrigger,
+  tickStone,
+} from './notes';
 import { objectivesStatus } from './noteView';
 import { progress, revealFrom, revealRoom, revealThroughDoor } from './reveal';
 import { draftOf, emptyState, type Draft, type GameState, type MonsterRecord } from './state';
@@ -41,7 +49,12 @@ export interface Reduced {
 export function startGame(level: Level, seed: number): Reduced {
   const d = draftOf(emptyState(seed));
   revealRoom(level, d, level.quest.start.area);
-  const r = runTriggers(level, d, [{ type: 'questStart' }], { beforeRooms: new Set() });
+  const r = runTriggers(
+    level,
+    d,
+    [{ type: 'questStart' }, ...monsterSeenTriggers(level, d, d.seenMonsters)],
+    { beforeRooms: new Set() },
+  );
   return { state: d, prompts: r.prompts };
 }
 
@@ -56,7 +69,8 @@ export function initialState(level: Level, seed: number): GameState {
 /** Apply one event. After END_QUEST every event is rejected with QUEST_ENDED. */
 export function reduce(level: Level, state: GameState, event: GameEvent): Reduced {
   if (state.ended) throw new EventError('QUEST_ENDED', 'The quest is over');
-  const r = reduceEvent(level, state, event);
+  const r0 = reduceEvent(level, state, event);
+  const r = afterSeen(level, state, r0);
   // Objectives that became done by this event are told to the players.
   const before = objectivesStatus(level, state);
   const after = objectivesStatus(level, r.state);
@@ -67,6 +81,17 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
   });
   if (after.goalDone && !before.goalDone) extra.push({ kind: 'goalDone' });
   return extra.length > 0 ? { state: r.state, prompts: [...r.prompts, ...extra] } : r;
+}
+
+/** Monsters that came into view by this event fire their `monsterSeen` notes (decision 67). */
+function afterSeen(level: Level, before: GameState, r: Reduced): Reduced {
+  if (!level.quest.notes.some((n) => n.trigger.type === 'monsterSeen')) return r;
+  const fresh = [...r.state.seenMonsters].filter((id) => !before.seenMonsters.has(id));
+  if (fresh.length === 0) return r;
+  const d = draftOf(r.state);
+  const triggers = monsterSeenTriggers(level, r.state, fresh);
+  const n = runTriggers(level, d, triggers, { beforeRooms: new Set(d.revealedRooms) });
+  return { state: d, prompts: withNotes(r.prompts, n.prompts) };
 }
 
 /** Add the prompts of notes after the prompts of the event. "Nothing new" gives way to them. */

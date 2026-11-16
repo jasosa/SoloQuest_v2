@@ -143,6 +143,12 @@ const TriggerSchema = z.discriminatedUnion('type', [
     every: z.number().int().min(1).optional(),
   }),
   /** `hint`: one plain line shown with the button (what to do, or what the players need to know). */
+  /** The first time a monster (or a monster of that type) comes into view. */
+  z.strictObject({
+    type: z.literal('monsterSeen'),
+    monster: id.optional(),
+    monsterType: MonsterType.optional(),
+  }),
   z.strictObject({ type: z.literal('manual'), label: nonEmpty, hint: nonEmpty.optional() }),
 ]);
 

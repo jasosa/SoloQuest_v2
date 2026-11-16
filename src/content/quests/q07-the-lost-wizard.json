@@ -368,7 +368,8 @@
       "overrides": {
         "def": 5
       },
-      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"]
+      "traits": ["Made of stone: rolls 1 extra defend die (5 in total)"],
+      "name": "Gargoyle"
     }
   ],
   "traps": [
@@ -393,10 +394,9 @@
   "notes": [
     {
       "id": "n-A",
-      "letter": "A",
-      "at": [10, 6],
       "trigger": {
-        "type": "questStart"
+        "type": "monsterSeen",
+        "monsterType": "dreadWarrior"
       },
       "effects": [
         {
