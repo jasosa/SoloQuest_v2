@@ -2,7 +2,10 @@ import { useStore } from 'zustand';
 import { addMonster, updateMonster } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { abilityLookup } from '../../engine/data/abilities';
-import { MONSTER_TYPES, type MonsterType } from '../../engine/quest/schema';
+import { MONSTER_TYPES, type MonsterBehavior, type MonsterType } from '../../engine/quest/schema';
+
+type BehaviorWaits = NonNullable<MonsterBehavior['waitsFor']>;
+type BehaviorToward = NonNullable<MonsterBehavior['goesToward']>;
 import { Col, Fld, Frame, ListPanel, Panel, Toggle } from '../shared/Frame';
 import { SubjectActions } from './ActionsSection';
 import type { EditorStore } from './editorStore';
@@ -181,6 +184,70 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   ))}
                 </select>
               </Fld>
+              <Fld label="Waits for">
+                <select
+                  className="fr-sel"
+                  aria-label="Waits for"
+                  value={monster.behavior?.waitsFor ?? ''}
+                  onChange={(e) =>
+                    patch({
+                      behavior: {
+                        ...monster.behavior,
+                        waitsFor: (e.target.value || undefined) as BehaviorWaits | undefined,
+                      },
+                    })
+                  }
+                >
+                  <option value="">Nothing</option>
+                  <option value="heroInSight">A hero in its line of sight</option>
+                  <option value="heroInRoom">A hero in its room</option>
+                  <option value="heroAdjacent">A hero next to it</option>
+                </select>
+              </Fld>
+              <Fld label="Goes toward">
+                <select
+                  className="fr-sel"
+                  aria-label="Goes toward"
+                  value={monster.behavior?.goesToward ?? ''}
+                  onChange={(e) => {
+                    const v = (e.target.value || undefined) as BehaviorToward | undefined;
+                    const marker = quest.markers[0]?.id;
+                    patch({
+                      behavior: {
+                        ...(monster.behavior?.waitsFor
+                          ? { waitsFor: monster.behavior.waitsFor }
+                          : {}),
+                        ...(v ? { goesToward: v } : {}),
+                        ...(v === 'marker' && marker ? { marker } : {}),
+                      },
+                    });
+                  }}
+                >
+                  <option value="">The nearest hero</option>
+                  <option value="strongestHero">The strongest hero</option>
+                  <option value="weakestHero">The weakest hero</option>
+                  <option value="stayPut">Nobody: it stays put</option>
+                  <option value="marker">A marked square</option>
+                </select>
+              </Fld>
+              {monster.behavior?.goesToward === 'marker' && (
+                <Fld label="Marked square">
+                  <select
+                    className="fr-sel"
+                    aria-label="Marked square"
+                    value={monster.behavior.marker ?? ''}
+                    onChange={(e) =>
+                      patch({ behavior: { ...monster.behavior, marker: e.target.value } })
+                    }
+                  >
+                    {quest.markers.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                </Fld>
+              )}
               <Toggle
                 label="Hidden until an action places it"
                 on={monster.hidden === true}

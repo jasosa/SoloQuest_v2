@@ -100,6 +100,28 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await expect(page.getByTestId('monster-list')).toContainText('No monster yet.');
   });
 
+  test('Monsters tab: waits for and goes toward are prompts; a marked square needs a marker', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tab(page, 'Monsters').click();
+    await page
+      .getByTestId('monster-list')
+      .getByRole('button', { name: 'Add', exact: true })
+      .click();
+    await page.getByLabel('Waits for').selectOption('heroInRoom');
+    await page.getByLabel('Goes toward').selectOption('strongestHero');
+    await expect(page.getByLabel('Waits for')).toHaveValue('heroInRoom');
+    await expect(page.getByLabel('Goes toward')).toHaveValue('strongestHero');
+    // no marker in the quest: a marked square is refused with a sentence
+    await page.getByLabel('Goes toward').selectOption('marker');
+    await expect(page.locator('.toast')).toContainText('Pick a marker');
+    await expect(page.getByLabel('Goes toward')).toHaveValue('strongestHero');
+    await page.getByLabel('Goes toward').selectOption('');
+    await page.getByLabel('Waits for').selectOption('');
+    await expect(page.getByLabel('Waits for')).toHaveValue('');
+  });
+
   test('Designer tab shows the library inside the editor', async ({ page }) => {
     await newQuest(page);
     await tab(page, 'Designer').click();

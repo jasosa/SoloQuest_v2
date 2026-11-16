@@ -223,6 +223,12 @@ export function validateQuestIssues(
     abilityIds.add(a.id);
   }
   for (const m of quest.monsters)
+    if (m.behavior?.marker && !quest.markers.some((k) => k.id === m.behavior?.marker))
+      err(`monster ${m.id}: behavior points at an unknown marker ${m.behavior.marker}`, {
+        kind: 'monster',
+        id: m.id,
+      });
+  for (const m of quest.monsters)
     for (const a of m.abilities ?? [])
       if (!abilityIds.has(a))
         err(`monster ${m.id}: unknown ability ${a}`, { kind: 'monster', id: m.id });

@@ -74,6 +74,25 @@ const StatOverrides = z.strictObject({
   mind: z.number().int().min(0).optional(),
 });
 
+/**
+ * How a monster behaves (prompts for the players, never enforced: the app does not track
+ * positions). `waitsFor`: it does nothing until the condition is true. `goesToward`: who or what
+ * it heads for instead of the rule of its type; `marker` needs a `marker` id of the quest.
+ */
+export const BEHAVIOR_WAITS = ['heroInSight', 'heroInRoom', 'heroAdjacent'] as const;
+export const BEHAVIOR_TOWARD = ['strongestHero', 'weakestHero', 'stayPut', 'marker'] as const;
+const BehaviorSchema = z
+  .strictObject({
+    waitsFor: z.enum(BEHAVIOR_WAITS).optional(),
+    goesToward: z.enum(BEHAVIOR_TOWARD).optional(),
+    marker: id.optional(),
+  })
+  .refine((b) => (b.goesToward === 'marker') === (b.marker !== undefined), {
+    message: 'goesToward "marker" needs a marker id, and a marker id needs goesToward "marker"',
+    path: ['marker'],
+  });
+export type MonsterBehavior = z.infer<typeof BehaviorSchema>;
+
 const MonsterSchema = z
   .strictObject({
     id,
@@ -93,6 +112,8 @@ const MonsterSchema = z
     traits: z.array(nonEmpty).optional(),
     /** Story-critical monster (decision 69): drawn with a ring and a star. Not the same as having an ability. */
     special: z.boolean().optional(),
+    /** Waits for something, or goes toward someone (decision 71). Prompts only. */
+    behavior: BehaviorSchema.optional(),
     /** Reusable abilities by id: the core ones (`stone`, `fireImmune`...) or the quest's `abilityDefs`. */
     abilities: z.array(id).optional(),
     hidden: z.boolean().optional(),

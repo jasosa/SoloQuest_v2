@@ -112,7 +112,8 @@ Do these before M8 polish. Quest owner review (M7) comes after step 8.
 - [x] Designer slices 1 and 2 (decision 70): spells as data and the caster flow; abilities and spells as dropdown lists with popups in the monster inspector
 - [x] Designer slice 3 (decision 70): browser library (IndexedDB) with export and import, quests keep copies of what they use
 - [x] Designer slice 4 (decision 70): enemies as data (`enemyDefs`, `monster.enemy`, letter, picture), Designer screen and tab (core items read only, Mine, Copy, Used in, Token), start screen, editor tabs Quest / Map / Actions / Monsters / Designer
-- [ ] Designer polish: Monsters tab "Waits for" and "Goes toward" (behavior prompts, not built), Quest tab "Start room" field, an image on a hero token in play (heroes are only listed for now), companions used by quests, Designer items that change keep quest copies in step (a quest keeps its own copy by design)
+- [x] Monster behavior prompts (decision 71): Waits for, Goes toward, in the Monsters tab and on the Zargon order
+- [ ] Designer polish: Quest tab "Start room" field, an image on a hero token in play (heroes are only listed for now), companions used by quests, Designer items that change keep quest copies in step (a quest keeps its own copy by design)
 - [ ] Step 5b, added monsters: "Add monster" and wandering monster ask the players for a square; the token is drawn static, can be slain, acts on Zargon's turn, highlighted as new
 - [ ] Step 6, map: "Show room" (layout only, free tool with a warning, rock message), highlight on additions, double blocks in wide corridors, trap hit area check (quest 3)
 - [ ] Step 7, editor: actions attached to doors, furniture, monsters and markers; objective triggers; ability builder; admin edit of bundled quests kept as a draft until replaced; custom trap symbols

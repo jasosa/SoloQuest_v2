@@ -14,7 +14,13 @@
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
 import { abilityLookup } from '../data/abilities';
 import { spellLookup } from '../data/spells';
-import { QuestSchema, type FurnitureDef, type MonsterDef, type Quest } from '../quest/schema';
+import {
+  QuestSchema,
+  type FurnitureDef,
+  type MonsterBehavior,
+  type MonsterDef,
+  type Quest,
+} from '../quest/schema';
 import type { Issue } from '../quest/validate';
 import { footprintShapeProblem } from '../quest/footprint';
 import { referencesTo, renameDoorRefs } from './refs';
@@ -788,6 +794,8 @@ export interface MonsterPatch {
   abilities?: string[] | null;
   /** An enemy of the quest (`enemyDefs`) that gives defaults (decision 70). `null` clears it. */
   enemy?: string | null;
+  /** Waits for, goes toward (decision 71). `null` or `{}` clears it. */
+  behavior?: MonsterBehavior | null;
 }
 
 /**
@@ -833,6 +841,15 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     const bad = patch.spells?.find((s) => !known.has(s));
     if (bad) return fail(`Unknown spell "${bad}". Known spells: ${[...known.keys()].join(', ')}.`);
     set('spells', patch.spells?.length ? patch.spells : null);
+  }
+  if (patch.behavior !== undefined) {
+    const b = patch.behavior;
+    if (b && b.goesToward === 'marker' && !q.markers.some((k) => k.id === b.marker))
+      return fail(
+        'Pick a marker for "goes toward a marked square". Add one with the Markers tool.',
+      );
+    const kept = b ? clean({ ...b }) : {};
+    set('behavior', Object.keys(kept).length ? kept : null);
   }
   if (patch.enemy !== undefined) {
     if (patch.enemy !== null && !q.enemyDefs.some((e) => e.id === patch.enemy))

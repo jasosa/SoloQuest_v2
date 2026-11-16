@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Quest } from '../quest/schema';
 import { testQuest } from '../quest/testQuest';
-import { setFurnitureLetter, updateMonster, updateTrap, type EditResult } from './ops';
+import {
+  addMonster,
+  emptyQuest,
+  setFurnitureLetter,
+  updateMonster,
+  updateTrap,
+  type EditResult,
+} from './ops';
 
 function deepFreeze<T>(o: T): T {
   if (o && typeof o === 'object') {
@@ -139,5 +146,23 @@ describe('setFurnitureLetter', () => {
       furniture: [{ id: 'st', type: 'stairs', cells: [[1, 14]] }, ...q.furniture],
     };
     expect(bad(setFurnitureLetter(withStairs, 'st', 'A'))).toMatch(/stairs/);
+  });
+});
+
+describe('updateMonster behavior (decision 71)', () => {
+  it('sets, clears and refuses an unknown marker', () => {
+    let q = emptyQuest({ id: 'user-t', number: 1, title: 'T' });
+    const a = addMonster(q, 'orc', [4, 17]);
+    if (!a.ok) throw new Error(a.error);
+    q = a.quest;
+    const set = updateMonster(q, 'm1', { behavior: { waitsFor: 'heroInRoom' } });
+    if (!set.ok) throw new Error(set.error);
+    expect(set.quest.monsters[0]?.behavior).toEqual({ waitsFor: 'heroInRoom' });
+    const cleared = updateMonster(set.quest, 'm1', { behavior: {} });
+    if (!cleared.ok) throw new Error(cleared.error);
+    expect(cleared.quest.monsters[0]?.behavior).toBeUndefined();
+    expect(updateMonster(q, 'm1', { behavior: { goesToward: 'marker', marker: 'k9' } }).ok).toBe(
+      false,
+    );
   });
 });

@@ -126,9 +126,41 @@ function drawRule(
  * Special rules from the quest data: its `traits` first, then a line for every stat override that
  * is present in the def (even when equal to the base table: named monsters carry their own stats).
  */
-function specialRules(def: MonsterDef | undefined, abilities: readonly AbilityDef[]): string[] {
+const WAITS_TEXT = {
+  heroInSight: 'Waits: it does nothing until a hero is in its line of sight.',
+  heroInRoom: 'Waits: it does nothing until a hero is in its room.',
+  heroAdjacent: 'Waits: it does nothing until a hero is next to it.',
+} as const;
+
+const TOWARD_TEXT = {
+  strongestHero: 'Goes toward the hero with the most Body Points left, not the nearest.',
+  weakestHero: 'Goes toward the hero with the fewest Body Points left, not the nearest.',
+  stayPut: 'Stays where it is. It only attacks a hero next to it.',
+} as const;
+
+/** The behavior prompts of a monster (decision 71), as lines for the players. */
+export function behaviorLines(
+  def: Pick<MonsterDef, 'behavior'> | undefined,
+  markers: readonly { id: string; label: string }[],
+): string[] {
+  const b = def?.behavior;
+  if (!b) return [];
+  const out: string[] = [];
+  if (b.waitsFor) out.push(WAITS_TEXT[b.waitsFor]);
+  if (b.goesToward === 'marker') {
+    const m = markers.find((k) => k.id === b.marker);
+    out.push(`Goes toward the marked square${m ? ` "${m.label}"` : ''}, not the nearest hero.`);
+  } else if (b.goesToward) out.push(TOWARD_TEXT[b.goesToward]);
+  return out;
+}
+
+function specialRules(
+  def: MonsterDef | undefined,
+  abilities: readonly AbilityDef[],
+  markers: readonly { id: string; label: string }[],
+): string[] {
   if (!def) return [];
-  const out: string[] = [...(def.traits ?? [])];
+  const out: string[] = [...behaviorLines(def, markers), ...(def.traits ?? [])];
   for (const a of abilities) out.push(`${a.name}: ${a.text}`);
   const o = def.overrides;
   if (o?.att !== undefined) out.push(`Rolls ${o.att} attack ${o.att === 1 ? 'die' : 'dice'}`);
@@ -203,7 +235,7 @@ function buildOrder(
     ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
       ? {}
       : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),
-    special: specialRules(def, view.abilities),
+    special: specialRules(def, view.abilities, level.quest.markers),
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
     turn,
     done,
