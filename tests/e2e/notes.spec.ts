@@ -295,6 +295,27 @@ test.describe('notes engine on the dev fixture', () => {
     await shot(page, 'monster-special');
   });
 
+  test('an enemy of the quest gives its monster a letter and a picture; others keep the letter icon', async ({
+    page,
+  }) => {
+    await fixture(page, 'd1,d2');
+    await door(page, 'd3').click();
+    await btn(page, 'Open the door').click();
+    await btn(page, 'Pull the lever').click();
+    await btn(page, 'Continue').click();
+    await page.waitForTimeout(900);
+    // the Marsh Goblin: a picture on the token and in the roster, and the letter M in its code
+    await expect(page.locator('[data-token-image]')).toHaveCount(1);
+    const goblin = page.locator('.roster li', { hasText: 'Marsh Goblin' });
+    await expect(goblin).toContainText('M1');
+    await expect(goblin.locator('[data-coin-image]')).toHaveCount(1);
+    // the orc has no picture: its coin and token show the letter icon
+    const orc = page.locator('.roster li', { hasText: 'Orc' }).first();
+    await expect(orc.locator('[data-coin-image]')).toHaveCount(0);
+    await expect(orc).toContainText('O1');
+    await shot(page, 'monster-image');
+  });
+
   test('a zone (a set of squares) gets one label; a tap says "A hero enters" once', async ({
     page,
   }) => {

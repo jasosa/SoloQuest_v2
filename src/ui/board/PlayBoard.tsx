@@ -506,17 +506,55 @@ export function PlayBoard({
             stroke={color.tokenText}
             strokeWidth={2}
           />
-          <text
-            x={cx}
-            y={cy + 4.2}
-            textAnchor="middle"
-            fill={color.tokenText}
-            fontFamily="Bonum"
-            fontWeight={700}
-            fontSize={11.5}
-          >
-            {codes.get(m.id)}
-          </text>
+          {m.image ? (
+            <>
+              <clipPath id={`clip-${m.id}`}>
+                <circle cx={cx} cy={cy} r={12.5} />
+              </clipPath>
+              <image
+                href={m.image}
+                x={cx - 12.5}
+                y={cy - 12.5}
+                width={25}
+                height={25}
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#clip-${m.id})`}
+                data-token-image={m.id}
+              />
+              <rect
+                x={cx - 9}
+                y={cy + 5}
+                width={18}
+                height={9}
+                fill={color.ink}
+                stroke={color.tokenText}
+                strokeWidth={0.8}
+              />
+              <text
+                x={cx}
+                y={cy + 12.2}
+                textAnchor="middle"
+                fill={color.tokenText}
+                fontFamily="Bonum"
+                fontWeight={700}
+                fontSize={7.5}
+              >
+                {codes.get(m.id)}
+              </text>
+            </>
+          ) : (
+            <text
+              x={cx}
+              y={cy + 4.2}
+              textAnchor="middle"
+              fill={color.tokenText}
+              fontFamily="Bonum"
+              fontWeight={700}
+              fontSize={11.5}
+            >
+              {codes.get(m.id)}
+            </text>
+          )}
           {m.special && (
             <g data-special={m.id} pointerEvents="none">
               <circle cx={cx} cy={cy} r={17.5} fill="none" stroke={color.ink} strokeWidth={2.5} />

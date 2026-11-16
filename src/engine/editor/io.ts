@@ -33,6 +33,7 @@ const TOP_KEYS = [
   'zones',
   'abilityDefs',
   'spellDefs',
+  'enemyDefs',
   'notes',
   'wandering',
   'objectives',

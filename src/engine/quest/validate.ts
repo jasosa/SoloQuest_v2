@@ -209,6 +209,14 @@ export function validateQuestIssues(
     if (spellIds.has(sp.id)) err(`spell ${sp.id}: the id is already taken`, { kind: 'quest' });
     spellIds.add(sp.id);
   }
+  const enemyIds = new Set<string>();
+  for (const e of quest.enemyDefs) {
+    if (enemyIds.has(e.id)) err(`enemy ${e.id}: duplicate id`, { kind: 'quest' });
+    enemyIds.add(e.id);
+  }
+  for (const m of quest.monsters)
+    if (m.enemy && !enemyIds.has(m.enemy))
+      err(`monster ${m.id}: unknown enemy ${m.enemy}`, { kind: 'monster', id: m.id });
   const abilityIds = new Set<string>(CORE_ABILITIES.map((a) => a.id));
   for (const a of quest.abilityDefs) {
     if (abilityIds.has(a.id)) err(`ability ${a.id}: the id is already taken`, { kind: 'quest' });
@@ -218,6 +226,12 @@ export function validateQuestIssues(
     for (const a of m.abilities ?? [])
       if (!abilityIds.has(a))
         err(`monster ${m.id}: unknown ability ${a}`, { kind: 'monster', id: m.id });
+  for (const e of quest.enemyDefs)
+    for (const a of e.abilities ?? [])
+      if (!abilityIds.has(a)) err(`enemy ${e.id}: unknown ability ${a}`, { kind: 'quest' });
+  for (const e of quest.enemyDefs)
+    for (const sp of e.spells ?? [])
+      if (!spellIds.has(sp)) err(`enemy ${e.id}: unknown spell "${sp}"`, { kind: 'quest' });
   const trapIds = unique(
     'traps',
     quest.traps.map((t) => t.id),

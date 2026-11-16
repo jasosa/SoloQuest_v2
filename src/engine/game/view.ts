@@ -36,6 +36,10 @@ export interface MonsterView {
   readonly special: boolean;
   /** Its abilities, resolved from the core library and the quest's own. */
   readonly abilities: readonly AbilityDef[];
+  /** The letter of its token code, when it is not the letter of its type (an enemy of the quest). */
+  readonly letter?: string;
+  /** A picture for its token and roster row (a data URL). Without it the letter icon is shown. */
+  readonly image?: string;
 }
 
 function abilitiesOf(
@@ -71,6 +75,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       state: st.state,
       special: m.special === true,
       abilities: abilitiesOf(lookup, m.abilities),
+      ...(m.letter ? { letter: m.letter } : {}),
+      ...(m.image ? { image: m.image } : {}),
       ...(st.turns !== undefined ? { stoneTurns: st.turns } : {}),
       ...(placeAt ? { placeAt } : {}),
     });

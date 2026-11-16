@@ -4,6 +4,7 @@
  * live in `validate.ts`.
  */
 import { z } from 'zod';
+import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
 import { SPELL_TAG_IDS } from '../data/spells';
 
 export const SCHEMA_VERSION = 1;
@@ -59,21 +60,32 @@ const FurnitureSchema = z.strictObject({
   letter: z.string().min(1).optional(),
 });
 
+/** A small picture as a data URL (the editor shrinks it). */
+const ImageSchema = z
+  .string()
+  .max(MAX_IMAGE_CHARS)
+  .regex(IMAGE_PATTERN, 'an image is a png, jpeg or webp data URL');
+
+const StatOverrides = z.strictObject({
+  move: z.number().int().min(0).optional(),
+  att: z.number().int().min(0).optional(),
+  def: z.number().int().min(0).optional(),
+  body: z.number().int().min(0).optional(),
+  mind: z.number().int().min(0).optional(),
+});
+
 const MonsterSchema = z
   .strictObject({
     id,
     type: MonsterType,
     cell: cell.optional(),
     name: nonEmpty.optional(),
-    overrides: z
-      .strictObject({
-        move: z.number().int().min(0).optional(),
-        att: z.number().int().min(0).optional(),
-        def: z.number().int().min(0).optional(),
-        body: z.number().int().min(0).optional(),
-        mind: z.number().int().min(0).optional(),
-      })
-      .optional(),
+    /** An enemy of the quest (`enemyDefs`) that gives defaults: name, stats, abilities, spells, image. */
+    enemy: id.optional(),
+    /** The letter of its token code when it is not the letter of its type. */
+    letter: z.string().min(1).max(2).optional(),
+    image: ImageSchema.optional(),
+    overrides: StatOverrides.optional(),
     state: MonsterState.optional(),
     spells: z.array(nonEmpty).optional(),
     spellLimit: z.enum(['onePerTurn']).optional(),
@@ -89,6 +101,20 @@ const MonsterSchema = z
     message: 'a monster needs a cell unless it is hidden',
     path: ['cell'],
   });
+
+/** A reusable monster definition (decision 70). A monster of the quest points at it. */
+const EnemyDefSchema = z.strictObject({
+  id,
+  name: nonEmpty,
+  /** The core type it behaves like (target rules, base stats). */
+  base: MonsterType,
+  letter: z.string().min(1).max(2).optional(),
+  image: ImageSchema.optional(),
+  overrides: StatOverrides.optional(),
+  abilities: z.array(id).optional(),
+  spells: z.array(nonEmpty).optional(),
+  traits: z.array(nonEmpty).optional(),
+});
 
 const AbilityDefSchema = z.strictObject({
   id,
@@ -346,6 +372,8 @@ export const QuestSchema = z.strictObject({
   abilityDefs: z.array(AbilityDefSchema).default([]),
   /** The quest's own spells, next to the core ones (decision 70). */
   spellDefs: z.array(SpellDefSchema).default([]),
+  /** The quest's own enemies (decision 70). */
+  enemyDefs: z.array(EnemyDefSchema).default([]),
   notes: z.array(NoteSchema).default([]),
   wandering: WanderingSchema.optional(),
   objectives: z.array(ObjectiveSchema).default([]),
@@ -365,6 +393,7 @@ export type Condition = z.infer<typeof ConditionSchema>;
 export type Note = z.infer<typeof NoteSchema>;
 export type NoteTarget = z.infer<typeof TargetSchema>;
 export type ZoneDef = z.infer<typeof ZoneSchema>;
+export type EnemyDef = z.infer<typeof EnemyDefSchema>;
 export type DoorDef = z.infer<typeof DoorSchema>;
 export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;

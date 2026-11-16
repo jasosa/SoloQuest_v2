@@ -918,7 +918,13 @@ function RosterRow({
       title={monsterTip(m, code)}
     >
       <button data-hit disabled={m.dead} onClick={onTap}>
-        <span className={'coin' + (m.dead ? ' off' : '')}>{code}</span>
+        <span
+          className={'coin' + (m.dead ? ' off' : '') + (m.image ? ' pic' : '')}
+          style={m.image ? { backgroundImage: `url(${m.image})` } : undefined}
+          data-coin-image={m.image ? m.id : undefined}
+        >
+          {code}
+        </span>
         <span>
           <span className="nm">
             {m.name}

@@ -3,6 +3,7 @@
  * "what stops sight or movement here?": rock, blocked squares, doors by edge.
  * Game-dependent facts (which doors are open) are passed in as a set of door ids.
  */
+import { resolveEnemies } from '../data/enemies';
 import type { Quest } from '../quest/schema';
 import {
   areaAt,
@@ -53,7 +54,9 @@ export interface Level {
   readonly doorsAt: ReadonlyMap<CellKey, readonly DoorInfo[]>;
 }
 
-export function buildLevel(quest: Quest, board: Board = defaultBoard): Level {
+export function buildLevel(source: Quest, board: Board = defaultBoard): Level {
+  // Monsters that point at an enemy get its defaults here, so the engine never sees the link.
+  const quest = resolveEnemies(source);
   const rockRooms = new Set(quest.rock.rooms);
   const rock = new Set<CellKey>(quest.rock.cells.map(keyOf));
   for (let y = 0; y < board.height; y++)

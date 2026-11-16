@@ -56,7 +56,7 @@ export async function devTestLevel(): Promise<Level | undefined> {
             ? { ...m, spells: ['fear', 'sleep'] }
             : // m2 is a special monster with an ability (decision 69).
               m.id === 'm2'
-              ? { ...m, special: true, abilities: ['fireImmune'] }
+              ? { ...m, special: true, abilities: ['fireImmune'], enemy: 'marsh' }
               : m,
         ),
         { id: 'm-statue', type: 'gargoyle', name: 'The statue', cell: [4, 16], state: 'dormant' },
@@ -69,6 +69,17 @@ export async function devTestLevel(): Promise<Level | undefined> {
           defend: 2,
           body: 3,
           text: 'Moves with the heroes. Zargon never attacks it.',
+        },
+      ],
+      enemyDefs: [
+        {
+          id: 'marsh',
+          name: 'Marsh Goblin',
+          base: 'goblin',
+          letter: 'M',
+          // a 1 x 1 picture, enough to test that a monster with an image shows it
+          image:
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
         },
       ],
       zones: [
