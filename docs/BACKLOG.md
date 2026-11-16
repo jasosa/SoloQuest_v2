@@ -96,6 +96,20 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 - [x] Overlay tool (`npm run overlay -- N`)
 - [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
 
+## M7b · Playtest feedback (plan: `FEEDBACK_PLAN.md`, decision 66)
+
+Do these before M8 polish. Quest owner review (M7) comes after step 8.
+
+- [x] Step 1: README and backlog reconciled, slain monsters leave the roster, `zargonInfo` removed from format and quests, marker visibility `editor`
+- [ ] Step 2, quest data pass: quests 2, 3, 5, 6, 7, 8, 9, 10, 12 as in the plan section 5; a start instruction in every quest; no repeated rewards or spoilers
+- [ ] Step 3, engine and format: `monsterSeen` trigger, conditions on manual triggers, `allSeenKilled` objective rule, rock-door exception for `doorTeleport`, throne next to a secret door, objectives with their own `done` triggers
+- [ ] Step 4, messages: message sheet for every triggered text, Quest sheet (start text, objective, notes read, actions), start sheet, journal as the full log, less scrolling, "Things to confirm" block apart from "End the quest"
+- [ ] Step 5, monsters: special mark and tooltips, abilities library (quest extras, editor builder), dormant and waiting prompts
+- [ ] Step 5b, added monsters: "Add monster" and wandering monster ask the players for a square; the token is drawn static, can be slain, acts on Zargon's turn, highlighted as new
+- [ ] Step 6, map: "Show room" (layout only, free tool with a warning, rock message), highlight on additions, double blocks in wide corridors, trap hit area check (quest 3)
+- [ ] Step 7, editor: actions attached to doors, furniture, monsters and markers; objective triggers; ability builder; admin edit of bundled quests kept as a draft until replaced; custom trap symbols
+- [ ] Step 8, owner review round, one quest at a time with the overlay
+
 ## M8 · Polish
 
 - [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board; show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable
