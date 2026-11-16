@@ -20,6 +20,7 @@ export const TRIGGER_TYPES: readonly { type: Trigger['type']; label: string }[] 
   { type: 'allKilled', label: 'All of some monsters are slain' },
   { type: 'spellCast', label: 'A spell is cast' },
   { type: 'zargonTurn', label: "Zargon's turn ends" },
+  { type: 'questEnds', label: 'The quest ends' },
 ];
 
 export const EFFECT_TYPES: readonly { type: Effect['type']; label: string }[] = [
@@ -114,6 +115,8 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
       return good({ type });
     case 'zargonTurn':
       return good({ type, n: 1 });
+    case 'questEnds':
+      return good({ type });
   }
 }
 
@@ -260,6 +263,8 @@ export function triggerSummary(t: Trigger): string {
       return `All slain: ${t.monsters.join(', ')}`;
     case 'spellCast':
       return `Spell cast${t.spell && spellOk(t.spell) ? `: ${t.spell}` : ''}`;
+    case 'questEnds':
+      return t.outcome ? `The quest ends (${t.outcome})` : 'The quest ends';
     case 'zargonTurn':
       return t.every ? `Every ${t.every} Zargon turns` : `Zargon turn ${t.n ?? 'any'}`;
   }

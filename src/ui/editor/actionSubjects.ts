@@ -58,6 +58,7 @@ export function triggerChoices(s: Subject): readonly TriggerChoice[] {
     case 'quest':
       return [
         { type: 'questStart', label: 'The quest starts' },
+        { type: 'questEnds', label: 'The quest ends' },
         { type: 'zargonTurn', label: 'A Zargon turn ends' },
         { type: 'allKilled', label: 'All of some monsters are slain' },
         { type: 'manual', label: 'A button in the Quest sheet' },

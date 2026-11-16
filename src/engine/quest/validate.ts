@@ -563,6 +563,12 @@ export function validateQuestIssues(
       case 'zoneEntered':
         if (!zoneIds.has(t.zone)) err(`${where}: unknown zone ${t.zone}`, noteRef);
         break;
+      case 'questEnds':
+        if (t.ending !== undefined && t.outcome !== 'ending')
+          err(`${where}: questEnds with an ending needs outcome "ending"`, noteRef);
+        if (t.ending !== undefined && !(quest.endings ?? []).some((e) => e.id === t.ending))
+          err(`${where}: unknown ending ${t.ending}`, noteRef);
+        break;
       case 'zargonTurn':
         if (t.n !== undefined && t.every !== undefined)
           err(`${where}: zargonTurn takes n or every, not both`, noteRef);

@@ -215,6 +215,12 @@ const TriggerSchema = z.discriminatedUnion('type', [
     monster: id.optional(),
     spell: nonEmpty.optional(),
   }),
+  /** The quest is over. Its notes show in the end dialog. `outcome` and `ending` limit it. */
+  z.strictObject({
+    type: z.literal('questEnds'),
+    outcome: z.enum(['stairs', 'fell', 'ending']).optional(),
+    ending: id.optional(),
+  }),
   z.strictObject({
     type: z.literal('zargonTurn'),
     n: z.number().int().min(1).optional(),

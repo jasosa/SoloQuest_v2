@@ -1147,6 +1147,11 @@ function EndScreen({
         ))}
       </ul>
       {end.rewards && <p className="extra">Rewards: {end.rewards}</p>}
+      {end.endNotes.map((t, i) => (
+        <p key={i} className="extra" data-testid="end-note">
+          {t}
+        </p>
+      ))}
       {end.endText && <p className="extra">{end.endText}</p>}
       <button className="btn" onClick={onLeave}>
         {leaveLabel}

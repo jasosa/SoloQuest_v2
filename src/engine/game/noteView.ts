@@ -324,6 +324,8 @@ export interface EndSummary {
   readonly rewards: string | undefined;
   /** The quest's closing note, shown after every ending. */
   readonly endText: string | undefined;
+  /** Texts of the notes that fired when the quest ended (`questEnds`). */
+  readonly endNotes: readonly string[];
   readonly objectives: readonly ObjectiveStatus[];
 }
 
@@ -342,6 +344,7 @@ export function endSummary(level: Level, state: GameState): EndSummary | undefin
     // A custom ending shows no reward.
     rewards: e.outcome !== 'ending' && level.quest.rewards ? level.quest.rewards : undefined,
     endText: level.quest.endText,
+    endNotes: e.notes ?? [],
     objectives: view.items,
   };
 }

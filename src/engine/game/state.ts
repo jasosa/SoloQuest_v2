@@ -127,9 +127,14 @@ export interface GameState {
   readonly doneThisTurn: readonly string[];
   /** Set once by END_QUEST. After that every event is rejected. */
   readonly ended:
-    | { readonly outcome: 'stairs' | 'fell' }
-    | { readonly outcome: 'ending'; readonly ending: string }
+    | ({ readonly outcome: 'stairs' | 'fell' } & EndNotes)
+    | ({ readonly outcome: 'ending'; readonly ending: string } & EndNotes)
     | undefined;
+}
+
+/** The texts of the notes that fired when the quest ended (`questEnds`). */
+interface EndNotes {
+  readonly notes?: readonly string[];
 }
 
 export function emptyState(seed: number): GameState {

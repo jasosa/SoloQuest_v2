@@ -890,6 +890,7 @@ describe('objectives and END_QUEST', () => {
       outcome: 'ending',
       ending: { id: 'npc-died', label: 'The guide died', text: 'The guide is lost.' },
       won: false,
+      endNotes: [],
       rewards: undefined,
     });
     expect(code(() => reduce(lvE, r.state, turnEnd))).toBe('QUEST_ENDED');
@@ -916,6 +917,7 @@ describe('objectives and END_QUEST', () => {
       outcome: 'fell',
       goalDone: false,
       won: false,
+      endNotes: [],
       rewards: '100 gold coins, shared',
       objectives: [
         { id: 'o1', text: 'Kill the orc', done: false },

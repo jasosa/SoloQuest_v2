@@ -35,6 +35,7 @@ import {
   monsterSeenTriggers,
   runTriggers,
   squareTrigger,
+  type TriggerEvent,
   tickStone,
 } from './notes';
 import { objectivesStatus } from './noteView';
@@ -210,6 +211,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
         if (!(level.quest.endings ?? []).some((e) => e.id === id))
           throw new EventError('UNKNOWN_ENDING', `Unknown ending ${String(id)}`);
         d.ended = { outcome: 'ending', ending: id };
+        const notes = endNotes(level, d, { type: 'questEnds', outcome: 'ending', ending: id });
+        if (notes.length > 0) d.ended = { outcome: 'ending', ending: id, notes };
         return {
           state: d,
           prompts: [{ kind: 'questEnded', outcome: 'ending', ending: id, goalDone }],
@@ -218,6 +221,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       if (event.outcome !== 'stairs' && event.outcome !== 'fell')
         throw new EventError('BAD_RESULT', `Bad outcome ${String(event.outcome)}`);
       d.ended = { outcome: event.outcome };
+      const notes = endNotes(level, d, { type: 'questEnds', outcome: event.outcome });
+      if (notes.length > 0) d.ended = { outcome: event.outcome, notes };
       return { state: d, prompts: [{ kind: 'questEnded', outcome: event.outcome, goalDone }] };
     }
     default: {
@@ -225,6 +230,16 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       throw new Error(`Unhandled event ${JSON.stringify(never)}`);
     }
   }
+}
+
+/** Run the `questEnds` notes and return the texts they show (decision 71). */
+function endNotes(
+  level: Level,
+  d: ReturnType<typeof draftOf>,
+  t: Extract<TriggerEvent, { type: 'questEnds' }>,
+): string[] {
+  const r = runTriggers(level, d, [t]);
+  return r.prompts.flatMap((p) => (p.kind === 'note' ? [...p.texts] : []));
 }
 
 /** Rebuild the state from the start. Throws if an event is invalid. */

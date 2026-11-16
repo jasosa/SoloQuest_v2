@@ -27,6 +27,11 @@ import { seeMonster, type Draft, type GameState } from './state';
 /** What happened, as the notes engine sees it. */
 export type TriggerEvent =
   | { readonly type: 'questStart' }
+  | {
+      readonly type: 'questEnds';
+      readonly outcome: 'stairs' | 'fell' | 'ending';
+      readonly ending?: string;
+    }
   | { readonly type: 'areaRevealed'; readonly area: AreaId }
   | { readonly type: 'doorOpened'; readonly door: string }
   | { readonly type: 'areaEntered'; readonly area: AreaId }
@@ -152,6 +157,13 @@ function matches(note: Note, t: TriggerEvent, d: GameState): boolean {
       return (
         (n.monster === undefined || n.monster === tt.monster) &&
         (n.spell === undefined || n.spell === tt.spell)
+      );
+    }
+    case 'questEnds': {
+      const tt = t as Extract<TriggerEvent, { type: 'questEnds' }>;
+      return (
+        (n.outcome === undefined || n.outcome === tt.outcome) &&
+        (n.ending === undefined || n.ending === tt.ending)
       );
     }
     case 'zargonTurn': {

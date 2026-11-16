@@ -29,6 +29,7 @@ export function noteTarget(note: Note): NoteTarget | undefined {
     case 'squareEntered':
       return { kind: 'square', id: `${t.cell[0]},${t.cell[1]}` };
     case 'questStart':
+    case 'questEnds':
     case 'allKilled':
     case 'zargonTurn':
     case 'manual':

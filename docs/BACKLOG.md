@@ -113,6 +113,7 @@ Do these before M8 polish. Quest owner review (M7) comes after step 8.
 - [x] Designer slice 3 (decision 70): browser library (IndexedDB) with export and import, quests keep copies of what they use
 - [x] Designer slice 4 (decision 70): enemies as data (`enemyDefs`, `monster.enemy`, letter, picture), Designer screen and tab (core items read only, Mine, Copy, Used in, Token), start screen, editor tabs Quest / Map / Actions / Monsters / Designer
 - [x] Add a monster in play with a square; a wandering monster asks for its square (decision 71)
+- [x] `questEnds` trigger: notes shown in the end dialog (decision 71)
 - [x] Monster behavior prompts (decision 71): Waits for, Goes toward, in the Monsters tab and on the Zargon order
 - [ ] Designer polish: Quest tab "Start room" field, an image on a hero token in play (heroes are only listed for now), companions used by quests, Designer items that change keep quest copies in step (a quest keeps its own copy by design)
 - [ ] Step 5b, added monsters: "Add monster" and wandering monster ask the players for a square; the token is drawn static, can be slain, acts on Zargon's turn, highlighted as new

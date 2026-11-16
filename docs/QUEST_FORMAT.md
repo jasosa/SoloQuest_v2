@@ -115,6 +115,7 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 | `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
 | `allKilled` | `monsters` (ids) | the last of them is slain |
 | `spellCast` | `monster?`, `spell?` | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him dormant, a door note places him again. |
+| `questEnds` | `outcome?`, `ending?` | when the quest ends (`stairs`, `fell` or a custom `ending`); the note texts show in the end dialog |
 | `zargonTurn` | `n?`, `every?` | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k) |
 | `manual` | `label`, `hint?`, `repeat?` | a button. With a `target` it is a button of that element (under **For this quest**); without one it is in the Quest sheet. `hint` is one plain line shown above the button. `repeat: true` keeps the button after it is pressed (a magic door that every hero goes through). |
 

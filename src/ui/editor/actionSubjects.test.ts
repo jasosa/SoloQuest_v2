@@ -45,7 +45,13 @@ describe('subjectOf', () => {
 describe('triggerChoices', () => {
   it('lists only the triggers that fit', () => {
     const types = (k: Parameters<typeof triggerChoices>[0]) => triggerChoices(k).map((c) => c.type);
-    expect(types({ kind: 'quest' })).toEqual(['questStart', 'zargonTurn', 'allKilled', 'manual']);
+    expect(types({ kind: 'quest' })).toEqual([
+      'questStart',
+      'questEnds',
+      'zargonTurn',
+      'allKilled',
+      'manual',
+    ]);
     expect(types({ kind: 'area', id: 'R03' })).toEqual([
       'areaRevealed',
       'areaEntered',

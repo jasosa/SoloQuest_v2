@@ -633,6 +633,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await expect(dlg(page).getByLabel('When')).toHaveValue('questStart');
     await expect(dlg(page).getByLabel('When').locator('option')).toHaveText([
       'The quest starts',
+      'The quest ends',
       'A Zargon turn ends',
       'All of some monsters are slain',
       'A button in the Quest sheet',
@@ -642,6 +643,20 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await message.blur();
     await btn(page, 'Close').click();
     await expect(page.getByTestId('note-list')).toContainText(/quest starts/i);
+  });
+
+  test('the quest ends is a trigger of the quest', async ({ page }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest' }).click();
+    await page.getByTestId('quest-actions').getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('When').locator('option')).toContainText(['The quest ends']);
+    await dlg(page).getByLabel('When').selectOption('questEnds');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('questEnds');
+    const message = dlg(page).getByLabel('Message');
+    await message.fill('The cellar goes quiet.');
+    await message.blur();
+    await btn(page, 'Close').click();
+    await expect(page.getByTestId('note-list')).toContainText('The quest ends');
   });
 
   test('zones: paint squares with the Zones tool, select the zone, give it an action', async ({
