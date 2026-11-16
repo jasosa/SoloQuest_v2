@@ -42,7 +42,7 @@ describe('quest 6: data', () => {
     expect(validateQuest(quest, board)).toEqual([]);
   });
 
-  it('has 10 doors, 5 blocks, 3 pits, 27 monsters (26 plus Grak), wandering abomination', () => {
+  it('has 10 doors, 5 blocks, 3 pits, 26 monsters (25 plus Grak), wandering abomination', () => {
     expect(quest.doors).toHaveLength(10);
     expect(quest.secretDoors).toEqual([]);
     expect(quest.falseDoors).toEqual([]);
@@ -56,10 +56,10 @@ describe('quest 6: data', () => {
       ['pit', [0, 18]],
       ['pit', [8, 18]],
     ]);
-    expect(quest.monsters).toHaveLength(27);
+    expect(quest.monsters).toHaveLength(26);
     expect(quest.monsters.filter((m) => m.type === 'abomination')).toHaveLength(3);
-    // 12 orcs plus Grak, and 11 goblins, as read from the map (m7 at 25,1 is an orc).
-    expect(quest.monsters.filter((m) => m.type === 'orc')).toHaveLength(13);
+    // 11 orcs plus Grak (the room of Grak has 3 orcs), and 11 goblins (m7 at 25,1 is an orc).
+    expect(quest.monsters.filter((m) => m.type === 'orc')).toHaveLength(12);
     expect(quest.monsters.filter((m) => m.type === 'goblin')).toHaveLength(11);
     expect(monster('m7')?.type).toBe('orc');
     expect(quest.wandering).toEqual({ monster: 'abomination' });
@@ -141,7 +141,7 @@ describe('quest 6: walk-through', () => {
   it('d7 shows the stairs room R17 with Grak, d8 shows R18, d6 shows R20, d9 shows R21', () => {
     const r17 = run(...via('d7'));
     expect(r17.revealedRooms.has('R17')).toBe(true);
-    for (const m of ['m-grak', 'm15', 'm16', 'm17', 'm18', 'm19'])
+    for (const m of ['m-grak', 'm15', 'm16', 'm17', 'm19'])
       expect(r17.seenMonsters.has(m)).toBe(true);
     expect(r17.seenFurniture.has('f-stairs')).toBe(true);
     expect(r17.seenFurniture.has('f-fireplace')).toBe(false);
@@ -155,6 +155,14 @@ describe('quest 6: walk-through', () => {
     expect(r21.revealedRooms.has('R21')).toBe(true);
     expect(r21.seenFurniture.has('f-table-e')).toBe(true);
   }, 20000);
+
+  it('the room of Grak has three orcs, Grak included (there is no fourth)', () => {
+    const inRoom = quest.monsters.filter(
+      (m) => m.type === 'orc' && m.cell && areaOf(m.cell as [number, number]) === 'R17',
+    );
+    expect(inRoom.map((m) => m.id).sort()).toEqual(['m-grak', 'm15', 'm19']);
+    expect(quest.monsters.some((m) => m.id === 'm18')).toBe(false);
+  });
 
   it('never reveals rock rooms', () => {
     const s = run(
