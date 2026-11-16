@@ -22,7 +22,7 @@ Milestones in order (see `IMPLEMENTATION_PLAN.md` section 9). Tick a box only wh
 - [x] Game state + events + reducer + undo (drop last event) + seeded RNG
 - [x] Reveal: open door (room / corridor), look from square; doors, blocks, monsters, trap "?" revealed
 - [x] "Look from here" hint: squares where board geometry (ignoring rock) shows unseen corridor squares
-- [ ] Follow-ups from the M1 review (before M7): validator checks for `noEquipmentUntil`, objective monster ids, `trigger.monsterType`, trap/door overlaps with blocks and furniture; block id collision with generated `bN` ids; test for a door touched only by a block in `revealRoom`
+- [ ] Follow-ups from the M1 review: the validator checks are done (`noEquipmentUntil`, objective monster ids, `monsterType` shape, trap and door overlaps with blocks and furniture, block id collision with generated `bN` ids). Still open: a test for a door touched only by a block in `revealRoom`
 - [ ] Secret doors: the search event must add the door to `seenDoors` (M3); `addSecretDoor` effect too (M4)
 - [x] Rooms are all or nothing (decision 14): sight into a room reveals the whole room; test over random event sequences
 - [x] Autosave of the event log (IndexedDB) and resume (`src/persist/saves.ts`; wiring into the UI happens in M2)
