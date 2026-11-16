@@ -1,6 +1,6 @@
 # Notes system refactor: quest elements, actions, objectives (proposal)
 
-Status: proposal for the owner. Nothing here is built. Related backlog items: "Refactor the notes system around quest elements" and "Rework the Quest actions block" (M7b). Related plan: `FEEDBACK_PLAN.md` sections 3.2 and 3.3, decision 66.
+Status: approved by the owner (decision 67). Nothing here is built yet. Related backlog items: "Refactor the notes system around quest elements" and "Rework the Quest actions block" (M7b). Related plan: `FEEDBACK_PLAN.md` sections 3.2 and 3.3, decision 66.
 
 ## 1. What we have today (facts from the code and the 14 quests)
 
@@ -103,10 +103,10 @@ Add the missing ones so data does not need silent flag notes (quest 6, 8 and 9 h
 
 Steps 1 and 2 are engine and data. Steps 3 and 4 are UI. Each step ends green (typecheck, tests, validate) and is committed alone.
 
-## 6. Decisions I need
+## 6. Decisions (owner, 2026-11-16, decision 67)
 
-1. **Option A or B** for storing actions (recommend A).
-2. Should **`tapped` buttons** be reachable only by tapping their element, or also listed in the Quest sheet as a fallback for actions with no board element (for example quest start questions)? Recommend both: element first, Quest sheet for the rest.
-3. **Rooms as elements**: how do players tap a room (tap on an empty floor square of a revealed room, or a small room label)? Recommend the label, since floor taps already mean "look from here" and "search".
-4. **Objective confirm buttons**: shown in the Quest sheet only, or also as a prompt when the heroes leave by the stairs ("Did all survivors leave?")? Recommend the Quest sheet only; the End the quest menu stays free of quest rules.
-5. Confirm the rule from your brief: every rule-driven effect is a prompt the players confirm, and the app never blocks a move, a search or a fight.
+1. Option A (a `target` on flat notes). Option B (nesting) can come later by migration.
+2. `tapped` buttons live on their element, and also in the Quest sheet for actions with no element.
+3. Rooms are tapped by a small room label.
+4. Objective confirm buttons are in the Quest sheet only.
+5. Every rule-driven effect is a prompt to confirm. No enforcement.
