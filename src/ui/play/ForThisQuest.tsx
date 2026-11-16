@@ -18,7 +18,7 @@ export function ForThisQuest({
   onRead(note: string): void;
   onPress(note: string): void;
 }) {
-  if (view.read.length === 0 && view.buttons.length === 0) return null;
+  if (view.read.length === 0 && view.buttons.length === 0 && view.waiting.length === 0) return null;
   return (
     <div className="fq">
       <div className="lbl">For this quest</div>
@@ -27,6 +27,11 @@ export function ForThisQuest({
           <b>{e.letter ?? '•'}</b>
           <span>{firstLine(e)}</span>
         </button>
+      ))}
+      {view.waiting.map((h) => (
+        <p key={h} className="hint">
+          {h}
+        </p>
       ))}
       {view.buttons.map((b) => (
         <div key={b.note}>

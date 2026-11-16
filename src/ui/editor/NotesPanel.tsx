@@ -885,6 +885,15 @@ function ConditionFields({
         onChange={(doorOpened) => onChange({ ...c, doorOpened })}
       />
     );
+  if ('lookDone' in c)
+    return (
+      <CellField
+        store={store}
+        label="Square"
+        value={c.lookDone as Cell}
+        onChange={(lookDone) => onChange({ ...c, lookDone })}
+      />
+    );
   if ('monsterSeen' in c)
     return (
       <Choose

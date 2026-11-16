@@ -45,6 +45,7 @@ export const CONDITION_TYPES = [
   { key: 'areaRevealed', label: 'A room is revealed' },
   { key: 'doorOpened', label: 'A door is open' },
   { key: 'monsterSeen', label: 'A monster was seen' },
+  { key: 'lookDone', label: 'Looking from a square is done' },
   { key: 'firstTime', label: 'First time only' },
 ] as const;
 export type ConditionKey = (typeof CONDITION_TYPES)[number]['key'];
@@ -57,6 +58,7 @@ export function conditionKey(c: Condition): ConditionKey {
   if ('areaRevealed' in c) return 'areaRevealed';
   if ('doorOpened' in c) return 'doorOpened';
   if ('monsterSeen' in c) return 'monsterSeen';
+  if ('lookDone' in c) return 'lookDone';
   return 'firstTime';
 }
 
@@ -177,6 +179,8 @@ export function defaultCondition(q: Quest, key: ConditionKey): Made<Condition> {
       const m = q.monsters[0];
       return m ? good({ monsterSeen: m.id }) : bad('Add a monster first.');
     }
+    case 'lookDone':
+      return good({ lookDone: firstCell(q) });
     case 'firstTime':
       return good({ firstTime: true });
   }

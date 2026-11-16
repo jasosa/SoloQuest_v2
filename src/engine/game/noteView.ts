@@ -94,7 +94,8 @@ export function squareMarkers(level: Level, state: GameState): SquareMarker[] {
     const repeat = t.repeat === true || out.get(k)?.repeat === true;
     out.set(k, { cell: parseKey(k), repeat, step: true });
   }
-  // A seen square with a button of its own that can be pressed keeps its marker (decision 67).
+  // A seen square with a button of its own that is not pressed yet keeps its marker (decision 67):
+  // its hint says what to do, and the button shows once its conditions hold.
   for (const n of level.quest.notes) {
     const tg = n.target;
     if (
@@ -102,8 +103,7 @@ export function squareMarkers(level: Level, state: GameState): SquareMarker[] {
       tg?.kind !== 'square' ||
       out.has(tg.id) ||
       !state.seenCells.has(tg.id) ||
-      !isAvailable(n, state) ||
-      !conditionsHold(level, state, n)
+      !isAvailable(n, state)
     )
       continue;
     out.set(tg.id, { cell: parseKey(tg.id), repeat: false, step: false });
@@ -181,6 +181,8 @@ export function manualTriggers(level: Level, state: GameState): ManualTrigger[] 
 export interface ElementQuest {
   /** Notes already read that belong to the element, in the order they fired. */
   readonly read: readonly JournalEntry[];
+  /** Hints of buttons that cannot be pressed yet (their conditions do not hold). */
+  readonly waiting: readonly string[];
   /** Buttons of the element that can be pressed now. */
   readonly buttons: readonly ManualTrigger[];
 }
@@ -195,15 +197,13 @@ export function elementQuest(
   const mine = new Set(notesOf(level.quest.notes, kind, id).map((n) => n.id));
   const read = journal(level, state).filter((e) => mine.has(e.id));
   const buttons: ManualTrigger[] = [];
-  for (const n of level.quest.notes)
-    if (
-      mine.has(n.id) &&
-      n.trigger.type === 'manual' &&
-      isAvailable(n, state) &&
-      conditionsHold(level, state, n)
-    )
-      buttons.push(buttonOf(n));
-  return { read, buttons };
+  const waiting: string[] = [];
+  for (const n of level.quest.notes) {
+    if (!mine.has(n.id) || n.trigger.type !== 'manual' || !isAvailable(n, state)) continue;
+    if (conditionsHold(level, state, n)) buttons.push(buttonOf(n));
+    else if (n.trigger.hint) waiting.push(n.trigger.hint);
+  }
+  return { read, waiting, buttons };
 }
 
 export interface ObjectiveConfirm {

@@ -19,6 +19,7 @@ import type { Condition, Effect, MonsterType, Note } from '../quest/schema';
 import { textsOf } from '../quest/effects';
 import { EventError } from './errors';
 import { liveMonstersInRoom } from './monstersIn';
+import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
 import { revealEverything, revealRoom, revealThroughDoor } from './reveal';
 import { seeMonster, type Draft, type GameState } from './state';
@@ -166,6 +167,14 @@ function conditionHolds(level: Level, d: GameState, c: Condition, note: Note): b
   if ('areaRevealed' in c) return d.revealedRooms.has(c.areaRevealed);
   if ('doorOpened' in c) return d.openDoors.has(c.doorOpened);
   if ('monsterSeen' in c) return d.seenMonsters.has(c.monsterSeen);
+  if ('lookDone' in c) {
+    const k = keyOf(c.lookDone);
+    if (!d.seenCells.has(k)) return false;
+    return (
+      d.looked.has(k) ||
+      !lookHintCells(level, d).some((h) => h[0] === c.lookDone[0] && h[1] === c.lookDone[1])
+    );
+  }
   return !d.notesFired.includes(note.id); // firstTime
 }
 

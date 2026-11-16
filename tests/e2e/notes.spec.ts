@@ -260,8 +260,13 @@ test.describe('notes engine on the dev fixture', () => {
     await page.locator('[data-square="1,18"]').click();
     await expect(page.locator('.fq')).toContainText('A scratch on the floor.');
     await expect(btn(page, 'Yes')).toHaveCount(0); // a button-only square asks nothing
+    await expect(btn(page, 'Mark the spot')).toHaveCount(0); // not before the look
     await expect(btn(page, 'Look from here')).toBeVisible();
     await shot(page, 'notes-ring-look');
+    await btn(page, 'Look from here').click();
+    await page.locator('[data-square="1,18"]').click(); // the ring stays for its button
+    await expect(page.locator('.fq').getByRole('button', { name: 'Mark the spot' })).toBeVisible();
+    await expect(btn(page, 'Look from here')).toHaveCount(0); // nothing left to see from here
   });
 
   test('a room with an areaEntered note offers "A hero enters"', async ({ page }) => {

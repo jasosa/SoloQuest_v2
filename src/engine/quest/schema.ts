@@ -155,6 +155,8 @@ const ConditionSchema = z.union([
   z.strictObject({ areaRevealed: areaId }),
   z.strictObject({ doorOpened: id }),
   z.strictObject({ monsterSeen: id }),
+  /** Looking from this square is done, or there is nothing left to see from it (needs it seen). */
+  z.strictObject({ lookDone: cell }),
   z.strictObject({ firstTime: z.literal(true) }),
 ]);
 

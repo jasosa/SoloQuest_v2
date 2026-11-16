@@ -225,13 +225,25 @@ describe('quest 12: letter B, the Star of the West', () => {
 describe('quest 12: the square that needs watching (no letter, no note)', () => {
   const seen = () => run(...lookUntil(via([], 'd12'), (st) => st.seenCells.has('0,0')));
   const hint =
-    'Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button.';
+    'Something is wrong with this square. Look from here first, then cross it with care. When the last hero has crossed it, press the button that appears here.';
+  const look: GameEvent = { type: 'LOOK_FROM', cell: [0, 0] };
 
-  it('the ring appears once the square is seen, with the message and the button together', () => {
+  it('the ring shows with its message once the square is seen; the button waits for the look', () => {
     const s = seen();
     expect(squareMarkers(level, s)).toEqual([{ cell: [0, 0], repeat: false, step: false }]);
     expect(manualTriggers(level, s)).toEqual([]); // not in the Quest sheet
-    expect(elementQuest(level, s, 'square', '0,0').buttons).toEqual([
+    expect(lookHintCells(level, s).some((c) => c[0] === 0 && c[1] === 0)).toBe(true);
+    const e = elementQuest(level, s, 'square', '0,0');
+    expect(e.waiting).toEqual([hint]);
+    expect(e.buttons).toEqual([]);
+  });
+
+  it('the button is not offered before the look, and is there after it', () => {
+    const s = seen();
+    const looked = reduce(level, s, look).state;
+    const e = elementQuest(level, looked, 'square', '0,0');
+    expect(e.waiting).toEqual([]);
+    expect(e.buttons).toEqual([
       { note: 'n-C-done', label: 'The last hero has crossed this square', hint },
     ]);
   });
@@ -242,12 +254,19 @@ describe('quest 12: the square that needs watching (no letter, no note)', () => 
   });
 
   it('the button blocks (0,0) for good, and the ring goes with it', () => {
-    const s = seen();
+    const s = reduce(level, seen(), look).state;
     expect(s.placedBlocks.has('0,0')).toBe(false);
     const r = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-done' });
     expect(r.state.placedBlocks.has('0,0')).toBe(true);
     expect(elementQuest(level, r.state, 'square', '0,0').buttons).toEqual([]);
     expect(squareMarkers(level, r.state)).toEqual([]);
+  });
+
+  it('with nothing left to see from the square, the button shows without a look', () => {
+    // every corridor square beyond is already seen: the eye is gone, so there is nothing to wait for
+    const s = run(...lookUntil(via([], 'd12'), (st) => st.seenCells.has('0,0')));
+    const noMore = { ...s, looked: new Set([...s.looked, '0,0']) };
+    expect(elementQuest(level, noMore, 'square', '0,0').buttons).toHaveLength(1);
   });
 
   it('the texts never say what falls', () => {

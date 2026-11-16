@@ -118,7 +118,7 @@ Falling-block squares in the Q13 style (a block may fall each time a hero enters
 
 `{ "flag": "alarm", "is": true }`, `{ "counter": "kills", "gte": 3 }`, `{ "monster": "m1", "alive": false }`, `{ "monstersAliveIn": "R18", "is": 0 }`, `{ "firstTime": true }`.
 
-State conditions (decision 67): `{ "areaRevealed": "R17" }` (the room is revealed), `{ "doorOpened": "d3" }` (the door is open), `{ "monsterSeen": "m1" }` (the monster was seen). They replace silent "set a flag" notes. `firstTime` is not allowed in an objective.
+State conditions (decision 67): `{ "areaRevealed": "R17" }` (the room is revealed), `{ "doorOpened": "d3" }` (the door is open), `{ "monsterSeen": "m1" }` (the monster was seen), `{ "lookDone": [0, 0] }` (the square is seen and either looked from or has nothing left to show; use it so a button cannot come before the players have looked). They replace silent "set a flag" notes. `firstTime` is not allowed in an objective.
 
 ### Objectives with their own rules
 

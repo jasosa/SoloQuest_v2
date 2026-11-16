@@ -373,7 +373,7 @@
       "trigger": {
         "type": "manual",
         "label": "The last hero has crossed this square",
-        "hint": "Something is wrong with this square. Cross it with care. When the last hero has crossed it, press the button."
+        "hint": "Something is wrong with this square. Look from here first, then cross it with care. When the last hero has crossed it, press the button that appears here."
       },
       "effects": [
         {
@@ -389,7 +389,12 @@
       "target": {
         "kind": "square",
         "id": "0,0"
-      }
+      },
+      "when": [
+        {
+          "lookDone": [0, 0]
+        }
+      ]
     },
     {
       "id": "n-D",

@@ -1409,7 +1409,7 @@ describe('element buttons (decision 67)', () => {
     expect(elementQuest(lv, s, 'door', 'd2').buttons).toEqual([
       { note: 'on-door', label: 'On the door' },
     ]);
-    expect(elementQuest(lv, s, 'door', 'd1')).toEqual({ read: [], buttons: [] });
+    expect(elementQuest(lv, s, 'door', 'd1')).toEqual({ read: [], waiting: [], buttons: [] });
   });
 
   it('lists the notes already read for the element, and a pressed button is gone', () => {

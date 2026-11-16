@@ -418,6 +418,8 @@ export function validateQuestIssues(
       err(`${where}: unknown door ${c.doorOpened}`, noteRef);
     if ('monsterSeen' in c && !monsterIds.has(c.monsterSeen))
       err(`${where}: unknown monster ${c.monsterSeen}`, noteRef);
+    if ('lookDone' in c && !squareOk(`${c.lookDone[0]},${c.lookDone[1]}`, board))
+      err(`${where}: lookDone square is not on the board`, noteRef);
     if ('flag' in c && c.is && !flagsSet.has(c.flag))
       err(`${where}: flag ${c.flag} is never set`, noteRef);
     if ('counter' in c && c.gte > 0 && !countersAdded.has(c.counter))
