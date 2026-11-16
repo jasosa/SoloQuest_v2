@@ -1,0 +1,88 @@
+/* Mockups of the Designer and the monster, ability and spell editors (proposal, not built).
+   Only the tokens of play.css. */
+html, body.em-page { overflow: auto; height: auto; }
+.em-nav { width: 1194px; padding: 12px 28px 28px; font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; }
+.em-nav b { color: var(--ink); font-family: "Bonum"; width: 100%; }
+.em-nav a { color: var(--ink); border-bottom: 1px solid currentColor; text-decoration: none; padding: 8px 0; }
+.em-nav a.on { font-weight: 700; }
+
+.em { width: 1194px; height: 834px; position: relative; overflow: hidden; background: var(--paper); display: flex; flex-direction: column; }
+.em h1 { font: 700 30px/1 "Bonum", serif; color: var(--ink); }
+.em h2, .em h3 { font-family: "Bonum", serif; color: var(--ink); }
+.em .btn { display: inline-flex; width: auto; padding: 0 18px; align-items: center; justify-content: center; min-height: 44px; }
+.em .btn.wide { width: 100%; }
+
+/* ---- launcher ---- */
+.start { padding: 34px 40px; display: grid; grid-template-columns: 1fr 440px; gap: 40px; flex: 1; }
+.start .recent h2 { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; margin: 22px 0 8px; }
+.start .recent li { list-style: none; border-bottom: 1px solid var(--paper-2); padding: 12px 0; display: flex; gap: 14px; align-items: baseline; }
+.start .recent li b { font: 700 18px "Bonum"; color: var(--text); }
+.start .recent li span { color: var(--muted); margin-left: auto; font-size: 14px; }
+.cards { display: grid; gap: 14px; align-content: start; margin-top: 42px; }
+.card-act { background: var(--paper-3); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--sel); padding: 16px 18px; text-align: left; display: block; min-height: 88px; }
+.card-act b { font: 700 20px "Bonum"; color: var(--ink); display: block; }
+.card-act span { font-size: 15px; color: var(--muted); }
+.card-act.off { border-color: var(--off); box-shadow: none; }
+.card-act.off b, .card-act.off span { color: var(--off); }
+.foot { display: flex; gap: 30px; padding: 10px 40px 16px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--paper-2); }
+
+/* ---- editor frame ---- */
+.top { display: flex; align-items: stretch; border-bottom: 2px solid var(--ink); margin: 0 28px; padding-top: 12px; gap: 6px; height: 64px; }
+.top .ttl { font: 700 13px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); align-self: center; margin-right: 16px; }
+.tab { min-width: 118px; padding: 0 16px; border: 2px solid var(--ink); border-bottom: 0; background: none; font: 700 16px "Bonum"; color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--ink); color: #F4ECDD; }
+.top .sp { margin-left: auto; align-self: center; font-size: 15px; color: var(--muted); }
+.frame { flex: 1; display: grid; grid-template-columns: 250px 1fr 300px; gap: 16px; padding: 16px 28px 20px; min-height: 0; }
+.frame.two { grid-template-columns: 250px 1fr; }
+.col { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; }
+.panel { background: var(--paper-3); border: 2px solid var(--ink); }
+.panel > .hd { padding: 8px 12px; border-bottom: 1px solid var(--rock-line); font: 700 13px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.panel > .hd .more { margin-left: auto; font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-2); border-bottom: 1px solid currentColor; }
+.panel > .bd { padding: 10px 12px 12px; }
+.list { list-style: none; }
+.list li { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 8px; border-bottom: 1px solid var(--paper-2); font-size: 16px; }
+.list li.on { background: var(--sel); }
+.list li .sub { color: var(--muted); font-size: 13.5px; margin-left: auto; }
+.list li .star { color: var(--ink); }
+.list .grp { min-height: 0; padding: 8px 8px 2px; font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); border-bottom: 0; }
+.lbtns { display: flex; gap: 8px; padding: 8px 10px 10px; }
+.lbtns .btn { flex: 1; min-height: 44px; padding: 0 8px; }
+.fld { display: block; margin-bottom: 10px; font-size: 14px; color: var(--muted); }
+.fld > span { display: block; font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 3px; }
+.in, .sel, .ta { width: 100%; min-height: 44px; border: 2px solid var(--ink); background: var(--paper-3); font: 16px "Pagella", Georgia, serif; color: var(--text); padding: 8px 12px; }
+.sel { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 36px; }
+.ta { min-height: 74px; resize: none; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.addrow { display: flex; gap: 8px; margin-top: 8px; }
+.addrow .sel { flex: 1; }
+.addrow .btn { min-height: 44px; }
+.items { list-style: none; }
+.items li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border: 1.5px solid var(--ink); background: var(--paper); margin-bottom: 6px; }
+.items li b { font: 700 16px "Bonum"; color: var(--ink); }
+.items li p { grid-column: 1; font-size: 14px; color: var(--muted); }
+.items li .x { grid-row: 1 / span 2; grid-column: 2; min-height: 44px; border: 1.5px solid var(--ink); background: none; padding: 0 12px; font: 700 14px "Bonum"; color: var(--ink); }
+.items li .ctl { grid-column: 1 / span 2; display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.items li .ctl .sel { width: auto; min-width: 170px; min-height: 44px; }
+.items li .ctl .lnk { margin-left: auto; font-style: italic; color: var(--ink); border-bottom: 1px solid currentColor; }
+.tag { display: inline-block; font-size: 13px; border: 1px solid var(--ink-2); color: var(--ink-2); padding: 1px 7px; margin-right: 5px; }
+.tog { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.tog i { width: 46px; height: 26px; border: 2px solid var(--ink); position: relative; display: inline-block; background: none; }
+.tog i::after { content: ""; position: absolute; top: 2px; left: 3px; width: 18px; height: 18px; background: var(--ink); }
+.tog.on i { background: var(--ink); }
+.tog.on i::after { left: 23px; background: #F4ECDD; }
+.help { font-size: 14px; color: var(--muted); font-style: italic; margin: 2px 0 8px; }
+.note-mock { position: absolute; right: 14px; bottom: 10px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+/* ---- popup ---- */
+.veil { position: absolute; inset: 64px 0 0 0; background: rgba(43, 29, 23, .28); display: grid; place-items: center; z-index: 10; }
+.dlg { width: 600px; max-height: 748px; display: flex; flex-direction: column; background: var(--paper-3); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--sel); }
+.dlg .dh { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 2px solid var(--ink); }
+.dlg .dh h2 { font-size: 22px; margin-right: auto; }
+.dlg .db { padding: 10px 18px 2px; overflow: auto; }
+.dlg .df { display: flex; gap: 10px; padding: 12px 18px 16px; border-top: 1px solid var(--rock-line); }
+.dlg .df .btn:first-child { margin-right: auto; }
+.q { font-style: italic; color: var(--ink-2); font-size: 14px; }
+.stat { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.stat .fld { margin: 0; }
+.stat .in { text-align: center; padding: 8px 4px; }
