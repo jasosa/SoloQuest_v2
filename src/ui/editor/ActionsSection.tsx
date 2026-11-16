@@ -1,42 +1,33 @@
 import { useStore } from 'zustand';
-import { addNote } from '../../engine/editor';
-import { actionTemplates, actionsOf } from './elementActions';
-import type { EditorStore, EditSelection } from './editorStore';
+import { notesOf } from '../../engine/quest/targets';
+import { addAction } from './addAction';
+import { subjectOf, type Subject } from './actionSubjects';
+import type { EditorStore } from './editorStore';
 import { mainText, triggerSummary } from './noteForms';
 
 /**
- * The Actions section of the inspector (decision 67): the notes that belong to the selected
- * element, and chips to add one with its trigger and target already filled in. An action is a
- * normal note; a tap on a row or a new action opens it in the Notes tab.
+ * The Actions section of the inspector (decision 68): the actions of one subject (the selected
+ * element, or the quest itself) and one **Add action** button. The button opens the action popup
+ * with the subject already chosen; the popup offers the triggers that fit it.
  */
-export function ElementActions({
-  store,
-  selection,
-}: {
-  store: EditorStore;
-  selection: NonNullable<EditSelection>;
-}) {
+export function SubjectActions({ store, subject }: { store: EditorStore; subject: Subject }) {
   const { quest } = useStore(store);
   const st = store.getState();
-  const notes = actionsOf(quest, selection);
-  const templates = actionTemplates(quest, selection);
-  if (notes.length === 0 && templates.length === 0) return null;
-
-  const open = (id: string) => {
-    st.setNoteId(id);
-    st.setPanel('notes');
-  };
+  const notes =
+    subject.kind === 'quest'
+      ? quest.notes.filter((n) => subjectOf(n).kind === 'quest')
+      : notesOf(quest.notes, subject.kind, subject.id);
 
   return (
     <section data-testid="element-actions">
       <div className="lbl">Actions</div>
       {notes.length === 0 ? (
-        <p className="ed-note">No action on this element yet.</p>
+        <p className="ed-note">No action here yet.</p>
       ) : (
         <ul className="ed-notelist" data-testid="action-list">
           {notes.map((n) => (
             <li key={n.id}>
-              <button onClick={() => open(n.id)}>
+              <button onClick={() => st.setNoteId(n.id)}>
                 <b>{n.letter ?? '·'}</b>
                 <span>{triggerSummary(n.trigger)}</span>
                 <i>{mainText(n)}</i>
@@ -45,29 +36,9 @@ export function ElementActions({
           ))}
         </ul>
       )}
-      <div className="ed-chips" role="group" aria-label="Add an action">
-        {templates.map((t) => (
-          <button
-            key={t.key}
-            className="chip"
-            onClick={() => {
-              const ok = st.apply((q) =>
-                addNote(q, {
-                  trigger: t.trigger,
-                  ...(t.target ? { target: t.target } : {}),
-                  effects: [{ type: 'showText', text: 'Write the text here.' }],
-                }),
-              );
-              if (!ok) return;
-              const q = store.getState().quest;
-              const made = q.notes[q.notes.length - 1];
-              if (made) open(made.id);
-            }}
-          >
-            Add: {t.label}
-          </button>
-        ))}
-      </div>
+      <button className="btn" onClick={() => addAction(store, subject)}>
+        Add action
+      </button>
     </section>
   );
 }

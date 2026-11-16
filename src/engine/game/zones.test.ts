@@ -144,3 +144,18 @@ describe('zones in the validator and the editor', () => {
     if (r.ok) expect(r.warnings.some((w) => w.message.includes('zone z1'))).toBe(true);
   });
 });
+
+describe('updateMarker', () => {
+  it('changes the label and who sees it, and refuses an empty label', async () => {
+    const { addMarker, updateMarker } = await import('../editor');
+    const q0 = parseQuest(testQuestData);
+    const a = addMarker(q0, 'X', [3, 16], 'editor');
+    if (!a.ok) throw new Error(a.error);
+    const id = a.quest.markers[0]!.id;
+    const b = updateMarker(a.quest, id, { label: ' 7 ', visible: 'players' });
+    if (!b.ok) throw new Error(b.error);
+    expect(b.quest.markers[0]).toMatchObject({ label: '7', visible: 'players' });
+    expect(updateMarker(a.quest, id, { label: '  ' }).ok).toBe(false);
+    expect(updateMarker(a.quest, 'nope', { label: 'A' }).ok).toBe(false);
+  });
+});

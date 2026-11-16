@@ -5,16 +5,8 @@
  * store, so undo and redo work and a refused change shows the engine sentence as a toast.
  * Targets (a door, a square, an area) are chosen from a list or by clicking on the board.
  */
-import { useStore } from 'zustand';
 import { board, roomIds } from '../../engine/board/board';
-import {
-  addNote,
-  lettersMissingNotes,
-  removeNote,
-  setNoteText,
-  updateNote,
-  type NotePatch,
-} from '../../engine/editor';
+import { removeNote, setNoteText, updateNote, type NotePatch } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
   MONSTER_TYPES,
@@ -24,10 +16,20 @@ import {
   type Quest,
   type Trigger,
 } from '../../engine/quest/schema';
-import { noteTarget } from '../../engine/quest/targets';
 import { SPELL_KEYS, SPELL_NAMES } from '../../engine/zargon/spells';
 import type { Cell } from '../../engine/editor';
-import type { EditorStore, EditSelection, PickKind } from './editorStore';
+import {
+  changeTrigger,
+  parseSubjectKey,
+  retarget,
+  subjectChoices,
+  subjectKey,
+  subjectLabel,
+  subjectOf,
+  triggerChoices,
+  type Subject,
+} from './actionSubjects';
+import type { EditorStore, PickKind } from './editorStore';
 import {
   CONDITION_TYPES,
   EFFECT_TYPES,
@@ -36,100 +38,16 @@ import {
   conditionKey,
   defaultCondition,
   defaultEffect,
-  defaultTrigger,
   mainText,
   mainTextIndex,
-  orderedNotes,
   parseMapLetter,
   parseWhole,
   removeAt,
   replaceAt,
-  triggerSummary,
   type ConditionKey,
 } from './noteForms';
 
 const ROOMS = roomIds(board);
-
-export function NotesPanel({ store }: { store: EditorStore }) {
-  const { quest, noteId, picking } = useStore(store);
-  const st = store.getState();
-  const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
-  const missing = lettersMissingNotes(quest);
-
-  return (
-    <>
-      {picking && (
-        <div className="ed-pickbar" role="status" data-testid="pick-bar">
-          <span>{picking.hint}</span>
-          <button className="btn alt" onClick={() => st.setPicking(null)}>
-            Cancel
-          </button>
-        </div>
-      )}
-      {note ? (
-        <NoteForm key={note.id} store={store} note={note} quest={quest} />
-      ) : (
-        <>
-          <section>
-            <div className="lbl">Letters on the map with no note</div>
-            {missing.length === 0 ? (
-              <p className="ed-note" data-testid="no-missing">
-                Every letter on the map has a note.
-              </p>
-            ) : (
-              <div className="ed-chips" data-testid="missing-letters">
-                {missing.map((l) => (
-                  <button
-                    key={l}
-                    className="chip"
-                    onClick={() => {
-                      if (st.apply((q) => addNote(q, { letter: l }))) {
-                        const made = store.getState().quest.notes.find((n) => n.letter === l);
-                        if (made) st.setNoteId(made.id);
-                      }
-                    }}
-                  >
-                    Add note {l}
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
-          <section>
-            <div className="lbl">Notes</div>
-            {quest.notes.length === 0 ? (
-              <p className="ed-note">No notes yet.</p>
-            ) : (
-              <ul className="ed-notelist" data-testid="note-list">
-                {orderedNotes(quest).map((n) => (
-                  <li key={n.id}>
-                    <button onClick={() => st.setNoteId(n.id)}>
-                      <b>{n.letter ?? '·'}</b>
-                      <span>{triggerSummary(n.trigger)}</span>
-                      <i>{mainText(n)}</i>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button
-              className="btn"
-              onClick={() => {
-                if (st.apply((q) => addNote(q, {}))) {
-                  const q = store.getState().quest;
-                  const made = q.notes[q.notes.length - 1];
-                  if (made) st.setNoteId(made.id);
-                }
-              }}
-            >
-              New note
-            </button>
-          </section>
-        </>
-      )}
-    </>
-  );
-}
 
 // ---- small form pieces
 
@@ -366,23 +284,140 @@ function CellField({
   );
 }
 
-// ---- one note
+// ---- one action
 
-function NoteForm({ store, note, quest }: { store: EditorStore; note: Note; quest: Quest }) {
+/** The "Applies to" list: the quest, a room, a zone, an element... or a square picked on the board. */
+function AppliesTo({ store, quest, note }: { store: EditorStore; quest: Quest; note: Note }) {
+  const st = store.getState();
+  const subject = subjectOf(note);
+  const move = (to: Subject) => {
+    const r = retarget(quest, note, to);
+    if (!r.ok) {
+      st.say(r.error);
+      return;
+    }
+    st.apply((q) => updateNote(q, note.id, { trigger: r.value.trigger, target: r.value.target }));
+  };
+  const all = subjectChoices(quest);
+  const known = all.some((s) => subjectKey(s) === subjectKey(subject));
+  const options = [
+    ...(known ? [] : [{ value: subjectKey(subject), label: subjectLabel(quest, subject) }]),
+    ...all.map((s) => ({ value: subjectKey(s), label: subjectLabel(quest, s) })),
+    { value: '__square', label: 'A square on the board…' },
+  ];
+  return (
+    <Choose
+      label="Applies to"
+      value={subjectKey(subject)}
+      options={options}
+      onChange={(key) => {
+        if (key === '__square') {
+          st.setPicking({
+            kind: 'cell',
+            hint: 'Click a square on the board.',
+            onPick: (v) => {
+              const c = v as Cell;
+              move({ kind: 'square', id: `${c[0]},${c[1]}` });
+            },
+          });
+          return;
+        }
+        const to = parseSubjectKey(key);
+        if (to) move(to);
+      }}
+    />
+  );
+}
+
+export function ActionForm({
+  store,
+  note,
+  quest,
+}: {
+  store: EditorStore;
+  note: Note;
+  quest: Quest;
+}) {
   const st = store.getState();
   const patch = (p: NotePatch) => st.apply((q) => updateNote(q, note.id, p));
   const skip = mainTextIndex(note);
+  const subject = subjectOf(note);
+  const fits = triggerChoices(subject);
+  // An old action may use a trigger that has no subject (a kind of monster slain): keep it listed.
+  const whenOptions = fits.some((c) => c.type === note.trigger.type)
+    ? fits
+    : [
+        ...fits,
+        {
+          type: note.trigger.type,
+          label:
+            TRIGGER_TYPES.find((x) => x.type === note.trigger.type)?.label ?? note.trigger.type,
+        },
+      ];
 
   return (
     <>
       <section>
-        <button className="link ed-back" onClick={() => st.setNoteId(null)}>
-          All notes
-        </button>
-        <div className="lbl">Note {note.letter ?? '(no letter)'}</div>
+        <div className="lbl">Action</div>
         <p className="ed-id" data-testid="note-id">
           {note.id}
         </p>
+        <AppliesTo store={store} quest={quest} note={note} />
+        <Choose
+          label="When"
+          value={note.trigger.type}
+          options={whenOptions.map((c) => ({ value: c.type, label: c.label }))}
+          onChange={(type) => {
+            if (type === note.trigger.type) return;
+            const r = changeTrigger(quest, note, type as Trigger['type']);
+            if (!r.ok) {
+              st.say(r.error);
+              return;
+            }
+            patch({ trigger: r.value.trigger, target: r.value.target });
+          }}
+        />
+        <TriggerForm
+          store={store}
+          quest={quest}
+          trigger={note.trigger}
+          onChange={(t) => patch({ trigger: t })}
+        />
+      </section>
+
+      <section>
+        <Text
+          label="Message"
+          value={mainText(note)}
+          multiline
+          placeholder="What the players read"
+          onSave={(v) => st.apply((q) => setNoteText(q, note.id, v))}
+        />
+      </section>
+
+      <section>
+        <div className="lbl">Only if</div>
+        <ConditionList
+          store={store}
+          quest={quest}
+          conditions={note.when ?? []}
+          onChange={(c) => patch({ when: c })}
+        />
+      </section>
+
+      <section>
+        <div className="lbl">Then</div>
+        <EffectList
+          store={store}
+          quest={quest}
+          effects={note.effects}
+          skip={skip}
+          onChange={(e) => patch({ effects: e })}
+        />
+      </section>
+
+      <section>
+        <div className="lbl">Extras</div>
         <LetterField
           key={`${note.id}:${note.letter ?? ''}`}
           store={store}
@@ -395,13 +430,6 @@ function NoteForm({ store, note, quest }: { store: EditorStore; note: Note; ques
           value={note.at as Cell | undefined}
           onChange={(c) => patch({ at: c })}
           onClear={() => patch({ at: null })}
-        />
-        <Text
-          label="Text"
-          value={mainText(note)}
-          multiline
-          placeholder="What the players read"
-          onSave={(v) => st.apply((q) => setNoteText(q, note.id, v))}
         />
         <button
           className="chip ed-wide"
@@ -434,45 +462,13 @@ function NoteForm({ store, note, quest }: { store: EditorStore; note: Note; ques
       </section>
 
       <section>
-        <div className="lbl">When it fires</div>
-        <TriggerForm
-          store={store}
-          quest={quest}
-          trigger={note.trigger}
-          onChange={(t) => patch({ trigger: t })}
-        />
-        <BelongsTo store={store} note={note} />
-      </section>
-
-      <section>
-        <div className="lbl">Only if</div>
-        <ConditionList
-          store={store}
-          quest={quest}
-          conditions={note.when ?? []}
-          onChange={(c) => patch({ when: c })}
-        />
-      </section>
-
-      <section>
-        <div className="lbl">Then</div>
-        <EffectList
-          store={store}
-          quest={quest}
-          effects={note.effects}
-          skip={skip}
-          onChange={(e) => patch({ effects: e })}
-        />
-      </section>
-
-      <section>
         <button
           className="btn"
           onClick={() => {
             if (st.apply((q) => removeNote(q, note.id))) st.setNoteId(null);
           }}
         >
-          Delete note
+          Delete action
         </button>
       </section>
     </>
@@ -508,59 +504,6 @@ function LetterField({
   );
 }
 
-/** Which element the note belongs to (decision 67), and a way to detach an explicit target. */
-function BelongsTo({ store, note }: { store: EditorStore; note: Note }) {
-  const target = noteTarget(note);
-  if (!target)
-    return (
-      <p className="ed-note">
-        {note.trigger.type === 'manual'
-          ? 'Belongs to no element: its button is in the Quest sheet.'
-          : 'Belongs to no element.'}
-      </p>
-    );
-  const where = target.kind === 'area' ? `room ${target.id}` : `${target.kind} ${target.id}`;
-  const q = store.getState().quest;
-  // The element to select again on the board: a square is its marker, a room has none.
-  const selectable: EditSelection =
-    target.kind === 'door' ||
-    target.kind === 'furniture' ||
-    target.kind === 'monster' ||
-    target.kind === 'trap' ||
-    target.kind === 'marker'
-      ? { kind: target.kind, id: target.id }
-      : target.kind === 'square'
-        ? (() => {
-            const m = q.markers.find((x) => `${x.cell[0]},${x.cell[1]}` === target.id);
-            return m ? { kind: 'marker' as const, id: m.id } : null;
-          })()
-        : null;
-  return (
-    <p className="ed-note" data-testid="belongs-to">
-      Belongs to {where}.
-      {selectable && (
-        <>
-          {' '}
-          <button className="chip" onClick={() => store.getState().select(selectable)}>
-            Show it
-          </button>
-        </>
-      )}
-      {note.target && (
-        <>
-          {' '}
-          <button
-            className="chip"
-            onClick={() => store.getState().apply((q) => updateNote(q, note.id, { target: null }))}
-          >
-            Detach
-          </button>
-        </>
-      )}
-    </p>
-  );
-}
-
 // ---- trigger
 
 function TriggerForm({
@@ -574,24 +517,10 @@ function TriggerForm({
   trigger: Trigger;
   onChange(t: Trigger): void;
 }) {
-  const doors = quest.doors.map((d) => ({ value: d.id, label: d.id }));
-  const secret = quest.secretDoors.map((d) => ({ value: d.id, label: `${d.id} (secret)` }));
-  const traps = quest.traps.map((x) => ({ value: x.id, label: `${x.id} · ${x.kind}` }));
   const monsters = monsterOptions(quest);
 
   return (
     <>
-      <Choose
-        label="Trigger"
-        value={t.type}
-        options={TRIGGER_TYPES.map((x) => ({ value: x.type, label: x.label }))}
-        onChange={(type) => {
-          if (type === t.type) return;
-          const r = defaultTrigger(quest, type as Trigger['type']);
-          if (r.ok) onChange(r.value);
-          else store.getState().say(r.error);
-        }}
-      />
       {t.type === 'manual' && (
         <>
           <Text
@@ -623,24 +552,8 @@ function TriggerForm({
           />
         </>
       )}
-      {(t.type === 'areaRevealed' || t.type === 'areaEntered' || t.type === 'secretDoorSearch') && (
-        <AreaField
-          store={store}
-          label="Area"
-          value={t.area}
-          corridor={t.type !== 'areaRevealed'}
-          onChange={(area) => onChange({ ...t, area })}
-        />
-      )}
       {t.type === 'treasureSearch' && (
         <>
-          <AreaField
-            store={store}
-            label="Area"
-            value={t.area}
-            corridor
-            onChange={(area) => onChange({ ...t, area })}
-          />
           <button
             className="chip ed-wide"
             aria-pressed={t.first === true}
@@ -652,31 +565,8 @@ function TriggerForm({
           </button>
         </>
       )}
-      {t.type === 'doorOpened' && (
-        <>
-          <Choose
-            label="Door"
-            value={t.door}
-            options={[...doors, ...secret]}
-            onChange={(door) => onChange({ ...t, door })}
-          />
-          <Pick
-            store={store}
-            kind="door"
-            hint="Click a door on the board."
-            label="Click it on the board"
-            onPick={(v) => onChange({ ...t, door: v as string })}
-          />
-        </>
-      )}
       {t.type === 'squareEntered' && (
         <>
-          <CellField
-            store={store}
-            label="Square"
-            value={t.cell as Cell}
-            onChange={(cell) => onChange({ ...t, cell })}
-          />
           <button
             className="chip ed-wide"
             aria-pressed={t.repeat === true}
@@ -688,15 +578,7 @@ function TriggerForm({
           </button>
         </>
       )}
-      {(t.type === 'trapSprung' || t.type === 'trapDisarmed') && (
-        <Choose
-          label="Trap"
-          value={t.trap}
-          options={traps}
-          onChange={(trap) => onChange({ ...t, trap })}
-        />
-      )}
-      {(t.type === 'monsterKilled' || t.type === 'monsterSeen') && (
+      {(t.type === 'monsterKilled' || t.type === 'monsterSeen') && t.monster === undefined && (
         <>
           <Chips
             value={t.monsterType !== undefined ? 'type' : 'one'}

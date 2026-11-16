@@ -20,7 +20,16 @@ import type { IssueRef } from '../../engine/quest/validate';
 import { jumpFor, type Flash } from './problems';
 
 export type Tool =
-  'select' | 'rock' | 'doors' | 'blocks' | 'furniture' | 'monsters' | 'traps' | 'markers' | 'start';
+  | 'select'
+  | 'rock'
+  | 'doors'
+  | 'blocks'
+  | 'furniture'
+  | 'monsters'
+  | 'traps'
+  | 'markers'
+  | 'zones'
+  | 'start';
 
 export type EditSelection =
   | {
@@ -40,6 +49,8 @@ export interface ToolOpts {
   readonly trapKind: 'pit' | 'fallingBlock' | 'spear' | 'chest';
   readonly markerLabel: string;
   readonly markerVisible: 'editor' | 'players';
+  /** The zone the Zones tool is painting; null starts a new one on the next click. */
+  readonly zoneId: string | null;
   readonly roomIds: boolean;
 }
 
@@ -53,6 +64,7 @@ export const DEFAULT_OPTS: ToolOpts = {
   trapKind: 'pit',
   markerLabel: 'A',
   markerVisible: 'editor',
+  zoneId: null,
   roomIds: false,
 };
 

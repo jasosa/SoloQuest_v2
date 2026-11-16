@@ -572,3 +572,74 @@
 .ed-quest .ed-row-head span {
   font-size: 16px;
 }
+
+/* ---------- action popup and Actions tab (decision 68) ---------- */
+.ed-veil {
+  position: fixed;
+  inset: 64px 0 0 0;
+  background: rgba(43, 29, 23, 0.28);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+}
+.ed-dialog {
+  width: min(560px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--sel);
+}
+.ed-dialog-hd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 2px solid var(--ink);
+}
+.ed-dialog-hd h2 {
+  font:
+    700 22px 'Bonum',
+    serif;
+  color: var(--ink);
+  margin-right: auto;
+}
+.ed-dialog-hd h2:focus {
+  outline: none;
+}
+.ed-dialog-hd .btn {
+  width: auto;
+  padding: 0 16px;
+}
+.ed-dialog-body {
+  overflow: auto;
+  padding: 8px 18px 18px;
+}
+.ed-pickfloat {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--sel);
+  padding: 10px 16px;
+}
+.ed-pickfloat .btn {
+  width: auto;
+  padding: 0 16px;
+}
+.ed-sub {
+  font:
+    700 13px 'Bonum',
+    serif;
+  color: var(--ink-2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 10px 0 2px;
+}

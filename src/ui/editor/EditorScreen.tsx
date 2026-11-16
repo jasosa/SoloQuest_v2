@@ -10,6 +10,7 @@ import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, Tool } from './editorStore';
 import { countLabel } from './problems';
+import { ActionDialog } from './ActionDialog';
 import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
@@ -24,6 +25,7 @@ const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'monsters', label: 'Monsters', key: 'm' },
   { tool: 'traps', label: 'Traps', key: 't' },
   { tool: 'markers', label: 'Markers', key: 'l' },
+  { tool: 'zones', label: 'Zones', key: 'z' },
   { tool: 'start', label: 'Start', key: 'h' },
 ];
 
@@ -199,6 +201,8 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
         </aside>
       </div>
 
+      <ActionDialog store={store} />
+
       {ref.aligning && ref.state && <AlignDialog api={ref} say={s.say} />}
 
       {toast && (
@@ -211,7 +215,7 @@ export function EditorScreen({ store, onBack, reference, onPlaytest }: EditorScr
 }
 
 function ToolOptions({ store }: { store: EditorStore }) {
-  const { tool, opts } = useStore(store);
+  const { tool, opts, quest } = useStore(store);
   const set = store.getState().setOpts;
   const chip = (label: string, on: boolean, onClick: () => void) => (
     <button key={label} className="chip" aria-pressed={on} onClick={onClick}>
@@ -281,6 +285,16 @@ function ToolOptions({ store }: { store: EditorStore }) {
             )}
           </div>
           {opts.trapKind === 'chest' && <p className="ed-note">Click a chest.</p>}
+        </>
+      )}
+      {tool === 'zones' && (
+        <>
+          <div className="lbl">Zone</div>
+          <p className="ed-note">Click squares to add them to the zone, or to take them out.</p>
+          <div className="ed-chips" data-testid="zone-chips">
+            {quest.zones.map((z) => chip(z.id, opts.zoneId === z.id, () => set({ zoneId: z.id })))}
+            {chip('New zone', opts.zoneId === null, () => set({ zoneId: null }))}
+          </div>
         </>
       )}
       {tool === 'markers' && (

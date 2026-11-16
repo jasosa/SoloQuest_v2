@@ -398,9 +398,10 @@ test.describe('editor: inspector', () => {
   });
 });
 
-test.describe('editor: note builder', () => {
+test.describe('editor: actions (decision 68)', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
-  const notesTab = (page: Page) => insp(page).getByRole('button', { name: /^Notes/ });
+  const actionsTab = (page: Page) => insp(page).getByRole('button', { name: /^Actions/ });
+  const dlg = (page: Page) => page.getByRole('dialog', { name: 'Action' });
 
   async function chestWithLetter(page: Page, letter: string) {
     await tool(page, 'Furniture').click();
@@ -423,49 +424,43 @@ test.describe('editor: note builder', () => {
     await expect(insp(page).getByLabel('Letter')).toHaveValue('B');
     await insp(page).getByLabel('Letter').blur();
     await expect(page.locator('.toast')).toHaveCount(0);
-    // touch targets
     await tool(page, 'Furniture').click();
     for (const c of await page.locator('.ed-small .chip').all())
       expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-    await tool(page, 'Monsters').click();
-    await tool(page, 'Select').click();
-    await clickAt(page, 2, 17);
   });
 
-  test('a letter with no note is listed; one tap adds the note; text, trigger, condition, effects', async ({
+  test('a letter with no action is listed; one tap adds it; message, trigger, condition, effects', async ({
     page,
   }) => {
     await newQuest(page);
     await chestWithLetter(page, 'A');
-    await expect(notesTab(page).getByTestId('missing-count')).toHaveText('1');
-    await notesTab(page).click();
-    await expect(page.getByTestId('missing-letters')).toContainText('Add note A');
-    await btn(page, 'Add note A').click();
+    await expect(actionsTab(page).getByTestId('missing-count')).toHaveText('1');
+    await actionsTab(page).click();
+    await expect(page.getByTestId('missing-letters')).toContainText('Add action A');
+    await btn(page, 'Add action A').click();
+    await expect(dlg(page)).toBeVisible();
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
-    await expect(notesTab(page).getByTestId('missing-count')).toHaveCount(0);
+    await expect(actionsTab(page).getByTestId('missing-count')).toHaveCount(0);
 
-    // text
-    const text = insp(page).getByLabel('Text', { exact: true }).first();
-    await text.fill('A dusty chest.');
-    await text.blur();
+    const message = dlg(page).getByLabel('Message');
+    await message.fill('A dusty chest.');
+    await message.blur();
 
-    // trigger: a hero enters an area, picked on the board
-    await insp(page).getByLabel('Trigger').selectOption('areaEntered');
-    const trig = insp(page).locator('section').filter({ hasText: 'When it fires' });
-    await trig.getByRole('button', { name: 'Click it on the board' }).click();
-    await expect(page.getByTestId('pick-bar')).toContainText('Click a room');
-    await clickAt(page, 2, 17); // the start room
-    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
-    await expect(trig.getByRole('combobox').nth(1)).not.toHaveValue('');
+    // applies to a room, and the trigger is chosen from the ones that fit a room
+    await dlg(page).getByLabel('Applies to').selectOption('area:R20');
+    await expect(dlg(page).getByLabel('When')).toContainText('A hero enters it');
+    await dlg(page).getByLabel('When').selectOption('areaEntered');
 
-    // letter shown at, picked on the board
-    await insp(page).getByRole('button', { name: 'Click it on the board' }).first().click();
+    // letter shown at, picked on the board (the popup steps aside while picking)
+    await dlg(page).getByRole('button', { name: 'Click it on the board' }).first().click();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.getByTestId('pick-bar')).toBeVisible();
     await clickAt(page, 4, 16);
-    await expect(insp(page)).toContainText('Square 4, 16');
+    await expect(dlg(page)).toContainText('Square 4, 16');
 
     // a condition and effects
-    const addEffect = insp(page).getByLabel('Add an effect').last();
-    await insp(page).getByLabel('Add a condition').selectOption('firstTime');
+    const addEffect = dlg(page).getByLabel('Add an effect').last();
+    await dlg(page).getByLabel('Add a condition').selectOption('firstTime');
     await expect(page.getByTestId('condition-row')).toHaveCount(1);
     await addEffect.selectOption('setFlag');
     await addEffect.selectOption('addCounter');
@@ -476,156 +471,206 @@ test.describe('editor: note builder', () => {
     const flag = page.locator('[data-effect="setFlag"]').getByRole('textbox', { name: 'Flag' });
     await flag.fill('alarm');
     await flag.blur();
-    await expect(
-      page.locator('[data-effect="setFlag"]').getByRole('textbox', { name: 'Flag' }),
-    ).toHaveValue('alarm');
     await page.getByRole('button', { name: 'Add an answer' }).click();
     await expect(page.getByTestId('option-row')).toHaveCount(2);
-    await shot(page, 'editor-notes-form');
+    await shot(page, 'editor-action-popup');
 
     // an effect that needs a monster says so
-    await insp(page).getByLabel('Add an effect').last().selectOption('placeMonster');
+    await dlg(page).getByLabel('Add an effect').last().selectOption('placeMonster');
     await expect(page.locator('.toast')).toContainText('Add a monster first');
 
-    // undo goes back one change at a time
+    // undo (the title band stays usable) goes back one change at a time
     await btn(page, 'Undo').click();
     await expect(page.getByTestId('option-row')).toHaveCount(1);
 
-    // the list shows the note
-    await insp(page).getByRole('button', { name: 'All notes' }).click();
-    await expect(page.getByTestId('note-list')).toContainText('A dusty chest.');
-    await expect(page.getByTestId('note-list')).toContainText('Hero enters');
-    await expect(page.getByTestId('no-missing')).toBeVisible();
-    await shot(page, 'editor-notes-list');
+    // the list groups it under the room
+    await btn(page, 'Close').click();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.getByTestId('actions-area')).toContainText('A dusty chest.');
+    await expect(page.getByTestId('actions-area')).toContainText('Hero enters');
+    await shot(page, 'editor-actions-list');
   });
 
-  test('note letters show on the board: missing style, then solid; a tap opens the note', async ({
+  test('a letter on the board: missing style, then solid; a tap opens the action', async ({
     page,
   }) => {
     await newQuest(page);
     await chestWithLetter(page, 'A');
     const mark = page.locator('#editor-board [data-letter="A"]');
     await expect(mark).toHaveAttribute('data-missing', 'true');
-    await expect(mark).toContainText('A');
     await shot(page, 'editor-letter-missing');
 
-    // a tap on a missing letter opens the Notes tab at the list
     await clickAt(page, 2, 17, 0.82, 0.18);
-    await expect(page.getByTestId('missing-letters')).toContainText('Add note A');
-    await btn(page, 'Add note A').click();
+    await expect(page.getByTestId('missing-letters')).toContainText('Add action A');
+    await btn(page, 'Add action A').click();
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
     await expect(mark).not.toHaveAttribute('data-missing', 'true');
     await expect(mark).toHaveAttribute('data-note', 'n-A');
-    await insp(page).getByRole('button', { name: 'All notes' }).click();
+    await btn(page, 'Close').click();
     await expect(page.getByTestId('note-list')).toBeVisible();
-    await shot(page, 'editor-letter-note');
 
-    // a tap on a noted letter opens that note
     await clickAt(page, 2, 17, 0.82, 0.18);
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
+    await btn(page, 'Close').click();
 
-    // other tools do not tap letters: a monster can be placed on the square
     await tool(page, 'Monsters').click();
     await expect(page.locator('[data-letter-hit]')).toHaveCount(0);
   });
 
-  test('door trigger picked on the board; unlettered note; delete', async ({ page }) => {
+  test('an action on a door: pick a square on the board, Escape cancels, delete and undo', async ({
+    page,
+  }) => {
     await newQuest(page);
     await tool(page, 'Doors').click();
     await clickAt(page, 3, 17, 0.5, 0.97);
     await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
     await tool(page, 'Select').click();
-    await notesTab(page).click();
-    await btn(page, 'New note').click();
-    await insp(page).getByLabel('Trigger').selectOption('doorOpened');
-    const trig = insp(page).locator('section').filter({ hasText: 'When it fires' });
-    await expect(trig.getByRole('combobox').nth(1)).toHaveValue('d1');
-    await trig.getByRole('button', { name: 'Click it on the board' }).click();
-    await clickAt(page, 4, 17); // not an edge: refused, still picking
-    await expect(page.locator('.toast')).toContainText('Click a door');
-    await expect(page.getByTestId('pick-bar')).toBeVisible();
     await clickAt(page, 3, 17, 0.5, 0.97);
-    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
-    // Escape cancels a pick
-    await trig.getByRole('button', { name: 'Click it on the board' }).click();
+    await insp(page).getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('door:d1');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('doorOpened');
+
+    // "A square on the board" asks for a click; Escape cancels
+    await dlg(page).getByLabel('Applies to').selectOption('__square');
+    await expect(page.getByTestId('pick-bar')).toContainText('Click a square');
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('pick-bar')).toHaveCount(0);
-    await btn(page, 'Delete note').click();
-    await expect(page.getByTestId('note-list')).toHaveCount(0);
+    await expect(dlg(page)).toBeVisible();
+    await dlg(page).getByLabel('Applies to').selectOption('__square');
+    await clickAt(page, 4, 17);
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('square:4,17');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('squareEntered');
+
+    await btn(page, 'Delete action').click();
+    await expect(dlg(page)).toHaveCount(0);
+    await actionsTab(page).click();
+    await expect(page.getByTestId('no-actions')).toBeVisible();
     await btn(page, 'Undo').click();
     await expect(page.getByTestId('note-list')).toBeVisible();
   });
 });
 
-test.describe('editor: actions of an element (decision 67)', () => {
+test.describe('editor: actions of an element and of the quest (decision 68)', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
+  const dlg = (page: Page) => page.getByRole('dialog', { name: 'Action' });
 
-  test('select a door, add a button on it, edit it, read it back from the door', async ({
-    page,
-  }) => {
+  async function selectedDoor(page: Page) {
     await newQuest(page);
     await tool(page, 'Doors').click();
     await clickAt(page, 3, 17, 0.5, 0.97);
     await tool(page, 'Select').click();
     await clickAt(page, 3, 17, 0.5, 0.97);
+  }
+
+  test('select a door, add an action with a button, edit it, read it back from the door', async ({
+    page,
+  }) => {
+    await selectedDoor(page);
     const actions = page.getByTestId('element-actions');
-    await expect(actions).toContainText('No action on this element yet.');
-    await expect(actions.getByRole('button', { name: 'Add: When it is opened' })).toBeVisible();
+    await expect(actions).toContainText('No action here yet.');
     await shot(page, 'editor-actions-empty');
+    await actions.getByRole('button', { name: 'Add action' }).click();
 
-    await actions.getByRole('button', { name: 'Add: A button on it' }).click();
-    // the new note opens in the Notes tab, already tied to the door
-    await expect(page.getByTestId('belongs-to')).toContainText('Belongs to door d1.');
-    await expect(insp(page).getByLabel('Button label')).toHaveValue('Press me');
-    await insp(page)
-      .getByLabel('Hint above the button (optional)')
-      .fill('Press it when the last hero is through.');
-    await insp(page).getByLabel('Hint above the button (optional)').blur();
-    await insp(page).getByRole('button', { name: 'Every time', exact: true }).click();
-    await shot(page, 'editor-actions-note');
+    // the popup names the element and offers the triggers that fit a door
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('door:d1');
+    const when = dlg(page).getByLabel('When');
+    await expect(when.locator('option')).toHaveText(['It is opened', 'A button']);
+    await when.selectOption('manual');
+    await expect(dlg(page).getByLabel('Button label')).toHaveValue('Press me');
+    const hint = dlg(page).getByLabel('Hint above the button (optional)');
+    await hint.fill('Press it when the last hero is through.');
+    await hint.blur();
+    await dlg(page).getByRole('button', { name: 'Every time', exact: true }).click();
+    await shot(page, 'editor-action-button');
+    await btn(page, 'Close').click();
 
-    // "Show it" selects the door again, and its Actions section lists the note
-    await page.getByTestId('belongs-to').getByRole('button', { name: 'Show it' }).click();
-    await expect(page.getByTestId('selection-id')).toHaveText('d1');
+    // back on the door, the section lists it, and a row opens it again
     await expect(page.getByTestId('action-list')).toContainText('Button: Press me');
-    await shot(page, 'editor-actions-list');
-    // a click on the row opens the note again
     await page.getByTestId('action-list').getByRole('button').first().click();
-    await expect(insp(page).getByLabel('Button label')).toHaveValue('Press me');
-    // detaching leaves a note with no element
-    await page.getByTestId('belongs-to').getByRole('button', { name: 'Detach' }).click();
-    await expect(insp(page)).toContainText(
-      'Belongs to no element: its button is in the Quest sheet.',
-    );
+    await expect(dlg(page).getByLabel('Button label')).toHaveValue('Press me');
+    // the action can move to the quest: its button then lives in the Quest sheet
+    await dlg(page).getByLabel('Applies to').selectOption('quest');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('manual');
   });
 
-  test('an event action (door opened) is derived to its door and needs no detach', async ({
-    page,
-  }) => {
-    await newQuest(page);
-    await tool(page, 'Doors').click();
-    await clickAt(page, 3, 17, 0.5, 0.97);
-    await tool(page, 'Select').click();
-    await clickAt(page, 3, 17, 0.5, 0.97);
-    await page
-      .getByTestId('element-actions')
-      .getByRole('button', { name: 'Add: When it is opened' })
-      .click();
-    await expect(page.getByTestId('belongs-to')).toContainText('Belongs to door d1.');
-    await expect(
-      page.getByTestId('belongs-to').getByRole('button', { name: 'Detach' }),
-    ).toHaveCount(0);
-  });
-
-  test('a monster offers seen, slain and a button', async ({ page }) => {
+  test('a monster offers seen, slain, casts a spell and a button', async ({ page }) => {
     await newQuest(page);
     await tool(page, 'Monsters').click();
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
-    const actions = page.getByTestId('element-actions');
-    for (const label of ['When it is seen', 'When it is slain', 'A button on it'])
-      await expect(actions.getByRole('button', { name: `Add: ${label}` })).toBeVisible();
+    await page.getByTestId('element-actions').getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('When').locator('option')).toHaveText([
+      'It is seen',
+      'It is slain',
+      'It casts a spell',
+      'A button',
+    ]);
+  });
+
+  test('the quest start message is an action of the quest, not a loose note', async ({ page }) => {
+    await newQuest(page);
+    const quest = page.getByTestId('element-actions');
+    await expect(quest).toContainText('No action here yet.');
+    await quest.getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('quest');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('questStart');
+    await expect(dlg(page).getByLabel('When').locator('option')).toHaveText([
+      'The quest starts',
+      'A Zargon turn ends',
+      'All of some monsters are slain',
+      'A button in the Quest sheet',
+    ]);
+    const message = dlg(page).getByLabel('Message');
+    await message.fill('Place the heroes on the stairs.');
+    await message.blur();
+    await btn(page, 'Close').click();
+    await expect(page.getByTestId('action-list')).toContainText('Quest starts');
+  });
+
+  test('zones: paint squares with the Zones tool, select the zone, give it an action', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Zones').click();
+    await clickAt(page, 3, 16);
+    await clickAt(page, 4, 16);
+    await expect(page.locator('[data-zone-cell="z1"]')).toHaveCount(2);
+    await clickAt(page, 4, 16); // a second click on a square takes it out
+    await expect(page.locator('[data-zone-cell="z1"]')).toHaveCount(1);
+    await clickAt(page, 4, 16);
+    await shot(page, 'editor-zone');
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 16);
+    await expect(page.getByTestId('selection-id')).toHaveText('z1');
+    await expect(page.getByTestId('zone-size')).toHaveText('2 squares');
+    await page.getByTestId('element-actions').getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('zone:z1');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('zoneEntered');
+    await btn(page, 'Close').click();
+    // a new zone starts with the "New zone" chip
+    await tool(page, 'Zones').click();
+    await page.getByTestId('zone-chips').getByRole('button', { name: 'New zone' }).click();
+    await clickAt(page, 8, 16);
+    await expect(page.locator('[data-zone-cell="z2"]')).toHaveCount(1);
+  });
+
+  test('a marker can be edited after it is placed, and takes actions on its square', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Markers').click();
+    await clickAt(page, 4, 16);
+    await tool(page, 'Select').click();
+    await clickAt(page, 4, 16);
+    await expect(page.getByTestId('selection-id')).toHaveText('k1');
+    await insp(page).getByLabel('Label').fill('7');
+    await insp(page).getByLabel('Label').blur();
+    await insp(page).getByRole('button', { name: 'Players see', exact: true }).click();
+    await expect(page.locator('[data-marker="k1"]')).toContainText('7');
+    await page.getByTestId('element-actions').getByRole('button', { name: 'Add action' }).click();
+    await expect(dlg(page).getByLabel('Applies to')).toHaveValue('square:4,16');
+    await expect(dlg(page).getByLabel('When')).toHaveValue('squareEntered');
   });
 });
 
@@ -934,16 +979,21 @@ test.describe('editor: quest fields', () => {
     await tab(page, /^Problems/).click();
     await expect(page.getByTestId('problems-panel')).not.toContainText('no objective');
 
-    // a note can complete it
-    await tab(page, /^Notes/).click();
-    await btn(page, 'New note').click();
-    await insp(page).getByLabel('Add an effect').last().selectOption('completeObjective');
+    // an action can complete it
+    await tab(page, /^Element/).click();
+    await insp(page).getByRole('button', { name: 'Add action' }).click();
+    await page
+      .getByRole('dialog', { name: 'Action' })
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('completeObjective');
     await expect(
       page.locator('[data-effect="completeObjective"]').getByRole('combobox'),
     ).toContainText('o1 · Find the lost key.');
     await shot(page, 'editor-quest-objective-effect');
 
     // removing it warns about the note
+    await btn(page, 'Close').click();
     await tab(page, /^Element/).click();
     await shot(page, 'editor-quest-fields');
     await insp(page).getByRole('button', { name: 'Remove objective o1' }).click();
@@ -1014,13 +1064,11 @@ test.describe('editor: endings and blocked search', () => {
     page,
   }) => {
     await newQuest(page);
-    await insp(page)
-      .getByRole('button', { name: /^Notes/ })
-      .click();
-    await btn(page, 'New note').click();
+    await insp(page).getByRole('button', { name: 'Add action' }).click();
     // only a treasure search trigger offers the toggle
     await expect(btn(page, 'Searching here is not possible')).toHaveCount(0);
-    await insp(page).getByLabel('Trigger').selectOption('treasureSearch');
+    await page.getByLabel('Applies to').selectOption('area:R20');
+    await page.getByLabel('When').selectOption('treasureSearch');
     const block = btn(page, 'Searching here is not possible');
     const card = btn(page, 'No treasure card is drawn');
     await expect(block).toHaveAttribute('aria-pressed', 'false');

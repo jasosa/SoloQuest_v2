@@ -688,6 +688,20 @@ export function addMarker(
   return ok({ ...q, markers: [...q.markers, marker] });
 }
 
+/** Change the label or the visibility of a marker that is already placed. */
+export function updateMarker(
+  q: Quest,
+  id: string,
+  patch: { label?: string; visible?: 'editor' | 'players' },
+): EditResult {
+  const m = q.markers.find((x) => x.id === id);
+  if (!m) return fail(`There is no marker ${id}.`);
+  const label = patch.label === undefined ? m.label : patch.label.trim();
+  if (label === '') return fail('A marker needs a label.');
+  const next = clean({ ...m, label, visible: patch.visible ?? m.visible });
+  return ok({ ...q, markers: q.markers.map((x) => (x.id === id ? next : x)) });
+}
+
 export function removeMarker(q: Quest, id: string): EditResult {
   if (!q.markers.some((m) => m.id === id)) return fail(`There is no marker ${id}.`);
   return ok({ ...q, markers: q.markers.filter((m) => m.id !== id) });

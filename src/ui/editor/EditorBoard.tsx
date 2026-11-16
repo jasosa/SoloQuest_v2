@@ -4,6 +4,8 @@ import { areaAt, board as boardData, isWallBetween, roomIds } from '../../engine
 import { buildLevel, cellKey, edgeKey } from '../../engine/board/level';
 import {
   addBlock,
+  addZone,
+  toggleZoneCell,
   addDoor,
   addFurniture,
   addMarker,
@@ -151,6 +153,8 @@ export function EditorBoard({
     }
     const blk = level.blockAt.get(cellKey(cell[0], cell[1]));
     if (blk) return { kind: 'block', cell };
+    const zone = quest.zones.find((z) => z.cells.some((c) => sameCell(c as Cell, cell)));
+    if (zone) return { kind: 'zone', id: zone.id };
     return null;
   };
 
@@ -217,6 +221,29 @@ export function EditorBoard({
         s.apply((q) => addBlock(q, [first, cell]));
         return;
       }
+    }
+    if (s.tool === 'zones') {
+      // A square of another zone makes that zone the active one; any other square is added to
+      // the active zone, or starts a new zone when none is active.
+      const here = quest.zones.find((z) => z.cells.some((c) => sameCell(c as Cell, cell)));
+      if (here && here.id !== s.opts.zoneId) {
+        s.setOpts({ zoneId: here.id });
+        s.select({ kind: 'zone', id: here.id });
+        return;
+      }
+      const active = quest.zones.find((z) => z.id === s.opts.zoneId);
+      if (active) {
+        s.apply((q) => toggleZoneCell(q, active.id, cell));
+        return;
+      }
+      if (s.apply((q) => addZone(q, cell))) {
+        const made = store.getState().quest.zones.at(-1);
+        if (made) {
+          s.setOpts({ zoneId: made.id });
+          s.select({ kind: 'zone', id: made.id });
+        }
+      }
+      return;
     }
     if (s.tool === 'doors' && !edge) {
       s.say('Click near the edge between two squares.');
@@ -415,6 +442,48 @@ export function EditorBoard({
             pointerEvents="none"
           />,
         );
+
+  // Zones (decision 68): their squares tinted, the id at the first square. The active one is stronger.
+  const zoneArt: ReactNode[] = [];
+  for (const z of quest.zones) {
+    const on =
+      (selection?.kind === 'zone' && selection.id === z.id) ||
+      (tool === 'zones' && opts.zoneId === z.id);
+    z.cells.forEach((c, i) => {
+      zoneArt.push(
+        <rect
+          key={`z${z.id}:${i}`}
+          data-zone-cell={z.id}
+          x={c[0] * U + 1.5}
+          y={c[1] * U + 1.5}
+          width={U - 3}
+          height={U - 3}
+          fill={color.sel}
+          opacity={on ? 0.85 : 0.55}
+          stroke={color.ink}
+          strokeWidth={on ? 2 : 1}
+          strokeDasharray="4 3"
+          pointerEvents="none"
+        />,
+      );
+    });
+    const first = z.cells[0];
+    if (first)
+      zoneArt.push(
+        <text
+          key={`zt${z.id}`}
+          x={first[0] * U + 4}
+          y={first[1] * U + 11}
+          fill={color.ink}
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={10}
+          pointerEvents="none"
+        >
+          {z.id}
+        </text>,
+      );
+  }
 
   const doors: ReactNode[] = [];
   for (const d of level.doors.values()) {
@@ -872,6 +941,7 @@ export function EditorBoard({
         </defs>
         {cells}
         {startTint}
+        {zoneArt}
         {walls}
         {blockArt}
         {things}

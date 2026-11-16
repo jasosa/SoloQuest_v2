@@ -12,6 +12,7 @@ import {
   setDoorKind,
   setFurnitureLetter,
   setSummary,
+  updateMarker,
   updateMonster,
   updateTrap,
   type DoorKind,
@@ -30,8 +31,9 @@ import {
 import { SPELL_KEYS, SPELL_NAMES, isSpellKey } from '../../engine/zargon/spells';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
-import { ElementActions } from './ActionsSection';
-import { NotesPanel } from './NotesPanel';
+import { SubjectActions } from './ActionsSection';
+import { elementOf } from './elementActions';
+import { ActionsPanel } from './ActionsPanel';
 import { ProblemsPanel } from './ProblemsPanel';
 import { QuestPanel } from './QuestPanel';
 import { parseMapLetter } from './noteForms';
@@ -88,6 +90,10 @@ export function Inspector({
       : undefined;
   const monster =
     selection?.kind === 'monster' ? quest.monsters.find((m) => m.id === selection.id) : undefined;
+  const marker =
+    selection?.kind === 'marker' ? quest.markers.find((m) => m.id === selection.id) : undefined;
+  const zone =
+    selection?.kind === 'zone' ? quest.zones.find((z) => z.id === selection.id) : undefined;
   const trap =
     selection?.kind === 'trap' ? quest.traps.find((t) => t.id === selection.id) : undefined;
 
@@ -103,10 +109,10 @@ export function Inspector({
       <button
         className="chip"
         aria-pressed={panel === 'notes'}
-        aria-label={missing > 0 ? `Notes, ${missing} missing` : 'Notes'}
+        aria-label={missing > 0 ? `Actions, ${missing} missing` : 'Actions'}
         onClick={() => st.setPanel('notes')}
       >
-        Notes
+        Actions
         {missing > 0 && (
           <span className="ed-badge" data-testid="missing-count">
             {missing}
@@ -141,7 +147,7 @@ export function Inspector({
     return (
       <>
         {tabs}
-        <NotesPanel store={store} />
+        <ActionsPanel store={store} />
       </>
     );
 
@@ -176,7 +182,12 @@ export function Inspector({
         </label>
       </section>
 
-      {!selection && <QuestPanel store={store} />}
+      {!selection && (
+        <>
+          <SubjectActions store={store} subject={{ kind: 'quest' }} />
+          <QuestPanel store={store} />
+        </>
+      )}
 
       {saveErrors && (
         <section className="ed-save-errors" role="alert">
@@ -202,13 +213,70 @@ export function Inspector({
           {door && <DoorFields store={store} door={door} />}
           {furniture && <FurnitureFields store={store} furniture={furniture} />}
           {monster && <MonsterFields store={store} monster={monster} />}
+          {marker && <MarkerFields store={store} marker={marker} />}
+          {zone && <ZoneFields store={store} zone={zone} />}
           {trap && <TrapFields key={trap.id} store={store} trap={trap} quest={quest} />}
-          {selection.kind !== 'block' && <ElementActions store={store} selection={selection} />}
+          {(() => {
+            const subject = elementOf(quest, selection);
+            return subject ? <SubjectActions store={store} subject={subject} /> : null;
+          })()}
           <button className="btn" onClick={() => deleteSelection(store)}>
             Delete
           </button>
         </section>
       ) : null}
+    </>
+  );
+}
+
+function MarkerFields({ store, marker }: { store: EditorStore; marker: Quest['markers'][number] }) {
+  const st = store.getState();
+  return (
+    <>
+      <label className="ed-field">
+        Label
+        <input
+          key={`${marker.id}:${marker.label}`}
+          defaultValue={marker.label}
+          maxLength={40}
+          onBlur={(e) => {
+            if (e.target.value.trim() !== marker.label)
+              st.apply((q) => updateMarker(q, marker.id, { label: e.target.value }));
+          }}
+        />
+      </label>
+      <div className="ed-chips" role="group" aria-label="Who sees it">
+        {(['editor', 'players'] as const).map((v) => (
+          <button
+            key={v}
+            className="chip"
+            aria-pressed={(marker.visible ?? 'players') === v}
+            onClick={() => st.apply((q) => updateMarker(q, marker.id, { visible: v }))}
+          >
+            {v === 'editor' ? 'Editor only' : 'Players see'}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][number] }) {
+  const st = store.getState();
+  return (
+    <>
+      <p className="ed-note" data-testid="zone-size">
+        {zone.cells.length} {zone.cells.length === 1 ? 'square' : 'squares'}
+      </p>
+      <button
+        className="btn alt"
+        onClick={() => {
+          st.setTool('zones');
+          st.setOpts({ zoneId: zone.id });
+        }}
+      >
+        Edit its squares
+      </button>
     </>
   );
 }
