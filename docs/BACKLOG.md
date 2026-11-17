@@ -121,6 +121,38 @@ Do these before M8 polish. Quest owner review (M7) comes after step 8.
 - [ ] Step 7, editor: actions attached to doors, furniture, monsters and markers; objective triggers; ability builder; admin edit of bundled quests kept as a draft until replaced; custom trap symbols
 - [ ] Step 8, owner review round, one quest at a time with the overlay
 
+## M7c · Quests review (owner, 2026-11-17)
+
+General, quick fixes
+- [x] Open door dialog: replace the "open is free..." text with "Free action"
+- [x] Search when all 4 heroes already searched: ask "All heroes searched already, search anyway?"
+- [x] Corridors: show the eye (look from here) only on crossing squares
+- [x] Confirmation before slaying a monster
+- [x] Monster popups: show stats under Special
+- [x] Quest button renamed Quest Info
+- [ ] Quest intro readable inside the quest
+- [x] Popup when an objective is achieved
+- [x] Trapped chest: show the trap first, then after Done the search; if the search for treasure springs the trap, drop the "search for traps in the chest" option
+
+General, need a design decision first (ask owner)
+- [ ] Action panel split by scope: Element (actions of the element, maybe none), Room (clear labels, e.g. Search Room), Quest (clear labels). Furniture click must not show Search Room as an element action
+- [x] Spell flow (decision 72): show the spell and its questions; No shows the alternative spell (if any); No again shows regular movement. Make questions concrete (e.g. "Is a hero with high attack in sight?"). Clarify move/cast order per spell
+- [ ] Designer: let the owner define situation tags and their questions for spells (a tag is a short id plus a concrete question and an optional app check), not only pick from the fixed list. Today the 16 tags and their texts are fixed in `src/engine/data/spells.ts`; a spell can only have its own single question.
+- [ ] Behaviors: "Block doorway" is unclear and is the same for every monster type
+- [ ] Board zoom: pinch gestures and numeric controls
+
+Per quest
+- [x] Q1: Mummy is a special monster
+- [x] Q2: Sir Ragnar companion full stats (e.g. Movement Dice 1, Attack Dice N/A)
+- [x] Q3: furniture in R14 is a chest, not a throne
+- [x] Q5: searching for traps in the throne room and the adjacent room gives the regular "no traps found" message (find how to do it in the editor); corridor outside the central room (skeleton and trap) blocks the board, no "look from here" after the trap springs; change the Gargoyle wakes message
+- [x] Q6: Grak still in the wrong place; quest not editable (furniture f-stairs, letter B has no note); Grak popup must not show the staff/cloak trait text nor "This turn it casts no spell"
+- [x] Q8: Balur uses escape as first or second spell (quest defined); leave nothing on the map where he stood after he escapes
+- [x] Q11: trap disarmed message is addressed to the players, fix wording; objective also includes escaping by the stairs
+- [x] Q12: false door shows a result sheet like the already-searched chest, not a toast (a logged quest note with a `doorTried` trigger is still open, see the Quest 12 item above)
+- [x] Q13: start message with "the six marked falling-block squares" removed (each marker keeps its rule)
+- [ ] Q13: editor changes still show the old version in play
+
 ## M8 · Polish
 
 - [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board; show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable

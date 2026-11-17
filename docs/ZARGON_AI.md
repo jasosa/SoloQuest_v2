@@ -1,10 +1,4 @@
-# Zargon's turn: monster orders
-
-The app does not know where heroes and monsters stand, and it does not know hero Body Points. So it cannot pick a target itself. Instead, each monster gets an **order** the players apply on the board, using their character sheets for numbers. The AI never uses positions, and situations the players can see on the board (a Yeti hugging someone, a Gremlin that already stole) stay in the card text, not in app state (decision 46).
-
-## An order
-
-| Part | Example |
+Can it see a hero? | Part | Example |
 |---|---|
 | **Target rule** | "The hero who attacked it last" |
 | **Tie list** (always shown) | Dwarf › Wizard › Barbarian › Elf |
@@ -130,35 +124,35 @@ For a caster with at least one spell left that has not cast this turn, the order
 
 Before any answer, the order shows the spell and the plan as a fallback line ("If it cannot cast: ...").
 
-### Spell flow with situation tags (decisions 47, 48)
+### Spell flow (decisions 47, 48, 72)
 
-On top of the flow above:
-1. **25% of turns** (seeded, from seed, turn and monster id) the caster shows no spell and uses its normal plan. On the other 75% it tries spells.
-2. **App checks first.** If monster Body Points are tracked, spells tagged `selfHurt`, `selfNearDeath` or `allyHurt` are checked against the roster: true, they come first; false, they are skipped this turn. If BP are not tracked, these tags are asked like the others.
-3. **The other spells** follow the seeded shuffle above. Each is shown with the question of its tag: "Sleep: is a hero with high attack in sight?" A spell tagged `any` asks "Could it cast it?". A custom question replaces the tag question.
-4. **At most 3 "no" answers** per caster turn; then its normal plan.
+A caster always tries a spell first.
+1. **App checks first.** If monster Body Points are tracked, spells tagged `selfHurt`, `selfNearDeath` or `allyHurt` are checked against the roster: true, they come first; false, they are skipped this turn. If BP are not tracked, these tags are asked like the others.
+2. **The offer order** is a seeded shuffle of the spells it still has. A monster can pin a spell to a place (`spellOrder`, 1 = first), the others fill the rest at random.
+3. **Each spell is shown with** its name, a line about when it is cast (below), and "It casts this spell if:" with the questions of its tags (any one true is enough). The questions are about where the monster can stand this turn, since it may move first.
+4. **Yes** records the cast. **No** shows the next spell ("spell 2 of 3"). When no spell is left, the order is the normal plan, with no note.
 5. Escape is only offered when the quest has an escape point.
 
-The app shows the spell name and any warning; players read the Dread spell card. The target of a single-target spell comes from the monster's target rule.
+When it is cast (`timing`, per spell, default `either`): `either` = it may move first, then cast; `beforeMoving` = cast, then it may move; `afterMoving` = move, then cast; `instead` = cast instead of moving (Escape). Casting is its action, so it never attacks the same turn.
 
 | Tag | Question | App checks alone |
 |---|---|---|
-| `selfHurt` | Has it lost Body Points? | if monster BP tracked |
-| `selfNearDeath` | Does it have 1 Body Point left? | if monster BP tracked |
-| `allyHurt` | Has another monster lost Body Points? | if monster BP tracked |
-| `manyInSight` | Are 3 or more heroes in sight? | no |
-| `heroesGrouped` | Are 2 or more heroes close together in sight? | no |
-| `heroesInSameRoom` | Is it in a room with 2 or more heroes? | no |
+| `selfHurt` | Has this monster lost at least 1 Body Point? | if monster BP tracked |
+| `selfNearDeath` | Does this monster have only 1 Body Point left? | if monster BP tracked |
+| `allyHurt` | Has any other monster lost at least 1 Body Point? | if monster BP tracked |
+| `manyInSight` | Can it see 3 or more heroes? | no |
+| `heroesGrouped` | Can it see 2 or more heroes standing within 2 squares of each other? | no |
+| `heroesInSameRoom` | Are 2 or more heroes in the same room as it? | no |
 | `heroesInSameArea` | Are 2 or more heroes in the same room or corridor as it? | no |
-| `heroInLine` | Is a hero in a straight line from it, with no wall or closed door between? | no |
-| `heroAdjacent` | Is any hero next to it? | no |
-| `strongAdjacent` | Is a hero with high attack next to it? | no |
-| `strongInSight` | Is a hero with high attack in sight? | no |
-| `casterInSight` | Is the Wizard or Elf in sight? | no |
-| `noneInReach` | Is no hero in reach this turn? | no |
-| `canBlockPath` | Can it block a corridor or doorway between it and the heroes? | no |
-| `nearObjective` | Is a hero close to finishing the quest goal? | no |
-| `any` | Could it cast it? | no |
+| `heroInLine` | Is a hero in the same row or column as it, with no wall or closed door between them? | no |
+| `heroAdjacent` | Is a hero on a square right next to it? | no |
+| `strongAdjacent` | Is a hero that rolls 3 or more attack dice right next to it? | no |
+| `strongInSight` | Can it see a hero that rolls 3 or more attack dice? | no |
+| `casterInSight` | Can it see the Wizard or the Elf? | no |
+| `noneInReach` | Is every hero too far away for it to get next to this turn? | no |
+| `canBlockPath` | Can it stand in a doorway or a corridor square so that the heroes cannot pass it? | no |
+| `nearObjective` | Could a hero finish the quest goal within 2 turns? | no |
+| `any` | Can it see a hero? | no |
 
 **Core Dread spells** (tags only, no card text; checked against the owner's photos of the 2021 and 2024 cards)
 

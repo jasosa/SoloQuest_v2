@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="373" height="500" viewBox="0 0 373 500">
+  <defs>
+    <pattern id="grid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" fill="none" stroke="#7f3b40" stroke-width="1" opacity=".23"/>
+      <path d="M9 0V18M0 9H18" fill="none" stroke="#7f3b40" stroke-width=".55" opacity=".2"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="3" dy="3" stdDeviation="0" flood-color="#55252a" flood-opacity=".8"/>
+    </filter>
+  </defs>
+  <rect width="373" height="500" fill="#c99b99"/>
+  <rect width="373" height="500" fill="url(#grid)"/>
+  <path d="M0 292H72M0 396H72M72 396H173M240 396H373" stroke="#6d202b" stroke-width="4"/>
+  <path d="M0 298H72M0 402H72M72 402H173M240 402H373" stroke="#eadfc8" stroke-width="3"/>
+  <rect x="62" y="36" width="252" height="438" fill="#f4eddb" stroke="#6d202b" stroke-width="2" filter="url(#shadow)"/>
+  <text x="78" y="63" fill="#923c43" font-family="Georgia,serif" font-size="14" font-weight="bold" letter-spacing=".6">WEAPONS RACK</text>
+  <text x="279" y="64" fill="#786457" font-family="Georgia,serif" font-size="22">×</text>
+  <text x="78" y="87" fill="#6d202b" font-family="Georgia,serif" font-size="18" font-weight="bold">No actions for this furniture</text>
+  <text x="78" y="107" fill="#766458" font-family="Georgia,serif" font-size="14">This rack has no special action.</text>
+  <line x1="78" y1="121" x2="298" y2="121" stroke="#b67a7b" stroke-width="1"/>
+
+  <text x="78" y="145" fill="#923c43" font-family="Georgia,serif" font-size="14" font-weight="bold" letter-spacing=".6">ROOM</text>
+  <text x="78" y="169" fill="#6d202b" font-family="Georgia,serif" font-size="18" font-weight="bold">Search this room</text>
+  <text x="78" y="190" fill="#766458" font-family="Georgia,serif" font-size="14">One hero, one search, on their</text>
+  <text x="78" y="208" fill="#766458" font-family="Georgia,serif" font-size="14">own turn.</text>
+  <rect x="78" y="222" width="220" height="46" fill="#6d202b"/>
+  <text x="188" y="250" text-anchor="middle" fill="#f4eddb" font-family="Georgia,serif" font-size="15" font-weight="bold">Search for treasure</text>
+  <rect x="78" y="276" width="220" height="65" fill="#f4eddb" stroke="#6d202b" stroke-width="2"/>
+  <text x="188" y="303" text-anchor="middle" fill="#6d202b" font-family="Georgia,serif" font-size="15" font-weight="bold">Search for secret</text>
+  <text x="188" y="323" text-anchor="middle" fill="#6d202b" font-family="Georgia,serif" font-size="15" font-weight="bold">doors</text>
+  <line x1="78" y1="355" x2="298" y2="355" stroke="#b67a7b" stroke-width="1"/>
+
+  <text x="78" y="382" fill="#923c43" font-family="Georgia,serif" font-size="14" font-weight="bold" letter-spacing=".6">FOR THIS QUEST</text>
+  <rect x="78" y="394" width="27" height="27" fill="#6d202b"/>
+  <text x="91.5" y="414" text-anchor="middle" fill="#f4eddb" font-family="Georgia,serif" font-size="17" font-weight="bold">A</text>
+  <text x="115" y="408" fill="#766458" font-family="Georgia,serif" font-size="14">The rack holds only rusty,</text>
+  <text x="115" y="427" fill="#766458" font-family="Georgia,serif" font-size="14">broken weapons.</text>
+</svg>
