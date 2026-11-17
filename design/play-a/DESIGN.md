@@ -70,6 +70,10 @@ Every screen is drawn at 1194 x 834 and scaled to the window (`FitToScreen`). Mo
 
 The board zooms from 100% to 300%. Two fingers pinch (and drag the board while pinching), one finger drags the board when it is zoomed in (a drag never counts as a tap), and the wheel with Ctrl zooms on a computer. Three 44 px chips sit at the bottom left of the map: **−**, the percent (a tap goes back to 100%) and **+** (25% steps). Only the board scales: margin notes keep their size and follow the thing they point at, and the zoom chips stay put. The board always covers the map area, with no empty strip beside it.
 
+## Zoom on the editor map
+
+The editor board has the same zoom chips (− , percent, +) at its bottom left, and 100% is the board fitted to its area. Two fingers pinch and move the board; the wheel moves it when zoomed in; Ctrl and the wheel zoom. A single finger or mouse drag never moves the board there, because on the editor board a drag moves furniture and monsters. A drag that moves the board never places or selects what is under it.
+
 ## Furniture names
 
 Furniture has a tap area (its footprint). Hover or keyboard focus shows a small dark label with its name (Stairway, Table, Chest ...), drawn above the piece. A tap opens the room note headed by the name; a chest opens the chest note.

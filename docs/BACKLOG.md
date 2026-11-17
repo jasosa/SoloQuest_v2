@@ -218,3 +218,5 @@ Per quest
 - [x] Interface too small after the fit, and the Start button too low: select, editor and Designer fill the width and scroll; the Start button is under the heroes
 - [x] Zoomed in, the lower part of the board could not be reached: the zoom limits now use the visible board area
 - [x] A lot of empty space left and right in a quest: the play screen is drawn as wide as the window, the right column takes the extra width
+- [x] More space to the board, and normal text size: the play screen is drawn at the window size and the board is fitted to the map area
+- [x] Zoom on the editor map (chips, two-finger pinch and move, wheel)

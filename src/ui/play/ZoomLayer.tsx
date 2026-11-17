@@ -83,6 +83,8 @@ export function ZoomLayer({
   content = PLAY_BOARD,
   className = 'map zoombox',
   padding = '18px 0 0 28px',
+  onePointerPan = true,
+  wheelPan = false,
 }: {
   children: ReactNode;
   notes?: ReactNode;
@@ -91,6 +93,10 @@ export function ZoomLayer({
   className?: string;
   /** Padding of the layer inside its size (the map padding of the play board). */
   padding?: string;
+  /** A finger on the board drags it when zoomed in. Off in the editor, where a drag moves things. */
+  onePointerPan?: boolean;
+  /** The wheel (without Ctrl) moves the board when zoomed in. */
+  wheelPan?: boolean;
 }) {
   const [area, setArea] = useState<Area>({ w: 920, h: 770 });
   // null: the board is fitted to the area, and follows it when the window changes
@@ -146,7 +152,15 @@ export function ZoomLayer({
     const el = box.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
+      if (!e.ctrlKey && !e.metaKey) {
+        // the wheel moves a board that is zoomed in
+        if (!wheelPan || viewRef.current.e <= base * 1.001) return;
+        e.preventDefault();
+        const { k } = screen();
+        const v = viewRef.current;
+        setPicked(clampView({ ...v, x: v.x - e.deltaX / k, y: v.y - e.deltaY / k }, area, content));
+        return;
+      }
       e.preventDefault();
       const { left, top, k } = screen();
       setPicked(
@@ -162,7 +176,7 @@ export function ZoomLayer({
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [area, content]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [area, content, wheelPan, base]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const down = (e: React.PointerEvent) => {
     if ((e.target as Element).closest('[data-keep]')) return;
@@ -179,7 +193,7 @@ export function ZoomLayer({
       };
       pan.current = null;
       dragged.current = true;
-    } else if (pointers.current.size === 1) {
+    } else if (pointers.current.size === 1 && onePointerPan) {
       pan.current = { x: e.clientX, y: e.clientY, v: viewRef.current, moved: false };
       dragged.current = false;
     }
@@ -250,6 +264,10 @@ export function ZoomLayer({
         onPointerMove={move}
         onPointerUp={up}
         onPointerCancel={up}
+        // a drag or pinch moved the board: the thing under the finger is not tapped or placed
+        onPointerUpCapture={(e) => {
+          if (dragged.current) e.stopPropagation();
+        }}
         // a drag or pinch must not count as a tap on the board
         onClickCapture={(e) => {
           if (dragged.current) {

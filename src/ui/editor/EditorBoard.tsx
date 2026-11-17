@@ -24,6 +24,7 @@ import type { Quest } from '../../engine/quest/schema';
 import { Furniture } from '../board/Furniture';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
+import { ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
@@ -41,6 +42,8 @@ import {
 
 /** Editor squares are drawn in board units and scaled down by the svg viewBox. */
 export const EDITOR_CELL_PX = 26;
+/** The editor board as drawn (px): what the zoom fits to the area. */
+const EDITOR_CONTENT = { w: BOARD_W * EDITOR_CELL_PX + 4, h: BOARD_H * EDITOR_CELL_PX + 4 };
 const VBW = BOARD_W * U + 4;
 const VBH = BOARD_H * U + 4;
 
@@ -937,60 +940,70 @@ export function EditorBoard({
     );
 
   return (
-    <div className="ed-boardwrap">
-      <svg
-        ref={svgRef}
-        data-flash-id={flash?.id}
-        id="editor-board"
-        role="application"
-        aria-label="Quest board. Arrow keys move the cursor, Enter acts."
-        tabIndex={0}
-        width={BOARD_W * EDITOR_CELL_PX + 4}
-        height={BOARD_H * EDITOR_CELL_PX + 4}
-        viewBox={`-2 -2 ${VBW} ${VBH}`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={() => setHover(null)}
-        onKeyDown={onKeyDown}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+    <div className="ed-boardarea">
+      <ZoomLayer
+        className="ed-zoom"
+        content={EDITOR_CONTENT}
+        padding="0"
+        onePointerPan={false}
+        wheelPan
       >
-        <defs>
-          <pattern
-            id="ed-hatch"
-            width={6}
-            height={6}
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
+        <div className="ed-boardwrap">
+          <svg
+            ref={svgRef}
+            data-flash-id={flash?.id}
+            id="editor-board"
+            role="application"
+            aria-label="Quest board. Arrow keys move the cursor, Enter acts."
+            tabIndex={0}
+            width={BOARD_W * EDITOR_CELL_PX + 4}
+            height={BOARD_H * EDITOR_CELL_PX + 4}
+            viewBox={`-2 -2 ${VBW} ${VBH}`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={() => setHover(null)}
+            onKeyDown={onKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
           >
-            <rect width={6} height={6} fill={color.rock} />
-            <line x1={0} y1={0} x2={0} y2={6} stroke={color.rockLine} strokeWidth={2} />
-          </pattern>
-          {bad}
-        </defs>
-        {cells}
-        {startTint}
-        {zoneArt}
-        {walls}
-        {blockArt}
-        {things}
-        {doors}
-        {letterMarks}
-        <rect
-          x={0}
-          y={0}
-          width={BOARD_W * U}
-          height={BOARD_H * U}
-          fill="none"
-          stroke={color.ink}
-          strokeWidth={3}
-        />
-        {roomLabels}
-        {flashMarks}
-        {ghost}
-      </svg>
-      {reference && <ReferenceLayer api={reference} />}
+            <defs>
+              <pattern
+                id="ed-hatch"
+                width={6}
+                height={6}
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(45)"
+              >
+                <rect width={6} height={6} fill={color.rock} />
+                <line x1={0} y1={0} x2={0} y2={6} stroke={color.rockLine} strokeWidth={2} />
+              </pattern>
+              {bad}
+            </defs>
+            {cells}
+            {startTint}
+            {zoneArt}
+            {walls}
+            {blockArt}
+            {things}
+            {doors}
+            {letterMarks}
+            <rect
+              x={0}
+              y={0}
+              width={BOARD_W * U}
+              height={BOARD_H * U}
+              fill="none"
+              stroke={color.ink}
+              strokeWidth={3}
+            />
+            {roomLabels}
+            {flashMarks}
+            {ghost}
+          </svg>
+          {reference && <ReferenceLayer api={reference} />}
+        </div>
+      </ZoomLayer>
       <p className="ed-hint" role="status">
         {hint}
       </p>
