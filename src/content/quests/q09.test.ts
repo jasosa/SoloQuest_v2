@@ -213,6 +213,19 @@ describe('quest 9: chests B and C', () => {
     expect(r.prompts.map((p) => p.kind)).not.toContain('drawCard');
   });
 
+  it('B: the next hero who searches R13 draws a treasure card as usual (owner, 2026-11-17)', () => {
+    const s = run(
+      ...toD5,
+      open('d5'),
+      { type: 'MONSTER_KILL', monster: 'm7' },
+      { type: 'MONSTER_KILL', monster: 'm8' },
+      search('R13'),
+    );
+    const r = reduce(level, s, { ...search('R13'), hero: 'elf' } as GameEvent);
+    expect(r.prompts.map((p) => p.kind)).toContain('drawCard');
+    expect(r.prompts.map((p) => p.kind)).not.toContain('note');
+  });
+
   it('the secret door s1 opens the small room R14 with a Dread warrior and chest C', () => {
     const s = run(
       ...toD5,
