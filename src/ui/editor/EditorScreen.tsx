@@ -10,7 +10,7 @@ import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, EditorTabName, Tool } from './editorStore';
 import { EDITOR_TABS, TopBar } from '../shared/Frame';
-import { DesignerBody, type QuestSource } from '../designer/DesignerScreen';
+import { DesignerBody, type QuestSource, type QuestUpdater } from '../designer/DesignerScreen';
 import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
@@ -54,6 +54,8 @@ export interface EditorScreenProps {
   /** The Designer library and the quests it looks at, for the Designer tab. */
   library: LibraryStore;
   quests?: QuestSource;
+  /** Change every quest made here (the Designer's "Update in all quests"). */
+  updateQuests?: QuestUpdater;
 }
 
 export function EditorScreen({
@@ -63,6 +65,7 @@ export function EditorScreen({
   onPlaytest,
   library,
   quests,
+  updateQuests,
 }: EditorScreenProps) {
   const s = useStore(store);
   const { quest, tool, toast, warnings, saveErrors, tab } = s;
@@ -182,7 +185,9 @@ export function EditorScreen({
       {tab === 'Quest' && <QuestTab store={store} />}
       {tab === 'Actions' && <ActionsTab store={store} />}
       {tab === 'Monsters' && <MonstersTab store={store} />}
-      {tab === 'Designer' && <DesignerBody store={library} quests={quests} />}
+      {tab === 'Designer' && (
+        <DesignerBody store={library} quests={quests} updateQuests={updateQuests} />
+      )}
       {tab === 'Map' && (
         <div className="ed-body">
           <nav className="ed-tools" aria-label="Tools">

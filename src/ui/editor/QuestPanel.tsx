@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
   addAbility,
+  removeEnemy,
   addSpell,
   addEnding,
   addObjective,
@@ -189,6 +190,47 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
               </li>
             ))}
           </ul>
+          {quest.enemyDefs.length > 0 && (
+            <div data-testid="enemies-section">
+              <div className="lbl">Enemies of this quest</div>
+              <ul className="ed-items">
+                {quest.enemyDefs.map((e) => {
+                  const n = quest.monsters.filter((m) => m.enemy === e.id).length;
+                  return (
+                    <li key={e.id} data-enemy={e.id}>
+                      <b>{e.name}</b>
+                      <p>
+                        {n === 0
+                          ? 'No monster uses it.'
+                          : `${n} monster${n === 1 ? '' : 's'} use it.`}
+                      </p>
+                      <button
+                        className="chip"
+                        aria-label={`Remove enemy ${e.id}`}
+                        onClick={() => st.apply((q) => removeEnemy(q, e.id))}
+                      >
+                        {n === 0 ? 'Remove' : 'Remove, keep its monsters as plain ones'}
+                      </button>
+                      {n > 0 && (
+                        <button
+                          className="chip"
+                          aria-label={`Remove enemy ${e.id} with its monsters`}
+                          onClick={() =>
+                            st.apply((q) => removeEnemy(q, e.id, { withMonsters: true }))
+                          }
+                        >
+                          Remove with its monsters
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="ed-note">
+                An enemy stays in the quest when it is removed from the Designer. Take it out here.
+              </p>
+            </div>
+          )}
           <p className="ed-note">
             Your own abilities and spells show next to the core ones when you add them to a monster.
             A monster with an ability is not a special monster.

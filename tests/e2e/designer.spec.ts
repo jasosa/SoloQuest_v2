@@ -283,4 +283,65 @@ test.describe('designer: the library', () => {
     );
     await expect(page.getByTestId('monster-card').getByLabel('Type')).toHaveCount(0);
   });
+
+  test('a changed enemy can be updated in all quests that use it', async ({ page }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Slime');
+    await page.getByLabel('att', { exact: true }).fill('2');
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('Slime quest');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    const box = (await page.locator('#editor-board').boundingBox())!;
+    const k = box.width / (26 * 34 + 4);
+    await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
+
+    // change the enemy in the Designer tab: the quest now holds an older copy
+    await page.getByRole('tab', { name: 'Designer' }).click();
+    await kind(page, /^Enemies/);
+    await items(page).getByRole('button', { name: 'Slime' }).click();
+    await page.getByLabel('att', { exact: true }).fill('5');
+    await expect(page.getByTestId('dz-outdated')).toContainText('1 quest has an older copy');
+    await page.getByTestId('dz-update-all').click();
+    await expect(page.getByText('Updated in 1 quest.')).toBeVisible();
+    await expect(page.getByTestId('dz-outdated')).toContainText('Every quest has this version');
+
+    // the monster of the quest now has the new attack
+    await page.getByRole('tab', { name: 'Monsters' }).click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await expect(page.getByTestId('monster-card').getByLabel('att', { exact: true })).toHaveValue(
+      '5',
+    );
+  });
+
+  test('an enemy that is gone from the Designer can be removed from the quest', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Slime');
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('Slime quest');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    const box = (await page.locator('#editor-board').boundingBox())!;
+    const k = box.width / (26 * 34 + 4);
+    await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
+
+    await page.getByRole('tab', { name: 'Quest' }).click();
+    const section = page.getByTestId('enemies-section');
+    await expect(section).toContainText('Slime');
+    await expect(section).toContainText('1 monster use it');
+    await section.getByRole('button', { name: /with its monsters/ }).click();
+    await expect(page.getByTestId('enemies-section')).toHaveCount(0);
+    await page.getByRole('tab', { name: 'Map' }).click();
+    await expect(page.locator('[data-monster]')).toHaveCount(0);
+  });
 });

@@ -18,7 +18,7 @@ import { devTestLevel, levelOfNumber } from './quests';
 import { SelectScreen, type StartChoice } from './select/SelectScreen';
 import { EditorScreen } from './editor/EditorScreen';
 import { EditorStart } from './editor/EditorStart';
-import { DesignerScreen } from './designer/DesignerScreen';
+import { DesignerScreen, type QuestUpdater } from './designer/DesignerScreen';
 import { LibraryProvider } from './designer/LibraryContext';
 import { DexieLibraryStore, MemoryLibraryStore, type LibraryStore } from '../persist/library';
 import { createEditorStore, type EditorStore } from './editor/editorStore';
@@ -152,6 +152,39 @@ function Game({ params }: { params: URLSearchParams }) {
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
   );
+  // The Designer's "Update in all quests": every saved quest and draft, and the open quest through
+  // its editor (so its own autosave does not overwrite the change).
+  const updateQuests = useCallback<QuestUpdater>(
+    async (fn) => {
+      const open = typeof editor === 'object' && editor !== null ? editor : null;
+      const openId = open?.getState().quest.id;
+      const changed = new Set<string>();
+      for (const r of await userStore.list()) {
+        if (r.id === openId) continue;
+        const saved = await userStore.load(r.id);
+        const next = saved ? fn(saved) : undefined;
+        if (next) {
+          await userStore.save(next, Date.now());
+          changed.add(r.id);
+        }
+        const draft = await userStore.loadDraft(r.id);
+        const nextDraft = draft ? fn(draft.quest) : undefined;
+        if (nextDraft) {
+          await userStore.saveDraft(nextDraft, Date.now());
+          changed.add(r.id);
+        }
+      }
+      if (open && openId) {
+        const ok = open.getState().apply((q) => {
+          const next = fn(q);
+          return next ? { ok: true, quest: next, warnings: [] } : { ok: false, error: 'unchanged' };
+        });
+        if (ok) changed.add(openId);
+      }
+      return changed.size;
+    },
+    [editor, userStore],
+  );
 
   // Development only: the engine test fixture is loaded on demand, never bundled in production.
   useEffect(() => {
@@ -228,7 +261,12 @@ function Game({ params }: { params: URLSearchParams }) {
     );
   if (designer)
     return (
-      <DesignerScreen store={libraryStore} quests={questSource} onBack={() => setDesigner(false)} />
+      <DesignerScreen
+        store={libraryStore}
+        quests={questSource}
+        updateQuests={updateQuests}
+        onBack={() => setDesigner(false)}
+      />
     );
   if (editor === 'start')
     return (
@@ -249,6 +287,7 @@ function Game({ params }: { params: URLSearchParams }) {
           onPlaytest={playtestQuest}
           library={libraryStore}
           quests={questSource}
+          updateQuests={updateQuests}
         />
       </LibraryProvider>
     );

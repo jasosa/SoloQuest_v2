@@ -10,7 +10,13 @@ import {
   type EditResult,
 } from './ops';
 import { addSpell, updateSpell } from './meta';
-import { addMonsterOfEnemy, enemyDiffersFromLibrary, updateEnemyFromLibrary } from './library';
+import {
+  addMonsterOfEnemy,
+  enemyDiffersFromLibrary,
+  refreshEnemyInQuest,
+  removeEnemy,
+  updateEnemyFromLibrary,
+} from './library';
 
 function deepFreeze<T>(o: T): T {
   if (o && typeof o === 'object') {
@@ -226,5 +232,36 @@ describe('updateEnemyFromLibrary', () => {
     expect(q1.enemyDefs).toHaveLength(1);
     expect(q1.monsters.at(-1)?.enemy).toBe('marsh');
     expect(enemyDiffersFromLibrary(q1, v2)).toBe(false);
+  });
+});
+
+describe('refreshEnemyInQuest', () => {
+  const lib = { abilities: [], spells: [] };
+  const v1 = { id: 'marsh', name: 'Marsh', base: 'skeleton' as const };
+  it('returns the updated quest, or nothing when the copy is already the same', () => {
+    const q = good(addMonsterOfEnemy(base(), v1, [4, 17], { fromLibrary: true, lib }));
+    expect(refreshEnemyInQuest(q, v1, lib)).toBeUndefined();
+    const v2 = { ...v1, overrides: { att: 6 } };
+    const next = refreshEnemyInQuest(q, v2, lib)!;
+    expect(next.enemyDefs[0]?.overrides).toEqual({ att: 6 });
+    expect(refreshEnemyInQuest(base(), v2, lib)).toBeUndefined(); // a quest without the enemy
+  });
+});
+
+describe('removeEnemy', () => {
+  const lib = { abilities: [], spells: [] };
+  const def = { id: 'marsh', name: 'Marsh', base: 'skeleton' as const };
+  const withMonster = () =>
+    good(addMonsterOfEnemy(base(), def, [4, 17], { fromLibrary: true, lib }));
+  it('takes the enemy out and keeps its monsters as plain ones', () => {
+    const q = good(removeEnemy(withMonster(), 'marsh'));
+    expect(q.enemyDefs).toHaveLength(0);
+    expect(q.monsters.at(-1)?.enemy).toBeUndefined();
+    expect(q.monsters.at(-1)?.type).toBe('skeleton');
+  });
+  it('can take the monsters with it, and refuses an enemy the quest has not', () => {
+    const q = good(removeEnemy(withMonster(), 'marsh', { withMonsters: true }));
+    expect(q.monsters.some((m) => m.enemy === 'marsh')).toBe(false);
+    expect(removeEnemy(base(), 'nope').ok).toBe(false);
   });
 });

@@ -145,6 +145,42 @@ export function addLibrarySpellToMonster(
 }
 
 /**
+ * The quest with its copy of this enemy replaced by the library's version, or undefined when the
+ * quest has no copy or the copy is already the same ("Update in all quests").
+ */
+export function refreshEnemyInQuest(
+  q: Quest,
+  def: EnemyDef,
+  lib: LibraryContent,
+): Quest | undefined {
+  if (!enemyDiffersFromLibrary(q, def)) return undefined;
+  const r = updateEnemyFromLibrary(q, def, lib);
+  return r.ok ? r.quest : undefined;
+}
+
+/**
+ * Take an enemy out of the quest. Its monsters either stay as plain monsters of the type they
+ * carry (they lose the enemy's name, stats, plan and picture), or go with it (`withMonsters`).
+ */
+export function removeEnemy(
+  q: Quest,
+  id: string,
+  opts: { withMonsters?: boolean } = {},
+): EditResult {
+  if (!q.enemyDefs.some((e) => e.id === id)) return fail(`The quest has no enemy ${id}.`);
+  const monsters = opts.withMonsters
+    ? q.monsters.filter((m) => m.enemy !== id)
+    : q.monsters.map((m) => {
+        if (m.enemy !== id) return m;
+        const { enemy: _gone, ...rest } = m;
+        void _gone;
+        return rest;
+      });
+  const quest = { ...q, enemyDefs: q.enemyDefs.filter((e) => e.id !== id), monsters };
+  return ok(quest, newIssues(q, quest));
+}
+
+/**
  * The core type a monster of this enemy carries in the quest file. An enemy with no base type is
  * completely its own: it carries the goblin type, but its own stats, plan and weights win.
  */

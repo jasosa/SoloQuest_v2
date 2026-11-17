@@ -17,8 +17,16 @@ import {
   SPELL_TAG_QUESTIONS,
   isSpellTag,
 } from '../../engine/data/spells';
+import { enemyDiffersFromLibrary, refreshEnemyInQuest } from '../../engine/editor/library';
 import { usageOf, type UsageKind, type UsageRow } from '../../engine/editor/usage';
-import { MONSTER_TYPES, type MonsterType, type Quest } from '../../engine/quest/schema';
+import {
+  EnemyDefSchema,
+  MONSTER_TYPES,
+  type AbilityDefData,
+  type MonsterType,
+  type Quest,
+  type SpellDefData,
+} from '../../engine/quest/schema';
 import {
   LIBRARY_KINDS,
   LIBRARY_KIND_NAMES,
@@ -39,9 +47,16 @@ const LOCK_CORE = false;
 /** The quests to look at for the "Used in" panel. */
 export type QuestSource = () => Promise<readonly { title: string; quest: Quest }[]>;
 
+/**
+ * Change every quest made here (saved and draft). The function returns the changed quest, or
+ * undefined to leave it. Resolves to the number of quests that changed.
+ */
+export type QuestUpdater = (fn: (q: Quest) => Quest | undefined) => Promise<number>;
+
 export interface DesignerBodyProps {
   store: LibraryStore;
   quests?: QuestSource;
+  updateQuests?: QuestUpdater;
 }
 
 export interface DesignerScreenProps extends DesignerBodyProps {
@@ -447,7 +462,7 @@ function NewItemPopup({
  * selected item in the middle, where it is used and its token on the right. Core items are read
  * only; "Mine" items save as they change. Export and import move the library between devices.
  */
-export function DesignerBody({ store, quests }: DesignerBodyProps) {
+export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps) {
   const [kind, setKind] = useState<LibraryKind>('enemy');
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -455,6 +470,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
   const [message, setMessage] = useState('');
   const [popup, setPopup] = useState<{ kind: 'ability' | 'spell'; draft: Data } | null>(null);
   const [usage, setUsage] = useState<readonly UsageRow[]>([]);
+  const [questList, setQuestList] = useState<readonly { title: string; quest: Quest }[]>([]);
   const [abPick, setAbPick] = useState('');
   const [spPick, setSpPick] = useState('');
   const file = useRef<HTMLInputElement>(null);
@@ -503,12 +519,22 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
     let live = true;
     if (!quests || !selected || !usageKind) return;
     void quests().then((qs) => {
-      if (live) setUsage(usageOf(usageKind, selected, qs));
+      if (live) {
+        setUsage(usageOf(usageKind, selected, qs));
+        setQuestList(qs);
+      }
     });
     return () => {
       live = false;
     };
   }, [quests, selected, usageKind]);
+
+  // The selected enemy as the quests would copy it, and how many quests hold a different copy.
+  const parsedEnemy = kind === 'enemy' && data ? EnemyDefSchema.safeParse(data) : undefined;
+  const enemyDef = parsedEnemy?.success ? parsedEnemy.data : undefined;
+  const outdated = enemyDef
+    ? questList.filter((q) => enemyDiffersFromLibrary(q.quest, enemyDef)).length
+    : 0;
 
   const pick = (id: string | null) => {
     setSelected(id);
@@ -1100,6 +1126,38 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                     </li>
                   ))}
                 </ul>
+              )}
+              {kind === 'enemy' && updateQuests && enemyDef && (
+                <>
+                  <p className="fr-help" data-testid="dz-outdated">
+                    {outdated === 0
+                      ? 'Every quest has this version.'
+                      : `${outdated} quest${outdated === 1 ? ' has' : 's have'} an older copy.`}
+                  </p>
+                  <button
+                    className="btn alt"
+                    data-testid="dz-update-all"
+                    disabled={outdated === 0}
+                    onClick={() => {
+                      const libContent = {
+                        abilities: items
+                          .filter((i) => i.kind === 'ability')
+                          .map((i) => i.data as unknown as AbilityDefData),
+                        spells: items
+                          .filter((i) => i.kind === 'spell')
+                          .map((i) => i.data as unknown as SpellDefData),
+                      };
+                      void updateQuests((q) => refreshEnemyInQuest(q, enemyDef, libContent)).then(
+                        (n) => {
+                          setMessage(`Updated in ${n} quest${n === 1 ? '' : 's'}.`);
+                          void quests?.().then((qs) => setQuestList(qs));
+                        },
+                      );
+                    }}
+                  >
+                    Update in all quests
+                  </button>
+                </>
               )}
             </Panel>
           )}
