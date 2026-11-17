@@ -81,6 +81,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "effects": [ { "type": "showText", "text": "The weapons on this rack are chipped, rusted and broken. Nothing is worth taking." } ],
   "consumesTreasure": true                              // no treasure card is drawn when this fires
   // or: "blocksSearch": true   (treasureSearch only, not together with consumesTreasure)
+  // "keepMark": true   (square and zone notes: the mark stays on the map after the note fired)
 }
 ```
 

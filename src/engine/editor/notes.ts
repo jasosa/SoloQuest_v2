@@ -112,6 +112,8 @@ export interface NotePatch {
   when?: Condition[] | null;
   effects?: Effect[];
   consumesTreasure?: boolean | null;
+  /** Square and zone notes: the mark stays on the map after the note fired. */
+  keepMark?: boolean | null;
   blocksSearch?: boolean | null;
 }
 
@@ -141,6 +143,7 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
   if (patch.effects !== undefined) next.effects = patch.effects;
   if (patch.consumesTreasure !== undefined)
     set('consumesTreasure', patch.consumesTreasure ? true : null);
+  if (patch.keepMark !== undefined) set('keepMark', patch.keepMark ? true : null);
   if (patch.blocksSearch !== undefined) set('blocksSearch', patch.blocksSearch ? true : null);
   const quest = { ...q, notes: q.notes.map((x) => (x.id === id ? (next as Note) : x)) };
   return ok(quest, newIssues(q, quest));

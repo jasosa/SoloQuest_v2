@@ -444,6 +444,18 @@ export function ActionForm({
         >
           No treasure card is drawn
         </button>
+        {(note.trigger.type === 'squareEntered' ||
+          note.trigger.type === 'zoneEntered' ||
+          note.target?.kind === 'square' ||
+          note.target?.kind === 'zone') && (
+          <button
+            className="chip ed-wide"
+            aria-pressed={note.keepMark === true}
+            onClick={() => patch({ keepMark: note.keepMark ? null : true })}
+          >
+            Keep the mark on the map after it fires
+          </button>
+        )}
         {(note.trigger.type === 'treasureSearch' || note.blocksSearch === true) && (
           <button
             className="chip ed-wide"

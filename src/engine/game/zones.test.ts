@@ -56,7 +56,14 @@ describe('zones (decision 68)', () => {
     const r = reduce(lv, s, enter('z1'));
     expect(r.state.notesFired).toContain('in-z1');
     expect(r.prompts.some((p) => p.kind === 'note')).toBe(true);
-    expect(zoneLabels(lv, r.state).map((z) => [z.zone, z.enter])).toEqual([['z1', false]]);
+    // no `keepMark`: the mark goes with the note
+    expect(zoneLabels(lv, r.state)).toEqual([]);
+    const kept = buildLevel({
+      ...lv.quest,
+      notes: lv.quest.notes.map((n) => (n.id === 'in-z1' ? { ...n, keepMark: true } : n)),
+    });
+    const k = reduce(kept, initialState(kept, SEED), enter('z1'));
+    expect(zoneLabels(kept, k.state).map((z) => [z.zone, z.enter])).toEqual([['z1', false]]);
     expect(() => reduce(lv, r.state, enter('z1'))).toThrow(EventError);
   });
 

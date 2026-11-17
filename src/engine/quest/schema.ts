@@ -334,6 +334,8 @@ const NoteSchema = z.strictObject({
   when: z.array(ConditionSchema).optional(),
   effects: z.array(EffectSchema),
   consumesTreasure: z.boolean().optional(),
+  /** A square or zone note: its mark stays on the map after the note fired (tap shows what was read). */
+  keepMark: z.boolean().optional(),
   /** Treasure search only: the note is shown, no card, no chest trap, and the search is not used up. */
   blocksSearch: z.boolean().optional(),
 });

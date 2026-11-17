@@ -90,7 +90,13 @@ export function squareMarkers(level: Level, state: GameState): SquareMarker[] {
     const t = n.trigger;
     if (t.type !== 'squareEntered') continue;
     const k = keyOf(t.cell);
-    if (!state.seenCells.has(k) || !isAvailable(n, state)) continue;
+    if (!state.seenCells.has(k)) continue;
+    if (!isAvailable(n, state)) {
+      // fired: the square keeps its mark only when the note says so (a tap shows what was read)
+      if (n.keepMark === true && !out.has(k))
+        out.set(k, { cell: parseKey(k), repeat: false, step: false });
+      continue;
+    }
     const repeat = t.repeat === true || out.get(k)?.repeat === true;
     out.set(k, { cell: parseKey(k), repeat, step: true });
   }
@@ -134,7 +140,7 @@ export interface ZoneLabel {
 
 /**
  * Zones that get a label on the map (decision 68): a seen zone with a `zoneEntered` note or a
- * button of its own, waiting or already used (the mark is permanent). Neutral: nothing about the
+ * button of its own that waits, or whose note has `keepMark` (the mark stays after use). Neutral: nothing about the
  * content.
  */
 export function zoneLabels(level: Level, state: GameState): ZoneLabel[] {
@@ -155,11 +161,12 @@ export function zoneLabels(level: Level, state: GameState): ZoneLabel[] {
         n.target.id === z.id &&
         isAvailable(n, state),
     );
-    // The zone stays marked for good, also after its note was read: a tap shows what was read.
+    // A note with `keepMark` leaves the zone marked after it fired: a tap shows what was read.
     const any = level.quest.notes.some(
       (n) =>
-        (n.trigger.type === 'zoneEntered' && n.trigger.zone === z.id) ||
-        (n.trigger.type === 'manual' && n.target?.kind === 'zone' && n.target.id === z.id),
+        n.keepMark === true &&
+        ((n.trigger.type === 'zoneEntered' && n.trigger.zone === z.id) ||
+          (n.target?.kind === 'zone' && n.target.id === z.id)),
     );
     if (enter || button || any)
       out.push({
