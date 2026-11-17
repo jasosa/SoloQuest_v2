@@ -659,7 +659,30 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               setStep({ t: 'who' });
             }}
           />
-          {forQuest('furniture', cv.id)}
+          {/* the same room scope as any furniture: searching the room from the chest */}
+          <RoomScope>
+            <RoomMenu
+              onTreasure={() => {
+                setSel({ kind: 'room', room: cv.room });
+                setStep({ t: 'pick', what: 'treasure', override: false });
+              }}
+              onSecret={() => {
+                if (roomCodes.length > 0) {
+                  setSel({ kind: 'room', room: cv.room });
+                  setStep({ t: 'pick', what: 'secret', override: false });
+                } else run({ type: 'SEARCH_SECRET_DOORS', area: cv.room }, anchor);
+              }}
+              onEnter={
+                enterable.includes(cv.room)
+                  ? () => act({ type: 'AREA_ENTER', area: cv.room })
+                  : undefined
+              }
+            />
+          </RoomScope>
+          {forQuestMany([
+            ['furniture', cv.id],
+            ['area', cv.room],
+          ])}
         </MarginNote>
       );
     }

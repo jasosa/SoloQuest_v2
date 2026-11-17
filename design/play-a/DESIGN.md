@@ -178,7 +178,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 1. **Element** (the top of the note): the furniture name as the small caps line, then the title **No actions** with one hint line ("This cupboard has no special action."). When the piece has quest buttons the title is **Actions** and the hint is left out.
 2. **ROOM**: the small caps heading, the title **Search this room**, the hint "One hero, one search, on their own turn.", then the buttons Search for treasure and Search for secret doors (and "A hero enters" when it applies). Shown once, never repeated.
 3. **FOR THIS QUEST**: the notes read and buttons of the furniture and of its room in one block. The letter chip sits at the top of its row, aligned with the first line of a long note.
-A tap on the bare floor of a room shows the room scope alone ("Room", "Search this room"). A chest keeps its own note (Look for traps).
+A tap on the bare floor of a room shows the room scope alone ("Room", "Search this room"). A chest has the same three scopes: its own actions first (Look for traps, or disarm), then **ROOM** with the room searches, then **FOR THIS QUEST**.
 
 **Element buttons.** Every tap on a door, furniture piece, monster, trap, marker or room label opens the usual margin note. When the element has quest notes, the margin note gets a hairline and a small caps line **For this quest** below its standard actions:
 - the notes already read for this element (letter chip or bullet, first sentence; tap to read again), then

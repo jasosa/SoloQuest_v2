@@ -260,6 +260,9 @@ test.describe('traps (dev fixture)', () => {
     await page.locator('[data-chest="f-chest-b"]').click();
     await expect(dialog(page)).toContainText('Already searched');
     await expect(btn(page, 'Search for traps')).toHaveCount(0);
+    // a chest is furniture too: the room actions are in its note, under their own heading
+    await expect(dialog(page)).toContainText('Search this room');
+    await expect(btn(page, 'Search for treasure')).toBeVisible();
     await shot(page, 'chest-searched');
   });
 
