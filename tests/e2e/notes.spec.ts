@@ -327,9 +327,10 @@ test.describe('notes engine on the dev fixture', () => {
   }) => {
     await fixture(page, 'd1');
     const label = page.locator('[data-zone="z1"]');
-    await expect(label).toHaveCount(1);
+    await expect(label.first()).toBeVisible(); // one hit area per square of the zone
     await expect(page.locator('[data-zone-label="z1"]')).toHaveCount(1);
-    await label.click();
+    await expect(page.locator('[data-zone-label="z1"] circle')).not.toHaveCount(0);
+    await label.first().click();
     await expect(page.getByRole('dialog', { name: 'A hero enters' })).toContainText('steps into');
     await shot(page, 'notes-zone');
     await btn(page, 'A hero enters').click();

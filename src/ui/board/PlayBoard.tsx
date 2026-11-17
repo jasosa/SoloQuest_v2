@@ -693,52 +693,40 @@ export function PlayBoard({
 
   // Zones with something waiting (decision 68): one small label on the first seen square.
   for (const z of zoneLabels(level, state)) {
-    const cx = (z.cell[0] + 0.5) * S;
-    const cy = (z.cell[1] + 0.5) * S;
-    // The whole zone is outlined (light dashes), and one square carries the same ring and dot
-    // as every other square marker (quest 12, falling blocks), so the icons look alike.
+    // Every seen square of the zone carries the same dashed ring and dot as every other square
+    // marker (quest 12, falling blocks), and a tap on any of them opens the zone's note.
     markerMarks.push(
-      <g key={`zn${z.zone}`} pointerEvents="none" data-zone-label={z.zone}>
+      <g key={`zn${z.zone}`} opacity={0.75} pointerEvents="none" data-zone-label={z.zone}>
         {z.cells.map((c) => (
-          <rect
-            key={`${c[0]},${c[1]}`}
-            x={c[0] * S + 3}
-            y={c[1] * S + 3}
-            width={S - 6}
-            height={S - 6}
-            fill="none"
-            stroke={color.ink}
-            strokeOpacity={0.35}
-            strokeWidth={1.2}
-            strokeDasharray="3 2.5"
-          />
+          <g key={`${c[0]},${c[1]}`}>
+            <circle
+              cx={(c[0] + 0.5) * S}
+              cy={(c[1] + 0.5) * S}
+              r={9}
+              fill="none"
+              stroke={color.ink}
+              strokeWidth={1.5}
+              strokeDasharray="3 2.5"
+            />
+            <circle cx={(c[0] + 0.5) * S} cy={(c[1] + 0.5) * S} r={2} fill={color.ink} />
+          </g>
         ))}
-        <g opacity={0.75}>
-          <circle
-            cx={cx}
-            cy={cy}
-            r={9}
-            fill="none"
-            stroke={color.ink}
-            strokeWidth={1.5}
-            strokeDasharray="3 2.5"
-          />
-          <circle cx={cx} cy={cy} r={2} fill={color.ink} />
-        </g>
       </g>,
     );
-    markerHits.push(
-      <rect
-        key={`znh${z.zone}`}
-        className="hit"
-        data-hit
-        data-zone={z.zone}
-        x={cx - 22}
-        y={cy - 22}
-        width={44}
-        height={44}
-        {...press('Zone with something waiting', () => onSelect({ kind: 'zone', id: z.zone }))}
-      />,
+    z.cells.forEach((c, i) =>
+      markerHits.push(
+        <rect
+          key={`znh${z.zone}-${i}`}
+          className="hit"
+          data-hit
+          data-zone={z.zone}
+          x={c[0] * S}
+          y={c[1] * S}
+          width={S}
+          height={S}
+          {...press('Zone with something waiting', () => onSelect({ kind: 'zone', id: z.zone }))}
+        />,
+      ),
     );
   }
 
