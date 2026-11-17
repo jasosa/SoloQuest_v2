@@ -38,6 +38,7 @@ Stone entries and fresh wandering monsters have no `noTarget`.
 | Key | Text shown | Needs |
 |---|---|---|
 | `closest` | The closest hero it can reach | the board |
+| `isolated` | A hero with no other hero next to them and another monster next to them (cut off from the others) | the board |
 | `lastAttacker` | The hero who attacked it last | players remember |
 | `lowestBody` | The hero with the fewest Body Points left | character sheets |
 | `highestBody` | The hero with the most Body Points left | character sheets |
@@ -53,20 +54,20 @@ A rule is drawn **each Zargon turn, per monster**, with these weights. Monsters 
 
 | Monster | Profile (plan) | Weights |
 |---|---|---|
-| Goblin | skirmisher | lowestBody 3, lowestDef 3, caster 2, closest 2, lastAttacker 1 |
-| Orc | soldier | closest 3, lastAttacker 3, lowestBody 2, highestAtt 1, grudge 1 |
-| Abomination | brute | highestAtt 2, closest 2, lastAttacker 2, highestBody 1, grudge 1 |
-| Dread warrior | duelist | highestAtt 3, highestBody 2, grudge 2, lastAttacker 1 |
-| Skeleton, Zombie, Mummy | relentless | closest 4, lastAttacker 2, lowestDef 1 |
-| Gargoyle | brute | highestBody 2, closest 2, lastAttacker 1, grudge 1 |
+| Goblin | skirmisher | isolated 1 (no hero fits: the tie list) |
+| Orc | fighter | closest 3, lastAttacker 3, lowestBody 2, highestAtt 1, grudge 1 |
+| Abomination | fighter | highestAtt 2, closest 2, lastAttacker 2, highestBody 1, grudge 1 |
+| Dread warrior | fighter | highestAtt 3, highestBody 2, grudge 2, lastAttacker 1 |
+| Skeleton, Zombie, Mummy | relentless | closest 1 (always the closest) |
+| Gargoyle | relentless | highestBody 2, closest 2, lastAttacker 1, grudge 1 |
 | Named casters (Grak, Balur, Witch Lord; packs: Vilor, Frozen Horror, Jracksfot) | caster | spell flow first (below), then like Dread warrior |
 | Ice Gremlin | thief | closest 3, lowestDef 2, lowestBody 1 |
-| Polar Warbear | brute, 2 attacks | closest 3, highestAtt 2, lastAttacker 2, grudge 1 |
+| Polar Warbear | relentless, 2 attacks | closest 3, highestAtt 2, lastAttacker 2, grudge 1 |
 | Yeti | grappler | lowestDef 3, lowestBody 2, closest 2 |
 | Crossbowman (enemy) | shooter | caster 3, lowestDef 2, lastAttacker 2 |
-| Halberdier (enemy) | soldier | like Orc; special rule: attacks diagonally |
+| Halberdier (enemy) | fighter | like Orc; special rule: attacks diagonally |
 | Scout (enemy) | skirmisher | like Goblin |
-| Swordsman (enemy), Krag, Kelvinos | duelist | like Dread warrior |
+| Swordsman (enemy), Krag, Kelvinos | fighter | like Dread warrior |
 | Wolf mummy | relentless | like Mummy |
 
 Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync. Pack monsters (decision 36) bring their profile and weights in the pack data; the rows for Frozen Horror monsters are listed here so the table stays complete.
@@ -76,11 +77,9 @@ Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync. Pa
 | Profile | Plan text |
 |---|---|
 | skirmisher | Next to a hero: attack, then run back out of reach. Otherwise: move in and attack. |
-| soldier | Move in and attack. Already next to a hero: attack and stay. |
-| brute | Move in and attack. Never falls back. |
-| duelist | Move in and attack. No hero in reach: move toward the nearest hero. |
+| fighter | Move in and attack. Already next to a hero: attack and stay, or (1 turn in 3, seeded) attack, then move back out of reach. |
 | relentless | Move in and attack. Never falls back. |
-| caster | Cast a spell if a target is in sight and a spell is left; otherwise as duelist. |
+| caster | Cast a spell first (see below); otherwise as fighter, without moving back. |
 | thief | See below. |
 | grappler | See below. |
 | shooter | Target in sight, not adjacent: shoot, don't move. None in sight: move until one is, then shoot. Starts next to a target: 70% "step back out of contact and shoot; if it can't, melee and stay", 30% "melee and stay". |

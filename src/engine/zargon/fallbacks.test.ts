@@ -12,10 +12,11 @@ const TEAM: Hero[] = ['barbarian', 'dwarf', 'elf', 'wizard'];
 const NAMES = { barbarian: 'Barbarian', dwarf: 'Dwarf', elf: 'Elf', wizard: 'Wizard' };
 
 describe('noTargetText (decision 35)', () => {
-  it('has a line only for lastAttacker, caster and grudge', () => {
+  it('has a line only for isolated, lastAttacker, caster and grudge', () => {
     for (const k of RULE_KEYS) {
       const t = noTargetText(k, 'Dwarf');
-      if (k === 'lastAttacker' || k === 'caster' || k === 'grudge') expect(t).toMatch(/tie list/);
+      if (k === 'isolated' || k === 'lastAttacker' || k === 'caster' || k === 'grudge')
+        expect(t).toMatch(/tie list/);
       else expect(t).toBeUndefined();
     }
     expect(noTargetText('lastAttacker')).toBe('If nobody has attacked it yet, use the tie list.');
@@ -41,7 +42,7 @@ describe('Order.noTarget', () => {
   ];
   const lv = buildLevel(testQuest({ monsters }));
 
-  it('exists only for lastAttacker, caster and grudge, with the hero name for a grudge', () => {
+  it('exists only for isolated, lastAttacker, caster and grudge, with the hero name for a grudge', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200; seed++) {
       for (const o of ordersFor(lv, replay(lv, seed, []), TEAM)) {
@@ -53,7 +54,7 @@ describe('Order.noTarget', () => {
       }
     }
     expect(seen.has('closest') && seen.has('lastAttacker') && seen.has('grudge')).toBe(true);
-    expect(seen.has('caster')).toBe(true);
+    expect(seen.has('isolated')).toBe(true);
   });
 
   it('stone entries and fresh wanderers have none', () => {

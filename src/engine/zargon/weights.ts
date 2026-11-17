@@ -5,6 +5,7 @@ import type { MonsterDef, MonsterType } from '../quest/schema';
 
 export const RULE_KEYS = [
   'closest',
+  'isolated',
   'lastAttacker',
   'lowestBody',
   'highestBody',
@@ -16,16 +17,22 @@ export const RULE_KEYS = [
 ] as const;
 export type RuleKey = (typeof RULE_KEYS)[number];
 
-export type Profile = 'skirmisher' | 'soldier' | 'brute' | 'duelist' | 'relentless' | 'caster';
+/**
+ * The plan of a monster (decision 74): skirmisher (goblins), fighter (orcs, abominations, dread
+ * warriors: sometimes attack and move back), relentless (undead, gargoyles: never fall back), caster.
+ */
+export type Profile = 'skirmisher' | 'fighter' | 'relentless' | 'caster';
 
 export type Weights = Readonly<Partial<Record<RuleKey, number>>>;
 
 const DUELIST: Weights = { highestAtt: 3, highestBody: 2, grudge: 2, lastAttacker: 1 };
-const RELENTLESS: Weights = { closest: 4, lastAttacker: 2, lowestDef: 1 };
+// Skeletons, zombies and mummies always go for the closest hero.
+const RELENTLESS: Weights = { closest: 1 };
 
 /** Weights per monster type. */
 export const WEIGHTS: Readonly<Record<MonsterType, Weights>> = {
-  goblin: { lowestBody: 3, lowestDef: 3, caster: 2, closest: 2, lastAttacker: 1 },
+  // Goblins pick on a hero cut off from the others, next to other monsters.
+  goblin: { isolated: 1 },
   orc: { closest: 3, lastAttacker: 3, lowestBody: 2, highestAtt: 1, grudge: 1 },
   abomination: { highestAtt: 2, closest: 2, lastAttacker: 2, highestBody: 1, grudge: 1 },
   dreadWarrior: DUELIST,
@@ -42,14 +49,14 @@ export const CASTER_WEIGHTS: Weights = DUELIST;
 
 export const PROFILE_OF_TYPE: Readonly<Record<MonsterType, Exclude<Profile, 'caster'>>> = {
   goblin: 'skirmisher',
-  orc: 'soldier',
-  abomination: 'brute',
-  dreadWarrior: 'duelist',
+  orc: 'fighter',
+  abomination: 'fighter',
+  dreadWarrior: 'fighter',
   skeleton: 'relentless',
   zombie: 'relentless',
   mummy: 'relentless',
-  gargoyle: 'brute',
-  dreadSorcerer: 'duelist',
+  gargoyle: 'relentless',
+  dreadSorcerer: 'fighter',
 };
 
 type ProfileInput = Pick<MonsterDef, 'type'> & { readonly spells?: readonly string[] | undefined };

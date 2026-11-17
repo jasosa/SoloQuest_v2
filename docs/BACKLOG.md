@@ -138,6 +138,7 @@ General, need a design decision first (ask owner)
 - [ ] Action panel split by scope: Element (actions of the element, maybe none), Room (clear labels, e.g. Search Room), Quest (clear labels). Furniture click must not show Search Room as an element action
 - [x] Spell flow (decision 72): show the spell and its questions; No shows the alternative spell (if any); No again shows regular movement. Make questions concrete (e.g. "Is a hero with high attack in sight?"). Clarify move/cast order per spell
 - [ ] Designer: let the owner define situation tags and their questions for spells (a tag is a short id plus a concrete question and an optional app check), not only pick from the fixed list. Today the 16 tags and their texts are fixed in `src/engine/data/spells.ts`; a spell can only have its own single question.
+- [ ] Designer: make monster profiles editable (the plan text, whether it sometimes moves back, and the target weights per monster type), like abilities and spells. Today profiles and weights are fixed in `src/engine/zargon/weights.ts` and `texts.ts` (decision 74).
 - [x] Behaviors: "Block doorway" is unclear and is the same for every monster type
 - [ ] Board zoom: pinch gestures and numeric controls
 
@@ -190,3 +191,9 @@ Per quest
 - [ ] Frozen Horror spell tags and random extra spells
 - [ ] Editor: pack tools, map tabs, spell builder
 - [ ] Encode Q0 and Q1..Q10, overlays, walk-through tests; confirm the dark square near F in Q0
+
+## Editor changes asked in the quests review (not now)
+
+- [ ] Zones: the zone effect disappears after the first interaction (find out what the effect is and why it goes)
+- [ ] Actions popup appears on top of the existing text. It should work like the monsters one (a panel beside the list, not over the text)
+- [ ] Monsters and Actions info appear twice: in their tabs and in the side panel. Remove them from the side panel

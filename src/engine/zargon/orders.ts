@@ -14,8 +14,15 @@ import { rngFor, shuffled } from './hash';
 import { SPELL_EFFECT_TEXT } from './spells';
 import { SPELL_TIMING_TEXT, hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
 import { pickSpell } from './spellPick';
-import { PLAN_TEXT, RULE_TEXT, noTargetText } from './texts';
-import { isCaster, profileOf, weightsOf, type Profile, type RuleKey } from './weights';
+import { PLAN_TEXT, RULE_TEXT, fighterPlan, noTargetText } from './texts';
+import {
+  isCaster,
+  profileOf,
+  weightsOf,
+  type Profile,
+  type RuleKey,
+  type Weights,
+} from './weights';
 
 /** The one spell picked for a caster this turn. The app does not describe spells. */
 export interface SpellPick {
@@ -97,9 +104,10 @@ export function availableRules(
   def: Caps,
   living: readonly Hero[],
   grudgeAlive = true,
+  weights: Weights = weightsOf(def),
 ): [RuleKey, number][] {
   const hasCaster = living.includes('wizard') || living.includes('elf');
-  return (Object.entries(weightsOf(def)) as [RuleKey, number][]).filter(
+  return (Object.entries(weights) as [RuleKey, number][]).filter(
     ([k, w]) =>
       w > 0 &&
       (k !== 'caster' || hasCaster) &&
@@ -241,7 +249,10 @@ function buildOrder(
     ...(grudge ? { grudgeHero: grudge } : {}),
     // The shuffle is of the full team, so the relative order stays the same after a death.
     tie: shuffled(full, rngFor(seed, turn, id, 'tie')).filter((h) => living.includes(h)),
-    plan: PLAN_TEXT[profile],
+    plan:
+      profile === 'fighter'
+        ? fighterPlan(next(rngFor(seed, turn, id, 'back'))[0] < 1 / 3)
+        : PLAN_TEXT[profile],
     ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
       ? {}
       : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),

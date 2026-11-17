@@ -138,24 +138,18 @@ describe('orders after a death (decision 32)', () => {
   });
 
   it('the caster rule needs a living Wizard or Elf', () => {
+    // no core monster uses the caster rule now (a pack enemy does), so give the weights here
     const goblin = { type: 'goblin' } as const;
-    expect(availableRules(goblin, ['barbarian', 'dwarf']).map(([k]) => k)).not.toContain('caster');
-    expect(availableRules(goblin, ['barbarian', 'wizard']).map(([k]) => k)).toContain('caster');
+    const w = { caster: 2, closest: 1 };
+    expect(availableRules(goblin, ['barbarian', 'dwarf'], true, w).map(([k]) => k)).not.toContain(
+      'caster',
+    );
+    expect(availableRules(goblin, ['barbarian', 'wizard'], true, w).map(([k]) => k)).toContain(
+      'caster',
+    );
     expect(availableRules({ type: 'orc' }, ['dwarf'], false).map(([k]) => k)).not.toContain(
       'grudge',
     );
-    const g = buildLevel(
-      testQuest({
-        monsters: [
-          { id: 'g', type: 'goblin', cell: [6, 15] },
-          { id: 'm3', type: 'gargoyle', hidden: true },
-        ],
-      }),
-    );
-    for (let seed = 1; seed <= 150; seed++) {
-      const s = replay(g, seed, [open('d2'), died('elf'), died('wizard')]);
-      expect(ordersFor(g, s, TEAM)[0]!.rule).not.toBe('caster');
-    }
   });
 
   it('is identical after undo and replay', () => {

@@ -43,18 +43,17 @@ const code = (fn: () => unknown): EventErrorCode | undefined => {
 describe('weights and profiles', () => {
   it('profileOf follows the table', () => {
     expect(profileOf({ type: 'goblin' })).toBe('skirmisher');
-    expect(profileOf({ type: 'orc' })).toBe('soldier');
-    expect(profileOf({ type: 'abomination' })).toBe('brute');
-    expect(profileOf({ type: 'dreadWarrior' })).toBe('duelist');
-    for (const t of ['skeleton', 'zombie', 'mummy'] as const)
+    expect(profileOf({ type: 'orc' })).toBe('fighter');
+    expect(profileOf({ type: 'abomination' })).toBe('fighter');
+    expect(profileOf({ type: 'dreadWarrior' })).toBe('fighter');
+    for (const t of ['skeleton', 'zombie', 'mummy', 'gargoyle'] as const)
       expect(profileOf({ type: t })).toBe('relentless');
-    expect(profileOf({ type: 'gargoyle' })).toBe('brute');
   });
 
   it('named monsters with spells and the dread sorcerer are casters', () => {
     expect(profileOf({ type: 'gargoyle', spells: ['fear'] })).toBe('caster');
     expect(profileOf({ type: 'dreadSorcerer' })).toBe('caster');
-    expect(profileOf({ type: 'gargoyle', spells: [] })).toBe('brute');
+    expect(profileOf({ type: 'gargoyle', spells: [] })).toBe('relentless');
     expect(weightsOf({ type: 'gargoyle', spells: ['fear'] })).toEqual(WEIGHTS.dreadWarrior);
   });
 
@@ -76,7 +75,7 @@ describe('ordersFor', () => {
     expect(orders.map((o) => o.monster)).toEqual(['m1']);
     const o = orders[0]!;
     expect(o.status).toBe('act');
-    expect(o.profile).toBe('soldier');
+    expect(o.profile).toBe('fighter');
     expect(o.ruleText).toBeTruthy();
     expect(o.plan).toContain('Move in and attack');
     expect([...o.tie].sort()).toEqual([...TEAM].sort());
@@ -169,25 +168,53 @@ describe('weights are respected', () => {
       const r = ordersFor(l, replay(l, seed, [open('d2')]), TEAM)[0]!.rule!;
       n[r] = (n[r] ?? 0) + 1;
     }
-    // closest 4 of 7, lastAttacker 2 of 7, lowestDef 1 of 7
-    expect(n.closest! / N).toBeGreaterThan(0.5);
-    expect(n.closest! / N).toBeLessThan(0.64);
-    expect(n.lowestDef! / N).toBeGreaterThan(0.1);
-    expect(n.lowestDef! / N).toBeLessThan(0.19);
+    // undead always go for the closest hero
+    expect(n.closest).toBe(N);
+  });
+
+  it('a goblin picks on the isolated hero, an orc is drawn by weight', () => {
+    const l = buildLevel(
+      testQuest({
+        monsters: [{ id: 'x', type: 'orc', cell: [6, 15] }, ...monsters().slice(1)],
+      }),
+    );
+    const n: Record<string, number> = {};
+    const N = 2000;
+    for (let seed = 1; seed <= N; seed++) {
+      const r = ordersFor(l, replay(l, seed, [open('d2')]), TEAM)[0]!.rule!;
+      n[r] = (n[r] ?? 0) + 1;
+    }
+    // closest 3, lastAttacker 3, lowestBody 2, highestAtt 1, grudge 1 (of 10)
+    expect(n.closest! / N).toBeGreaterThan(0.25);
+    expect(n.closest! / N).toBeLessThan(0.35);
+    const g = buildLevel(
+      testQuest({ monsters: [{ id: 'x', type: 'goblin', cell: [6, 15] }, ...monsters().slice(1)] }),
+    );
+    for (let seed = 1; seed <= 50; seed++)
+      expect(ordersFor(g, replay(g, seed, [open('d2')]), TEAM)[0]!.rule).toBe('isolated');
+  });
+
+  it('a fighter sometimes moves back after attacking, the same for the same seed and turn', () => {
+    const l = buildLevel(
+      testQuest({ monsters: [{ id: 'x', type: 'orc', cell: [6, 15] }, ...monsters().slice(1)] }),
+    );
+    let back = 0;
+    const N = 600;
+    for (let seed = 1; seed <= N; seed++) {
+      const o = ordersFor(l, replay(l, seed, [open('d2')]), TEAM)[0]!;
+      if (o.plan?.includes('move back out of reach')) back++;
+      expect(ordersFor(l, replay(l, seed, [open('d2')]), TEAM)[0]!.plan).toBe(o.plan);
+    }
+    expect(back / N).toBeGreaterThan(0.25);
+    expect(back / N).toBeLessThan(0.42);
   });
 
   it('redraws rules that need a Wizard or Elf when the team has none', () => {
-    expect(availableRules({ type: 'goblin' }, TEAM).map(([k]) => k)).toContain('caster');
+    const w = { caster: 2, closest: 1 };
+    expect(availableRules({ type: 'goblin' }, TEAM, true, w).map(([k]) => k)).toContain('caster');
     expect(
-      availableRules({ type: 'goblin' }, ['barbarian', 'dwarf']).map(([k]) => k),
+      availableRules({ type: 'goblin' }, ['barbarian', 'dwarf'], true, w).map(([k]) => k),
     ).not.toContain('caster');
-    const l = buildLevel(
-      testQuest({ monsters: [{ id: 'x', type: 'goblin', cell: [6, 15] }, ...monsters().slice(1)] }),
-    );
-    for (let seed = 1; seed <= 300; seed++) {
-      const s = replay(l, seed, [open('d2')]);
-      expect(ordersFor(l, s, ['barbarian', 'dwarf'])[0]!.rule).not.toBe('caster');
-    }
   });
 
   it('offers grudge to a single hero and names that hero', () => {
