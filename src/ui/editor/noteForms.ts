@@ -93,7 +93,8 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
     }
     case 'zoneEntered': {
       const z = q.zones[0];
-      return z ? good({ type, zone: z.id }) : bad('Add a zone first.');
+      // a zone asks "a hero enters" on every tap by default; "Fires every time" can be turned off
+      return z ? good({ type, zone: z.id, repeat: true }) : bad('Add a zone first.');
     }
     case 'squareEntered':
       return good({ type, cell: firstCell(q) });

@@ -136,7 +136,7 @@ describe('retarget and changeTrigger', () => {
     const n = note({ trigger: { type: 'areaEntered', area: 'R03' } });
     expect(retarget(q, n, { kind: 'zone', id: 'z1' })).toEqual({
       ok: true,
-      value: { trigger: { type: 'zoneEntered', zone: 'z1' }, target: null },
+      value: { trigger: { type: 'zoneEntered', zone: 'z1', repeat: true }, target: null },
     });
     expect(retarget(q, n, { kind: 'quest' })).toMatchObject({
       ok: true,

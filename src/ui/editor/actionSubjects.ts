@@ -135,7 +135,7 @@ export function triggerFor(
       return c ? done({ type, cell: c }) : noFit();
     }
     case 'zoneEntered':
-      return s.kind === 'zone' ? done({ type, zone: s.id }) : noFit();
+      return s.kind === 'zone' ? done({ type, zone: s.id, repeat: true }) : noFit();
     case 'doorOpened':
       return s.kind === 'door' ? done({ type, door: s.id }) : noFit();
     case 'monsterSeen':
