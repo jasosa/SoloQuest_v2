@@ -24,4 +24,17 @@ test.describe('fit to the screen', () => {
     await page.getByRole('button', { name: 'Zoom in' }).click();
     await expect(page.getByTestId('zoom-level')).toHaveText('125%');
   });
+
+  test('on a wide window the play screen uses the width: no empty strip left and right', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1500, height: 640 });
+    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
+    const app = (await page.locator('.app.play').boundingBox())!;
+    expect(app.width).toBeGreaterThan(1450); // the screen reaches both sides of the window
+    expect(app.height).toBeLessThanOrEqual(641);
+    // the right column (monsters) took the extra width, the board is where it was
+    const aside = (await page.locator('.app.play aside').boundingBox())!;
+    expect(aside.x + aside.width).toBeGreaterThan(1450);
+  });
 });

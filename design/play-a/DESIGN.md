@@ -64,7 +64,7 @@ Right column, above the monsters: one square chip per hero of the team. A tap as
 
 ## Fit to the screen
 
-Every screen is drawn at 1194 x 834 and scaled to the window (`FitToScreen`). Two modes: the **play screen** shrinks until the whole screen fits (the board must stay in one piece); **quest select, the editor and the Designer** fill the width and the page scrolls down when the window is shorter, so nothing gets too small. The scale is at most 1.5 on a big screen. On the quest select the Start button sits right under the heroes and the story comes after it, so the button is high on the screen. Touch positions are converted back to the drawing size (the board zoom does it).
+Every screen is drawn at 1194 x 834 and scaled to the window (`FitToScreen`). Two modes: the **play screen** shrinks until the whole screen fits (the board must stay in one piece); on a window wider than the tablet it keeps the height and is drawn wider, the right column taking the extra width, so there is no empty strip left and right; **quest select, the editor and the Designer** fill the width and the page scrolls down when the window is shorter, so nothing gets too small. The scale is at most 1.5 on a big screen. On the quest select the Start button sits right under the heroes and the story comes after it, so the button is high on the screen. Touch positions are converted back to the drawing size (the board zoom does it).
 
 ## Board zoom
 

@@ -1,5 +1,6 @@
 .app {
-  width: 1194px;
+  /* FitToScreen widens the play screen on a window that is wider than the tablet: the right column takes the extra */
+  width: var(--app-w, 1194px);
   height: 834px;
   display: grid;
   grid-template-columns: 920px 1fr;

@@ -21,6 +21,17 @@ const MAX_SCALE = 1.5;
  */
 export type FitMode = 'contain' | 'width';
 
+/**
+ * The width the screen is drawn at. It is the design width, except on the play screen in a window
+ * that is wider than the tablet: the screen then keeps its height and gets the extra width (the
+ * right column takes it), so there is no empty strip left and right.
+ */
+export function drawnWidth(width: number, height: number, mode: FitMode = 'contain'): number {
+  if (mode === 'width' || width <= 0 || height <= 0) return DESIGN_W;
+  const k = fitScale(width, height, mode);
+  return Math.max(DESIGN_W, Math.floor(width / k));
+}
+
 /** The scale for a window of this size. */
 export function fitScale(width: number, height: number, mode: FitMode = 'contain'): number {
   if (width <= 0 || height <= 0) return 1;
@@ -63,12 +74,14 @@ export function FitToScreen({ children }: { children: ReactNode }) {
     };
   }, []);
   const k = fitScale(size.w, size.h, mode);
+  const W = drawnWidth(size.w, size.h, mode);
   const drawn = {
-    width: DESIGN_W,
+    width: W,
+    '--app-w': `${W}px`,
     height: DESIGN_H,
     transformOrigin: '0 0',
     transform: k === 1 ? undefined : `scale(${k})`,
-  } as const;
+  } as React.CSSProperties;
 
   // One tree for both modes, only the styles change: switching mode must not remount the screen.
   return (
@@ -88,15 +101,15 @@ export function FitToScreen({ children }: { children: ReactNode }) {
             mode === 'width'
               ? {
                   position: 'relative',
-                  width: DESIGN_W * k,
+                  width: W * k,
                   height: DESIGN_H * k,
                   margin: '0 auto',
                 }
               : {
                   position: 'absolute',
-                  left: (size.w - DESIGN_W * k) / 2,
+                  left: (size.w - W * k) / 2,
                   top: (size.h - DESIGN_H * k) / 2,
-                  width: DESIGN_W * k,
+                  width: W * k,
                   height: DESIGN_H * k,
                 }
           }

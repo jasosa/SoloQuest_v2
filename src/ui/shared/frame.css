@@ -1,7 +1,7 @@
 /* The editor frame of the Designer mockups (design/play-a/editor-mockups.css), class prefix fr-.
    Only the tokens of tokens.css. */
 .fr {
-  width: 1194px;
+  width: var(--app-w, 1194px);
   height: 834px;
   position: relative;
   overflow: hidden;
