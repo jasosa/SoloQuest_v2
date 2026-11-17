@@ -128,7 +128,7 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await newQuest(page);
     await tab(page, 'Designer').click();
     await expect(page.getByTestId('dz-library')).toContainText('Enemies');
-    await page.getByTestId('dz-items').getByRole('button', { name: 'Orc', exact: true }).click();
+    await page.getByTestId('dz-items').getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByTestId('dz-card')).toContainText('Enemy: Orc');
     await shot(page, 'tab-designer');
   });

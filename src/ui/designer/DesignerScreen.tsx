@@ -22,6 +22,7 @@ import { usageOf, type UsageKind, type UsageRow } from '../../engine/editor/usag
 import {
   EnemyDefSchema,
   MONSTER_TYPES,
+  type Origin,
   type AbilityDefData,
   type MonsterType,
   type Quest,
@@ -36,13 +37,37 @@ import {
   type LibraryStore,
 } from '../../persist/library';
 import { MONSTER_LETTER } from '../play/monsterCodes';
-import { Col, Dialog, Fld, Frame, ListPanel, Panel, TopBar } from '../shared/Frame';
+import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../shared/Frame';
 import { shrinkImage } from './imageFile';
 
 type Data = Record<string, unknown>;
 
-/** Core items are editable for now. Set this to true to lock them (read only, no reset). */
-const LOCK_CORE = false;
+/**
+ * Owner mode (decision 76): the owner can change Core items. Everyone else sees Core read only.
+ * The choice is kept on this device; without one, the development build is in owner mode.
+ */
+const OWNER_KEY = 'soloquest-owner-mode';
+function ownerModeOn(): boolean {
+  try {
+    const v = localStorage.getItem(OWNER_KEY);
+    if (v === '1') return true;
+    if (v === '0') return false;
+  } catch {
+    /* storage unavailable: fall through */
+  }
+  return import.meta.env.DEV;
+}
+function rememberOwnerMode(on: boolean): void {
+  try {
+    localStorage.setItem(OWNER_KEY, on ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+const ORIGIN_LABEL: Readonly<Record<Origin, string>> = {
+  official: 'official',
+  'fan-made': 'fan-made',
+};
 
 /** The quests to look at for the "Used in" panel. */
 export type QuestSource = () => Promise<readonly { title: string; quest: Quest }[]>;
@@ -62,6 +87,10 @@ export interface DesignerBodyProps {
 export interface DesignerScreenProps extends DesignerBodyProps {
   onBack(): void;
 }
+
+/** Core items are official. Others say so, and an item with no origin is fan-made. */
+const originOf = (r: { core: boolean; data: Record<string, unknown> }): Origin =>
+  r.core ? 'official' : r.data.origin === 'official' ? 'official' : 'fan-made';
 
 interface Row {
   readonly id: string;
@@ -151,15 +180,22 @@ function blank(kind: LibraryKind, id: string): Data {
   const name = `New ${ONE[kind]}`;
   switch (kind) {
     case 'ability':
-      return { id, name, text: 'Describe it in your own words.' };
+      return { id, name, origin: 'fan-made', text: 'Describe it in your own words.' };
     case 'spell':
-      return { id, name, tags: ['heroAdjacent'] };
+      return { id, name, origin: 'fan-made', tags: ['heroAdjacent'] };
     case 'enemy':
-      return { id, name, base: 'goblin' };
+      return { id, name, origin: 'fan-made', base: 'goblin' };
     case 'hero':
-      return { id, name };
+      return { id, name, origin: 'fan-made' };
     case 'companion':
-      return { id, name, defend: 2, body: 2, text: 'What the helper does.' };
+      return {
+        id,
+        name,
+        origin: 'fan-made',
+        defend: 2,
+        body: 2,
+        text: 'What the helper does.',
+      };
   }
 }
 
@@ -463,6 +499,7 @@ function NewItemPopup({
  * only; "Mine" items save as they change. Export and import move the library between devices.
  */
 export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps) {
+  const [owner, setOwner] = useState(ownerModeOn);
   const [kind, setKind] = useState<LibraryKind>('enemy');
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -502,11 +539,11 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   ];
   const sel = rows.find((r) => r.id === selected);
   const isCore = sel?.core === true;
-  const locked = isCore && LOCK_CORE;
+  const locked = isCore && !owner;
   const data: Data | null = sel ? (draft ?? sel.data) : null;
   const sourceLabel = !isCore
-    ? 'Mine (this device)'
-    : LOCK_CORE
+    ? 'My library (this device)'
+    : !owner
       ? 'Core (read only)'
       : sel?.edited
         ? 'Core (changed)'
@@ -1045,6 +1082,14 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 </li>
               ))}
             </ul>
+            <Toggle
+              label="Owner mode: Core can be changed"
+              on={owner}
+              onChange={(on) => {
+                setOwner(on);
+                rememberOwnerMode(on);
+              }}
+            />
           </ListPanel>
           <ListPanel title={LIBRARY_KIND_NAMES[kind]} testId="dz-items" grow>
             <ul className="fr-list">
@@ -1055,11 +1100,14 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   <li key={r.id} className={r.id === selected ? 'on' : undefined}>
                     <button className="fr-pick" onClick={() => pick(r.id)}>
                       {r.name}
-                      {r.edited && <span className="sub">changed</span>}
+                      <span className="sub" data-origin={originOf(r)}>
+                        {r.edited ? 'changed · ' : ''}
+                        {ORIGIN_LABEL[originOf(r)]}
+                      </span>
                     </button>
                   </li>
                 ))}
-              {cores.length > 0 && <li className="fr-grp">Mine</li>}
+              {cores.length > 0 && <li className="fr-grp">My library</li>}
               {rows
                 .filter((r) => !r.core)
                 .map((r) => (
@@ -1067,6 +1115,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     <button className="fr-pick" onClick={() => pick(r.id)}>
                       {r.image && <img src={r.image} alt="" className="fr-thumb" />}
                       {r.name}
+                      <span className="sub" data-origin={originOf(r)}>
+                        {ORIGIN_LABEL[originOf(r)]}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -1114,6 +1165,27 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
         </Col>
 
         <Col label="Details">
+          {sel && data && (
+            <Panel title="Origin" testId="dz-origin">
+              <Fld label="Origin">
+                <select
+                  className="fr-sel"
+                  aria-label="Origin"
+                  // core is always official; only the owner can call an item of the library official
+                  disabled={isCore || !owner}
+                  value={isCore ? 'official' : data.origin === 'official' ? 'official' : 'fan-made'}
+                  onChange={(e) => change(put(data, 'origin', e.target.value))}
+                >
+                  <option value="official">Official</option>
+                  <option value="fan-made">Fan-made</option>
+                </select>
+              </Fld>
+              <p className="fr-help">
+                Official items come from the game or its expansions. Everything else a person makes
+                is fan-made.
+              </p>
+            </Panel>
+          )}
           {sel && usageKind && (
             <Panel title="Used in" testId="dz-used">
               {usage.length === 0 ? (
@@ -1222,7 +1294,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
 }
 
 /** The Designer on its own (from the start screen): the top bar with the one tab, and Back. */
-export function DesignerScreen({ store, quests, onBack }: DesignerScreenProps) {
+export function DesignerScreen({ store, quests, updateQuests, onBack }: DesignerScreenProps) {
   return (
     <div className="app fr designer">
       <TopBar tabs={['Designer']} active="Designer">
@@ -1230,7 +1302,7 @@ export function DesignerScreen({ store, quests, onBack }: DesignerScreenProps) {
           Back
         </button>
       </TopBar>
-      <DesignerBody store={store} quests={quests} />
+      <DesignerBody store={store} quests={quests} updateQuests={updateQuests} />
     </div>
   );
 }

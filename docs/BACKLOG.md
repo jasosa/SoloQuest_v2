@@ -198,6 +198,16 @@ Per quest
 - [x] Actions popup appears on top of the existing text (done in the Actions tab: the action sits in a column beside the list; elsewhere it is still a popup). It should work like the monsters one (a panel beside the list, not over the text)
 - [x] Monsters and Actions info appear twice: in their tabs and in the side panel. Removed: the map inspector has no Actions list and no monster form (a pointer to the Monsters tab); a monster's actions are in the Monsters tab; a tap on a letter on the map makes or opens its action over the board
 
+## Library layers (decision 76, `docs/LIBRARY_LAYERS.md`)
+
+- [x] Origin (official or fan-made) on library items, badge and card; owner mode replaces LOCK_CORE
+- [ ] Core as files in the repository (`src/content/library/*.json`) with an `expansion` per item, loaded at build; Core items move out of code
+- [ ] Export Core from the Designer in owner mode (a file for `src/content/library/`)
+- [ ] Designer scope switch: Core | My library; Used in shows quests
+- [ ] Expansions on and off for the add menus (quests keep working)
+- [ ] Copy on edit for normal users (Core read only)
+- [ ] My library exported and imported as a pack file to share
+
 ## Ideas (owner, not scheduled)
 
 - [ ] Quest items: an item a quest defines (for example the purple flask of quest 7) that a hero can be given and that has an action of its own ("drink it") with effects, like any action. The app would keep which hero holds which quest item during the quest. There is no Zargon player, only the players, so what an unknown item does must stay hidden until it is used (the first search says only what the players may know). Needs a new decision first: it adds a small piece of tracking (who holds which quest item) next to the dead-hero fact, so hard rule 2 and decision 32 must be amended by the owner. Also: editor (define items, give them with an effect), Quest sheet or hero chip to show items, undo, and a text for the flask of quest 7 (Q7 note C, now it says the effect up front).

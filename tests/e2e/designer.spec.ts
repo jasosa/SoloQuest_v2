@@ -37,7 +37,7 @@ test.describe('designer: the library', () => {
     await open(page);
     await expect(lib(page).getByRole('button', { name: /^Enemies \(9 core\)/ })).toBeVisible();
     await expect(lib(page).getByRole('button', { name: /^Heroes \(4 core\)/ })).toBeVisible();
-    await items(page).getByRole('button', { name: 'Orc', exact: true }).click();
+    await items(page).getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByLabel('Source')).toContainText('Core (you can change it)');
     await expect(page.getByLabel('att', { exact: true })).toHaveValue('3');
     await shot(page, 'designer-core-enemy');
@@ -50,11 +50,11 @@ test.describe('designer: the library', () => {
     await expect(items(page).getByRole('button', { name: /^Orc/ })).not.toContainText('changed');
     // a core hero can be renamed
     await kind(page, /^Heroes/);
-    await items(page).getByRole('button', { name: 'Elf', exact: true }).click();
+    await items(page).getByRole('button', { name: /^Elf/ }).click();
     await name(page, 'Elf of the Wood');
     await expect(items(page).getByRole('button', { name: /^Elf of the Wood/ })).toBeVisible();
     await kind(page, /^Enemies/);
-    await items(page).getByRole('button', { name: 'Orc', exact: true }).click();
+    await items(page).getByRole('button', { name: /^Orc/ }).click();
     await items(page).getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Orc copy');
     await expect(lib(page).getByRole('button', { name: /^Enemies \(9 core · 1\)/ })).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('designer: the library', () => {
     await kind(page, /^Spells/);
     await make(page, 'spell');
     await name(page, 'Mud');
-    await expect(items(page).getByRole('button', { name: 'Mud', exact: true })).toBeVisible();
+    await expect(items(page).getByRole('button', { name: /^Mud/ })).toBeVisible();
 
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
@@ -343,5 +343,32 @@ test.describe('designer: the library', () => {
     await expect(page.getByTestId('enemies-section')).toHaveCount(0);
     await page.getByRole('tab', { name: 'Map' }).click();
     await expect(page.locator('[data-monster]')).toHaveCount(0);
+  });
+
+  test('items say if they are official or fan-made; Core is read only unless owner mode is on', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('official');
+    await make(page, 'enemy');
+    await name(page, 'Slime');
+    await expect(items(page).getByRole('button', { name: /^Slime/ })).toContainText('fan-made');
+    // the owner can call an item of the library official
+    await page.getByLabel('Origin', { exact: true }).selectOption('official');
+    await expect(items(page).getByRole('button', { name: /^Slime/ })).toContainText('official');
+
+    // without owner mode Core is read only and nothing can be called official
+    await page.getByRole('switch', { name: /Owner mode/ }).click();
+    await items(page).getByRole('button', { name: /^Orc/ }).click();
+    await expect(page.getByLabel('att', { exact: true })).toBeDisabled();
+    await expect(page.getByLabel('Origin', { exact: true })).toBeDisabled();
+    await items(page)
+      .getByRole('button', { name: /^Slime/ })
+      .click();
+    await expect(page.getByLabel('Origin', { exact: true })).toBeDisabled();
+    await page.getByRole('switch', { name: /Owner mode/ }).click();
+    await items(page).getByRole('button', { name: /^Orc/ }).click();
+    await expect(page.getByLabel('att', { exact: true })).toBeEnabled();
   });
 });

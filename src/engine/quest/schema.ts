@@ -10,6 +10,11 @@ import { PROFILES, RULE_KEYS } from '../zargon/weights';
 
 export const SCHEMA_VERSION = 1;
 
+/** Where a library item comes from (decision 76). Core items are official; the rest is fan-made. */
+export const ORIGINS = ['official', 'fan-made'] as const;
+export type Origin = (typeof ORIGINS)[number];
+const origin = z.enum(ORIGINS).optional();
+
 const nonEmpty = z.string().min(1);
 const id = nonEmpty;
 const areaId = z.string().regex(/^(C|R\d{2})$/, 'area id must be C or R01..R22');
@@ -146,6 +151,7 @@ const MonsterSchema = z
 export const EnemyDefSchema = z
   .strictObject({
     id,
+    origin,
     name: nonEmpty,
     /** The core type it starts from (stats, plan, weights). Missing: it is completely its own. */
     base: MonsterType.optional(),
@@ -168,6 +174,7 @@ export const EnemyDefSchema = z
 
 export const AbilityDefSchema = z.strictObject({
   id,
+  origin,
   name: nonEmpty,
   text: nonEmpty,
   kind: z.enum(['ability', 'weakness', 'immunity']).optional(),
@@ -176,6 +183,7 @@ export const AbilityDefSchema = z.strictObject({
 export const SpellDefSchema = z
   .strictObject({
     id,
+    origin,
     name: nonEmpty,
     text: nonEmpty.optional(),
     tags: z.array(z.enum(SPELL_TAG_IDS)).default([]),
@@ -459,12 +467,18 @@ export type ZoneDef = z.infer<typeof ZoneSchema>;
 export type EnemyDef = z.infer<typeof EnemyDefSchema>;
 
 /** A hero for the library (decision 70): a name and a picture. Not used in play yet. */
-export const HeroDefSchema = z.strictObject({ id, name: nonEmpty, image: ImageSchema.optional() });
+export const HeroDefSchema = z.strictObject({
+  id,
+  origin,
+  name: nonEmpty,
+  image: ImageSchema.optional(),
+});
 export type HeroDef = z.infer<typeof HeroDefSchema>;
 
 /** A companion for the library: the helper characters of a quest (Sir Ragnar), reusable. */
 export const CompanionDefSchema = z.strictObject({
   id,
+  origin,
   name: nonEmpty,
   defend: z.number().int().min(0),
   body: z.number().int().min(0),
