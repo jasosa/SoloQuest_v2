@@ -5,6 +5,7 @@
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { board, roomIds } from '../src/engine/board/board';
+import { applyCoreFile, parseCoreFile } from '../src/engine/data/coreFile';
 import { parseQuest } from '../src/engine/quest/loader';
 import { validateQuest } from '../src/engine/quest/validate';
 
@@ -14,6 +15,16 @@ if (rooms.length !== 22) {
   process.exit(1);
 }
 console.log(`board: ${board.width} x ${board.height}, ${rooms.length} rooms: ok`);
+
+// The Core library files change what counts as a core ability or spell (decision 76).
+const coreDir = resolve('src', 'content', 'library');
+if (existsSync(coreDir))
+  for (const f of readdirSync(coreDir)
+    .filter((x) => x.endsWith('.json'))
+    .sort()) {
+    const core = parseCoreFile(JSON.parse(readFileSync(resolve(coreDir, f), 'utf8')));
+    if (core) applyCoreFile(core);
+  }
 
 const dir = resolve('src', 'content', 'quests');
 const files = existsSync(dir)

@@ -159,6 +159,31 @@ export function refreshEnemyInQuest(
 }
 
 /**
+ * Keep a core ability or spell in a quest that uses it, before the item leaves Core (decision 76):
+ * a copy goes into the quest's own definitions under the same id, so the quest still works.
+ * The same quest comes back when it does not use the item or already has it.
+ */
+export function keepCoreItemInQuest(
+  q: Quest,
+  kind: 'ability' | 'spell',
+  def: AbilityDefData | SpellDefData,
+): Quest {
+  const used =
+    kind === 'ability'
+      ? q.monsters.some((m) => (m.abilities ?? []).includes(def.id)) ||
+        q.enemyDefs.some((e) => (e.abilities ?? []).includes(def.id))
+      : q.monsters.some((m) => (m.spells ?? []).includes(def.id)) ||
+        q.enemyDefs.some((e) => (e.spells ?? []).includes(def.id));
+  if (!used) return q;
+  if (kind === 'ability') {
+    if (q.abilityDefs.some((a) => a.id === def.id)) return q;
+    return { ...q, abilityDefs: [...q.abilityDefs, def as AbilityDefData] };
+  }
+  if (q.spellDefs.some((s) => s.id === def.id)) return q;
+  return { ...q, spellDefs: [...q.spellDefs, def as SpellDefData] };
+}
+
+/**
  * Take an enemy out of the quest. Its monsters either stay as plain monsters of the type they
  * carry (they lose the enemy's name, stats, plan and picture), or go with it (`withMonsters`).
  */

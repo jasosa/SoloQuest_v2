@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CORE_ABILITIES } from '../../engine/data/abilities';
+import {
+  applyCoreFile,
+  CORE_EXTRA,
+  CORE_FILE_FORMAT,
+  CORE_RETIRED,
+  type CoreKind,
+} from '../../engine/data/coreFile';
+import { addTombstone, buildCoreExport, readPending } from '../../content/corePending';
+import { questEntries } from '../quests';
 import { HERO_NAMES, HEROES } from '../../engine/data/heroes';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
 import { PLAN_TEXT, RULE_TEXT } from '../../engine/zargon/texts';
@@ -17,7 +26,11 @@ import {
   SPELL_TAG_QUESTIONS,
   isSpellTag,
 } from '../../engine/data/spells';
-import { enemyDiffersFromLibrary, refreshEnemyInQuest } from '../../engine/editor/library';
+import {
+  enemyDiffersFromLibrary,
+  keepCoreItemInQuest,
+  refreshEnemyInQuest,
+} from '../../engine/editor/library';
 import { usageOf, type UsageKind, type UsageRow } from '../../engine/editor/usage';
 import {
   EnemyDefSchema,
@@ -147,6 +160,16 @@ function freeId(taken: readonly string[], name: string): string {
   for (let n = 2; ; n++) if (!taken.includes(`${base}-${n}`)) return `${base}-${n}`;
 }
 
+/** Core items that the Core files add (the built-in ones are in code). */
+function extraRows(kind: 'enemy' | 'hero' | 'companion'): Row[] {
+  return CORE_EXTRA[kind].map((it) => ({
+    id: it.data.id,
+    name: it.data.name,
+    core: true,
+    data: { ...it.data } as Data,
+  }));
+}
+
 function coreRows(kind: LibraryKind): Row[] {
   switch (kind) {
     case 'ability':
@@ -158,21 +181,27 @@ function coreRows(kind: LibraryKind): Row[] {
         return { id: s.id, name: s.name, core: true, data: { ...rest } as Data };
       });
     case 'enemy':
-      return MONSTER_TYPES.map((t) => ({
-        id: t,
-        name: MONSTER_NAMES[t],
-        core: true,
-        data: { id: t, name: MONSTER_NAMES[t], base: t, letter: MONSTER_LETTER[t] },
-      }));
+      return [
+        ...MONSTER_TYPES.filter((t) => !CORE_RETIRED.enemy.has(t)).map((t) => ({
+          id: t as string,
+          name: MONSTER_NAMES[t],
+          core: true,
+          data: { id: t, name: MONSTER_NAMES[t], base: t, letter: MONSTER_LETTER[t] } as Data,
+        })),
+        ...extraRows('enemy'),
+      ];
     case 'hero':
-      return HEROES.map((h) => ({
-        id: h,
-        name: HERO_NAMES[h],
-        core: true,
-        data: { id: h, name: HERO_NAMES[h] },
-      }));
+      return [
+        ...HEROES.filter((h) => !CORE_RETIRED.hero.has(h)).map((h) => ({
+          id: h as string,
+          name: HERO_NAMES[h],
+          core: true,
+          data: { id: h, name: HERO_NAMES[h] } as Data,
+        })),
+        ...extraRows('hero'),
+      ];
     case 'companion':
-      return [];
+      return extraRows('companion');
   }
 }
 
@@ -500,6 +529,12 @@ function NewItemPopup({
  */
 export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps) {
   const [owner, setOwner] = useState(ownerModeOn);
+  const [del, setDel] = useState<{
+    id: string;
+    name: string;
+    own: readonly UsageRow[];
+    bundled: readonly UsageRow[];
+  } | null>(null);
   const [kind, setKind] = useState<LibraryKind>('enemy');
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -636,6 +671,62 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       setDraft(row ? structuredClone(row.data) : null);
     } else pick(null);
     await refresh();
+  };
+  /** What taking the selected Core item out of Core would touch: your quests and the bundled ones. */
+  const askDelete = async () => {
+    if (!sel || !isCore || !owner) return;
+    const own = usageKind && quests ? usageOf(usageKind, sel.id, await quests()) : [];
+    const bundled = usageKind
+      ? usageOf(
+          usageKind,
+          sel.id,
+          questEntries.flatMap((q) =>
+            q.level
+              ? [{ title: `Quest ${q.number}: ${q.level.quest.title}`, quest: q.level.quest }]
+              : [],
+          ),
+        )
+      : [];
+    setDel({ id: sel.id, name: sel.name, own, bundled });
+  };
+  const confirmDelete = async () => {
+    if (!del || !sel) return;
+    const id = del.id;
+    // quests of yours that use an ability or spell keep it: a copy goes into the quest first
+    if ((kind === 'ability' || kind === 'spell') && updateQuests && data) {
+      const def = (kind === 'ability' ? CORE_ABILITIES : CORE_SPELLS).find((x) => x.id === id);
+      if (def) {
+        const { core: _core, ...plain } = def as typeof def & { core?: boolean };
+        void _core;
+        await updateQuests((q) => {
+          const next = keepCoreItemInQuest(q, kind, plain as never);
+          return next === q ? undefined : next;
+        });
+      }
+    }
+    const tomb = addTombstone(kind as CoreKind, id, del.name);
+    applyCoreFile(tomb);
+    await store.remove(kind, id); // a changed copy of it in the library goes too
+    setDel(null);
+    pick(null);
+    await refresh();
+    setMessage(
+      `${del.name} is out of Core on this device. Export Core to put it in the repository.`,
+    );
+  };
+  const exportCore = async () => {
+    const lib = items.map((i) => ({ kind: i.kind as CoreKind, data: i.data }));
+    const coreIdOf = (k: CoreKind, id: string) =>
+      coreRows(k as LibraryKind).some((r) => r.id === id);
+    const file = buildCoreExport(readPending(), lib, coreIdOf);
+    const text = JSON.stringify({ ...file, format: CORE_FILE_FORMAT }, null, 2) + '\n';
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'core.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    setMessage('core.json is saved. Put it in src/content/library/ and rebuild.');
   };
   const exportFile = async () => {
     const text = await store.exportAll();
@@ -1142,6 +1233,16 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           {data && sel ? (
             <>
               {centre(data)}
+              {isCore && owner && (
+                <button
+                  className="btn alt"
+                  style={{ alignSelf: 'flex-start' }}
+                  data-testid="dz-delete-core"
+                  onClick={() => void askDelete()}
+                >
+                  Delete from Core
+                </button>
+              )}
               {!locked && (!isCore || sel.edited) && (
                 <button
                   className="btn alt"
@@ -1180,6 +1281,16 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   <option value="fan-made">Fan-made</option>
                 </select>
               </Fld>
+              {owner && !isCore && data.origin === 'official' && (
+                <Fld label="Expansion (empty: the base game)">
+                  <input
+                    className="fr-in"
+                    aria-label="Expansion"
+                    value={str(data, 'expansion')}
+                    onChange={(e) => change(put(data, 'expansion', e.target.value || undefined))}
+                  />
+                </Fld>
+              )}
               <p className="fr-help">
                 Official items come from the game or its expansions. Everything else a person makes
                 is fan-made.
@@ -1256,6 +1367,23 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               <Picture data={data} onChange={change} disabled={locked} />
             </Panel>
           )}
+          {owner && (
+            <Panel title="Core file" testId="dz-core-file">
+              <p className="fr-help">
+                Your changes to Core (changed, new official and deleted items) go into one file for{' '}
+                <code>src/content/library/</code>.
+              </p>
+              <div className="fr-lbtns" style={{ padding: 0 }}>
+                <button
+                  className="btn alt"
+                  data-testid="dz-export-core"
+                  onClick={() => void exportCore()}
+                >
+                  Export Core
+                </button>
+              </div>
+            </Panel>
+          )}
           <Panel title="Library file">
             <div className="fr-lbtns" style={{ padding: 0 }}>
               <button className="btn alt" onClick={() => void exportFile()}>
@@ -1280,6 +1408,61 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           </Panel>
         </Col>
       </Frame>
+      {del && (
+        <Dialog
+          title="Delete from Core"
+          foot={
+            <>
+              <button className="btn alt" onClick={() => setDel(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn"
+                data-testid="dz-delete-confirm"
+                onClick={() => void confirmDelete()}
+              >
+                Delete {del.name}
+              </button>
+            </>
+          }
+        >
+          <p>{del.name} leaves Core. It stays in quests only as far as they already copy it.</p>
+          {del.own.length > 0 ? (
+            <>
+              <p>These quests of yours use it (an ability or spell is copied into them first):</p>
+              <ul data-testid="dz-delete-own">
+                {del.own.map((u) => (
+                  <li key={u.quest}>
+                    {u.quest} · {u.count}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>None of your quests uses it.</p>
+          )}
+          {del.bundled.length > 0 && (
+            <>
+              <p className="warn">
+                These bundled quests use it. They stop validating until you fix them:
+              </p>
+              <ul data-testid="dz-delete-bundled">
+                {del.bundled.map((u) => (
+                  <li key={u.quest}>
+                    {u.quest} · {u.count}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(kind === 'enemy' || kind === 'hero') && !del.id.includes('-') && (
+            <p className="fr-help">
+              A monster type or hero that the game has built in cannot be removed from the engine.
+              It is hidden from the menus.
+            </p>
+          )}
+        </Dialog>
+      )}
       {popup && (
         <NewItemPopup
           kind={popup.kind}

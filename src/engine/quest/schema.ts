@@ -14,6 +14,8 @@ export const SCHEMA_VERSION = 1;
 export const ORIGINS = ['official', 'fan-made'] as const;
 export type Origin = (typeof ORIGINS)[number];
 const origin = z.enum(ORIGINS).optional();
+/** The expansion an official item belongs to (empty: the base game). */
+const expansion = z.string().min(1).optional();
 
 const nonEmpty = z.string().min(1);
 const id = nonEmpty;
@@ -152,6 +154,7 @@ export const EnemyDefSchema = z
   .strictObject({
     id,
     origin,
+    expansion,
     name: nonEmpty,
     /** The core type it starts from (stats, plan, weights). Missing: it is completely its own. */
     base: MonsterType.optional(),
@@ -175,6 +178,7 @@ export const EnemyDefSchema = z
 export const AbilityDefSchema = z.strictObject({
   id,
   origin,
+  expansion,
   name: nonEmpty,
   text: nonEmpty,
   kind: z.enum(['ability', 'weakness', 'immunity']).optional(),
@@ -184,6 +188,7 @@ export const SpellDefSchema = z
   .strictObject({
     id,
     origin,
+    expansion,
     name: nonEmpty,
     text: nonEmpty.optional(),
     tags: z.array(z.enum(SPELL_TAG_IDS)).default([]),
@@ -470,6 +475,7 @@ export type EnemyDef = z.infer<typeof EnemyDefSchema>;
 export const HeroDefSchema = z.strictObject({
   id,
   origin,
+  expansion,
   name: nonEmpty,
   image: ImageSchema.optional(),
 });
@@ -479,6 +485,7 @@ export type HeroDef = z.infer<typeof HeroDefSchema>;
 export const CompanionDefSchema = z.strictObject({
   id,
   origin,
+  expansion,
   name: nonEmpty,
   defend: z.number().int().min(0),
   body: z.number().int().min(0),

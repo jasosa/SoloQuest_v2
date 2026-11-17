@@ -371,4 +371,45 @@ test.describe('designer: the library', () => {
     await items(page).getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByLabel('att', { exact: true })).toBeEnabled();
   });
+
+  test('a Core item can be deleted after a warning about the quests that use it, and Core can be exported', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Abilities/);
+    await items(page)
+      .getByRole('button', { name: /^Made of stone/ })
+      .click();
+    await page.getByTestId('dz-delete-core').click();
+    // the warning names the bundled quests that use it
+    await expect(page.getByTestId('dz-delete-bundled')).toContainText('Quest');
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(items(page).getByRole('button', { name: /^Made of stone/ })).toBeVisible();
+
+    await items(page)
+      .getByRole('button', { name: /^Made of stone/ })
+      .click();
+    await page.getByTestId('dz-delete-core').click();
+    await page.getByTestId('dz-delete-confirm').click();
+    await expect(items(page).getByRole('button', { name: /^Made of stone/ })).toHaveCount(0);
+
+    // the export holds the deletion, in the format of a Core file
+    const download = page.waitForEvent('download');
+    await page.getByTestId('dz-export-core').click();
+    const file = JSON.parse(
+      await (
+        await (await download).createReadStream()
+      )
+        .toArray()
+        .then((c) => Buffer.concat(c).toString()),
+    );
+    expect(file.format).toBe('soloquest-core');
+    expect(file.items).toContainEqual(
+      expect.objectContaining({
+        kind: 'ability',
+        deleted: true,
+        data: expect.objectContaining({ id: 'stone' }),
+      }),
+    );
+  });
 });

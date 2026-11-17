@@ -22,11 +22,14 @@ The Designer works on three layers, each on top of the one below:
 - Owner mode switch replaces the old `LOCK_CORE` constant. Core is read only without it.
 - The list says "My library" (it said "Mine").
 
+- **Core files**: `src/content/library/*.json` (format `soloquest-core`), applied at start in file name order (`src/content/core.ts`, and `npm run validate`). A file adds items, changes items (same id) or takes them out (`deleted: true`). An item has an optional `expansion`. Core abilities and spells are changed in place; added enemies, heroes and companions are listed in `CORE_EXTRA`.
+- **Delete a Core item** (owner mode): a warning lists your quests that use it (an ability or spell is copied into them first, so they keep working) and the bundled quests that use it (they stop validating until fixed). The deletion stays on this device until exported. A monster type or hero that the engine has built in cannot leave the engine: it is hidden from the menus.
+- **Export Core** (owner mode): one `core.json` with the deletions, the changed core items and the official items of the library (with their expansion). Put it in `src/content/library/`.
+
 ## Still to build (backlog, M9)
 
-1. **Core as files** in the repository (`src/content/library/*.json`), loaded when the app is built, with an `expansion` per item. Today Core items live in code (`CORE_SPELLS`, `CORE_ABILITIES`, the monster tables), and the owner's changes to them live only in the browser.
-2. **Export Core** from the Designer (owner mode): a file to drop into `src/content/library/`, like "Export to publish" for quests.
-3. **Scope switch** in the Designer: Core | My library, with the "Used in" panel showing quests.
-4. **Expansions on and off**: a user can hide an expansion's items from the add menus; quests keep working.
-5. **Copy on edit** for normal users: Core is read only, "Copy" makes the item in My library.
-6. **My library as a pack file**: export and import to share (reuses the library export that exists).
+1. **Move the built-in Core out of code** into files (`CORE_SPELLS`, `CORE_ABILITIES`, the monster tables), so that deleting a built-in monster type or hero is a real deletion.
+2. **Scope switch** in the Designer: Core | My library, with the "Used in" panel showing quests.
+3. **Expansions on and off**: a user can hide an expansion's items from the add menus; quests keep working.
+4. **Copy on edit** for normal users: Core is read only, "Copy" makes the item in My library.
+5. **My library as a pack file**: export and import to share (reuses the library export that exists).
