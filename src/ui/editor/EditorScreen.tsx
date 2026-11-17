@@ -144,7 +144,7 @@ export function EditorScreen({
       </TopBar>
       <div className="fr-bar" role="toolbar" aria-label="Quest">
         <button
-          className="link ed-issues"
+          className="chip ed-issues"
           onClick={() => {
             s.select(null);
             s.setTab('Map');
@@ -157,7 +157,7 @@ export function EditorScreen({
         </button>
         {onPlaytest && (
           <button
-            className="link"
+            className="chip"
             data-testid="playtest"
             disabled={errors > 0}
             title={errors > 0 ? 'Fix the problems first' : 'Play this quest to try it'}
@@ -166,17 +166,17 @@ export function EditorScreen({
             Playtest
           </button>
         )}
-        <button className="link" disabled={s.past.length === 0} onClick={() => s.undo()}>
+        <button className="chip" disabled={s.past.length === 0} onClick={() => s.undo()}>
           Undo
         </button>
-        <button className="link" disabled={s.future.length === 0} onClick={() => s.redo()}>
+        <button className="chip" disabled={s.future.length === 0} onClick={() => s.redo()}>
           Redo
         </button>
         <ImportButton store={store} />
-        <button className="link" data-testid="export" onClick={() => exportDraft(store)}>
+        <button className="chip" data-testid="export" onClick={() => exportDraft(store)}>
           Export
         </button>
-        <button className="link" onClick={() => void s.save()}>
+        <button className="chip main" onClick={() => void s.save()}>
           Save
         </button>
         <button className="link" onClick={onBack}>
@@ -187,7 +187,7 @@ export function EditorScreen({
       {tab === 'Quest' && <QuestTab store={store} />}
       {tab === 'Actions' && <ActionsTab store={store} />}
       {tab === 'Monsters' && <MonstersTab store={store} />}
-      {tab === 'Designer' && (
+      {tab === 'Library' && (
         <DesignerBody store={library} quests={quests} updateQuests={updateQuests} />
       )}
       {tab === 'Map' && (

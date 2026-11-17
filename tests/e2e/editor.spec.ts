@@ -36,7 +36,7 @@ test.describe('editor: shell and board tools', () => {
   }) => {
     await page.goto('/?nosave=1');
     await btn(page, 'Quest editor').click();
-    await expect(page.getByRole('heading', { name: 'SoloQuest Designer' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Quest editor' })).toBeVisible();
     await shot(page, 'editor-start');
     await page.getByRole('button', { name: /^NEW QUEST/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');

@@ -109,7 +109,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
     >
       <div className="fr-start">
         <div>
-          <h1>SoloQuest Designer</h1>
+          <h1>Quest editor</h1>
           <h2>Recent quests</h2>
           {rows.length === 0 && (
             <p className="fr-help">No quest yet. Make a new one, or import a file.</p>
@@ -122,10 +122,11 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   aria-label={`Open ${r.title}`}
                   onClick={() => void open(r.id)}
                 >
-                  {r.title}
+                  <span className="fr-qnum">Quest {r.number}</span>
+                  <span className="fr-qtitle">{r.title}</span>
                 </button>
-                <span>
-                  Quest {r.number} · {r.draft ? 'Unsaved draft' : 'saved'} ·{' '}
+                <span className="fr-qnote">
+                  {r.draft ? 'Unsaved draft' : 'Saved'} ·{' '}
                   {new Date(r.updatedAt).toLocaleDateString()}
                 </span>
                 {confirm === r.id ? (
@@ -196,7 +197,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           </button>
           {onDesigner && (
             <button className="fr-card" onClick={onDesigner}>
-              <b>DESIGNER</b>
+              <b>LIBRARY</b>
               <span>
                 Abilities, spells, enemies, heroes and companions. Made once, used in any quest.
               </span>

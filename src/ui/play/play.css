@@ -126,19 +126,18 @@ aside {
   border-bottom: 0;
 }
 .wander {
-  font-size: 15px;
+  font-size: 14.5px;
   color: var(--muted);
 }
 .wander b {
   color: var(--text);
 }
 .zargon-btn {
-  margin-top: auto;
-  min-height: 60px;
+  min-height: 68px;
   border: 2px solid var(--ink);
   background: var(--ink);
   color: var(--on-ink);
-  font: 700 19px 'Bonum';
+  font: 700 21px 'Bonum';
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -648,12 +647,12 @@ header .goalline b {
 
 /* ---------- adding a monster in play (decision 66) ---------- */
 .add-monster-btn {
-  margin-top: 8px;
+  margin-top: 0;
 }
 .add-monster {
   display: grid;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 0;
   padding: 10px;
   border: 2px solid var(--ink);
   background: var(--paper-3);
@@ -726,8 +725,14 @@ header .goalline b {
   will-change: transform;
 }
 /* the play screen: the map takes what the right column leaves, whatever the window */
+/* On a wide window the board (fitted to the height) and the right column stay together in the
+   middle, and the column takes some of the extra width, up to 420 px. Where the window is not
+   wider than the board needs (the tablet) this is the same as before: the map takes what is left. */
 .app.play {
-  grid-template-columns: 1fr 274px;
+  /* the board's width when its height sets the size: 916 x 686 is the board with its padding, and 56 px under it is the zoom strip */
+  --board-w: calc((var(--app-h, 834px) - 64px - 56px) * 916 / 686);
+  grid-template-columns: min(var(--board-w), calc(100% - 274px)) minmax(274px, 420px);
+  justify-content: center;
 }
 .zoomctl {
   position: absolute;
@@ -740,4 +745,81 @@ header .goalline b {
 .zoomctl .chip {
   min-width: 44px;
   min-height: 44px;
+}
+
+/* ---------- play screen: title band and right column order ---------- */
+/* Title band: the title on top (big), the quest number and the goal under it (small, one line each),
+   Turn and the buttons on the right. Nothing wraps, so a long title or goal cuts with an ellipsis
+   (the full text is in the tooltip and on the Quest info sheet) instead of breaking the buttons. */
+.app.play header {
+  gap: 12px;
+  align-items: center;
+  padding-top: 8px;
+  padding-bottom: 5px;
+}
+.app.play header .titleblock {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.app.play header h1 {
+  font-size: 26px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app.play header .subline {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+.app.play header .qn {
+  flex: none;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.app.play header .goalline {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  max-width: none;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app.play header .goalline b {
+  font-size: 13px;
+}
+.app.play header .turn,
+.app.play header .chip,
+.app.play header .link {
+  flex: none;
+  white-space: nowrap;
+}
+.app.play header .turn {
+  margin-left: 0;
+}
+
+/* Right column, top to bottom: heroes (always shown), monsters (take all the room left and scroll),
+   then the footer with the actions: wandering monster line, Add a monster, Zargon's turn. */
+.aside-scroll {
+  flex: 1 1 auto;
+}
+.aside-scroll > section.monsters {
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  background: var(--paper-3);
+  border: 1.5px solid var(--rock-line);
+}
+.aside-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rock-line);
 }

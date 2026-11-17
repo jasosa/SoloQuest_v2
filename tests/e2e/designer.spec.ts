@@ -17,11 +17,8 @@ const card = (page: Page) => page.getByTestId('dz-card');
 
 async function open(page: Page) {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^DESIGNER/ }).click();
-  await expect(page.getByRole('tab', { name: 'Designer' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
+  await page.getByRole('button', { name: /^LIBRARY/ }).click();
+  await expect(page.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true');
 }
 const kind = (page: Page, name: RegExp) => lib(page).getByRole('button', { name }).click();
 const make = (page: Page, one: string) =>
@@ -301,7 +298,7 @@ test.describe('designer: the library', () => {
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
 
     // change the enemy in the Designer tab: the quest now holds an older copy
-    await page.getByRole('tab', { name: 'Designer' }).click();
+    await page.getByRole('tab', { name: 'Library' }).click();
     await kind(page, /^Enemies/);
     await items(page).getByRole('button', { name: 'Slime' }).click();
     await page.getByLabel('att', { exact: true }).fill('5');

@@ -58,7 +58,7 @@ body {
   background: var(--paper);
   color: var(--text);
   font:
-    16px/1.45 'Pagella',
+    15px/1.45 'Pagella',
     Georgia,
     serif;
   -webkit-tap-highlight-color: transparent;

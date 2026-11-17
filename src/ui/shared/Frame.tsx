@@ -6,7 +6,7 @@ import './frame.css';
  * its tabs, the three columns of panels, fields, toggles and the popup shell.
  */
 
-export const EDITOR_TABS = ['Quest', 'Map', 'Actions', 'Monsters', 'Designer'] as const;
+export const EDITOR_TABS = ['Quest', 'Map', 'Actions', 'Monsters', 'Library'] as const;
 export type EditorTab = (typeof EDITOR_TABS)[number];
 
 export function TopBar({
@@ -26,7 +26,7 @@ export function TopBar({
 }) {
   return (
     <div className="fr-top">
-      <span className="fr-ttl">Editor</span>
+      <span className="fr-ttl">Quest editor</span>
       <div role="tablist" aria-label="Editor" style={{ display: 'flex', gap: 6 }}>
         {tabs.map((t) => (
           <button

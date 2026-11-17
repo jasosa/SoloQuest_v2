@@ -97,7 +97,7 @@ export function ImportButton({ store }: { store: EditorStore }) {
 
   return (
     <>
-      <button className="link" onClick={() => input.current?.click()}>
+      <button className="chip" onClick={() => input.current?.click()}>
         Import
       </button>
       <input

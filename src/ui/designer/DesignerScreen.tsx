@@ -1481,7 +1481,7 @@ export function DesignerScreen({ store, quests, updateQuests, onBack }: Designer
   useFitMode('width');
   return (
     <div className="app fr designer">
-      <TopBar tabs={['Designer']} active="Designer">
+      <TopBar tabs={['Library']} active="Library">
         <button className="link" onClick={onBack}>
           Back
         </button>

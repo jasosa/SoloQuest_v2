@@ -24,7 +24,7 @@ import type { Quest } from '../../engine/quest/schema';
 import { Furniture } from '../board/Furniture';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
-import { ZoomLayer } from '../play/ZoomLayer';
+import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
@@ -947,6 +947,8 @@ export function EditorBoard({
         padding="0"
         onePointerPan={false}
         wheelPan
+        strip={ZOOM_STRIP}
+        fitHeight
       >
         <div className="ed-boardwrap">
           <svg

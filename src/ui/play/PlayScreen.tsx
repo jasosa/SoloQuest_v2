@@ -43,7 +43,7 @@ import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
 import { QuestSheet } from './QuestSheet';
-import { ZoomLayer } from './ZoomLayer';
+import { ZOOM_STRIP, ZoomLayer } from './ZoomLayer';
 import { Helpers, Heroes } from './sidebar';
 import {
   ChestBody,
@@ -786,13 +786,17 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   return (
     <div className="app play" onClick={onRootClick}>
       <header>
-        <span className="qn">{playtest ? 'Playtest' : `Quest ${quest.number}`}</span>
-        <h1>{quest.title}</h1>
-        {goalLine && (
-          <span className="goalline">
-            <b>Goal</b> {goalLine}
-          </span>
-        )}
+        <div className="titleblock">
+          <h1 title={quest.title}>{quest.title}</h1>
+          <div className="subline">
+            <span className="qn">{playtest ? 'Playtest' : `Quest ${quest.number}`}</span>
+            {goalLine && (
+              <span className="goalline" title={goalLine}>
+                <b>Goal</b> {goalLine}
+              </span>
+            )}
+          </div>
+        </div>
         <span className="turn">
           Turn <b>{state.turn}</b>
         </span>
@@ -805,7 +809,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           data-testid="quest-chip"
           onClick={() => setQuestOpen((v) => !v)}
         >
-          Quest Info
+          Quest info
         </button>
         <button className="chip hdr" onClick={() => setEndOpen(true)}>
           End quest
@@ -826,6 +830,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       </header>
 
       <ZoomLayer
+        strip={ZOOM_STRIP}
         notes={
           <>
             {sheet?.t === 'place' && sheet.p.cell ? (
@@ -861,14 +866,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       </ZoomLayer>
 
       <aside>
+        <Heroes
+          team={team}
+          dead={state.deadHeroes}
+          onTap={(hero) => choose({ kind: 'hero', hero })}
+        />
         <div className="aside-scroll">
-          <Heroes
-            team={team}
-            dead={state.deadHeroes}
-            onTap={(hero) => choose({ kind: 'hero', hero })}
-          />
           <Helpers npcs={npcs} />
-          <section>
+          <section className="monsters">
             <div className="lbl">Monsters in play</div>
             <ul className="roster">
               {alive.length === 0 && <li className="empty">No monster in sight.</li>}
@@ -889,48 +894,50 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             </ul>
           </section>
         </div>
-        {wandering && (
-          <p className="wander">
-            Wandering monster:{' '}
-            <b>{'monster' in wandering ? MONSTER_NAMES[wandering.monster] : wandering.text}</b>
-          </p>
-        )}
-        {adding?.t === 'type' ? (
-          <div className="add-monster" data-testid="add-monster">
-            <label>
-              Monster
-              <select
-                aria-label="Monster to add"
-                value={adding.type}
-                onChange={(e) => setAdding({ t: 'type', type: e.target.value as MonsterType })}
-              >
-                {MONSTER_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {MONSTER_NAMES[t]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button className="btn" onClick={() => setAdding({ t: 'pick', type: adding.type })}>
-              Choose its square
+        <div className="aside-foot">
+          {wandering && (
+            <p className="wander">
+              Wandering monster:{' '}
+              <b>{'monster' in wandering ? MONSTER_NAMES[wandering.monster] : wandering.text}</b>
+            </p>
+          )}
+          {adding?.t === 'type' ? (
+            <div className="add-monster" data-testid="add-monster">
+              <label>
+                Monster
+                <select
+                  aria-label="Monster to add"
+                  value={adding.type}
+                  onChange={(e) => setAdding({ t: 'type', type: e.target.value as MonsterType })}
+                >
+                  {MONSTER_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {MONSTER_NAMES[t]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button className="btn" onClick={() => setAdding({ t: 'pick', type: adding.type })}>
+                Choose its square
+              </button>
+              <button className="btn alt" onClick={() => setAdding(null)}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn alt add-monster-btn"
+              data-testid="add-monster-btn"
+              onClick={() => setAdding({ t: 'type', type: 'goblin' })}
+            >
+              Add a monster
             </button>
-            <button className="btn alt" onClick={() => setAdding(null)}>
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            className="btn alt add-monster-btn"
-            data-testid="add-monster-btn"
-            onClick={() => setAdding({ t: 'type', type: 'goblin' })}
-          >
-            Add a monster
+          )}
+          <button className="zargon-btn" onClick={() => setZOpen(true)}>
+            Zargon&apos;s turn
+            <small>{progressLabel(progress)}</small>
           </button>
-        )}
-        <button className="zargon-btn" onClick={() => setZOpen(true)}>
-          Zargon&apos;s turn
-          <small>{progressLabel(progress)}</small>
-        </button>
+        </div>
       </aside>
 
       {(adding?.t === 'pick' || adding?.t === 'wander') && (

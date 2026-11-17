@@ -227,7 +227,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 })}
               </ul>
               <p className="ed-note">
-                An enemy stays in the quest when it is removed from the Designer. Take it out here.
+                An enemy stays in the quest when it is removed from the Library. Take it out here.
               </p>
             </div>
           )}

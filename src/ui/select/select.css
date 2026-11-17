@@ -31,7 +31,7 @@
   color: var(--ink-2);
 }
 .qcard .qtitle {
-  font: 700 19px/1.2 'Bonum';
+  font: 700 17px/1.2 'Bonum';
   color: var(--ink);
   margin-top: 4px;
 }

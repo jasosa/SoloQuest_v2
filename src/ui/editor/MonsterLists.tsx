@@ -378,7 +378,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
       {current && (
         <p className="ed-note">
           {current.name}: letter {current.letter ?? 'of its type'}
-          {current.image ? ', has a picture' : ', no picture'}. Edit enemies in the Designer.
+          {current.image ? ', has a picture' : ', no picture'}. Edit enemies in the Library.
         </p>
       )}
     </section>

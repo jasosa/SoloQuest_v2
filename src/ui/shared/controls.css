@@ -36,7 +36,7 @@
   border: 2px solid var(--ink);
   background: var(--ink);
   color: var(--on-ink);
-  font: 700 16px 'Bonum';
+  font: 700 15px 'Bonum';
   padding: 8px 12px;
   text-align: center;
   transition:
@@ -82,10 +82,15 @@
   border: 1.5px solid var(--ink);
   background: none;
   color: var(--ink);
-  font: 700 15px 'Bonum';
+  font: 700 14px 'Bonum';
   transition:
     background 0.15s,
     color 0.15s;
+}
+/* The one main action of a screen (Save in the editor): a filled chip. */
+.chip.main {
+  background: var(--ink);
+  color: var(--on-ink);
 }
 .chip[aria-pressed='true'] {
   background: var(--ink);

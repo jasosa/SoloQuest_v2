@@ -15,7 +15,7 @@ async function newQuest(page: Page, title = 'The Cellar') {
 }
 
 test.describe('editor tabs (the mockup of decision 70)', () => {
-  test('the tab bar has Quest, Map, Actions, Monsters and Designer; Map is first shown', async ({
+  test('the tab bar has Quest, Map, Actions, Monsters and Library; Map is first shown', async ({
     page,
   }) => {
     await newQuest(page);
@@ -24,7 +24,7 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
       'Map',
       'Actions',
       'Monsters',
-      'Designer',
+      'Library',
     ]);
     await expect(tab(page, 'Map')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('#editor-board')).toBeVisible();
@@ -124,9 +124,9 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await expect(page.getByLabel('Waits for')).toHaveValue('');
   });
 
-  test('Designer tab shows the library inside the editor', async ({ page }) => {
+  test('Library tab shows the library inside the editor', async ({ page }) => {
     await newQuest(page);
-    await tab(page, 'Designer').click();
+    await tab(page, 'Library').click();
     await expect(page.getByTestId('dz-library')).toContainText('Enemies');
     await page.getByTestId('dz-items').getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByTestId('dz-card')).toContainText('Enemy: Orc');

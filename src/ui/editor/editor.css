@@ -128,8 +128,7 @@
 }
 .ed-zoom {
   position: relative;
-  flex: 1;
-  min-height: 240px;
+  flex: none; /* as tall as the board: ZoomLayer sets the height (fitHeight) */
   overflow: hidden;
   touch-action: none; /* two fingers pinch and move the board */
 }

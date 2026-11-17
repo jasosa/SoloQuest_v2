@@ -25,16 +25,24 @@ test.describe('fit to the screen', () => {
     await expect(page.getByTestId('zoom-level')).toHaveText('125%');
   });
 
-  test('on a wide window the play screen uses the width: no empty strip left and right', async ({
+  test('on a wide window the board and the right column stay together in the middle', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1500, height: 640 });
     await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
     const app = (await page.locator('.app.play').boundingBox())!;
-    expect(app.width).toBeGreaterThan(1450); // the screen reaches both sides of the window
+    expect(app.width).toBeGreaterThan(1450); // drawn at the window size, not the tablet size
     expect(app.height).toBeLessThanOrEqual(641);
-    // the right column (monsters) took the extra width, the board is where it was
+    // the right column took some of the extra width (up to 420 px)
     const aside = (await page.locator('.app.play aside').boundingBox())!;
-    expect(aside.x + aside.width).toBeGreaterThan(1450);
+    expect(aside.width).toBe(420);
+    // the board sits right next to it: no empty strip between them
+    const map = (await page.locator('.app.play .map').boundingBox())!;
+    expect(Math.abs(map.x + map.width - aside.x)).toBeLessThanOrEqual(1);
+    // the pair is centered: the same margin left and right
+    const left = map.x;
+    const right = app.width - (aside.x + aside.width);
+    expect(Math.abs(left - right)).toBeLessThanOrEqual(2);
+    expect(left).toBeGreaterThan(0);
   });
 });

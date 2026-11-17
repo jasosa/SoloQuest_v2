@@ -91,7 +91,7 @@ export interface PickRequest {
 export type Panel = 'element' | 'notes' | 'problems';
 
 /** The tabs of the editor (the mockup of decision 70). */
-export type EditorTabName = 'Quest' | 'Map' | 'Actions' | 'Monsters' | 'Designer';
+export type EditorTabName = 'Quest' | 'Map' | 'Actions' | 'Monsters' | 'Library';
 
 /** A short highlight on the board after a jump from the Problems panel. `id` restarts it. */
 export interface BoardFlash extends Flash {

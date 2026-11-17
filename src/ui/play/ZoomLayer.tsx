@@ -13,9 +13,11 @@ export interface Content {
   readonly w: number;
   readonly h: number;
 }
-/** The play board: 26 x 19 squares of 34 px with a 2 px margin, and the map padding. */
-export const PLAY_BOARD: Content = { w: 28 + 26 * 34 + 4, h: 18 + 19 * 34 + 4 };
+/** The play board: 26 x 19 squares of 34 px with a 2 px margin, and the map padding (18 px above and below). */
+export const PLAY_BOARD: Content = { w: 28 + 26 * 34 + 4, h: 18 + 19 * 34 + 4 + 18 };
 /** How far the board can be zoomed in from its fitted size. */
+/** The strip under the play board for the zoom chips: 44 px chips and a margin. */
+export const ZOOM_STRIP = 56;
 export const ZOOM_MAX = 3;
 export const ZOOM_STEP = 0.25;
 
@@ -82,9 +84,11 @@ export function ZoomLayer({
   notes,
   content = PLAY_BOARD,
   className = 'map zoombox',
-  padding = '18px 0 0 28px',
+  padding = '18px 0 18px 28px',
   onePointerPan = true,
   wheelPan = false,
+  strip = 0,
+  fitHeight = false,
 }: {
   children: ReactNode;
   notes?: ReactNode;
@@ -97,6 +101,10 @@ export function ZoomLayer({
   onePointerPan?: boolean;
   /** The wheel (without Ctrl) moves the board when zoomed in. */
   wheelPan?: boolean;
+  /** Height of a strip under the board kept free for the zoom chips (0: the chips float over the board). */
+  strip?: number;
+  /** The box is as tall as the board at 100% (plus the strip): no empty band above or below it, and zooming never changes the box. */
+  fitHeight?: boolean;
 }) {
   const [area, setArea] = useState<Area>({ w: 920, h: 770 });
   // null: the board is fitted to the area, and follows it when the window changes
@@ -255,11 +263,15 @@ export function ZoomLayer({
   };
 
   const pct = Math.round((view.e / base) * 100);
+  const boxStyle = fitHeight
+    ? { height: Math.round((area.w * content.h) / content.w) + strip, flex: 'none' as const }
+    : undefined;
   return (
     <ZoomCtx.Provider value={info}>
       <div
         ref={box}
         className={className}
+        style={boxStyle}
         onPointerDown={down}
         onPointerMove={move}
         onPointerCancel={up}
@@ -278,7 +290,7 @@ export function ZoomLayer({
           }
         }}
       >
-        <div className="zoomclip" ref={clip}>
+        <div className="zoomclip" ref={clip} style={strip ? { bottom: strip } : undefined}>
           <div
             className="zoomlayer"
             style={{
