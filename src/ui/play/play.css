@@ -707,3 +707,30 @@ header .goalline b {
 .scope .lbl {
   margin-bottom: 4px;
 }
+
+/* Zoom and pan of the board (the layer scales; notes and buttons stay normal size). */
+.map.zoombox {
+  padding: 0;
+  overflow: hidden;
+  touch-action: none; /* pinch and drag are ours */
+}
+.zoomclip {
+  position: relative;
+  overflow: hidden;
+}
+.zoomlayer {
+  padding: 18px 0 0 28px;
+  will-change: transform;
+}
+.zoomctl {
+  position: absolute;
+  left: 34px;
+  bottom: 10px;
+  z-index: 30;
+  display: flex;
+  gap: 6px;
+}
+.zoomctl .chip {
+  min-width: 44px;
+  min-height: 44px;
+}

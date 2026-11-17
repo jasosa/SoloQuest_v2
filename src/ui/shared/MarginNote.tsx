@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { useProject } from '../play/ZoomLayer';
 
 /** Size of the map area the note is placed in (the left grid cell of the play screen). */
 export const MAP_W = 920;
@@ -30,7 +31,9 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const { x, y } = anchor;
+  // the thing it points at may have moved with the zoom
+  const project = useProject();
+  const { x, y } = project(anchor);
   const above = y > MAP_H * 0.5;
   let style: React.CSSProperties;
   let origin: { ox: string; oy: string };

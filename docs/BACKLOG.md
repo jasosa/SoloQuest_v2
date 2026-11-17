@@ -140,7 +140,7 @@ General, need a design decision first (ask owner)
 - [ ] Designer: let the owner define situation tags and their questions for spells (a tag is a short id plus a concrete question and an optional app check), not only pick from the fixed list. Today the 16 tags and their texts are fixed in `src/engine/data/spells.ts`; a spell can only have its own single question.
 - [ ] Designer: make monster profiles editable (the plan text, whether it sometimes moves back, and the target weights per monster type), like abilities and spells. Today profiles and weights are fixed in `src/engine/zargon/weights.ts` and `texts.ts` (decision 74).
 - [x] Behaviors: "Block doorway" is unclear and is the same for every monster type
-- [ ] Board zoom: pinch gestures and numeric controls
+- [x] Board zoom: pinch gestures and numeric controls
 
 Per quest
 - [x] Q1: Mummy is a special monster

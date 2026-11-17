@@ -42,6 +42,7 @@ import type { NoteTarget } from '../../engine/quest/schema';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { QuestSheet } from './QuestSheet';
+import { ZoomLayer } from './ZoomLayer';
 import { Helpers, Heroes } from './sidebar';
 import {
   ChestBody,
@@ -822,7 +823,27 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         </button>
       </header>
 
-      <div className="map">
+      <ZoomLayer
+        notes={
+          <>
+            {sheet?.t === 'place' && sheet.p.cell ? (
+              <MarginNote
+                anchor={toMap(sheet.p.cell[0] + 0.5, sheet.p.cell[1] + 0.5)}
+                kind="New monster"
+                title={`Put ${sheet.p.name} here`}
+                onClose={nextSheet}
+              >
+                <p>Put the {MONSTER_NAMES[sheet.p.monsterType]} on the marked square.</p>
+                <button className="btn" onClick={nextSheet}>
+                  Done
+                </button>
+              </MarginNote>
+            ) : (
+              note
+            )}
+          </>
+        }
+      >
         <PlayBoard
           level={level}
           state={state}
@@ -835,22 +856,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
           zargonView={zargonView}
         />
-        {sheet?.t === 'place' && sheet.p.cell ? (
-          <MarginNote
-            anchor={toMap(sheet.p.cell[0] + 0.5, sheet.p.cell[1] + 0.5)}
-            kind="New monster"
-            title={`Put ${sheet.p.name} here`}
-            onClose={nextSheet}
-          >
-            <p>Put the {MONSTER_NAMES[sheet.p.monsterType]} on the marked square.</p>
-            <button className="btn" onClick={nextSheet}>
-              Done
-            </button>
-          </MarginNote>
-        ) : (
-          note
-        )}
-      </div>
+      </ZoomLayer>
 
       <aside>
         <div className="aside-scroll">

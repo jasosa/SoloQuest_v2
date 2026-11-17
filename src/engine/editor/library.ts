@@ -9,7 +9,7 @@ import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
 import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
 import { addMonster, updateMonster, type Cell } from './ops';
-import { fail, type EditResult } from './result';
+import { fail, newIssues, ok, type EditResult } from './result';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -142,6 +142,29 @@ export function addLibrarySpellToMonster(
   if (!m) return fail(`There is no monster ${monsterId}.`);
   const t = takeLibrarySpell(q, def);
   return updateMonster(t.quest, monsterId, { spells: [...(m.spells ?? []), t.id] });
+}
+
+/** The quest's copy of an enemy is older than, or different from, the library's version. */
+export function enemyDiffersFromLibrary(q: Quest, def: EnemyDef): boolean {
+  const own = q.enemyDefs.find((e) => e.id === def.id);
+  return own !== undefined && JSON.stringify(own) !== JSON.stringify(def);
+}
+
+/**
+ * Replace the quest's copy of an enemy with the library's version (stats, abilities, spells,
+ * letter, picture). Monsters that use the enemy keep it and show the new values at once.
+ */
+export function updateEnemyFromLibrary(q: Quest, def: EnemyDef, lib: LibraryContent): EditResult {
+  if (!q.enemyDefs.some((e) => e.id === def.id)) return fail(`The quest has no enemy ${def.id}.`);
+  const without = { ...q, enemyDefs: q.enemyDefs.filter((e) => e.id !== def.id) };
+  const t = takeLibraryEnemy(without, def, lib);
+  // keep the position of the enemy in the list
+  const index = q.enemyDefs.findIndex((e) => e.id === def.id);
+  const taken = t.quest.enemyDefs.find((e) => e.id === t.id)!;
+  const rest = t.quest.enemyDefs.filter((e) => e.id !== t.id);
+  rest.splice(index, 0, taken);
+  const quest = { ...t.quest, enemyDefs: rest };
+  return ok(quest, newIssues(q, quest));
 }
 
 /**

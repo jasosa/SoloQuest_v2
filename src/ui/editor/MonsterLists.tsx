@@ -7,7 +7,9 @@ import {
   addLibrarySpellToMonster,
   addSpell,
   setMonsterEnemyFromLibrary,
+  enemyDiffersFromLibrary,
   spellChanged,
+  updateEnemyFromLibrary,
   updateMonster,
 } from '../../engine/editor';
 import { useLibrary } from '../designer/LibraryContext';
@@ -301,6 +303,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
   const mine = new Set(quest.enemyDefs.map((e) => e.id));
   const fromLib = lib.enemies.filter((e) => !mine.has(e.id));
   const current = quest.enemyDefs.find((e) => e.id === monster.enemy);
+  const libraryVersion = lib.enemies.find((e) => e.id === monster.enemy);
 
   return (
     <section data-testid="monster-enemy">
@@ -346,6 +349,27 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
           )}
         </select>
       </label>
+      {current && libraryVersion && enemyDiffersFromLibrary(quest, libraryVersion) && (
+        <>
+          <p className="ed-note" data-testid="enemy-newer">
+            The library has a different version of {current.name} (its stats, abilities or spells
+            changed). This quest keeps its own copy until you update it.
+          </p>
+          <button
+            className="btn alt"
+            onClick={() =>
+              st.apply((q) =>
+                updateEnemyFromLibrary(q, libraryVersion, {
+                  abilities: lib.abilities,
+                  spells: lib.spells,
+                }),
+              )
+            }
+          >
+            Update from the library
+          </button>
+        </>
+      )}
       {current && (
         <p className="ed-note">
           {current.name}: letter {current.letter ?? 'of its type'}

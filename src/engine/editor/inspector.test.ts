@@ -10,7 +10,7 @@ import {
   type EditResult,
 } from './ops';
 import { addSpell, updateSpell } from './meta';
-import { addMonsterOfEnemy } from './library';
+import { addMonsterOfEnemy, enemyDiffersFromLibrary, updateEnemyFromLibrary } from './library';
 
 function deepFreeze<T>(o: T): T {
   if (o && typeof o === 'object') {
@@ -211,5 +211,20 @@ describe('addMonsterOfEnemy', () => {
     const q1 = good(addMonsterOfEnemy(q0, def, [5, 17], { fromLibrary: false, lib }));
     expect(q1.enemyDefs).toHaveLength(1);
     expect(q1.monsters.filter((m) => m.enemy === 'marsh')).toHaveLength(2);
+  });
+});
+
+describe('updateEnemyFromLibrary', () => {
+  const lib = { abilities: [], spells: [] };
+  const v1 = { id: 'marsh', name: 'Marsh Skeleton', base: 'skeleton' as const };
+  const v2 = { ...v1, overrides: { att: 5 } };
+  it('replaces the quest copy by the library version, keeping the monsters on it', () => {
+    const q0 = good(addMonsterOfEnemy(base(), v1, [4, 17], { fromLibrary: true, lib }));
+    expect(enemyDiffersFromLibrary(q0, v2)).toBe(true);
+    const q1 = good(updateEnemyFromLibrary(q0, v2, lib));
+    expect(q1.enemyDefs.find((e) => e.id === 'marsh')?.overrides).toEqual({ att: 5 });
+    expect(q1.enemyDefs).toHaveLength(1);
+    expect(q1.monsters.at(-1)?.enemy).toBe('marsh');
+    expect(enemyDiffersFromLibrary(q1, v2)).toBe(false);
   });
 });
