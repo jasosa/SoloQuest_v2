@@ -7,20 +7,16 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
-  lettersMissingNotes,
   setDoorKind,
   setFurnitureLetter,
   updateMarker,
-  updateMonster,
   updateTrap,
   type DoorKind,
   type Issue,
-  type MonsterKind,
   type TrapKind,
 } from '../../engine/editor';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
 import {
-  MONSTER_TYPES,
   type FurnitureDef,
   type MonsterDef,
   type Quest,
@@ -29,12 +25,10 @@ import {
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { SubjectActions } from './ActionsSection';
-import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { elementOf } from './elementActions';
-import { ActionsPanel } from './ActionsPanel';
 import { ProblemsPanel } from './ProblemsPanel';
 import { parseMapLetter } from './noteForms';
-import { STAT_KEYS, parseLines, parseOverrides, type StatKey } from './inspectorForms';
+import { STAT_KEYS, parseOverrides, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
 
 export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
@@ -49,12 +43,6 @@ const TRAP_KINDS_ALL: readonly { kind: TrapKind; label: string }[] = [
   { kind: 'spear', label: 'Spear' },
   { kind: 'chest', label: 'Chest' },
   { kind: 'scripted', label: 'Scripted' },
-];
-
-const STATES: readonly { state: NonNullable<MonsterDef['state']>; label: string }[] = [
-  { state: 'active', label: 'Active' },
-  { state: 'dormant', label: 'Dormant' },
-  { state: 'stone', label: 'Stone' },
 ];
 
 const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
@@ -78,7 +66,6 @@ export function Inspector({
 }) {
   const { quest, selection, panel } = useStore(store);
   const st = store.getState();
-  const missing = lettersMissingNotes(quest).length;
 
   const door = selection?.kind === 'door' ? findDoor(quest, selection.id) : undefined;
   const furniture =
@@ -105,19 +92,6 @@ export function Inspector({
       </button>
       <button
         className="chip"
-        aria-pressed={panel === 'notes'}
-        aria-label={missing > 0 ? `Actions, ${missing} missing` : 'Actions'}
-        onClick={() => st.setPanel('notes')}
-      >
-        Actions
-        {missing > 0 && (
-          <span className="ed-badge" data-testid="missing-count">
-            {missing}
-          </span>
-        )}
-      </button>
-      <button
-        className="chip"
         aria-pressed={panel === 'problems'}
         aria-label={issues.length > 0 ? `Problems, ${issues.length}` : 'Problems'}
         onClick={() => st.setPanel('problems')}
@@ -137,14 +111,6 @@ export function Inspector({
       <>
         {tabs}
         <ProblemsPanel store={store} issues={issues} />
-      </>
-    );
-
-  if (panel === 'notes')
-    return (
-      <>
-        {tabs}
-        <ActionsPanel store={store} />
       </>
     );
 
@@ -180,12 +146,13 @@ export function Inspector({
           </p>
           {door && <DoorFields store={store} door={door} />}
           {furniture && <FurnitureFields store={store} furniture={furniture} />}
-          {monster && <MonsterFields store={store} monster={monster} />}
+          {monster && <MonsterPointer store={store} />}
           {marker && <MarkerFields store={store} marker={marker} />}
           {zone && <ZoneFields store={store} zone={zone} />}
           {trap && <TrapFields key={trap.id} store={store} trap={trap} quest={quest} />}
+          {/* a monster's actions are in the Monsters tab; every other element keeps them here */}
           {(() => {
-            const subject = elementOf(quest, selection);
+            const subject = monster ? null : elementOf(quest, selection);
             return subject ? <SubjectActions store={store} subject={subject} /> : null;
           })()}
           <button className="btn" onClick={() => deleteSelection(store)}>
@@ -314,98 +281,17 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
   );
 }
 
-function MonsterFields({ store, monster }: { store: EditorStore; monster: MonsterDef }) {
+/** The monster fields live in the Monsters tab only: here a short pointer to it. */
+function MonsterPointer({ store }: { store: EditorStore }) {
   const st = store.getState();
-  const patch = (p: Parameters<typeof updateMonster>[2]) =>
-    st.apply((q) => updateMonster(q, monster.id, p));
-  const state = monster.state ?? 'active';
-
   return (
     <>
-      <div className="lbl">Type</div>
-      <div className="ed-chips ed-small">
-        {MONSTER_TYPES.map((t: MonsterKind) => (
-          <button
-            key={t}
-            className="chip"
-            aria-pressed={monster.type === t}
-            onClick={() => patch({ type: t })}
-          >
-            {MONSTER_NAMES[t]}
-          </button>
-        ))}
-      </div>
-
-      <button
-        className="chip ed-wide"
-        aria-pressed={monster.special === true}
-        data-testid="special-chip"
-        onClick={() => patch({ special: monster.special !== true })}
-      >
-        Special monster (story-critical)
+      <p className="ed-note">
+        Stats, spells, abilities and behavior are edited in the Monsters tab.
+      </p>
+      <button className="btn alt" onClick={() => st.setTab('Monsters')}>
+        Edit in the Monsters tab
       </button>
-      <MonsterEnemy store={store} monster={monster} />
-      <MonsterAbilities store={store} monster={monster} />
-
-      <label className="ed-field">
-        Name
-        <input
-          key={`${monster.id}:${monster.name ?? ''}`}
-          defaultValue={monster.name ?? ''}
-          maxLength={60}
-          placeholder={MONSTER_NAMES[monster.type]}
-          onBlur={(e) => {
-            const v = e.target.value.trim();
-            if (v === (monster.name ?? '')) return;
-            patch({ name: v === '' ? null : v });
-          }}
-        />
-      </label>
-
-      <div className="lbl">State</div>
-      <div className="ed-chips">
-        {STATES.map((s) => (
-          <button
-            key={s.state}
-            className="chip"
-            aria-pressed={state === s.state}
-            onClick={() => patch({ state: s.state === 'active' ? null : s.state })}
-          >
-            {s.label}
-          </button>
-        ))}
-        <button
-          className="chip"
-          aria-pressed={monster.hidden === true}
-          onClick={() => patch({ hidden: monster.hidden === true ? null : true })}
-        >
-          Hidden
-        </button>
-      </div>
-      <p className="ed-note">Hidden: not on the board until a note brings it in.</p>
-
-      <StatFields
-        key={`${monster.id}:${monster.type}:${JSON.stringify(monster.overrides ?? {})}`}
-        store={store}
-        monster={monster}
-        onSave={(o) => patch({ overrides: o })}
-      />
-
-      <MonsterSpells store={store} monster={monster} />
-
-      <label className="ed-field">
-        Traits (one per line)
-        <textarea
-          key={`${monster.id}:${(monster.traits ?? []).join('\n')}`}
-          defaultValue={(monster.traits ?? []).join('\n')}
-          rows={3}
-          onBlur={(e) => {
-            const next = parseLines(e.target.value);
-            if (next.join('\n') === (monster.traits ?? []).join('\n')) return;
-            patch({ traits: next });
-          }}
-        />
-      </label>
     </>
   );
 }

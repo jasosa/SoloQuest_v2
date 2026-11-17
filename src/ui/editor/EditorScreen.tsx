@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
-import { validateQuestIssues, type MonsterKind } from '../../engine/editor';
+import { lettersMissingNotes, validateQuestIssues, type MonsterKind } from '../../engine/editor';
 import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
@@ -127,7 +127,12 @@ export function EditorScreen({
 
   return (
     <div className="app editor fr">
-      <TopBar tabs={EDITOR_TABS} active={tab} onTab={(t) => s.setTab(t as EditorTabName)}>
+      <TopBar
+        tabs={EDITOR_TABS}
+        active={tab}
+        badges={{ Actions: lettersMissingNotes(quest).length }}
+        onTab={(t) => s.setTab(t as EditorTabName)}
+      >
         <h1 className="fr-title">{quest.title}</h1>
         <span className="ed-status">{dirty ? 'Unsaved changes' : 'Saved'}</span>
       </TopBar>

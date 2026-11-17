@@ -177,15 +177,18 @@ test.describe('designer: the library', () => {
     await page.mouse.click(at(4, 17).x, at(4, 17).y);
     await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
     await page.mouse.click(at(4, 17).x, at(4, 17).y);
-    const insp = page.locator('.ed-inspector');
+    // a monster is edited in the Monsters tab
+    await page.getByRole('tab', { name: 'Monsters' }).click();
+    const insp = page.getByRole('tabpanel').or(page.locator('.fr-frame'));
 
     await insp.getByLabel('Enemy', { exact: true }).selectOption({ label: 'Marsh Skeleton' });
-    await expect(page.getByTestId('selection-id')).toContainText('Skeleton');
+    await expect(page.getByTestId('monster-list')).toContainText('Skeleton');
     await expect(insp.getByTestId('monster-enemy')).toContainText('letter M');
-    await insp.getByLabel('Add an ability').selectOption({ label: 'Bog skin' });
-    await insp.getByRole('button', { name: 'Add', exact: true }).first().click();
-    await expect(insp.locator('[data-ability]')).toBeVisible();
-    await insp.getByRole('button', { name: 'New ability…' }).click();
+    const abilities = page.getByTestId('monster-abilities');
+    await abilities.getByLabel('Add an ability').selectOption({ label: 'Bog skin' });
+    await abilities.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(abilities.locator('[data-ability]')).toBeVisible();
+    await abilities.getByRole('button', { name: 'New ability…' }).click();
     await page.getByRole('dialog', { name: 'Ability' }).getByLabel('Name').fill('Quick feet');
     await page.getByRole('dialog', { name: 'Ability' }).getByLabel('Name').blur();
     await page.getByTestId('save-in-library').click();

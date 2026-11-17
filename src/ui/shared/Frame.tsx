@@ -13,11 +13,14 @@ export function TopBar({
   tabs,
   active,
   onTab,
+  badges = {},
   children,
 }: {
   tabs: readonly string[];
   active: string;
   onTab?(tab: string): void;
+  /** A small count on a tab (the editor: letters that still need an action). */
+  badges?: Readonly<Record<string, number>>;
   /** The right side: status and links. */
   children?: ReactNode;
 }) {
@@ -34,6 +37,11 @@ export function TopBar({
             onClick={() => onTab?.(t)}
           >
             {t}
+            {(badges[t] ?? 0) > 0 && (
+              <span className="ed-badge" data-testid="missing-count">
+                {badges[t]}
+              </span>
+            )}
           </button>
         ))}
       </div>

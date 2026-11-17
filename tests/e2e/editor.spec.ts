@@ -349,36 +349,45 @@ test.describe('editor: storage and files', () => {
 test.describe('editor: inspector', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
 
-  test('monster: type, name, stats, state, spells, traits; undo', async ({ page }) => {
+  test('monster: the map inspector points to the Monsters tab, where type, name, stats, state, spells, traits are edited; undo', async ({
+    page,
+  }) => {
     await newQuest(page);
     await tool(page, 'Monsters').click();
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
     await expect(page.getByTestId('selection-id')).toContainText('Orc');
-    await insp(page).getByRole('button', { name: 'Goblin', exact: true }).click();
-    await expect(page.getByTestId('selection-id')).toContainText('Goblin');
-    await insp(page).getByLabel('Name').fill('Grub');
-    await insp(page).getByLabel('att').fill('5');
-    await insp(page).getByLabel('Traits (one per line)').fill('Likes gold');
-    await insp(page).getByRole('button', { name: 'Dormant', exact: true }).click();
+    // no monster form and no actions list beside the map (no duplicates of the Monsters tab)
+    await expect(insp(page).getByLabel('Name')).toHaveCount(0);
+    await expect(page.getByTestId('element-actions')).toHaveCount(0);
+    await insp(page).getByRole('button', { name: 'Edit in the Monsters tab' }).click();
+
+    const card = page.getByTestId('monster-card');
+    await card.getByLabel('Type').selectOption('goblin');
+    await expect(page.getByTestId('monster-list')).toContainText('Goblin');
+    await card.getByLabel('Name').fill('Grub');
+    await card.getByLabel('Name').blur();
+    await card.getByLabel('att').fill('5');
+    await card.getByLabel('att').blur();
+    await card.getByLabel('Traits (one per line)').fill('Likes gold');
+    await card.getByLabel('Traits (one per line)').blur();
+    await page.getByLabel('Starts').selectOption('dormant');
     const spells = page.getByTestId('monster-spells');
     await spells.getByLabel('Add a spell').selectOption({ label: 'Fear' });
     await spells.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(spells.locator('[data-spell="fear"]')).toBeVisible();
-    await expect(insp(page).getByLabel('Name')).toHaveValue('Grub');
-    await expect(insp(page).getByLabel('att')).toHaveValue('5');
-    await expect(insp(page).getByLabel('Traits (one per line)')).toHaveValue('Likes gold');
-    await expect(insp(page).getByRole('button', { name: 'Dormant', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await insp(page).getByLabel('def').fill('x');
-    await insp(page).getByLabel('mind').focus();
+    await expect(card.getByLabel('Name')).toHaveValue('Grub');
+    await expect(card.getByLabel('att')).toHaveValue('5');
+    await expect(card.getByLabel('Traits (one per line)')).toHaveValue('Likes gold');
+    await expect(page.getByLabel('Starts')).toHaveValue('dormant');
+    await card.getByLabel('def').fill('x');
+    await card.getByLabel('mind').focus();
     await expect(page.locator('.toast')).toContainText('whole number');
     await shot(page, 'editor-inspector-monster');
     await btn(page, 'Undo').click();
     await btn(page, 'Undo').click();
+    await page.getByRole('tab', { name: 'Map' }).click();
     await expect(page.locator('[data-monster]')).toHaveCount(1);
   });
 
@@ -415,7 +424,7 @@ test.describe('editor: inspector', () => {
 
 test.describe('editor: actions (decision 68)', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
-  const actionsTab = (page: Page) => insp(page).getByRole('button', { name: /^Actions/ });
+  const actionsTab = (page: Page) => page.getByRole('tab', { name: /^Actions/ });
   const dlg = (page: Page) => page.getByRole('dialog', { name: 'Action' });
 
   async function chestWithLetter(page: Page, letter: string) {
@@ -501,6 +510,7 @@ test.describe('editor: actions (decision 68)', () => {
     // the list groups it under the room
     await btn(page, 'Close').click();
     await expect(dlg(page)).toHaveCount(0);
+    await actionsTab(page).click(); // picking a square on the board moved us to the Map tab
     await expect(page.getByTestId('actions-area')).toContainText('A dusty chest.');
     await expect(page.getByTestId('actions-area')).toContainText('Hero enters');
     await shot(page, 'editor-actions-list');
@@ -515,14 +525,13 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(mark).toHaveAttribute('data-missing', 'true');
     await shot(page, 'editor-letter-missing');
 
+    // a tap on a letter with no action makes its action and opens it, over the board
     await clickAt(page, 2, 17, 0.82, 0.18);
-    await expect(page.getByTestId('missing-letters')).toContainText('Add action A');
-    await btn(page, 'Add action A').click();
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
     await expect(mark).not.toHaveAttribute('data-missing', 'true');
     await expect(mark).toHaveAttribute('data-note', 'n-A');
     await btn(page, 'Close').click();
-    await expect(page.getByTestId('note-list')).toBeVisible();
+    await expect(dlg(page)).toHaveCount(0);
 
     await clickAt(page, 2, 17, 0.82, 0.18);
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
@@ -614,6 +623,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
+    await page.getByRole('tab', { name: 'Monsters' }).click(); // a monster's actions live there
     await page.getByTestId('element-actions').getByRole('button', { name: 'Add action' }).click();
     await expect(dlg(page).getByLabel('When').locator('option')).toHaveText([
       'It is seen',
@@ -715,6 +725,8 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
+    // a monster is edited in the Monsters tab only
+    await page.getByRole('tab', { name: 'Monsters' }).click();
   }
 
   test('abilities: a dropdown and Add, no chips; a new ability opens its popup', async ({
@@ -783,7 +795,9 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await spellDlg(page).getByLabel('Name').fill('Mud');
     await spellDlg(page).getByLabel('Name').blur();
     await spellDlg(page).getByLabel('Add a situation').selectOption('heroAdjacent');
-    await expect(page.getByTestId('spell-tags')).toContainText('Is a hero on a square right next to it?');
+    await expect(page.getByTestId('spell-tags')).toContainText(
+      'Is a hero on a square right next to it?',
+    );
     await spellDlg(page).getByRole('button', { name: 'Remove any' }).click();
     await expect(page.locator('[data-tag="any"]')).toHaveCount(0);
     // the last situation cannot go without a question of the author's own
@@ -802,9 +816,9 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     );
 
     // the special flag is a single toggle
-    const special = page.getByTestId('special-chip');
+    const special = page.getByRole('switch', { name: /Special monster/ });
     await special.click();
-    await expect(special).toHaveAttribute('aria-pressed', 'true');
+    await expect(special).toHaveAttribute('aria-checked', 'true');
   });
 
   test('the quest fields list its own abilities and spells; deleting one warns', async ({

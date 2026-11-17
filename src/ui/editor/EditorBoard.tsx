@@ -24,6 +24,7 @@ import { Furniture } from '../board/Furniture';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
+import { addAction } from './addAction';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
 import {
@@ -726,9 +727,12 @@ export function EditorBoard({
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => {
               e.stopPropagation();
+              // A letter with an action opens it; a letter with none gets its action made now.
+              // The board stays on screen either way (the popup opens over it).
               const st = store.getState();
-              st.setPanel('notes');
-              st.setNoteId(l.note ?? null);
+              if (l.note) st.setNoteId(l.note);
+              else
+                addAction(store, { kind: 'area', id: store.getState().quest.start.area }, l.letter);
             }}
           />
         )}

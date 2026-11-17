@@ -266,21 +266,23 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setTab: (tab) => set({ tab, picking: null }),
       setPanel: (panel) =>
         set(
+          // the actions list is the Actions tab now, not a panel beside the map
           panel === 'notes'
-            ? { panel, picking: null, selection: null, tab: 'Map' }
+            ? { panel: 'element', picking: null, selection: null, tab: 'Actions' }
             : { panel, picking: null },
         ),
       setNoteId: (noteId) => set({ noteId, picking: null }),
       setAbilityId: (abilityId) => set({ abilityId }),
       setSpellId: (spellId) => set({ spellId }),
-      setPicking: (picking) => set({ picking }),
+      // picking needs the board, so the Map tab comes back while a square is chosen
+      setPicking: (picking) => set(picking ? { picking, tab: 'Map' } : { picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
       jump(ref) {
         const j = jumpFor(get().quest, ref);
         const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
         set({
-          tab: 'Map',
-          panel: j.panel,
+          tab: j.panel === 'notes' ? 'Actions' : 'Map',
+          panel: j.panel === 'notes' ? 'element' : j.panel,
           selection: j.selection,
           picking: null,
           pendingBlock: null,
