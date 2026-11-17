@@ -105,4 +105,59 @@ test.describe('board zoom', () => {
     expect(drawn.y + drawn.height).toBeLessThanOrEqual(clip.y + clip.height + 1);
     expect(drawn.x + drawn.width).toBeLessThanOrEqual(clip.x + clip.width + 1);
   });
+
+  test('after zooming in, fingers zoom out and move the board, and a lifted finger lets go of it', async ({
+    page,
+  }) => {
+    await page.goto(board);
+    const fire = (type: string, id: number, x: number, y: number, kind = 'touch') =>
+      page.evaluate(
+        ([t, i, px, py, pt]) => {
+          document.querySelector('.map.zoombox')!.dispatchEvent(
+            new PointerEvent(t as string, {
+              pointerId: i as number,
+              pointerType: pt as string,
+              clientX: px as number,
+              clientY: py as number,
+              bubbles: true,
+            }),
+          );
+        },
+        [type, id, x, y, kind] as const,
+      );
+    const map = (await page.locator('.map.zoombox').boundingBox())!;
+    const cx = map.x + map.width / 2;
+    const cy = map.y + map.height / 2;
+    const level = page.getByTestId('zoom-level');
+    const pinch = async (from: number, to: number) => {
+      await fire('pointerdown', 1, cx - from, cy);
+      await fire('pointerdown', 2, cx + from, cy);
+      const steps = 8;
+      for (let i = 1; i <= steps; i++) {
+        const d = from + ((to - from) * i) / steps;
+        await fire('pointermove', 1, cx - d, cy);
+        await fire('pointermove', 2, cx + d, cy);
+      }
+      await fire('pointerup', 1, cx - to, cy);
+      await fire('pointerup', 2, cx + to, cy);
+    };
+    await pinch(40, 160); // zoom in with two fingers
+    const zoomedIn = parseInt(await level.innerText());
+    expect(zoomedIn).toBeGreaterThan(150);
+    await pinch(160, 40); // and out again with two fingers
+    expect(parseInt(await level.innerText())).toBeLessThan(zoomedIn);
+
+    // zoom in with the chips, then one finger drags the board, and lifting it ends the drag
+    for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Zoom in' }).click();
+    const start = (await page.locator('#board').boundingBox())!;
+    await fire('pointerdown', 7, cx, cy, 'mouse');
+    for (let i = 1; i <= 6; i++) await fire('pointermove', 7, cx - i * 30, cy, 'mouse');
+    await fire('pointerup', 7, cx - 180, cy, 'mouse');
+    const dragged = (await page.locator('#board').boundingBox())!;
+    expect(dragged.x).toBeLessThan(start.x - 100);
+    // the mouse moves on without a button: the board stays where it is
+    await fire('pointermove', 7, cx - 400, cy, 'mouse');
+    const after = (await page.locator('#board').boundingBox())!;
+    expect(after.x).toBeCloseTo(dragged.x, 0);
+  });
 });

@@ -262,10 +262,11 @@ export function ZoomLayer({
         className={className}
         onPointerDown={down}
         onPointerMove={move}
-        onPointerUp={up}
         onPointerCancel={up}
         // a drag or pinch moved the board: the thing under the finger is not tapped or placed
         onPointerUpCapture={(e) => {
+          // the finger is lifted whatever happens next: forget it first, or the next gesture breaks
+          up(e);
           if (dragged.current) e.stopPropagation();
         }}
         // a drag or pinch must not count as a tap on the board
