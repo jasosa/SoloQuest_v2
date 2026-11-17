@@ -466,7 +466,7 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
     await expect(actionsTab(page).getByTestId('missing-count')).toHaveCount(0);
 
-    const message = dlg(page).getByLabel('Message');
+    const message = dlg(page).locator('[data-effect="showText"]').first().getByLabel(/^Text/);
     await message.fill('A dusty chest.');
     await message.blur();
 
@@ -491,7 +491,7 @@ test.describe('editor: actions (decision 68)', () => {
     await addEffect.selectOption('promptChoice');
     await addEffect.selectOption('revealAll');
     await addEffect.selectOption('placeBlock');
-    await expect(page.getByTestId('effect-row')).toHaveCount(5);
+    await expect(page.getByTestId('effect-row')).toHaveCount(6); // the message is the first
     const flag = page.locator('[data-effect="setFlag"]').getByRole('textbox', { name: 'Flag' });
     await flag.fill('alarm');
     await flag.blur();
@@ -648,7 +648,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
       'All of some monsters are slain',
       'A button in the Quest sheet',
     ]);
-    const message = dlg(page).getByLabel('Message');
+    const message = dlg(page).locator('[data-effect="showText"]').first().getByLabel(/^Text/);
     await message.fill('Place the heroes on the stairs.');
     await message.blur();
     await btn(page, 'Close').click();
@@ -662,7 +662,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await expect(dlg(page).getByLabel('When').locator('option')).toContainText(['The quest ends']);
     await dlg(page).getByLabel('When').selectOption('questEnds');
     await expect(dlg(page).getByLabel('When')).toHaveValue('questEnds');
-    const message = dlg(page).getByLabel('Message');
+    const message = dlg(page).locator('[data-effect="showText"]').first().getByLabel(/^Text/);
     await message.fill('The cellar goes quiet.');
     await message.blur();
     await btn(page, 'Close').click();

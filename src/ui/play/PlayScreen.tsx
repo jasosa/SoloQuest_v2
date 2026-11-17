@@ -233,6 +233,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       />
     );
   };
+  /** Only the buttons of an element, not the notes already read. */
+  const forQuestButtons = (kind: NoteTarget['kind'], id: string) => (
+    <ForThisQuest
+      view={{ ...elementQuest(level, state, kind, id), read: [] }}
+      onRead={() => undefined}
+      onPress={(note) => act({ type: 'MANUAL_TRIGGER', note })}
+    />
+  );
   const forQuest = (kind: NoteTarget['kind'], id: string) => (
     <ForThisQuest
       view={elementQuest(level, state, kind, id)}
@@ -551,7 +559,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               </button>
             </>
           )}
-          {forQuest('zone', sel.id)}
+          {/* while the button is offered, nothing else: no "For this quest" list of what was read */}
+          {label.enter ? forQuestButtons('zone', sel.id) : forQuest('zone', sel.id)}
         </MarginNote>
       );
     }

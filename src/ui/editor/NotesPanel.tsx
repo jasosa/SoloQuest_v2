@@ -6,7 +6,7 @@
  * Targets (a door, a square, an area) are chosen from a list or by clicking on the board.
  */
 import { board, roomIds } from '../../engine/board/board';
-import { removeNote, setNoteText, updateNote, type NotePatch } from '../../engine/editor';
+import { removeNote, updateNote, type NotePatch } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
   MONSTER_TYPES,
@@ -38,8 +38,6 @@ import {
   conditionKey,
   defaultCondition,
   defaultEffect,
-  mainText,
-  mainTextIndex,
   parseMapLetter,
   parseWhole,
   removeAt,
@@ -340,7 +338,6 @@ export function ActionForm({
 }) {
   const st = store.getState();
   const patch = (p: NotePatch) => st.apply((q) => updateNote(q, note.id, p));
-  const skip = mainTextIndex(note);
   const subject = subjectOf(note);
   const fits = triggerChoices(subject);
   // An old action may use a trigger that has no subject (a kind of monster slain): keep it listed.
@@ -386,16 +383,6 @@ export function ActionForm({
       </section>
 
       <section>
-        <Text
-          label="Message"
-          value={mainText(note)}
-          multiline
-          placeholder="What the players read"
-          onSave={(v) => st.apply((q) => setNoteText(q, note.id, v))}
-        />
-      </section>
-
-      <section>
         <div className="lbl">Only if</div>
         <ConditionList
           store={store}
@@ -411,7 +398,6 @@ export function ActionForm({
           store={store}
           quest={quest}
           effects={note.effects}
-          skip={skip}
           onChange={(e) => patch({ effects: e })}
         />
       </section>
@@ -896,45 +882,40 @@ function EffectList({
   store,
   quest,
   effects,
-  skip,
   onChange,
 }: {
   store: EditorStore;
   quest: Quest;
   effects: readonly Effect[];
-  /** Index of the effect the "Text" field already shows. */
-  skip?: number;
   onChange(e: Effect[]): void;
 }) {
   return (
     <>
-      {effects.map((e, i) =>
-        i === skip ? null : (
-          <div
-            className="ed-row"
-            key={`${i}:${e.type}`}
-            data-testid="effect-row"
-            data-effect={e.type}
-          >
-            <div className="ed-row-head">
-              <span>{EFFECT_TYPES.find((x) => x.type === e.type)?.label}</span>
-              <button
-                className="chip"
-                aria-label={`Remove effect ${EFFECT_TYPES.find((x) => x.type === e.type)?.label}`}
-                onClick={() => onChange(removeAt(effects, i))}
-              >
-                Remove
-              </button>
-            </div>
-            <EffectFields
-              store={store}
-              quest={quest}
-              effect={e}
-              onChange={(n) => onChange(replaceAt(effects, i, n))}
-            />
+      {effects.map((e, i) => (
+        <div
+          className="ed-row"
+          key={`${i}:${e.type}`}
+          data-testid="effect-row"
+          data-effect={e.type}
+        >
+          <div className="ed-row-head">
+            <span>{EFFECT_TYPES.find((x) => x.type === e.type)?.label}</span>
+            <button
+              className="chip"
+              aria-label={`Remove effect ${EFFECT_TYPES.find((x) => x.type === e.type)?.label}`}
+              onClick={() => onChange(removeAt(effects, i))}
+            >
+              Remove
+            </button>
           </div>
-        ),
-      )}
+          <EffectFields
+            store={store}
+            quest={quest}
+            effect={e}
+            onChange={(n) => onChange(replaceAt(effects, i, n))}
+          />
+        </div>
+      ))}
       <label className="ed-field">
         <select
           className="es-select"
