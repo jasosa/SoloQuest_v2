@@ -2,6 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CORE_ABILITIES } from '../../engine/data/abilities';
 import { HERO_NAMES, HEROES } from '../../engine/data/heroes';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
+import { PLAN_TEXT, RULE_TEXT } from '../../engine/zargon/texts';
+import {
+  PROFILES,
+  PROFILE_OF_TYPE,
+  RULE_KEYS,
+  WEIGHTS,
+  type Profile,
+  type RuleKey,
+} from '../../engine/zargon/weights';
 import {
   CORE_SPELLS,
   SPELL_TAG_IDS,
@@ -64,6 +73,12 @@ const TITLE: Readonly<Record<LibraryKind, string>> = {
   companion: 'Companion',
 };
 const STATS = ['move', 'att', 'def', 'body', 'mind'] as const;
+const PROFILE_LABELS: Readonly<Record<Profile, string>> = {
+  skirmisher: 'Skirmisher: attacks, then runs back',
+  fighter: 'Fighter: attacks, sometimes moves back',
+  relentless: 'Relentless: never falls back',
+  caster: 'Caster: a spell first',
+};
 const LIMITS = [
   { n: 1, label: 'Once in the quest' },
   { n: 2, label: 'Twice' },
@@ -623,9 +638,25 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
   };
 
   const enemyCards = (d: Data) => {
-    const base = (str(d, 'base') || 'goblin') as MonsterType;
+    // An enemy may start from a core monster (stats, plan and weights follow it until changed) or
+    // be completely its own: then it keeps all five stats, its plan and its weights itself.
+    const baseId = str(d, 'base') as MonsterType | '';
+    const own = baseId === '';
     const o = (d.overrides ?? {}) as Record<string, number>;
-    const stats = { ...MONSTER_STATS[base], ...o } as Record<string, number>;
+    const baseStats = { ...MONSTER_STATS[baseId || 'goblin'] } as Record<string, number>;
+    const stats = { ...baseStats, ...o } as Record<string, number>;
+    const profile = (str(d, 'profile') ||
+      (baseId ? PROFILE_OF_TYPE[baseId] : 'fighter')) as Profile;
+    const defaultWeights: Partial<Record<RuleKey, number>> = baseId
+      ? WEIGHTS[baseId]
+      : { closest: 1 };
+    const weights = (d.weights ?? defaultWeights) as Partial<Record<RuleKey, number>>;
+    const setWeight = (k: RuleKey, n: number) => {
+      const next: Partial<Record<RuleKey, number>> = { ...weights, [k]: n };
+      if (!n) delete next[k];
+      if (Object.keys(next).length === 0) next.closest = 1;
+      change(put(d, 'weights', next));
+    };
     const abilities = list(d, 'abilities');
     const spells = list(d, 'spells');
     const spellIds = [...new Set(spells)];
@@ -674,14 +705,11 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
                   value={String(stats[s])}
                   onChange={(e) => {
                     const n = Number(e.target.value);
-                    const next = { ...o };
-                    if (
-                      e.target.value.trim() === '' ||
-                      !Number.isInteger(n) ||
-                      n < 0 ||
-                      n === MONSTER_STATS[base][s]
-                    )
-                      delete next[s];
+                    // with a base, a stat equal to the base needs no override; on its own all five are kept
+                    const next = own ? { ...stats } : { ...o };
+                    if (e.target.value.trim() === '' || !Number.isInteger(n) || n < 0) {
+                      if (!own) delete next[s];
+                    } else if (!own && n === baseStats[s]) delete next[s];
                     else next[s] = n;
                     change(put(d, 'overrides', Object.keys(next).length ? next : undefined));
                   }}
@@ -689,7 +717,7 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
               </Fld>
             ))}
           </div>
-          <Fld label={locked ? 'Hunts' : 'Behaves like'}>
+          <Fld label={locked ? 'Hunts' : 'Starts from'}>
             {locked ? (
               <select className="fr-sel" aria-label="Hunts" disabled value="x">
                 <option value="x">The hero it can reach first (core rule)</option>
@@ -697,10 +725,30 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
             ) : (
               <select
                 className="fr-sel"
-                aria-label="Behaves like"
-                value={base}
-                onChange={(e) => change(put(d, 'base', e.target.value))}
+                aria-label="Starts from"
+                value={baseId}
+                onChange={(e) => {
+                  const v = e.target.value as MonsterType | '';
+                  if (v === '') {
+                    // on its own: keep what it has now, in its own fields
+                    change({
+                      ...put(d, 'base', undefined),
+                      overrides: stats,
+                      profile,
+                      weights,
+                    });
+                  } else {
+                    // from a core monster: take its stats, plan and weights as a start
+                    change({
+                      ...put(d, 'base', v),
+                      overrides: undefined,
+                      profile: PROFILE_OF_TYPE[v],
+                      weights: { ...WEIGHTS[v] },
+                    });
+                  }
+                }}
               >
+                <option value="">Nothing: its own rules</option>
                 {MONSTER_TYPES.map((t) => (
                   <option key={t} value={t}>
                     {MONSTER_NAMES[t]}
@@ -709,6 +757,41 @@ export function DesignerBody({ store, quests }: DesignerBodyProps) {
               </select>
             )}
           </Fld>
+          <Fld label="Plan">
+            <select
+              className="fr-sel"
+              aria-label="Plan"
+              disabled={locked}
+              value={profile}
+              onChange={(e) => change(put(d, 'profile', e.target.value))}
+            >
+              {PROFILES.map((p) => (
+                <option key={p} value={p}>
+                  {PROFILE_LABELS[p]}
+                </option>
+              ))}
+            </select>
+          </Fld>
+          <p className="fr-help">{PLAN_TEXT[profile]}</p>
+          <div className="lbl">Who it goes for (weight 0 to 9, 0 never)</div>
+          <div data-testid="dz-weights">
+            {RULE_KEYS.map((k) => (
+              <Fld key={k} label={RULE_TEXT[k]}>
+                <input
+                  className="fr-in"
+                  aria-label={`Weight: ${k}`}
+                  inputMode="numeric"
+                  disabled={locked}
+                  value={String(weights[k] ?? 0)}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    if (e.target.value.trim() === '' || (Number.isInteger(n) && n >= 0 && n <= 9))
+                      setWeight(k, e.target.value.trim() === '' ? 0 : n);
+                  }}
+                />
+              </Fld>
+            ))}
+          </div>
         </Panel>
 
         <Panel title="Abilities" testId="dz-abilities">

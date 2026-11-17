@@ -144,6 +144,12 @@ export function addLibrarySpellToMonster(
   return updateMonster(t.quest, monsterId, { spells: [...(m.spells ?? []), t.id] });
 }
 
+/**
+ * The core type a monster of this enemy carries in the quest file. An enemy with no base type is
+ * completely its own: it carries the goblin type, but its own stats, plan and weights win.
+ */
+export const carrierType = (def: Pick<EnemyDef, 'base'>) => def.base ?? 'goblin';
+
 /** The quest's copy of an enemy is older than, or different from, the library's version. */
 export function enemyDiffersFromLibrary(q: Quest, def: EnemyDef): boolean {
   const own = q.enemyDefs.find((e) => e.id === def.id);
@@ -179,7 +185,7 @@ export function addMonsterOfEnemy(
   opts: { fromLibrary: boolean; lib: LibraryContent; hidden?: boolean },
 ): EditResult {
   const t = opts.fromLibrary ? takeLibraryEnemy(q, def, opts.lib) : { quest: q, id: def.id };
-  const made = addMonster(t.quest, def.base, cell, opts.hidden ? { hidden: true } : {});
+  const made = addMonster(t.quest, carrierType(def), cell, opts.hidden ? { hidden: true } : {});
   if (!made.ok) return made;
   const id = made.quest.monsters.at(-1)?.id;
   if (!id) return fail('The monster could not be added.');
@@ -198,5 +204,5 @@ export function setMonsterEnemyFromLibrary(
 ): EditResult {
   if (!q.monsters.some((x) => x.id === monsterId)) return fail(`There is no monster ${monsterId}.`);
   const t = takeLibraryEnemy(q, def, lib);
-  return updateMonster(t.quest, monsterId, { type: def.base, enemy: t.id });
+  return updateMonster(t.quest, monsterId, { type: carrierType(def), enemy: t.id });
 }

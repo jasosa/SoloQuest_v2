@@ -39,14 +39,14 @@ test.describe('designer: the library', () => {
     await expect(lib(page).getByRole('button', { name: /^Heroes \(4 core\)/ })).toBeVisible();
     await items(page).getByRole('button', { name: 'Orc', exact: true }).click();
     await expect(page.getByLabel('Source')).toContainText('Core (you can change it)');
-    await expect(page.getByLabel('att')).toHaveValue('3');
+    await expect(page.getByLabel('att', { exact: true })).toHaveValue('3');
     await shot(page, 'designer-core-enemy');
     // change a core enemy: it is marked as changed, and can be reset
-    await page.getByLabel('att').fill('5');
+    await page.getByLabel('att', { exact: true }).fill('5');
     await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('changed');
     await expect(page.getByLabel('Source')).toContainText('Core (changed)');
     await page.getByRole('button', { name: 'Reset to core' }).click();
-    await expect(page.getByLabel('att')).toHaveValue('3');
+    await expect(page.getByLabel('att', { exact: true })).toHaveValue('3');
     await expect(items(page).getByRole('button', { name: /^Orc/ })).not.toContainText('changed');
     // a core hero can be renamed
     await kind(page, /^Heroes/);
@@ -76,9 +76,9 @@ test.describe('designer: the library', () => {
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Marsh Orc');
-    await card(page).getByLabel('Behaves like').selectOption('orc');
+    await card(page).getByLabel('Starts from').selectOption('orc');
     await page.getByLabel('Letter (1 or 2)').fill('M');
-    await page.getByLabel('att').fill('4');
+    await page.getByLabel('att', { exact: true }).fill('4');
     await page.getByLabel('Add an ability').selectOption({ label: 'Bog skin' });
     await page.getByRole('button', { name: 'Add the ability' }).click();
     await expect(
@@ -160,7 +160,7 @@ test.describe('designer: the library', () => {
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Marsh Skeleton');
-    await card(page).getByLabel('Behaves like').selectOption('skeleton');
+    await card(page).getByLabel('Starts from').selectOption('skeleton');
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
@@ -202,8 +202,8 @@ test.describe('designer: the library', () => {
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Marsh Skeleton');
-    await card(page).getByLabel('Behaves like').selectOption('skeleton');
-    await page.getByLabel('att').fill('4');
+    await card(page).getByLabel('Starts from').selectOption('skeleton');
+    await page.getByLabel('att', { exact: true }).fill('4');
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^NEW QUEST/ }).click();
@@ -223,7 +223,9 @@ test.describe('designer: the library', () => {
     await page.getByRole('tab', { name: 'Monsters' }).click();
     await expect(page.getByTestId('monster-list')).toContainText('Marsh Skeleton');
     await page.getByTestId('monster-list').getByRole('button').first().click();
-    await expect(page.getByTestId('monster-card').getByLabel('att')).toHaveValue('4');
+    await expect(page.getByTestId('monster-card').getByLabel('att', { exact: true })).toHaveValue(
+      '4',
+    );
     // the board token has the enemy's letter, not the skeleton's
     await page.getByRole('tab', { name: 'Map' }).click();
     await expect(page.locator('[data-monster="m1"]')).toContainText('M');
@@ -236,5 +238,49 @@ test.describe('designer: the library', () => {
       .getByRole('button', { name: 'Add', exact: true })
       .click();
     await expect(page.getByTestId('monster-list').locator('li')).toHaveCount(2);
+  });
+
+  test('an enemy can be completely its own: stats, plan, weights and a picture, shown on the map', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Slime');
+    await card(page).getByLabel('Starts from').selectOption('');
+    for (const [stat, v] of [
+      ['move', '4'],
+      ['att', '2'],
+      ['def', '1'],
+      ['body', '6'],
+      ['mind', '0'],
+    ] as const)
+      await page.getByLabel(stat, { exact: true }).fill(v);
+    await page.getByLabel('Plan').selectOption('relentless');
+    await page.getByLabel('Weight: lowestBody').fill('3');
+    await page.getByLabel('Weight: closest').fill('1');
+    await page
+      .getByTestId('dz-file')
+      .setInputFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG });
+    await expect(page.getByTestId('dz-pic')).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('Slime quest');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    const box = (await page.locator('#editor-board').boundingBox())!;
+    const k = box.width / (26 * 34 + 4);
+    await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
+    // the picture is on the editor token
+    await expect(page.locator('[data-monster="m1"] [data-token-image="m1"]')).toHaveCount(1);
+    // the Monsters tab shows its own stats and no type to pick
+    await page.getByRole('tab', { name: 'Monsters' }).click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await expect(page.getByTestId('monster-card').getByLabel('body', { exact: true })).toHaveValue(
+      '6',
+    );
+    await expect(page.getByTestId('monster-card').getByLabel('Type')).toHaveCount(0);
   });
 });

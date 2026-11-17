@@ -331,7 +331,9 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(page.locator('[data-zone-label="z1"]')).toHaveCount(1);
     await expect(page.locator('[data-zone-label="z1"] circle')).not.toHaveCount(0);
     await label.first().click();
-    await expect(page.getByRole('dialog', { name: 'A hero enters' })).toContainText('enters this square');
+    await expect(page.getByRole('dialog', { name: 'A hero enters' })).toContainText(
+      'enters this square',
+    );
     await shot(page, 'notes-zone');
     await btn(page, 'A hero enters').click();
     await expect(page.getByRole('dialog', { name: 'The cold spot' })).toContainText('cold here');

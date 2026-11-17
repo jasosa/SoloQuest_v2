@@ -138,7 +138,7 @@ General, need a design decision first (ask owner)
 - [x] Action panel split by scope: Element (actions of the element, maybe none), Room (clear labels, e.g. Search Room), Quest (clear labels). Furniture click must not show Search Room as an element action
 - [x] Spell flow (decision 72): show the spell and its questions; No shows the alternative spell (if any); No again shows regular movement. Make questions concrete (e.g. "Is a hero with high attack in sight?"). Clarify move/cast order per spell
 - [ ] Designer: let the owner define situation tags and their questions for spells (a tag is a short id plus a concrete question and an optional app check), not only pick from the fixed list. Today the 16 tags and their texts are fixed in `src/engine/data/spells.ts`; a spell can only have its own single question.
-- [ ] Designer: make monster profiles editable (the plan text, whether it sometimes moves back, and the target weights per monster type), like abilities and spells. Today profiles and weights are fixed in `src/engine/zargon/weights.ts` and `texts.ts` (decision 74).
+- [x] Designer: make monster profiles editable (the plan text, whether it sometimes moves back, and the target weights per monster type), like abilities and spells. Today profiles and weights are fixed in `src/engine/zargon/weights.ts` and `texts.ts` (decision 74).
 - [x] Behaviors: "Block doorway" is unclear and is the same for every monster type
 - [x] Board zoom: pinch gestures and numeric controls
 

@@ -149,20 +149,24 @@ export function MonstersTab({ store }: { store: EditorStore }) {
           <>
             <Panel title="Enemy" testId="monster-card">
               <MonsterEnemy store={store} monster={monster} />
-              <Fld label="Type">
-                <select
-                  className="fr-sel"
-                  aria-label="Type"
-                  value={monster.type}
-                  onChange={(e) => patch({ type: e.target.value as MonsterType })}
-                >
-                  {MONSTER_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {MONSTER_NAMES[t]}
-                    </option>
-                  ))}
-                </select>
-              </Fld>
+              {/* an enemy that is completely its own has no type to pick */}
+              {(!monster.enemy ||
+                quest.enemyDefs.find((e) => e.id === monster.enemy)?.base !== undefined) && (
+                <Fld label="Type">
+                  <select
+                    className="fr-sel"
+                    aria-label="Type"
+                    value={monster.type}
+                    onChange={(e) => patch({ type: e.target.value as MonsterType })}
+                  >
+                    {MONSTER_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {MONSTER_NAMES[t]}
+                      </option>
+                    ))}
+                  </select>
+                </Fld>
+              )}
               <Fld label="Name in this quest">
                 <input
                   className="fr-in"

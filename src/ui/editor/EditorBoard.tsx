@@ -25,7 +25,7 @@ import { Furniture } from '../board/Furniture';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { addAction } from './addAction';
-import { shownLetter } from './monsterLabel';
+import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
 import {
@@ -639,17 +639,36 @@ export function EditorBoard({
           strokeWidth={2}
           opacity={m.state === 'dormant' ? 0.55 : 1}
         />
-        <text
-          x={cx}
-          y={cy + 4.2}
-          textAnchor="middle"
-          fill={color.tokenText}
-          fontFamily="Bonum"
-          fontWeight={700}
-          fontSize={11.5}
-        >
-          {shownLetter(quest, m)}
-        </text>
+        {shownImage(quest, m) ? (
+          <>
+            <clipPath id={`eclip-${m.id}`}>
+              <circle cx={cx} cy={cy} r={12.5} />
+            </clipPath>
+            <image
+              href={shownImage(quest, m)}
+              x={cx - 12.5}
+              y={cy - 12.5}
+              width={25}
+              height={25}
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#eclip-${m.id})`}
+              opacity={m.state === 'dormant' ? 0.55 : 1}
+              data-token-image={m.id}
+            />
+          </>
+        ) : (
+          <text
+            x={cx}
+            y={cy + 4.2}
+            textAnchor="middle"
+            fill={color.tokenText}
+            fontFamily="Bonum"
+            fontWeight={700}
+            fontSize={11.5}
+          >
+            {shownLetter(quest, m)}
+          </text>
+        )}
       </g>,
     );
   }

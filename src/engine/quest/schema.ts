@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
 import { SPELL_TAG_IDS, SPELL_TIMINGS } from '../data/spells';
+import { PROFILES, RULE_KEYS } from '../zargon/weights';
 
 export const SCHEMA_VERSION = 1;
 
@@ -66,6 +67,8 @@ const ImageSchema = z
   .max(MAX_IMAGE_CHARS)
   .regex(IMAGE_PATTERN, 'an image is a png, jpeg or webp data URL');
 
+const WeightsSchema = z.partialRecord(z.enum(RULE_KEYS), z.number().int().min(0).max(9));
+
 const StatOverrides = z.strictObject({
   move: z.number().int().min(0).optional(),
   att: z.number().int().min(0).optional(),
@@ -121,6 +124,9 @@ const MonsterSchema = z
     spellLimit: z.enum(['onePerTurn']).optional(),
     /** Spell id to the place it is offered in (1 = first). A spell not listed is offered at random. */
     spellOrder: z.record(nonEmpty, z.number().int().min(1).max(9)).optional(),
+    /** Its own Zargon plan and who it goes for (from its enemy, decision 75). */
+    profile: z.enum(PROFILES).optional(),
+    weights: WeightsSchema.optional(),
     /** Paraphrased special rules of a named monster, shown first on its Zargon order. */
     traits: z.array(nonEmpty).optional(),
     /** Story-critical monster (decision 69): drawn with a ring and a star. Not the same as having an ability. */
@@ -137,18 +143,28 @@ const MonsterSchema = z
   });
 
 /** A reusable monster definition (decision 70). A monster of the quest points at it. */
-export const EnemyDefSchema = z.strictObject({
-  id,
-  name: nonEmpty,
-  /** The core type it behaves like (target rules, base stats). */
-  base: MonsterType,
-  letter: z.string().min(1).max(2).optional(),
-  image: ImageSchema.optional(),
-  overrides: StatOverrides.optional(),
-  abilities: z.array(id).optional(),
-  spells: z.array(nonEmpty).optional(),
-  traits: z.array(nonEmpty).optional(),
-});
+export const EnemyDefSchema = z
+  .strictObject({
+    id,
+    name: nonEmpty,
+    /** The core type it starts from (stats, plan, weights). Missing: it is completely its own. */
+    base: MonsterType.optional(),
+    letter: z.string().min(1).max(2).optional(),
+    image: ImageSchema.optional(),
+    overrides: StatOverrides.optional(),
+    /** Its Zargon plan, and who it goes for with a weight per rule (decision 75). */
+    profile: z.enum(PROFILES).optional(),
+    weights: WeightsSchema.optional(),
+    abilities: z.array(id).optional(),
+    spells: z.array(nonEmpty).optional(),
+    traits: z.array(nonEmpty).optional(),
+  })
+  .refine(
+    (e) =>
+      e.base !== undefined ||
+      (['move', 'att', 'def', 'body', 'mind'] as const).every((k) => e.overrides?.[k] !== undefined),
+    { message: 'an enemy with no base type needs all five stats', path: ['overrides'] },
+  );
 
 export const AbilityDefSchema = z.strictObject({
   id,

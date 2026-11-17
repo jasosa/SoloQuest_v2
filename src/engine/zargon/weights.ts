@@ -21,7 +21,8 @@ export type RuleKey = (typeof RULE_KEYS)[number];
  * The plan of a monster (decision 74): skirmisher (goblins), fighter (orcs, abominations, dread
  * warriors: sometimes attack and move back), relentless (undead, gargoyles: never fall back), caster.
  */
-export type Profile = 'skirmisher' | 'fighter' | 'relentless' | 'caster';
+export const PROFILES = ['skirmisher', 'fighter', 'relentless', 'caster'] as const;
+export type Profile = (typeof PROFILES)[number];
 
 export type Weights = Readonly<Partial<Record<RuleKey, number>>>;
 
@@ -59,19 +60,28 @@ export const PROFILE_OF_TYPE: Readonly<Record<MonsterType, Exclude<Profile, 'cas
   dreadSorcerer: 'fighter',
 };
 
-type ProfileInput = Pick<MonsterDef, 'type'> & { readonly spells?: readonly string[] | undefined };
+type ProfileInput = Pick<MonsterDef, 'type'> & {
+  readonly spells?: readonly string[] | undefined;
+  /** An enemy's own plan and weights (decision 75). They win over the table of its type. */
+  readonly profile?: Profile | undefined;
+  readonly weights?: Weights | undefined;
+};
 
 /** Named monsters with spells (and the dread sorcerer) use the caster profile. */
 export function isCaster(monster: ProfileInput): boolean {
   return (
-    (monster.spells !== undefined && monster.spells.length > 0) || monster.type === 'dreadSorcerer'
+    (monster.spells !== undefined && monster.spells.length > 0) ||
+    monster.type === 'dreadSorcerer' ||
+    monster.profile === 'caster'
   );
 }
 
 export function profileOf(monster: ProfileInput): Profile {
-  return isCaster(monster) ? 'caster' : PROFILE_OF_TYPE[monster.type];
+  if (isCaster(monster)) return 'caster';
+  return monster.profile ?? PROFILE_OF_TYPE[monster.type];
 }
 
 export function weightsOf(monster: ProfileInput): Weights {
+  if (monster.weights && Object.values(monster.weights).some((w) => w > 0)) return monster.weights;
   return isCaster(monster) ? CASTER_WEIGHTS : WEIGHTS[monster.type];
 }

@@ -26,6 +26,8 @@ export function resolveMonster(m: MonsterDef, enemies: Quest['enemyDefs']): Mons
   const spells = m.spells ?? e.spells;
   const letter = m.letter ?? e.letter;
   const image = m.image ?? e.image;
+  const profile = m.profile ?? e.profile;
+  const weights = m.weights ?? e.weights;
   return {
     ...m,
     name: m.name ?? e.name,
@@ -35,6 +37,8 @@ export function resolveMonster(m: MonsterDef, enemies: Quest['enemyDefs']): Mons
     ...(spells ? { spells } : {}),
     ...(letter ? { letter } : {}),
     ...(image ? { image } : {}),
+    ...(profile ? { profile } : {}),
+    ...(weights ? { weights } : {}),
   };
 }
 

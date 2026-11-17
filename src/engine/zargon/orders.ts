@@ -94,7 +94,7 @@ export function grudgeHero(seed: number, monsterId: string, team: readonly Hero[
   return t[Math.floor(v * t.length)]!;
 }
 
-type Caps = Pick<MonsterDef, 'type' | 'spells'>;
+type Caps = Pick<MonsterDef, 'type' | 'spells' | 'profile' | 'weights'>;
 
 /**
  * Rule keys that can be drawn for this monster, with their weights. `living` are the heroes still

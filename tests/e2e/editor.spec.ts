@@ -368,8 +368,8 @@ test.describe('editor: inspector', () => {
     await expect(page.getByTestId('monster-list')).toContainText('Goblin');
     await card.getByLabel('Name').fill('Grub');
     await card.getByLabel('Name').blur();
-    await card.getByLabel('att').fill('5');
-    await card.getByLabel('att').blur();
+    await card.getByLabel('att', { exact: true }).fill('5');
+    await card.getByLabel('att', { exact: true }).blur();
     await card.getByLabel('Traits (one per line)').fill('Likes gold');
     await card.getByLabel('Traits (one per line)').blur();
     await page.getByLabel('Starts').selectOption('dormant');
@@ -378,11 +378,11 @@ test.describe('editor: inspector', () => {
     await spells.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(spells.locator('[data-spell="fear"]')).toBeVisible();
     await expect(card.getByLabel('Name')).toHaveValue('Grub');
-    await expect(card.getByLabel('att')).toHaveValue('5');
+    await expect(card.getByLabel('att', { exact: true })).toHaveValue('5');
     await expect(card.getByLabel('Traits (one per line)')).toHaveValue('Likes gold');
     await expect(page.getByLabel('Starts')).toHaveValue('dormant');
-    await card.getByLabel('def').fill('x');
-    await card.getByLabel('mind').focus();
+    await card.getByLabel('def', { exact: true }).fill('x');
+    await card.getByLabel('mind', { exact: true }).focus();
     await expect(page.locator('.toast')).toContainText('whole number');
     await shot(page, 'editor-inspector-monster');
     await btn(page, 'Undo').click();

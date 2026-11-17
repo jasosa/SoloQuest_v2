@@ -152,7 +152,9 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await expect(spell).toContainText('spell 1 of 2');
     // the situation tags of Fear and Sleep give their concrete questions (decision 48)
     await expect(spell).toContainText('It casts this spell if any of these is true:');
-    await expect(spell).toContainText('Is a hero that rolls 3 or more attack dice right next to it?');
+    await expect(spell).toContainText(
+      'Is a hero that rolls 3 or more attack dice right next to it?',
+    );
     const first = await spell.locator('.sname b').innerText();
     await shot(page, 'zargon-spell');
     await btn(page, 'No, next spell').click();

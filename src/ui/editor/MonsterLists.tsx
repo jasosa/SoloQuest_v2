@@ -7,6 +7,7 @@ import {
   addLibrarySpellToMonster,
   addSpell,
   setMonsterEnemyFromLibrary,
+  carrierType,
   enemyDiffersFromLibrary,
   spellChanged,
   updateEnemyFromLibrary,
@@ -328,7 +329,11 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
             }
             const def = quest.enemyDefs.find((x) => x.id === v);
             st.apply((q) =>
-              updateMonster(q, monster.id, def ? { enemy: v, type: def.base } : { enemy: null }),
+              updateMonster(
+                q,
+                monster.id,
+                def ? { enemy: v, type: carrierType(def) } : { enemy: null },
+              ),
             );
           }}
         >
