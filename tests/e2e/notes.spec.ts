@@ -335,7 +335,10 @@ test.describe('notes engine on the dev fixture', () => {
     await btn(page, 'A hero enters').click();
     await expect(page.getByRole('dialog', { name: 'The cold spot' })).toContainText('cold here');
     await btn(page, 'Continue').click();
-    await expect(page.locator('[data-zone="z1"]')).toHaveCount(0); // fired once
+    // the mark stays; the tap now has no "A hero enters" button, only what was read
+    await page.locator('[data-zone="z1"]').click();
+    await expect(page.getByRole('dialog', { name: 'This place' })).toBeVisible();
+    await expect(btn(page, 'A hero enters')).toHaveCount(0);
   });
 
   test('a room with an areaEntered note offers "A hero enters"', async ({ page }) => {

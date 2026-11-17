@@ -194,6 +194,6 @@ Per quest
 
 ## Editor changes asked in the quests review (not now)
 
-- [ ] Zones: the zone effect disappears after the first interaction (find out what the effect is and why it goes)
+- [x] Zones: the zone effect disappears after the first interaction (find out what the effect is and why it goes)
 - [ ] Actions popup appears on top of the existing text. It should work like the monsters one (a panel beside the list, not over the text)
 - [x] Monsters and Actions info appear twice: in their tabs and in the side panel. Removed: the map inspector has no Actions list and no monster form (a pointer to the Monsters tab); a monster's actions are in the Monsters tab; a tap on a letter on the map makes or opens its action over the board

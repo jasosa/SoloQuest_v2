@@ -45,15 +45,18 @@ const lv = buildLevel(
 describe('zones (decision 68)', () => {
   it('a seen zone with a note waiting gets one label, at its first seen square', () => {
     const s = initialState(lv, SEED);
-    expect(zoneLabels(lv, s)).toEqual([{ zone: 'z1', cell: [2, 15], enter: true }]);
+    const labels = zoneLabels(lv, s);
+    expect(labels).toHaveLength(1);
+    expect(labels[0]).toMatchObject({ zone: 'z1', cell: [2, 15], enter: true });
+    expect(labels[0]?.cells.length).toBeGreaterThan(0);
   });
 
-  it('ZONE_ENTER fires the note once, and the label goes', () => {
+  it('ZONE_ENTER fires the note once; the zone stays marked but nothing waits', () => {
     const s = initialState(lv, SEED);
     const r = reduce(lv, s, enter('z1'));
     expect(r.state.notesFired).toContain('in-z1');
     expect(r.prompts.some((p) => p.kind === 'note')).toBe(true);
-    expect(zoneLabels(lv, r.state)).toEqual([]);
+    expect(zoneLabels(lv, r.state).map((z) => [z.zone, z.enter])).toEqual([['z1', false]]);
     expect(() => reduce(lv, r.state, enter('z1'))).toThrow(EventError);
   });
 

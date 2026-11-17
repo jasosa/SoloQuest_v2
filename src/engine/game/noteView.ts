@@ -126,13 +126,16 @@ export interface ZoneLabel {
   readonly zone: string;
   /** The first seen square of the zone (top row, then left): where the label is drawn. */
   readonly cell: Cell;
+  /** Every seen square of the zone: drawn with a light dashed outline (the zone stays marked). */
+  readonly cells: readonly Cell[];
   /** A `zoneEntered` note waits ("A hero enters"). False when only a button is waiting. */
   readonly enter: boolean;
 }
 
 /**
- * Zones that get a label on the map (decision 68): a seen zone with a `zoneEntered` note waiting,
- * or with a button of its own that is not pressed yet. Neutral: nothing about the content.
+ * Zones that get a label on the map (decision 68): a seen zone with a `zoneEntered` note or a
+ * button of its own, waiting or already used (the mark is permanent). Neutral: nothing about the
+ * content.
  */
 export function zoneLabels(level: Level, state: GameState): ZoneLabel[] {
   const out: ZoneLabel[] = [];
@@ -152,7 +155,19 @@ export function zoneLabels(level: Level, state: GameState): ZoneLabel[] {
         n.target.id === z.id &&
         isAvailable(n, state),
     );
-    if (enter || button) out.push({ zone: z.id, cell: [first[0], first[1]], enter });
+    // The zone stays marked for good, also after its note was read: a tap shows what was read.
+    const any = level.quest.notes.some(
+      (n) =>
+        (n.trigger.type === 'zoneEntered' && n.trigger.zone === z.id) ||
+        (n.trigger.type === 'manual' && n.target?.kind === 'zone' && n.target.id === z.id),
+    );
+    if (enter || button || any)
+      out.push({
+        zone: z.id,
+        cell: [first[0], first[1]],
+        cells: seen.map((c) => [c[0], c[1]] as Cell),
+        enter,
+      });
   }
   return out;
 }

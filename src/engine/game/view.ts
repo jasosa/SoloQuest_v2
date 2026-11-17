@@ -202,8 +202,7 @@ export function chestsInView(level: Level, state: GameState): ChestView[] {
       searched:
         state.trapSearched.includes(f.id) ||
         level.quest.traps.some(
-          (t) =>
-            t.kind === 'chest' && t.furniture === f.id && state.trapStates[t.id] !== undefined,
+          (t) => t.kind === 'chest' && t.furniture === f.id && state.trapStates[t.id] !== undefined,
         ),
       trapFound: level.quest.traps.some(
         (t) =>

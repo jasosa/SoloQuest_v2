@@ -695,22 +695,36 @@ export function PlayBoard({
   for (const z of zoneLabels(level, state)) {
     const cx = (z.cell[0] + 0.5) * S;
     const cy = (z.cell[1] + 0.5) * S;
+    // The whole zone is outlined (light dashes), and one square carries the same ring and dot
+    // as every other square marker (quest 12, falling blocks), so the icons look alike.
     markerMarks.push(
-      <g key={`zn${z.zone}`} opacity={0.75} pointerEvents="none" data-zone-label={z.zone}>
-        <rect
-          x={cx - 9}
-          y={cy - 9}
-          width={18}
-          height={18}
-          fill="none"
-          stroke={color.ink}
-          strokeWidth={1.5}
-          strokeDasharray="3 2.5"
-        />
-        <path
-          d={`M ${cx - 4} ${cy + 4} L ${cx - 4} ${cy - 4} L ${cx + 5} ${cy} Z`}
-          fill={color.ink}
-        />
+      <g key={`zn${z.zone}`} pointerEvents="none" data-zone-label={z.zone}>
+        {z.cells.map((c) => (
+          <rect
+            key={`${c[0]},${c[1]}`}
+            x={c[0] * S + 3}
+            y={c[1] * S + 3}
+            width={S - 6}
+            height={S - 6}
+            fill="none"
+            stroke={color.ink}
+            strokeOpacity={0.35}
+            strokeWidth={1.2}
+            strokeDasharray="3 2.5"
+          />
+        ))}
+        <g opacity={0.75}>
+          <circle
+            cx={cx}
+            cy={cy}
+            r={9}
+            fill="none"
+            stroke={color.ink}
+            strokeWidth={1.5}
+            strokeDasharray="3 2.5"
+          />
+          <circle cx={cx} cy={cy} r={2} fill={color.ink} />
+        </g>
       </g>,
     );
     markerHits.push(
