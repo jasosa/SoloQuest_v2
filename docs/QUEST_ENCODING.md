@@ -36,7 +36,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 | 1 | The Trial | done | A to E | ok | ok | ok (src/content/quests/q01.test.ts) | |
 | 2 | The Rescue of Sir Ragnar | done | A, B, alarm, cell, home | ok | ok | ok (src/content/quests/q02.test.ts) | |
 | 3 | Lair of the Orc Warlord | done | A, B | ok | ok | ok (src/content/quests/q03.test.ts) | |
-| 4 | Prince Magnus' Gold | done | A, home | ok | ok | ok (src/content/quests/q04.test.ts) | |
+| 4 | Prince Magnus' Gold | done | A, home | ok | ok | ok (src/content/quests/q04.test.ts) | approved 2026-11-17 |
 | 5 | Melar's Maze | done | A to E, gargoyle wake, throne search notes | ok | ok | ok (src/content/quests/q05.test.ts) | |
 | 6 | Legacy of the Orc Warlord | done | start, cell, A, B, Grak dead | ok | ok | ok (src/content/quests/q06.test.ts) | |
 | 7 | The Lost Wizard | done | A to D | ok | ok | ok (src/content/quests/q07.test.ts) | approved 2026-11-17 (flask text to revisit with Quest items) |
