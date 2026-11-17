@@ -33,7 +33,7 @@ const firstLine = (e: JournalEntry) => {
 
 /**
  * The Quest sheet (decision 67): a panel on the right with the start instruction, the goal and
- * its confirm buttons, the buttons of notes with no element, the notes read and the log.
+ * its confirm buttons (each under its objective), the Quest actions (buttons of notes with no element), the notes read and the log.
  * The board stays visible beside it. Esc or Close shuts it.
  */
 export function QuestSheet(p: QuestSheetProps) {
@@ -87,6 +87,18 @@ export function QuestSheet(p: QuestSheetProps) {
               <span>
                 {o.text}
                 <span className="sr"> {o.done ? '(done)' : '(not done)'}</span>
+                {/* the button that confirms this objective sits under it */}
+                {p.confirms
+                  .filter((c) => c.objective === o.id)
+                  .map((c) => (
+                    <button
+                      key={c.objective}
+                      className="btn alt"
+                      onClick={() => p.onConfirm(c.objective)}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
               </span>
             </li>
           ))}
@@ -94,16 +106,11 @@ export function QuestSheet(p: QuestSheetProps) {
         {p.objectives.goalDone && (
           <p className="goal-done">Goal done. Bring the heroes back to the stairs.</p>
         )}
-        {p.confirms.map((c) => (
-          <button key={c.objective} className="btn alt" onClick={() => p.onConfirm(c.objective)}>
-            {c.label}
-          </button>
-        ))}
       </section>
 
       {p.actions.length > 0 && (
         <section>
-          <div className="lbl">Tell the app</div>
+          <div className="lbl">Quest actions</div>
           {p.actions.map((a) => (
             <div key={a.note}>
               {a.hint && <p className="hint">{a.hint}</p>}

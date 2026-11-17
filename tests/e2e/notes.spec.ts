@@ -395,7 +395,7 @@ test.describe('notes engine on the dev fixture', () => {
     await fixture(page, 'd1');
     await expect(page.getByTestId('quest-chip')).toHaveClass(/dot/); // something to press
     await openQuestSheet(page);
-    await expect(page.getByText('Tell the app')).toBeVisible();
+    await expect(page.getByText('Quest actions')).toBeVisible();
     await expect(page.locator('.npcs')).toHaveCount(0);
     await btn(page, 'Call for help').click();
     await expect(page.getByRole('dialog')).toContainText('A knight steps out');
