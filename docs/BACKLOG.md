@@ -202,7 +202,6 @@ Per quest
 
 - [x] Origin (official or fan-made) on library items, badge and card; owner mode replaces LOCK_CORE
 - [x] Core files in the repository (`src/content/library/*.json`) with an `expansion` per item, applied at start (add, change, delete)
-- [ ] Move the built-in Core out of code into files (so a built-in monster type or hero can really be deleted)
 - [x] Export Core from the Designer in owner mode, and Delete from Core with a warning about the quests that use the item
 - [ ] Designer scope switch: Core | My library; Used in shows quests
 - [ ] Expansions on and off for the add menus (quests keep working)

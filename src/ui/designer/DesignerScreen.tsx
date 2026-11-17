@@ -160,6 +160,11 @@ function freeId(taken: readonly string[], name: string): string {
   for (let n = 2; ; n++) if (!taken.includes(`${base}-${n}`)) return `${base}-${n}`;
 }
 
+/** The monsters and heroes of the game itself are not deleted (the rules need them). */
+const builtIn = (kind: LibraryKind, id: string): boolean =>
+  (kind === 'enemy' && (MONSTER_TYPES as readonly string[]).includes(id)) ||
+  (kind === 'hero' && (HEROES as readonly string[]).includes(id));
+
 /** Core items that the Core files add (the built-in ones are in code). */
 function extraRows(kind: 'enemy' | 'hero' | 'companion'): Row[] {
   return CORE_EXTRA[kind].map((it) => ({
@@ -674,7 +679,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   };
   /** What taking the selected Core item out of Core would touch: your quests and the bundled ones. */
   const askDelete = async () => {
-    if (!sel || !isCore || !owner) return;
+    if (!sel || !isCore || !owner || builtIn(kind, sel.id)) return;
     const own = usageKind && quests ? usageOf(usageKind, sel.id, await quests()) : [];
     const bundled = usageKind
       ? usageOf(
@@ -1233,7 +1238,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           {data && sel ? (
             <>
               {centre(data)}
-              {isCore && owner && (
+              {isCore && owner && !builtIn(kind, sel.id) && (
                 <button
                   className="btn alt"
                   style={{ alignSelf: 'flex-start' }}
@@ -1454,12 +1459,6 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 ))}
               </ul>
             </>
-          )}
-          {(kind === 'enemy' || kind === 'hero') && !del.id.includes('-') && (
-            <p className="fr-help">
-              A monster type or hero that the game has built in cannot be removed from the engine.
-              It is hidden from the menus.
-            </p>
           )}
         </Dialog>
       )}

@@ -376,6 +376,10 @@ test.describe('designer: the library', () => {
     page,
   }) => {
     await open(page);
+    // the monsters of the game itself are not deleted
+    await kind(page, /^Enemies/);
+    await items(page).getByRole('button', { name: /^Orc/ }).click();
+    await expect(page.getByTestId('dz-delete-core')).toHaveCount(0);
     await kind(page, /^Abilities/);
     await items(page)
       .getByRole('button', { name: /^Made of stone/ })
