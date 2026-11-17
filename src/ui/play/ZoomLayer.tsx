@@ -51,9 +51,16 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
   const pan = useRef<{ x: number; y: number; v: View; moved: boolean } | null>(null);
   const dragged = useRef(false);
 
+  /**
+   * The map area in layout px (w, h), where it is on the screen (left, top) and the scale the whole
+   * app is drawn at (k, see FitToScreen): finger positions are in screen px, the view in layout px.
+   */
   const size = () => {
-    const r = box.current?.getBoundingClientRect();
-    return { w: r?.width ?? 920, h: r?.height ?? 770, left: r?.left ?? 0, top: r?.top ?? 0 };
+    const el = box.current;
+    const r = el?.getBoundingClientRect();
+    const w = el?.offsetWidth || 920;
+    const h = el?.offsetHeight || 770;
+    return { w, h, left: r?.left ?? 0, top: r?.top ?? 0, k: r && r.width ? r.width / w : 1 };
   };
 
   const step = (d: number) => {
@@ -67,9 +74,16 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
-      const { w, h, left, top } = size();
+      const { w, h, left, top, k } = size();
       setView((v) =>
-        zoomAt(v, v.s * (e.deltaY < 0 ? 1.12 : 1 / 1.12), e.clientX - left, e.clientY - top, w, h),
+        zoomAt(
+          v,
+          v.s * (e.deltaY < 0 ? 1.12 : 1 / 1.12),
+          (e.clientX - left) / k,
+          (e.clientY - top) / k,
+          w,
+          h,
+        ),
       );
     };
     el.addEventListener('wheel', onWheel, { passive: false });
@@ -100,7 +114,7 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
   const move = (e: React.PointerEvent) => {
     if (!pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const { w, h, left, top } = size();
+    const { w, h, left, top, k } = size();
     if (gesture.current && pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()] as [
         { x: number; y: number },
@@ -111,15 +125,19 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
       const zoomed = zoomAt(
         g.v,
         g.v.s * (Math.hypot(a.x - b.x, a.y - b.y) / g.dist),
-        g.mid.x - left,
-        g.mid.y - top,
+        (g.mid.x - left) / k,
+        (g.mid.y - top) / k,
         w,
         h,
       );
       // the two fingers also drag the board
       setView(
         clampView(
-          { ...zoomed, tx: zoomed.tx + (mid.x - g.mid.x), ty: zoomed.ty + (mid.y - g.mid.y) },
+          {
+            ...zoomed,
+            tx: zoomed.tx + (mid.x - g.mid.x) / k,
+            ty: zoomed.ty + (mid.y - g.mid.y) / k,
+          },
           w,
           h,
         ),
@@ -128,9 +146,9 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
     }
     const p = pan.current;
     if (p && pointers.current.size === 1 && p.v.s > 1) {
-      const dx = e.clientX - p.x;
-      const dy = e.clientY - p.y;
-      if (!p.moved && Math.hypot(dx, dy) < 8) return;
+      const dx = (e.clientX - p.x) / k;
+      const dy = (e.clientY - p.y) / k;
+      if (!p.moved && Math.hypot(dx, dy) * k < 8) return;
       p.moved = true;
       dragged.current = true;
       setView(clampView({ ...p.v, tx: p.v.tx + dx, ty: p.v.ty + dy }, w, h));

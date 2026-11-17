@@ -33,7 +33,7 @@ describe('buildCoreExport', () => {
   });
   it('keeps what was taken out of Core', () => {
     const pending = {
-      format: CORE_FILE_FORMAT,
+      format: CORE_FILE_FORMAT as typeof CORE_FILE_FORMAT,
       items: [{ kind: 'ability' as const, deleted: true, data: { id: 'stone', name: 'Stone' } }],
     };
     const out = buildCoreExport(pending, [], () => false);

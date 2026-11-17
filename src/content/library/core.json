@@ -1,4 +1,27 @@
 {
   "format": "soloquest-core",
-  "items": []
+  "items": [
+    {
+      "kind": "ability",
+      "data": {
+        "id": "spiritBladeOnly",
+        "name": "Spirit-Bound",
+        "text": "This monsters cannot be harmed by normal weapons or spells. Only attacks made with the Spirit Blade can reduce his Body Points.\n"
+      }
+    },
+    {
+      "kind": "spell",
+      "data": {
+        "id": "summon",
+        "name": "Summon Undead",
+        "tags": [
+          "manyInSight",
+          "selfHurt",
+          "heroesInSameRoom"
+        ],
+        "offerWhen": "always",
+        "timing": "instead"
+      }
+    }
+  ]
 }

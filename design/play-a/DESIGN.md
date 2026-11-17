@@ -62,6 +62,10 @@ The page of the prototype is gone: no list, no grouping, no "Who can it reach?" 
 
 Right column, above the monsters: one square chip per hero of the team. A tap asks "<Hero> fell?" (margin note, "Yes, fell" or "No"). A fallen hero is struck through and cannot be tapped; undo takes it back. Nothing else about heroes is shown. When the last hero falls a card says "All heroes have fallen" with "End quest".
 
+## Fit to the screen
+
+Every screen is drawn at 1194 x 834 and scaled to the window, centered (`FitToScreen`): on a tablet the browser bars take some of the height, and without the scaling the bottom of a screen (the Start button) was cut off. The scale is at most 1.5 on a big screen. Touch positions are converted back to the drawing size (the board zoom does it).
+
 ## Board zoom
 
 The board zooms from 100% to 300%. Two fingers pinch (and drag the board while pinching), one finger drags the board when it is zoomed in (a drag never counts as a tap), and the wheel with Ctrl zooms on a computer. Three 44 px chips sit at the bottom left of the map: **−**, the percent (a tap goes back to 100%) and **+** (25% steps). Only the board scales: margin notes keep their size and follow the thing they point at, and the zoom chips stay put. The board always covers the map area, with no empty strip beside it.

@@ -211,3 +211,7 @@ Per quest
 ## Ideas (owner, not scheduled)
 
 - [ ] Quest items: an item a quest defines (for example the purple flask of quest 7) that a hero can be given and that has an action of its own ("drink it") with effects, like any action. The app would keep which hero holds which quest item during the quest. There is no Zargon player, only the players, so what an unknown item does must stay hidden until it is used (the first search says only what the players may know). Needs a new decision first: it adds a small piece of tracking (who holds which quest item) next to the dead-hero fact, so hard rule 2 and decision 32 must be amended by the owner. Also: editor (define items, give them with an effect), Quest sheet or hero chip to show items, undo, and a text for the flask of quest 7 (Q7 note C, now it says the effect up front).
+
+## Tablet test findings (owner, 2026-11-17)
+
+- [x] The new game button was not visible: the screen is now scaled to fit the window (`FitToScreen`)
