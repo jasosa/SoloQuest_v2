@@ -494,11 +494,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <MarginNote
           anchor={anchor}
           kind={furnitureName(sel.furniture)}
-          title={
-            fv && fv.buttons.length > 0
-              ? 'Actions for this furniture'
-              : 'No actions for this furniture'
-          }
+          title={fv && fv.buttons.length > 0 ? 'Actions' : 'No actions'}
           onClose={closeNote}
         >
           {!(fv && fv.buttons.length > 0) && (

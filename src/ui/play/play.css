@@ -553,7 +553,8 @@ header .goalline b {
 .fq .nr {
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start; /* the letter sits at the top of a long note */
+  padding: 4px 0;
   min-height: 44px;
   width: 100%;
   border: 0;

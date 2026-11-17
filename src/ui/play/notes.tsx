@@ -33,7 +33,6 @@ export function RoomScope({ children }: { children: ReactNode }) {
     <section className="scope" data-scope="room">
       <div className="lbl">Room</div>
       <h3>Search this room</h3>
-      <p className="hint">One hero, one search, on their own turn.</p>
       {children}
     </section>
   );
