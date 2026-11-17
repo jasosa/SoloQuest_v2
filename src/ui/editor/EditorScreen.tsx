@@ -11,6 +11,7 @@ import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, EditorTabName, Tool } from './editorStore';
 import { EDITOR_TABS, TopBar } from '../shared/Frame';
 import { DesignerBody, type QuestSource } from '../designer/DesignerScreen';
+import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
 import { MonstersTab } from './MonstersTab';
@@ -249,6 +250,10 @@ export function EditorScreen({
 function ToolOptions({ store }: { store: EditorStore }) {
   const { tool, opts, quest } = useStore(store);
   const set = store.getState().setOpts;
+  const library = useLibrary();
+  const lib = { abilities: library.abilities, spells: library.spells };
+  const mine = new Set(quest.enemyDefs.map((e) => e.id));
+  const libEnemies = library.enemies.filter((e) => !mine.has(e.id));
   const chip = (label: string, on: boolean, onClick: () => void) => (
     <button key={label} className="chip" aria-pressed={on} onClick={onClick}>
       {label}
@@ -303,9 +308,32 @@ function ToolOptions({ store }: { store: EditorStore }) {
           <div className="lbl">Monster</div>
           <div className="ed-chips ed-small">
             {MONSTER_TYPES.map((t: MonsterKind) =>
-              chip(MONSTER_NAMES[t], opts.monsterType === t, () => set({ monsterType: t })),
+              chip(MONSTER_NAMES[t], !opts.monsterEnemy && opts.monsterType === t, () =>
+                set({ monsterType: t, monsterEnemy: null }),
+              ),
             )}
           </div>
+          {(quest.enemyDefs.length > 0 || libEnemies.length > 0) && (
+            <>
+              <div className="lbl">Custom monsters</div>
+              <div className="ed-chips ed-small" data-testid="custom-monsters">
+                {quest.enemyDefs.map((e) =>
+                  chip(
+                    e.name,
+                    opts.monsterEnemy?.def.id === e.id && !opts.monsterEnemy.fromLibrary,
+                    () => set({ monsterEnemy: { def: e, fromLibrary: false, lib } }),
+                  ),
+                )}
+                {libEnemies.map((e) =>
+                  chip(
+                    `${e.name} (library)`,
+                    opts.monsterEnemy?.def.id === e.id && opts.monsterEnemy.fromLibrary,
+                    () => set({ monsterEnemy: { def: e, fromLibrary: true, lib } }),
+                  ),
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
       {tool === 'traps' && (

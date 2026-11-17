@@ -305,7 +305,9 @@ export function StatFields({
   monster: MonsterDef;
   onSave(o: NonNullable<MonsterDef['overrides']>): void;
 }) {
-  const base = MONSTER_STATS[monster.type];
+  // The starting point is the type's stats with the enemy's own stats on top (decision 70).
+  const enemy = store.getState().quest.enemyDefs.find((e) => e.id === monster.enemy);
+  const base = { ...MONSTER_STATS[monster.type], ...(enemy?.overrides ?? {}) };
   const [fields, setFields] = useState<Record<StatKey, string>>(() => ({
     move: String(monster.overrides?.move ?? ''),
     att: String(monster.overrides?.att ?? ''),

@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useStore } from 'zustand';
-import { addMonster, updateMonster } from '../../engine/editor';
+import { addMonster, addMonsterOfEnemy, updateMonster } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { abilityLookup } from '../../engine/data/abilities';
 import { MONSTER_TYPES, type MonsterBehavior, type MonsterType } from '../../engine/quest/schema';
 
 type BehaviorWaits = NonNullable<MonsterBehavior['waitsFor']>;
 type BehaviorToward = NonNullable<MonsterBehavior['goesToward']>;
+import { useLibrary } from '../designer/LibraryContext';
 import { Col, Fld, Frame, ListPanel, Panel, Toggle } from '../shared/Frame';
 import { SubjectActions } from './ActionsSection';
 import type { EditorStore } from './editorStore';
@@ -28,6 +30,9 @@ export function MonstersTab({ store }: { store: EditorStore }) {
   const { quest, selection } = useStore(store);
   const st = store.getState();
   const lookup = abilityLookup(quest);
+  const library = useLibrary();
+  const [toAdd, setToAdd] = useState('core:goblin');
+  const libEnemies = library.enemies.filter((e) => !quest.enemyDefs.some((q) => q.id === e.id));
   const monster =
     selection?.kind === 'monster' ? quest.monsters.find((m) => m.id === selection.id) : undefined;
   const patch = (p: Parameters<typeof updateMonster>[2]) =>
@@ -60,11 +65,65 @@ export function MonstersTab({ store }: { store: EditorStore }) {
               </li>
             )}
           </ul>
+          <Fld label="Add a monster">
+            <select
+              className="fr-sel"
+              aria-label="Monster to add"
+              value={toAdd}
+              onChange={(e) => setToAdd(e.target.value)}
+            >
+              <optgroup label="Core">
+                {MONSTER_TYPES.map((t) => (
+                  <option key={t} value={`core:${t}`}>
+                    {MONSTER_NAMES[t]}
+                  </option>
+                ))}
+              </optgroup>
+              {quest.enemyDefs.length > 0 && (
+                <optgroup label="Custom monsters of this quest">
+                  {quest.enemyDefs.map((e) => (
+                    <option key={e.id} value={`quest:${e.id}`}>
+                      {e.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {libEnemies.length > 0 && (
+                <optgroup label="From the library">
+                  {libEnemies.map((e) => (
+                    <option key={e.id} value={`lib:${e.id}`}>
+                      {e.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+          </Fld>
           <div className="fr-lbtns">
             <button
               className="btn"
               onClick={() => {
-                if (!st.apply((q) => addMonster(q, 'goblin', null, { hidden: true }))) return;
+                const [kind, id = ''] = toAdd.split(':') as [string, string];
+                const def =
+                  kind === 'quest'
+                    ? quest.enemyDefs.find((e) => e.id === id)
+                    : kind === 'lib'
+                      ? library.enemies.find((e) => e.id === id)
+                      : undefined;
+                const ok = def
+                  ? st.apply((q) =>
+                      addMonsterOfEnemy(q, def, null, {
+                        fromLibrary: kind === 'lib',
+                        lib: { abilities: library.abilities, spells: library.spells },
+                        hidden: true,
+                      }),
+                    )
+                  : st.apply((q) =>
+                      addMonster(q, (kind === 'core' ? id : 'goblin') as MonsterType, null, {
+                        hidden: true,
+                      }),
+                    );
+                if (!ok) return;
                 const made = store.getState().quest.monsters.at(-1);
                 if (made) st.select({ kind: 'monster', id: made.id });
               }}
@@ -110,7 +169,10 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   key={`${monster.id}:${monster.name ?? ''}`}
                   defaultValue={monster.name ?? ''}
                   maxLength={60}
-                  placeholder={MONSTER_NAMES[monster.type]}
+                  placeholder={
+                    quest.enemyDefs.find((e) => e.id === monster.enemy)?.name ??
+                    MONSTER_NAMES[monster.type]
+                  }
                   onBlur={(e) => {
                     const v = e.target.value.trim();
                     if (v !== (monster.name ?? '')) patch({ name: v === '' ? null : v });
@@ -123,7 +185,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 onChange={(on) => patch({ special: on })}
               />
               <StatFields
-                key={`${monster.id}:${monster.type}:${JSON.stringify(monster.overrides ?? {})}`}
+                key={`${monster.id}:${monster.type}:${monster.enemy ?? ''}:${JSON.stringify(monster.overrides ?? {})}`}
                 store={store}
                 monster={monster}
                 onSave={(o) => patch({ overrides: o })}

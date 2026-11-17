@@ -10,6 +10,7 @@ import {
   type EditResult,
 } from './ops';
 import { addSpell, updateSpell } from './meta';
+import { addMonsterOfEnemy } from './library';
 
 function deepFreeze<T>(o: T): T {
   if (o && typeof o === 'object') {
@@ -192,5 +193,23 @@ describe('spell timing', () => {
     expect(q.spellDefs[0]?.timing).toBe('instead');
     const back = good(updateSpell(q, id, { timing: 'either' }));
     expect(back.spellDefs[0]?.timing).toBeUndefined();
+  });
+});
+
+describe('addMonsterOfEnemy', () => {
+  const def = { id: 'marsh', name: 'Marsh Skeleton', base: 'skeleton' as const, letter: 'M' };
+  const lib = { abilities: [], spells: [] };
+  it('puts a monster of a library enemy on the map: the enemy is copied, the type follows its base', () => {
+    const q = good(addMonsterOfEnemy(base(), def, [4, 17], { fromLibrary: true, lib }));
+    const m = q.monsters.at(-1)!;
+    expect(m.type).toBe('skeleton');
+    expect(m.enemy).toBe('marsh');
+    expect(q.enemyDefs.map((e) => e.id)).toContain('marsh');
+  });
+  it('uses an enemy the quest already has as it is', () => {
+    const q0 = good(addMonsterOfEnemy(base(), def, [4, 17], { fromLibrary: true, lib }));
+    const q1 = good(addMonsterOfEnemy(q0, def, [5, 17], { fromLibrary: false, lib }));
+    expect(q1.enemyDefs).toHaveLength(1);
+    expect(q1.monsters.filter((m) => m.enemy === 'marsh')).toHaveLength(2);
   });
 });

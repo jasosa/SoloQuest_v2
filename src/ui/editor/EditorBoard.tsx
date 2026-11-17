@@ -10,6 +10,7 @@ import {
   addFurniture,
   addMarker,
   addMonster,
+  addMonsterOfEnemy,
   addTrap,
   moveFurniture,
   moveMonster,
@@ -85,7 +86,13 @@ export function previewOp(
           footprintCells(opts.furnitureType, cell, opts.furnitureTurned),
         );
     case 'monsters':
-      return (q) => addMonster(q, opts.monsterType, cell);
+      return opts.monsterEnemy
+        ? (q) =>
+            addMonsterOfEnemy(q, opts.monsterEnemy!.def, cell, {
+              fromLibrary: opts.monsterEnemy!.fromLibrary,
+              lib: opts.monsterEnemy!.lib,
+            })
+        : (q) => addMonster(q, opts.monsterType, cell);
     case 'traps':
       if (opts.trapKind === 'chest') {
         const chest = quest.furniture.find(

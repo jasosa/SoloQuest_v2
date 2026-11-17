@@ -194,4 +194,45 @@ test.describe('designer: the library', () => {
     await page.getByTestId('save-in-library').click();
     await expect(page.getByText('Saved in the library.')).toBeVisible();
   });
+
+  test('a custom enemy is in the Monsters tool and can be added from the Monsters tab, with its stats', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Marsh Skeleton');
+    await card(page).getByLabel('Behaves like').selectOption('skeleton');
+    await page.getByLabel('att').fill('4');
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('Marsh');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+
+    // on the map: the custom monster is a chip next to the core types
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    const chips = page.getByTestId('custom-monsters');
+    await expect(chips).toContainText('Marsh Skeleton');
+    await chips.getByRole('button', { name: /Marsh Skeleton/ }).click();
+    const box = (await page.locator('#editor-board').boundingBox())!;
+    const k = box.width / (26 * 34 + 4);
+    await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
+
+    // in the Monsters tab: it is a Marsh Skeleton, and its stats show the enemy's attack
+    await page.getByRole('tab', { name: 'Monsters' }).click();
+    await expect(page.getByTestId('monster-list')).toContainText('Marsh Skeleton');
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await expect(page.getByTestId('monster-card').getByLabel('att')).toHaveAttribute(
+      'placeholder',
+      '4',
+    );
+
+    // and the list adds one too, from the same menu
+    await page.getByLabel('Monster to add').selectOption({ label: 'Marsh Skeleton' });
+    await page
+      .getByTestId('monster-list')
+      .getByRole('button', { name: 'Add', exact: true })
+      .click();
+    await expect(page.getByTestId('monster-list').locator('li')).toHaveCount(2);
+  });
 });

@@ -8,7 +8,7 @@
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
 import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
-import { updateMonster } from './ops';
+import { addMonster, updateMonster, type Cell } from './ops';
 import { fail, type EditResult } from './result';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -142,6 +142,25 @@ export function addLibrarySpellToMonster(
   if (!m) return fail(`There is no monster ${monsterId}.`);
   const t = takeLibrarySpell(q, def);
   return updateMonster(t.quest, monsterId, { spells: [...(m.spells ?? []), t.id] });
+}
+
+/**
+ * Put a monster of a custom enemy on the map. A library enemy is copied into the quest first
+ * (`fromLibrary`); an enemy the quest already has is used as it is. The monster takes the type the
+ * enemy behaves like, and the enemy gives its name, stats, abilities and spells.
+ */
+export function addMonsterOfEnemy(
+  q: Quest,
+  def: EnemyDef,
+  cell: Cell | null,
+  opts: { fromLibrary: boolean; lib: LibraryContent; hidden?: boolean },
+): EditResult {
+  const t = opts.fromLibrary ? takeLibraryEnemy(q, def, opts.lib) : { quest: q, id: def.id };
+  const made = addMonster(t.quest, def.base, cell, opts.hidden ? { hidden: true } : {});
+  if (!made.ok) return made;
+  const id = made.quest.monsters.at(-1)?.id;
+  if (!id) return fail('The monster could not be added.');
+  return updateMonster(made.quest, id, { enemy: t.id });
 }
 
 /**

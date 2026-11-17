@@ -14,7 +14,8 @@ import {
   type Issue,
   type MonsterKind,
 } from '../../engine/editor';
-import type { FurnitureDef, Quest } from '../../engine/quest/schema';
+import type { LibraryContent } from '../../engine/editor/library';
+import type { EnemyDef, FurnitureDef, Quest } from '../../engine/quest/schema';
 import type { UserQuestStore } from '../../persist/userQuests';
 import type { IssueRef } from '../../engine/quest/validate';
 import { jumpFor, type Flash } from './problems';
@@ -46,6 +47,12 @@ export interface ToolOpts {
   readonly furnitureType: FurnitureDef['type'];
   readonly furnitureTurned: boolean;
   readonly monsterType: MonsterKind;
+  /** A custom enemy to put on the map instead of a core type (the quest's own or the library's). */
+  readonly monsterEnemy: {
+    readonly def: EnemyDef;
+    readonly fromLibrary: boolean;
+    readonly lib: LibraryContent;
+  } | null;
   readonly trapKind: 'pit' | 'fallingBlock' | 'spear' | 'chest';
   readonly markerLabel: string;
   readonly markerVisible: 'editor' | 'players';
@@ -61,6 +68,7 @@ export const DEFAULT_OPTS: ToolOpts = {
   furnitureType: 'table',
   furnitureTurned: false,
   monsterType: 'orc',
+  monsterEnemy: null,
   trapKind: 'pit',
   markerLabel: 'A',
   markerVisible: 'editor',
