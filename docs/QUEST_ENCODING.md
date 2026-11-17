@@ -46,7 +46,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 | 11 | Bastion of Dread | done | A to C, gargoyle wake and disarm | ok | ok | ok (src/content/quests/q11.test.ts) | |
 | 12 | Barak Tor: Barrow of the Witch Lord | done | A to E | ok | ok | ok (src/content/quests/q12.test.ts) | |
 | 13 | Quest for the Spirit Blade | done | A, B, falling-block squares, stairs | ok | ok | ok (src/content/quests/q13.test.ts) | |
-| 14 | Return to Barak Tor | done | A, Witch Lord placed and dead | ok | ok | ok (src/content/quests/q14.test.ts) | |
+| 14 | Return to Barak Tor | done | A, Witch Lord placed and dead | ok | ok | ok (src/content/quests/q14.test.ts) | approved 2026-11-17 |
 
 ## Known special mechanics (must be covered by the walk-through tests)
 

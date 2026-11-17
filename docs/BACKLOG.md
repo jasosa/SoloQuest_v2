@@ -94,7 +94,7 @@ Open: "monster count vs box inventory" validation needs the miniature counts of 
 ## M7 · The 14 quests
 
 - [x] Overlay tool (`npm run overlay -- N`)
-- [ ] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`)
+- [x] Quests 1..14 (each: map, notes, validate, overlay, walk-through test, owner review; status in `QUEST_ENCODING.md`). Owner review done 2026-11-17 for all 14.
 
 ## M7b · Playtest feedback (plan: `FEEDBACK_PLAN.md`, decision 66)
 
