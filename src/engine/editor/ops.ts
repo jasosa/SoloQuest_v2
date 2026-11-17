@@ -846,7 +846,11 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
   }
   if (patch.behavior !== undefined) {
     const b = patch.behavior;
-    if (b && b.goesToward === 'marker' && !q.markers.some((k) => k.id === b.marker))
+    if (
+      b &&
+      (b.goesToward === 'marker' || b.goesToward === 'guardMarker') &&
+      !q.markers.some((k) => k.id === b.marker)
+    )
       return fail(
         'Pick a marker for "goes toward a marked square". Add one with the Markers tool.',
       );
@@ -863,7 +867,10 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     for (const [k, v] of Object.entries(patch.spellOrder ?? {}))
       if (!Number.isInteger(v) || v < 1 || v > 9)
         return fail(`The place of ${k} must be a whole number from 1 to 9.`);
-    set('spellOrder', patch.spellOrder && Object.keys(patch.spellOrder).length ? patch.spellOrder : null);
+    set(
+      'spellOrder',
+      patch.spellOrder && Object.keys(patch.spellOrder).length ? patch.spellOrder : null,
+    );
   }
   // A place only makes sense for a spell the monster has.
   if (next.spellOrder) {

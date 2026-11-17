@@ -80,17 +80,28 @@ const StatOverrides = z.strictObject({
  * it heads for instead of the rule of its type; `marker` needs a `marker` id of the quest.
  */
 export const BEHAVIOR_WAITS = ['heroInSight', 'heroInRoom', 'heroAdjacent'] as const;
-export const BEHAVIOR_TOWARD = ['strongestHero', 'weakestHero', 'stayPut', 'marker'] as const;
+export const BEHAVIOR_TOWARD = [
+  'strongestHero',
+  'weakestHero',
+  'stayPut',
+  'marker',
+  'guardMarker',
+] as const;
 const BehaviorSchema = z
   .strictObject({
     waitsFor: z.enum(BEHAVIOR_WAITS).optional(),
     goesToward: z.enum(BEHAVIOR_TOWARD).optional(),
     marker: id.optional(),
   })
-  .refine((b) => (b.goesToward === 'marker') === (b.marker !== undefined), {
-    message: 'goesToward "marker" needs a marker id, and a marker id needs goesToward "marker"',
-    path: ['marker'],
-  });
+  .refine(
+    (b) =>
+      (b.goesToward === 'marker' || b.goesToward === 'guardMarker') === (b.marker !== undefined),
+    {
+      message:
+        'goesToward "marker" or "guardMarker" needs a marker id, and a marker id needs one of them',
+      path: ['marker'],
+    },
+  );
 export type MonsterBehavior = z.infer<typeof BehaviorSchema>;
 
 const MonsterSchema = z

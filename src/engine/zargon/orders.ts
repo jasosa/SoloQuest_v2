@@ -155,6 +155,11 @@ export function behaviorLines(
   if (b.goesToward === 'marker') {
     const m = markers.find((k) => k.id === b.marker);
     out.push(`Goes toward the marked square${m ? ` "${m.label}"` : ''}, not the nearest hero.`);
+  } else if (b.goesToward === 'guardMarker') {
+    const m = markers.find((k) => k.id === b.marker);
+    out.push(
+      `Guards the marked square${m ? ` "${m.label}"` : ''}: it stays close to it and only attacks a hero who comes near.`,
+    );
   } else if (b.goesToward) out.push(TOWARD_TEXT[b.goesToward]);
   return out;
 }

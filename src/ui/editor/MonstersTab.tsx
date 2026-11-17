@@ -218,19 +218,21 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                           ? { waitsFor: monster.behavior.waitsFor }
                           : {}),
                         ...(v ? { goesToward: v } : {}),
-                        ...(v === 'marker' && marker ? { marker } : {}),
+                        ...((v === 'marker' || v === 'guardMarker') && marker ? { marker } : {}),
                       },
                     });
                   }}
                 >
-                  <option value="">The nearest hero</option>
+                  <option value="">Pursues the nearest hero</option>
                   <option value="strongestHero">The strongest hero</option>
                   <option value="weakestHero">The weakest hero</option>
-                  <option value="stayPut">Nobody: it stays put</option>
+                  <option value="stayPut">Nobody: it stays put (attacks only next to it)</option>
                   <option value="marker">A marked square</option>
+                  <option value="guardMarker">Guards a marked square (stays near it)</option>
                 </select>
               </Fld>
-              {monster.behavior?.goesToward === 'marker' && (
+              {(monster.behavior?.goesToward === 'marker' ||
+                monster.behavior?.goesToward === 'guardMarker') && (
                 <Fld label="Marked square">
                   <select
                     className="fr-sel"

@@ -17,10 +17,10 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
   skirmisher: 'Next to a hero: attack, then run back out of reach. Otherwise: move in and attack.',
   soldier: 'Move in and attack. Already next to a hero: attack and stay.',
   brute: 'Move in and attack. Never falls back.',
-  duelist: 'Move in and attack. No hero in reach: block the nearest doorway.',
+  duelist: 'Move in and attack. No hero in reach: move toward the nearest hero.',
   relentless: 'Move in and attack. Never falls back.',
   // The plan of a caster that has no spell to cast: as a duelist.
-  caster: 'Move in and attack. No hero in reach: block the nearest doorway.',
+  caster: 'Move in and attack. No hero in reach: move toward the nearest hero.',
 };
 
 /**

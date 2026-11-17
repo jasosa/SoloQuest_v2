@@ -21,7 +21,7 @@ The app tracks only whether a hero died (`HERO_DIED`), nothing else about wounds
 
 ### No valid target (decision 35)
 
-When the rule has no valid target, or the monster cannot reach the hero it names, use the tie list among the heroes it can reach; ties on the stat rules work the same way. A monster can only attack a hero it can attack this turn: if the target is out of reach but another hero is next to it, it attacks the first adjacent hero in the tie list. If it can reach nobody, the plan covers it: it moves toward the target (or the closest hero), or the duelist and the caster block the nearest doorway. A monster may move then act, or act then move, never move, act, move again; no diagonals, no passing heroes, no opening doors. This is written here once and not repeated in each order.
+When the rule has no valid target, or the monster cannot reach the hero it names, use the tie list among the heroes it can reach; ties on the stat rules work the same way. A monster can only attack a hero it can attack this turn: if the target is out of reach but another hero is next to it, it attacks the first adjacent hero in the tie list. If it can reach nobody, the plan covers it: it moves toward the target (or the closest hero). A monster pursues the heroes unless the quest says it guards something (`behavior`). A monster may move then act, or act then move, never move, act, move again; no diagonals, no passing heroes, no opening doors. This is written here once and not repeated in each order.
 
 Only three rules get a short line on the order (`Order.noTarget`), because the case is not obvious:
 
@@ -78,7 +78,7 @@ Tune weights in `src/engine/zargon/weights.ts` only; keep this table in sync. Pa
 | skirmisher | Next to a hero: attack, then run back out of reach. Otherwise: move in and attack. |
 | soldier | Move in and attack. Already next to a hero: attack and stay. |
 | brute | Move in and attack. Never falls back. |
-| duelist | Move in and attack. No hero in reach: block the nearest doorway. |
+| duelist | Move in and attack. No hero in reach: move toward the nearest hero. |
 | relentless | Move in and attack. Never falls back. |
 | caster | Cast a spell if a target is in sight and a spell is left; otherwise as duelist. |
 | thief | See below. |
@@ -185,4 +185,4 @@ When a hero falls, the rules available to monsters that have not acted yet are d
 
 ## Behavior prompts and added monsters (decision 71)
 
-A monster may carry a `behavior`: `waitsFor` (a hero in sight, in its room, next to it) and `goesToward` (the strongest hero, the weakest hero, nobody, or a marked square). They are shown as the first lines of its order and are never enforced. A monster the players added in play has a normal order from its first Zargon turn; a wandering monster still attacks at once and has its order from the next turn.
+A monster may carry a `behavior`: `waitsFor` (a hero in sight, in its room, next to it) and `goesToward` (the strongest hero, the weakest hero, nobody, a marked square, or `guardMarker`: it guards a marked square, stays close to it and only attacks a hero who comes near). With no behavior a monster pursues the nearest hero; guarding is always the quest's choice (decision 73). They are shown as the first lines of its order and are never enforced. A monster the players added in play has a normal order from its first Zargon turn; a wandering monster still attacks at once and has its order from the next turn.

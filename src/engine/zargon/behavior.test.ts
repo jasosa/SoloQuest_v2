@@ -31,6 +31,16 @@ describe('monster behavior prompts (decision 71)', () => {
     ]);
   });
 
+  it('a monster that guards a marked square says so, and needs the marker', () => {
+    const q = quest({ goesToward: 'guardMarker', marker: 'k1' }, [
+      { id: 'k1', label: 'The chest', cell: [10, 15] },
+    ]);
+    expect(behaviorLines(q.monsters[0], q.markers)).toEqual([
+      'Guards the marked square "The chest": it stays close to it and only attacks a hero who comes near.',
+    ]);
+    expect(() => quest({ goesToward: 'guardMarker' })).toThrow();
+  });
+
   it('the Zargon order shows the lines before the other special rules', () => {
     const q = quest({ waitsFor: 'heroInSight', goesToward: 'strongestHero' });
     const lv = buildLevel(q);
