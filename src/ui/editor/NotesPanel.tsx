@@ -577,6 +577,17 @@ function TriggerForm({
           </button>
         </>
       )}
+      {t.type === 'zoneEntered' && (
+        <button
+          className="chip ed-wide"
+          aria-pressed={t.repeat === true}
+          onClick={() =>
+            onChange(t.repeat ? { type: t.type, zone: t.zone } : { ...t, repeat: true })
+          }
+        >
+          Fires every time
+        </button>
+      )}
       {t.type === 'squareEntered' && (
         <>
           <button

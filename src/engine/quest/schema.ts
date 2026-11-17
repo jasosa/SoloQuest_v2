@@ -208,7 +208,7 @@ const TriggerSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('areaRevealed'), area: areaId }),
   z.strictObject({ type: z.literal('doorOpened'), door: id }),
   z.strictObject({ type: z.literal('areaEntered'), area: areaId }),
-  z.strictObject({ type: z.literal('zoneEntered'), zone: id }),
+  z.strictObject({ type: z.literal('zoneEntered'), zone: id, repeat: z.boolean().optional() }),
   z.strictObject({ type: z.literal('squareEntered'), cell, repeat: z.boolean().optional() }),
   z.strictObject({
     type: z.literal('treasureSearch'),

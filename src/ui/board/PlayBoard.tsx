@@ -724,7 +724,9 @@ export function PlayBoard({
           y={c[1] * S}
           width={S}
           height={S}
-          {...press('Zone with something waiting', () => onSelect({ kind: 'zone', id: z.zone }))}
+          {...press('Zone with something waiting', () =>
+            onSelect({ kind: 'zone', id: z.zone, at: [c[0], c[1]] }),
+          )}
         />,
       ),
     );

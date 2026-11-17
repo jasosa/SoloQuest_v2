@@ -537,14 +537,15 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     if (label) {
       note = (
         <MarginNote
-          anchor={toMap(label.cell[0] + 0.5, label.cell[1] + 0.5)}
+          // the popup opens at the square that was tapped
+          anchor={toMap((sel.at ?? label.cell)[0] + 0.5, (sel.at ?? label.cell)[1] + 0.5)}
           kind="Zone"
           title={label.enter ? 'A hero enters' : 'This place'}
           onClose={closeNote}
         >
           {label.enter && (
             <>
-              <p>Tap when a hero steps into this place.</p>
+              <p>Press the button when a hero enters this square.</p>
               <button className="btn" onClick={() => act({ type: 'ZONE_ENTER', zone: sel.id })}>
                 A hero enters
               </button>

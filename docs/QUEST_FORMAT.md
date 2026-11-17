@@ -107,7 +107,7 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 | `areaRevealed` | `area` | area first revealed |
 | `doorOpened` | `door` | that door is opened |
 | `areaEntered` | `area` | players tap "A hero enters" on the area (only shown for areas with this trigger) |
-| `zoneEntered` | `zone` | players tap "A hero enters" on the zone label (shown once any square of the zone is seen and a note waits) |
+| `zoneEntered` | `zone`, `repeat?` | every seen square of the zone has a ring; a tap asks "Press the button when a hero enters this square" and the button "A hero enters" fires the note. Once by default; `repeat: true` fires every time, from any square, with the same popup |
 | `squareEntered` | `cell`, `repeat?` | players tap the square marker ("A hero is here") |
 | `treasureSearch` | `area`, `first?` | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search. |
 | `secretDoorSearch` | `area` | a hero searches the area for secret doors |

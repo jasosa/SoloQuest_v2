@@ -67,6 +67,24 @@ describe('zones (decision 68)', () => {
     expect(() => reduce(lv, r.state, enter('z1'))).toThrow(EventError);
   });
 
+  it('a zone that fires every time keeps its mark and its button, and shows the message each time', () => {
+    const again = buildLevel({
+      ...lv.quest,
+      notes: lv.quest.notes.map((n) =>
+        n.id === 'in-z1'
+          ? { ...n, trigger: { type: 'zoneEntered' as const, zone: 'z1', repeat: true } }
+          : n,
+      ),
+    });
+    let s = initialState(again, SEED);
+    for (let i = 0; i < 3; i++) {
+      const r = reduce(again, s, enter('z1'));
+      expect(r.prompts.some((p) => p.kind === 'note')).toBe(true);
+      s = r.state;
+      expect(zoneLabels(again, s)[0]?.enter).toBe(true);
+    }
+  });
+
   it('refuses a zone that is unknown, not seen, or has nothing waiting', () => {
     const s = initialState(lv, SEED);
     expect(() => reduce(lv, s, enter('nope'))).toThrow(EventError);
