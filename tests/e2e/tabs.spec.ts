@@ -50,7 +50,7 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await shot(page, 'tab-quest');
   });
 
-  test('Actions tab lists the actions; a row opens the popup', async ({ page }) => {
+  test('Actions tab lists the actions; a row opens it beside the list', async ({ page }) => {
     await newQuest(page);
     await tab(page, 'Quest').click();
     await page.getByTestId('quest-actions').getByRole('button', { name: 'Add action' }).click();
@@ -63,7 +63,9 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
       .getByRole('button')
       .first()
       .click();
-    await expect(page.getByRole('dialog', { name: 'Action' })).toBeVisible();
+    // like the Monsters tab: the action sits in a column, no popup over the list
+    await expect(page.getByTestId('action-card')).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Action' })).toHaveCount(0);
     await shot(page, 'tab-actions');
   });
 

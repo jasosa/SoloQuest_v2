@@ -3,6 +3,7 @@ import { renameQuest, setSummary } from '../../engine/editor';
 import { Col, Fld, Frame, Panel } from '../shared/Frame';
 import { ActionsPanel } from './ActionsPanel';
 import type { EditorStore } from './editorStore';
+import { ActionForm } from './NotesPanel';
 import { QuestPanel } from './QuestPanel';
 
 /**
@@ -76,8 +77,14 @@ export function QuestTab({ store }: { store: EditorStore }) {
   );
 }
 
-/** The Actions tab: the list of every action (a row opens it in the popup) and how it works. */
+/**
+ * The Actions tab: the list of every action on the left and the selected action beside it, like
+ * the Monsters tab (no popup over the text). Elsewhere an action still opens in the popup.
+ */
 export function ActionsTab({ store }: { store: EditorStore }) {
+  const { quest, noteId } = useStore(store);
+  const st = store.getState();
+  const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
   return (
     <Frame narrow>
       <Col label="Actions">
@@ -85,14 +92,23 @@ export function ActionsTab({ store }: { store: EditorStore }) {
           <ActionsPanel store={store} />
         </Panel>
       </Col>
-      <Col label="Help">
-        <Panel title="How actions work">
-          <p className="fr-help">
-            An action happens at a moment of the quest, on a place, or on an element. Pick one on
-            the left to change it. To add one to an element, select it on the Map or in the Monsters
-            tab and use its Add action button.
-          </p>
-        </Panel>
+      <Col label="Action">
+        {note ? (
+          <Panel title="Action" testId="action-card">
+            <ActionForm key={note.id} store={store} note={note} quest={quest} />
+            <button className="btn alt" onClick={() => st.setNoteId(null)}>
+              Close
+            </button>
+          </Panel>
+        ) : (
+          <Panel title="How actions work">
+            <p className="fr-help">
+              An action happens at a moment of the quest, on a place, or on an element. Pick one on
+              the left to change it. To add one to an element, select it on the Map or in the
+              Monsters tab and use its Add action button.
+            </p>
+          </Panel>
+        )}
       </Col>
     </Frame>
   );

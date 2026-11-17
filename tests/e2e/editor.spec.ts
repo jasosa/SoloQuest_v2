@@ -462,21 +462,33 @@ test.describe('editor: actions (decision 68)', () => {
     await actionsTab(page).click();
     await expect(page.getByTestId('missing-letters')).toContainText('Add action A');
     await btn(page, 'Add action A').click();
-    await expect(dlg(page)).toBeVisible();
+    // in the Actions tab the action sits beside the list, not in a popup
+    await expect(page.getByTestId('action-card')).toBeVisible();
+    await expect(dlg(page)).toHaveCount(0);
     await expect(page.getByTestId('note-id')).toHaveText('n-A');
     await expect(actionsTab(page).getByTestId('missing-count')).toHaveCount(0);
 
-    const message = dlg(page).locator('[data-effect="showText"]').first().getByLabel(/^Text/);
+    const message = page
+      .getByTestId('action-card')
+      .locator('[data-effect="showText"]')
+      .first()
+      .getByLabel(/^Text/);
     await message.fill('A dusty chest.');
     await message.blur();
 
     // applies to a room, and the trigger is chosen from the ones that fit a room
-    await dlg(page).getByLabel('Applies to').selectOption('area:R20');
-    await expect(dlg(page).getByLabel('When')).toContainText('A hero enters it');
-    await dlg(page).getByLabel('When').selectOption('areaEntered');
+    await page.getByTestId('action-card').getByLabel('Applies to').selectOption('area:R20');
+    await expect(page.getByTestId('action-card').getByLabel('When')).toContainText(
+      'A hero enters it',
+    );
+    await page.getByTestId('action-card').getByLabel('When').selectOption('areaEntered');
 
     // letter shown at, picked on the board (the popup steps aside while picking)
-    await dlg(page).getByRole('button', { name: 'Click it on the board' }).first().click();
+    await page
+      .getByTestId('action-card')
+      .getByRole('button', { name: 'Click it on the board' })
+      .first()
+      .click();
     await expect(dlg(page)).toHaveCount(0);
     await expect(page.getByTestId('pick-bar')).toBeVisible();
     await clickAt(page, 4, 16);

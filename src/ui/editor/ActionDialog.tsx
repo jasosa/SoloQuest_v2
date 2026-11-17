@@ -9,7 +9,7 @@ import { ActionForm } from './NotesPanel';
  * square, a door or a room on the board the dialog steps aside and a small bar says what to click.
  */
 export function ActionDialog({ store }: { store: EditorStore }) {
-  const { quest, noteId, picking } = useStore(store);
+  const { quest, noteId, picking, tab } = useStore(store);
   const st = store.getState();
   const head = useRef<HTMLHeadingElement>(null);
   const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
@@ -36,7 +36,8 @@ export function ActionDialog({ store }: { store: EditorStore }) {
         </button>
       </div>
     );
-  if (!note) return null;
+  // the Actions tab shows the action beside its list instead
+  if (!note || tab === 'Actions') return null;
 
   return (
     <div className="ed-veil">
