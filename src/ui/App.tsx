@@ -263,6 +263,7 @@ function Game({ params }: { params: URLSearchParams }) {
       onStart={start}
       notice={notice}
       onEditor={() => setEditor('start')}
+      userStore={userStore}
     />
   );
 }

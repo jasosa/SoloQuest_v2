@@ -166,6 +166,7 @@ test.describe('play quest 1', () => {
     await expect(page.getByRole('dialog')).toContainText('Body 2 of 2');
     const before = await rosterRows(page).count();
     await page.getByRole('button', { name: 'Slain' }).click();
+    await page.getByRole('button', { name: 'Yes, it is slain' }).click();
     await expect(rosterRows(page)).toHaveCount(before - 1); // a slain monster leaves the list
     await expect(page.locator('.toast')).toContainText('slain');
     await page.waitForTimeout(350); // let the pop animation finish

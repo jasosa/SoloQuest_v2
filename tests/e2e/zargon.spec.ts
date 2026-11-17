@@ -147,17 +147,19 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await zbutton(page).click();
     const spell = dlg(page).locator('.spell');
     await expect(spell).toContainText('Read the Dread spell card.');
-    await expect(spell).toContainText('If it cannot cast:');
-    // the situation tags of Fear and Sleep give their questions (decision 48)
-    await expect(spell).toContainText('Is any of these true?');
-    await expect(spell).toContainText('Is a hero with high attack next to it?');
+    // when it is cast, and that casting is its action (decision 72)
+    await expect(spell).toContainText('Casting is its action, so it does not attack.');
+    await expect(spell).toContainText('spell 1 of 2');
+    // the situation tags of Fear and Sleep give their concrete questions (decision 48)
+    await expect(spell).toContainText('It casts this spell if any of these is true:');
+    await expect(spell).toContainText('Is a hero that rolls 3 or more attack dice right next to it?');
     const first = await spell.locator('.sname b').innerText();
     await shot(page, 'zargon-spell');
-    await btn(page, 'No').click();
+    await btn(page, 'No, next spell').click();
     const second = await spell.locator('.sname b').innerText();
     expect(second).not.toBe(first);
-    await btn(page, 'No').click();
-    await expect(dlg(page)).toContainText('No spell this turn.');
+    await expect(spell).toContainText('spell 2 of 2');
+    await btn(page, 'No, use the plan').click();
     await expect(spell).toHaveCount(0);
     await expect(dlg(page).getByText('Plan', { exact: true })).toBeVisible();
     // undo brings the question back
@@ -165,7 +167,7 @@ test.describe("Zargon's turn, one monster at a time", () => {
     await btn(page, 'Undo').first().click();
     await zbutton(page).click();
     await expect(spell).toHaveCount(1);
-    await btn(page, 'Yes, it cast it').click();
+    await btn(page, 'Yes, it casts it').click();
     await expect(dlg(page)).toContainText('It already cast a spell this turn.');
     await expect(dlg(page).getByText('Plan', { exact: true })).toHaveCount(0);
     await btn(page, 'Done').click();

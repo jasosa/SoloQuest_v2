@@ -940,6 +940,7 @@ const STATE_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'dormant', label: 'Dormant' },
   { value: 'stone', label: 'Stone' },
+  { value: 'away', label: 'Away (not on the map)' },
 ] as const;
 
 function EffectFields({

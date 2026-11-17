@@ -160,7 +160,11 @@ function Entry({ order: o }: { order: Order }) {
   );
 }
 
-/** A caster's one random spell: "Could it cast it?" Yes sends SPELL_CAST, No sends SPELL_FAILED. */
+/**
+ * A caster tries a spell first (decision 72). The dialog says when in its turn it casts, then
+ * lists when the spell works. Yes sends SPELL_CAST. No sends SPELL_FAILED and shows the next
+ * spell, and when none is left the normal plan.
+ */
 function Spell({ order: o, onYes, onNo }: { order: Order; onYes(): void; onNo(): void }) {
   const sp = o.spell;
   if (!sp) return null;
@@ -168,28 +172,37 @@ function Spell({ order: o, onYes, onNo }: { order: Order; onYes(): void; onNo():
     <div className="spell">
       <div className="sname">
         <b>{sp.name}</b> <span className="x">{leftLabel(sp.left)}</span>
+        {sp.of > 1 && (
+          <span className="x">
+            {' '}
+            · spell {sp.place} of {sp.of}
+          </span>
+        )}
       </div>
       <div className="scond">{sp.effect}</div>
-      {o.fallbackPlan && <div className="scond">If it cannot cast: {o.fallbackPlan}</div>}
+      <div className="scond">{sp.timing}</div>
       {sp.warning && <div className="scond warn">{sp.warning}</div>}
       <div className="sask">
         {sp.questions.length > 1
-          ? 'Is any of these true?'
-          : (sp.questions[0] ?? 'Could it cast it?')}
+          ? 'It casts this spell if any of these is true:'
+          : 'It casts this spell if:'}
       </div>
-      {sp.questions.length > 1 && (
-        <ul className="squestions">
-          {sp.questions.map((q) => (
-            <li key={q}>{q}</li>
-          ))}
-        </ul>
-      )}
+      <ul className="squestions">
+        {sp.questions.map((q) => (
+          <li key={q}>{q}</li>
+        ))}
+      </ul>
+      <div className="scond">
+        {sp.place < sp.of
+          ? 'If none is true, try the next spell.'
+          : `If none is true, no spell this turn: ${o.fallbackPlan ?? 'use the normal plan'}`}
+      </div>
       <div className="row">
         <button className="btn" onClick={onYes}>
-          Yes, it cast it
+          Yes, it casts it
         </button>
         <button className="btn alt" onClick={onNo}>
-          No
+          {sp.place < sp.of ? 'No, next spell' : 'No, use the plan'}
         </button>
       </div>
     </div>

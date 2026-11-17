@@ -22,8 +22,6 @@ describe('prompt toasts and sheets', () => {
       'Verag turns to stone for 2 turns.',
       'Verag is awake.',
       'Sir Ragnar joins the heroes.',
-      'This door cannot be opened.',
-      'Goal done. Bring the heroes back to the stairs.',
       'Too many notes in a row. The rest was skipped.',
     ]);
   });
@@ -37,6 +35,18 @@ describe('prompt toasts and sheets', () => {
     ];
     expect(sheetsOf(prompts).map((s) => s.t)).toEqual(['note', 'place']);
     expect(promptToasts(prompts)).toEqual(['Orc is in play now.']);
+  });
+
+  it('an achieved objective gets a sheet; the last one says the goal is done', () => {
+    const prompts: Prompt[] = [
+      { kind: 'objectiveDone', objective: 'o1', text: 'Kill them all' },
+      { kind: 'objectiveDone', objective: 'o2', text: 'Leave' },
+      { kind: 'goalDone' },
+    ];
+    expect(sheetsOf(prompts).map((s) => (s.t === 'goal' ? s.all : null))).toEqual([false, true]);
+    expect(promptToasts(prompts)).toEqual([]);
+    const one = sheetsOf([{ kind: 'objectiveDone', objective: 'o1', text: 'x' }]);
+    expect(one.map((s) => (s.t === 'goal' ? s.all : null))).toEqual([false]);
   });
 });
 

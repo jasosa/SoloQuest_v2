@@ -7,7 +7,13 @@ export type Selection =
   | { readonly kind: 'cell'; readonly at: readonly [number, number] }
   | { readonly kind: 'monster'; readonly id: string }
   /** `furniture` is set when the tap was on a piece of furniture: its name leads the note. */
-  | { readonly kind: 'room'; readonly room: string; readonly furniture?: FurnitureDef['type'] }
+  | {
+      readonly kind: 'room';
+      readonly room: string;
+      readonly furniture?: FurnitureDef['type'];
+      /** The id of that furniture piece, for its own "For this quest" notes. */
+      readonly furnitureId?: string;
+    }
   | { readonly kind: 'trap'; readonly id: string }
   | { readonly kind: 'chest'; readonly id: string }
   | { readonly kind: 'square'; readonly at: readonly [number, number] }

@@ -238,9 +238,12 @@ test.describe('traps (dev fixture)', () => {
     await btn(page, 'Search for treasure').click();
     await btn(page, 'The room is clear, search anyway').click();
     await btn(page, 'Dwarf').click();
+    // the trap is told first, alone; after Done the search follows
     await expect(dialog(page)).toContainText('Chest trap!');
-    await expect(dialog(page)).toContainText('Draw a treasure card');
+    await expect(dialog(page)).not.toContainText('Draw a treasure card');
     await shot(page, 'trap-chest-search');
+    await btn(page, 'Done').click();
+    await expect(dialog(page)).toContainText('Draw a treasure card');
     await btn(page, 'Done').click();
   });
 

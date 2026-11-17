@@ -50,7 +50,9 @@ import {
   SecretGuard,
   ResultBody,
   resultPrompts,
+  resultStages,
   RoomMenu,
+  RoomScope,
   TrapMenu,
   trapStepBody,
 } from './notes';
@@ -79,6 +81,8 @@ interface Result {
   anchor: Anchor;
   hero?: Hero;
   room?: string;
+  /** Which part of the result is shown: a trap first, then the rest of the search. */
+  stage?: number;
 }
 
 /** Small heading of a result sheet. */
@@ -87,6 +91,7 @@ function resultKind(prompts: readonly Prompt[]): string {
   if (has('trapSprung', 'trapJumped', 'trapDisarmed')) return 'Trap';
   if (has('wanderingMonster', 'wanderingText')) return 'Wandering monster';
   if (has('secretDoorsFound', 'nothingFound')) return 'Secret doors';
+  if (has('doorStuck')) return 'Door';
   if (has('trapFound', 'noTrap')) return 'Chest';
   return 'Treasure';
 }
@@ -116,6 +121,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
+  const [slayAsk, setSlayAsk] = useState<string | null>(null);
   const [res, setRes] = useState<Result | null>(null);
   const [sheetPos, setSheetPos] = useState({ seq: -1, i: 0 });
   const [reread, setReread] = useState<string | null>(null);
@@ -201,6 +207,32 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   };
 
   /** "For this quest" under the normal actions of a margin note (decision 67). */
+  /** "Look from here" for a corridor square that can show more (a trap or monster may stand on it). */
+  const lookButton = (at: readonly [number, number]) =>
+    hints.some((c) => c[0] === at[0] && c[1] === at[1]) ? (
+      <button className="btn alt" onClick={() => act({ type: 'LOOK_FROM', cell: [at[0], at[1]] })}>
+        Look from here
+      </button>
+    ) : null;
+  /** One "For this quest" block for several elements (the furniture and its room). */
+  const forQuestMany = (targets: readonly (readonly [NoteTarget['kind'], string])[]) => {
+    const views = targets.map(([k, id]) => elementQuest(level, state, k, id));
+    const view = {
+      read: views.flatMap((v) => v.read),
+      waiting: views.flatMap((v) => v.waiting),
+      buttons: views.flatMap((v) => v.buttons),
+    };
+    return (
+      <ForThisQuest
+        view={view}
+        onRead={(note) => {
+          choose(null);
+          setReread(note);
+        }}
+        onPress={(note) => act({ type: 'MANUAL_TRIGGER', note })}
+      />
+    );
+  };
   const forQuest = (kind: NoteTarget['kind'], id: string) => (
     <ForThisQuest
       view={elementQuest(level, state, kind, id)}
@@ -289,14 +321,21 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             setAdding({ t: 'wander', room, hero, anchor: res.anchor });
           }
         : undefined;
+    const stages = resultStages(res.prompts);
+    const at = Math.min(res.stage ?? 0, Math.max(stages.length - 1, 0));
+    const current = stages[at] ?? [];
     note = (
       <MarginNote
         anchor={res.anchor}
-        kind={resultKind(res.prompts)}
-        title={resultPrompts(res.prompts).map(headingOf)[0] ?? 'Done'}
+        kind={resultKind(current)}
+        title={current.map(headingOf)[0] ?? 'Done'}
         onClose={closeNote}
       >
-        <ResultBody prompts={res.prompts} onDone={closeNote} onWandering={askWandering} />
+        <ResultBody
+          prompts={current}
+          onDone={at + 1 < stages.length ? () => setRes({ ...res, stage: at + 1 }) : closeNote}
+          onWandering={askWandering}
+        />
       </MarginNote>
     );
   } else if (sel?.kind === 'door') {
@@ -316,8 +355,16 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         </MarginNote>
       ) : (
         <MarginNote anchor={anchor} kind="Closed door" title="Open this door?" onClose={closeNote}>
-          <p>{both ? 'Both sides are explored.' : 'Opening is free. You see what is behind it.'}</p>
-          <button className="btn" onClick={() => act({ type: 'OPEN_DOOR', door: sel.id })}>
+          <p>{both ? 'Both sides are explored.' : 'Free action.'}</p>
+          <button
+            className="btn"
+            onClick={() =>
+              // A false door gives a result sheet here, not a toast.
+              d.kind === 'false'
+                ? run({ type: 'OPEN_DOOR', door: sel.id }, anchor)
+                : act({ type: 'OPEN_DOOR', door: sel.id })
+            }
+          >
             Open the door
           </button>
           {forQuest('door', sel.id)}
@@ -414,7 +461,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
                   type: 'SEARCH_TREASURE',
                   room: sel.room,
                   hero,
-                  ...(step.override ? { override: true } : {}),
+                  // a hero that already searched this room may do it again ("Search anyway")
+                  ...(step.override || ss.searchedBy.includes(hero) ? { override: true } : {}),
                 },
                 anchor,
                 { hero, room: sel.room },
@@ -424,26 +472,49 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         </MarginNote>
       );
     } else {
-      note = (
+      const menu = (
+        <RoomMenu
+          onTreasure={() => setStep({ t: 'pick', what: 'treasure', override: false })}
+          onSecret={() =>
+            roomCodes.length > 0
+              ? setStep({ t: 'pick', what: 'secret', override: false })
+              : searchSecret(false)
+          }
+          onEnter={
+            enterable.includes(sel.room)
+              ? () => act({ type: 'AREA_ENTER', area: sel.room })
+              : undefined
+          }
+        />
+      );
+      // A furniture note has three scopes: the element, the room, this quest. A furniture piece
+      // with no action of its own says so, and the room actions sit under their own heading.
+      const fv = sel.furnitureId ? elementQuest(level, state, 'furniture', sel.furnitureId) : null;
+      note = sel.furniture ? (
         <MarginNote
           anchor={anchor}
-          kind={sel.furniture ? furnitureName(sel.furniture) : 'Room'}
-          title="Search this room"
+          kind={furnitureName(sel.furniture)}
+          title={
+            fv && fv.buttons.length > 0
+              ? 'Actions for this furniture'
+              : 'No actions for this furniture'
+          }
           onClose={closeNote}
         >
-          <RoomMenu
-            onTreasure={() => setStep({ t: 'pick', what: 'treasure', override: false })}
-            onSecret={() =>
-              roomCodes.length > 0
-                ? setStep({ t: 'pick', what: 'secret', override: false })
-                : searchSecret(false)
-            }
-            onEnter={
-              enterable.includes(sel.room)
-                ? () => act({ type: 'AREA_ENTER', area: sel.room })
-                : undefined
-            }
-          />
+          {!(fv && fv.buttons.length > 0) && (
+            <p className="hint">
+              This {furnitureName(sel.furniture).toLowerCase()} has no special action.
+            </p>
+          )}
+          <RoomScope>{menu}</RoomScope>
+          {forQuestMany([
+            ...(sel.furnitureId ? [['furniture', sel.furnitureId] as const] : []),
+            ['area', sel.room] as const,
+          ])}
+        </MarginNote>
+      ) : (
+        <MarginNote anchor={anchor} kind="Room" title="Search this room" onClose={closeNote}>
+          {menu}
           {forQuest('area', sel.room)}
         </MarginNote>
       );
@@ -508,14 +579,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             </button>
           </>
         )}
-        {hints.some((c) => c[0] === sel.at[0] && c[1] === sel.at[1]) && (
-          <button
-            className="btn alt"
-            onClick={() => act({ type: 'LOOK_FROM', cell: [sel.at[0], sel.at[1]] })}
-          >
-            Look from here
-          </button>
-        )}
+        {lookButton(sel.at)}
         {forQuest('square', `${sel.at[0]},${sel.at[1]}`)}
       </MarginNote>
     );
@@ -556,6 +620,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               onDisarm={() => setStep({ t: 'who' })}
               onStep={() => spring({ type: 'TRAP_STEP', trap: tv.id })}
             />
+            {lookButton(tv.cell)}
             {forQuest('trap', tv.id)}
           </MarginNote>
         );
@@ -659,9 +724,27 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               </button>
             </div>
           )}
-          <button className="btn" onClick={() => act({ type: 'MONSTER_KILL', monster: m.id })}>
-            Slain
-          </button>
+          {slayAsk === m.id ? (
+            <div className="row">
+              <button
+                className="btn"
+                onClick={() => {
+                  setSlayAsk(null);
+                  act({ type: 'MONSTER_KILL', monster: m.id });
+                }}
+              >
+                Yes, it is slain
+              </button>
+              <button className="btn alt" onClick={() => setSlayAsk(null)}>
+                Not yet
+              </button>
+            </div>
+          ) : (
+            <button className="btn" onClick={() => setSlayAsk(m.id)}>
+              Slain
+            </button>
+          )}
+          {c && lookButton(c)}
           {forQuest('monster', m.id)}
         </MarginNote>
       );
@@ -690,7 +773,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           data-testid="quest-chip"
           onClick={() => setQuestOpen((v) => !v)}
         >
-          Quest
+          Quest Info
         </button>
         <button className="chip hdr" onClick={() => setEndOpen(true)}>
           End quest
@@ -861,6 +944,17 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         />
       ) : sheet?.t === 'note' ? (
         <NoteSheet p={sheet.p} onClose={nextSheet} />
+      ) : sheet?.t === 'goal' ? (
+        <NoteCard kind="Objective done" title={sheet.p.text} onClose={nextSheet}>
+          <p>
+            {sheet.all
+              ? 'All objectives are done. Bring the heroes back to the stairs, then end the quest.'
+              : 'This objective is done. The quest goes on.'}
+          </p>
+          <button className="btn" onClick={nextSheet}>
+            Continue
+          </button>
+        </NoteCard>
       ) : pending ? (
         <NoteCard kind="Quest note" title="Choose">
           <p>{pending.text}</p>

@@ -46,7 +46,9 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
           <li key={n.id}>
             <div className="nm">{n.name}</div>
             <div className="st">
-              Defend {n.defend} · Body {n.body}
+              {n.move !== undefined && <>Movement dice {n.move} · </>}
+              {n.attack !== undefined && <>Attack dice {n.attack === 0 ? 'N/A' : n.attack} · </>}
+              Defend dice {n.defend} · Body {n.body}
             </div>
             {n.text && <p>{n.text}</p>}
           </li>

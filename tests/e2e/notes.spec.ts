@@ -114,6 +114,12 @@ test.describe('quest 1 notes', () => {
     // slay Verag
     await rows(page).filter({ hasText: 'Verag' }).click();
     await btn(page, 'Slain').click();
+    await btn(page, 'Yes, it is slain').click();
+    // a sheet tells that the objective is done
+    await expect(page.getByRole('dialog', { name: 'Find and destroy Verag' })).toContainText(
+      'All objectives are done',
+    );
+    await btn(page, 'Continue').click();
     await expect(page.locator('header .goalline')).toContainText('Bring the heroes back');
     await openQuestSheet(page);
     await expect(page.locator('.qsheet .goals li.done')).toHaveCount(1);
@@ -395,7 +401,7 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(page.getByRole('dialog')).toContainText('A knight steps out');
     await btn(page, 'Continue').click();
     await expect(page.locator('.npcs')).toContainText('Sir Test');
-    await expect(page.locator('.npcs')).toContainText('Defend 2');
+    await expect(page.locator('.npcs')).toContainText('Defend dice 2');
     await expect(page.locator('.npcs')).toContainText('Body 3'); // the players write it down
     await expect(btn(page, 'Call for help')).toHaveCount(0); // each button works once
     await shot(page, 'notes-npc');

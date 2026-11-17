@@ -8,6 +8,7 @@ import {
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import type { UserQuestStore, UserQuestSummary } from '../../persist/userQuests';
+import { setOverride } from '../../persist/questOverrides';
 import { Dialog, Fld } from '../shared/Frame';
 import { questEntries } from '../quests';
 
@@ -309,6 +310,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   if (!q) return;
                   setPopup(null);
                   void take(exportQuest(q)).then((made) => {
+                    // The quest list plays this copy from now on (Use original resets it).
+                    if (made) setOverride(q.number, made.id);
                     if (made) onOpen(made, made);
                   });
                 }}
@@ -316,7 +319,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 Edit it now
               </button>
               <p className="fr-help">
-                A bundled quest is edited as your own copy. The original stays as it is.
+                A bundled quest is edited as your own copy. Edit it now makes the quest list play
+                your copy. The original stays as it is.
               </p>
             </>
           )}

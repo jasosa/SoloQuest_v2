@@ -1,5 +1,5 @@
 /** Bodies of the margin notes for searches and traps. Presentational: no game logic. */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import type { Prompt } from '../../engine/game/prompts';
 import { TRAP_NAMES, sprungLines, sprungTitle, wanderingLines } from './texts';
@@ -21,6 +21,21 @@ export function HeroChips({
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * A scope of a margin note: what the element can do, what the room can do, what this quest says.
+ * The room block of a furniture note (design: `furniture-room-quest-proposal.svg`).
+ */
+export function RoomScope({ children }: { children: ReactNode }) {
+  return (
+    <section className="scope" data-scope="room">
+      <div className="lbl">Room</div>
+      <h3>Search this room</h3>
+      <p className="hint">One hero, one search, on their own turn.</p>
+      {children}
+    </section>
   );
 }
 
@@ -66,8 +81,13 @@ export function PickHero(props: {
 }) {
   const warned = props.monsters.length > 0 || props.blocked;
   const guarded = warned && !props.override;
+  // When every hero searched this room already, ask before allowing a repeat.
+  const [again, setAgain] = useState(false);
+  const allSearched = props.team.length > 0 && props.team.every((h) => props.searched.includes(h));
+  const askAgain = allSearched && !again;
   return (
     <>
+      {askAgain && <p className="warn">All heroes searched already, search anyway?</p>}
       {warned && (
         <p className="warn">
           {props.monsters.length > 0
@@ -77,12 +97,12 @@ export function PickHero(props: {
       )}
       <HeroChips
         team={props.team}
-        disabled={(h) => guarded || props.searched.includes(h)}
+        disabled={(h) => guarded || (props.searched.includes(h) && !again)}
         onPick={props.onPick}
       />
-      {guarded && (
-        <button className="btn alt" onClick={props.onOverride}>
-          The room is clear, search anyway
+      {(guarded || askAgain) && (
+        <button className="btn alt" onClick={guarded ? props.onOverride : () => setAgain(true)}>
+          {guarded ? 'The room is clear, search anyway' : 'Search anyway'}
         </button>
       )}
     </>
@@ -219,7 +239,7 @@ export function ResultBody({
   /** Present when a wandering monster can be asked for (after a treasure search). */
   onWandering: (() => void) | undefined;
 }) {
-  const shown = resultPrompts(prompts);
+  const shown = prompts;
   const draws = shown.some((p) => p.kind === 'drawCard');
   return (
     <>
@@ -265,6 +285,8 @@ export function headingOf(p: Prompt): string {
       return 'You found a trap';
     case 'noTrap':
       return 'No trap';
+    case 'doorStuck':
+      return 'A door that will not open';
     default:
       return '';
   }
@@ -296,6 +318,8 @@ function lines(p: Prompt): string[] {
       ];
     case 'noTrap':
       return ['No trap on this chest.'];
+    case 'doorStuck':
+      return ['This door cannot be opened. Nothing changed.'];
     default:
       return [];
   }
@@ -316,6 +340,7 @@ const RESULT_KINDS: readonly Prompt['kind'][] = [
   'nothingFound',
   'trapFound',
   'noTrap',
+  'doorStuck',
 ];
 export const resultPrompts = (prompts: readonly Prompt[]) =>
   prompts.filter(
@@ -324,6 +349,19 @@ export const resultPrompts = (prompts: readonly Prompt[]) =>
       // two traps on one chest read as one "you found a trap"
       !(p.kind === 'trapFound' && prompts.findIndex((q) => q.kind === 'trapFound') !== i),
   );
+
+const TRAP_STAGE: Prompt['kind'][] = ['trapSprung', 'trapJumped', 'trapDisarmed'];
+
+/**
+ * The result prompts in the order they are told. A trap comes first, alone; after Done the rest
+ * of the search follows (a chest trap that springs on a treasure search, then the treasure).
+ */
+export function resultStages(prompts: readonly Prompt[]): Prompt[][] {
+  const shown = resultPrompts(prompts);
+  const trap = shown.filter((p) => TRAP_STAGE.includes(p.kind));
+  const rest = shown.filter((p) => !TRAP_STAGE.includes(p.kind));
+  return [trap, rest].filter((s) => s.length > 0);
+}
 
 function Section({ p, heading }: { p: Prompt; heading: boolean }) {
   return (

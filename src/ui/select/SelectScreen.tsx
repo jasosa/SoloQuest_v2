@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { Level } from '../../engine/board/level';
+import { buildLevel, type Level } from '../../engine/board/level';
+import { exportQuest } from '../../engine/editor/io';
 import { HEROES, HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { resume, type Resumed, type SaveStore } from '../../persist/saves';
-import { questEntries } from '../quests';
+import { clearOverride, getOverrides } from '../../persist/questOverrides';
+import type { UserQuestStore } from '../../persist/userQuests';
+import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 
 export type StartChoice =
@@ -16,9 +19,52 @@ export interface SelectScreenProps {
   notice?: string | undefined;
   /** Open the quest editor. */
   onEditor?: (() => void) | undefined;
+  /** Edited copies of bundled quests replace them in the list. */
+  userStore?: UserQuestStore | undefined;
 }
 
-export function SelectScreen({ saves, onStart, notice, onEditor }: SelectScreenProps) {
+/** Save the edited quest as a file for the bundled folder (admin: publish for everyone). */
+function downloadForPublishing(edited: Level, bundledId: string): void {
+  try {
+    const text = exportQuest({ ...edited.quest, id: bundledId });
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${bundledId}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    /* nothing to do: the browser blocked the download */
+  }
+}
+
+export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: SelectScreenProps) {
+  // Edited copies by bundled quest number. Reload after "Use original".
+  const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
+  useEffect(() => {
+    if (!userStore) return;
+    let live = true;
+    void (async () => {
+      const map = new Map<number, Level>();
+      for (const [n, id] of Object.entries(getOverrides())) {
+        try {
+          const quest = await userStore.load(id);
+          if (quest) map.set(Number(n), buildLevel(quest));
+        } catch {
+          /* a broken copy is ignored: the original is played */
+        }
+      }
+      if (live) setEdited(map);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [userStore]);
+  const questEntries = bundledEntries.map((q) => {
+    const level = edited.get(q.number);
+    return level ? { ...q, level } : q;
+  });
+
   const [number, setNumber] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.number,
   );
@@ -77,6 +123,7 @@ export function SelectScreen({ saves, onStart, notice, onEditor }: SelectScreenP
           >
             <span className="qnum">Quest {q.number}</span>
             {q.level && <span className="qtitle">{q.level.quest.title}</span>}
+            {edited.has(q.number) && <span className="qnote">Edited</span>}
             {!q.level && <span className="qnote">Not encoded yet</span>}
           </button>
         ))}
@@ -89,6 +136,33 @@ export function SelectScreen({ saves, onStart, notice, onEditor }: SelectScreenP
               <div className="lbl">Quest {level.quest.number}</div>
               <h2>{level.quest.title}</h2>
               <p className="summary">{level.quest.intro.summary}</p>
+              {edited.has(level.quest.number) && (
+                <>
+                  <p className="hint">This is your edited copy.</p>
+                  <button
+                    className="btn alt"
+                    onClick={() => {
+                      clearOverride(level.quest.number);
+                      setEdited((m) => {
+                        const next = new Map(m);
+                        next.delete(level.quest.number);
+                        return next;
+                      });
+                    }}
+                  >
+                    Use original
+                  </button>
+                  <button
+                    className="btn alt"
+                    onClick={() => {
+                      const orig = bundledEntries.find((b) => b.number === level.quest.number);
+                      if (orig?.level) downloadForPublishing(level, orig.level.quest.id);
+                    }}
+                  >
+                    Export to publish (admin)
+                  </button>
+                </>
+              )}
             </section>
 
             {resumed && (

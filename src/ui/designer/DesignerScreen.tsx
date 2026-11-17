@@ -345,6 +345,22 @@ function SpellFields({
           <option value="escapePoint">The quest has an escape point</option>
         </select>
       </Fld>
+      <Fld label="When it is cast">
+        <select
+          className="fr-sel"
+          aria-label="When it is cast"
+          disabled={disabled}
+          value={str(data, 'timing') || 'either'}
+          onChange={(e) =>
+            onChange(put(data, 'timing', e.target.value === 'either' ? undefined : e.target.value))
+          }
+        >
+          <option value="either">It may move first, then cast</option>
+          <option value="beforeMoving">Cast first, then it may move</option>
+          <option value="afterMoving">Move first, then cast</option>
+          <option value="instead">Cast instead of moving</option>
+        </select>
+      </Fld>
       <Fld label="Warning for the players (optional)">
         <input
           className="fr-in"

@@ -377,7 +377,9 @@ export function PlayBoard({
         y={b.y}
         width={b.w}
         height={b.h}
-        {...press(furnitureName(f.type), () => onSelect({ kind: 'room', room, furniture: f.type }))}
+        {...press(furnitureName(f.type), () =>
+          onSelect({ kind: 'room', room, furniture: f.type, furnitureId: f.id }),
+        )}
         {...hoverProps(f.id)}
       />,
     );
@@ -789,8 +791,19 @@ export function PlayBoard({
   // The eye glyph on squares where "Look from here" can show more.
   // A square with a marker of its own shows the ring only: "Look from here" is in its note.
   const ringCells = new Set(squareMarkers(level, state).map((m) => cellKey(m.cell[0], m.cell[1])));
+  // Only crossings get the eye (3 or more corridor neighbors), so the board stays calm.
+  const isCrossing = (x: number, y: number) =>
+    [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ].filter(([dx = 0, dy = 0]) => areaAt(board, x + dx, y + dy) === 'C').length >= 3;
   const eyes = hints
-    .filter(([x, y]) => !monsterAt.has(cellKey(x, y)) && !ringCells.has(cellKey(x, y)))
+    .filter(
+      ([x, y]) =>
+        isCrossing(x, y) && !monsterAt.has(cellKey(x, y)) && !ringCells.has(cellKey(x, y)),
+    )
     .map(([x, y]) => {
       const cx = (x + 0.5) * S;
       const cy = (y + 0.5) * S;

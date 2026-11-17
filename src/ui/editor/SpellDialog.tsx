@@ -6,6 +6,7 @@ import {
   SPELL_TAG_QUESTIONS,
   isSpellTag,
   type SpellTag,
+  type SpellTiming,
 } from '../../engine/data/spells';
 import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
@@ -140,6 +141,22 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             >
               <option value="always">Always</option>
               <option value="escapePoint">The quest has an escape point</option>
+            </select>
+          </label>
+          <label className="ed-field">
+            When it is cast
+            <select
+              className="es-select"
+              aria-label="When it is cast"
+              value={sp.timing ?? 'either'}
+              onChange={(e) =>
+                st.apply((q) => updateSpell(q, sp.id, { timing: e.target.value as SpellTiming }))
+              }
+            >
+              <option value="either">It may move first, then cast</option>
+              <option value="beforeMoving">Cast first, then it may move</option>
+              <option value="afterMoving">Move first, then cast</option>
+              <option value="instead">Cast instead of moving</option>
             </select>
           </label>
           <label className="ed-field">

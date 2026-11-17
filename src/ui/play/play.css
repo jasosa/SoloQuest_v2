@@ -696,3 +696,13 @@ header .goalline b {
   fill: var(--sel);
   fill-opacity: 0.2;
 }
+
+/* The room block of a furniture note: its own heading, like "For this quest". */
+.scope {
+  border-top: 1px solid var(--rock-line);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+.scope .lbl {
+  margin-bottom: 4px;
+}

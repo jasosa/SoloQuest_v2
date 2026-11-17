@@ -19,13 +19,13 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
               : `${p.name} turns to stone.`,
           );
         else if (p.state === 'dormant') out.push(`${p.name} goes still.`);
+        else if (p.state === 'away') out.push(`${p.name} is gone from the map.`);
         else out.push(`${p.name} is awake.`);
         break;
       case 'doorsOpened':
         out.push(p.doors.length > 1 ? 'Doors open on the map.' : 'A door opens on the map.');
         break;
-      case 'doorStuck':
-        out.push('This door cannot be opened.');
+      case 'doorStuck': // shown as a result sheet, not a toast
         break;
       case 'secretDoorAdded':
         out.push('A secret door is on the map now.');
@@ -39,11 +39,8 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
       case 'npcSpawned':
         out.push(`${p.name} joins the heroes.`);
         break;
-      case 'objectiveDone':
-        out.push(`Goal ticked: ${p.text}.`);
-        break;
+      case 'objectiveDone': // shown as a sheet
       case 'goalDone':
-        out.push('Goal done. Bring the heroes back to the stairs.');
         break;
       case 'loopStopped':
         out.push('Too many notes in a row. The rest was skipped.');
@@ -58,11 +55,16 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
 /** One sheet to show, in order. Notes with something to read, and monsters to put on the map. */
 export type Sheet =
   | { readonly t: 'note'; readonly p: Extract<Prompt, { kind: 'note' }> }
-  | { readonly t: 'place'; readonly p: Extract<Prompt, { kind: 'monsterPlaced' }> };
+  | { readonly t: 'place'; readonly p: Extract<Prompt, { kind: 'monsterPlaced' }> }
+  /** An objective was achieved. `all` is true when it was the last one: the goal is done. */
+  | { readonly t: 'goal'; readonly p: Extract<Prompt, { kind: 'objectiveDone' }>; readonly all: boolean };
 
 export function sheetsOf(prompts: readonly Prompt[]): Sheet[] {
   const out: Sheet[] = [];
-  for (const p of prompts) {
+  const lastGoal = prompts.map((p) => p.kind).lastIndexOf('objectiveDone');
+  const allDone = prompts.some((p) => p.kind === 'goalDone');
+  for (const [i, p] of prompts.entries()) {
+    if (p.kind === 'objectiveDone') out.push({ t: 'goal', p, all: allDone && i === lastGoal });
     if (
       p.kind === 'note' &&
       (p.texts.length > 0 || p.letter !== undefined || p.blocksSearch === true)

@@ -765,20 +765,25 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await section.getByLabel('Add a spell').selectOption({ label: 'Sleep' });
     await section.getByRole('button', { name: 'Add', exact: true }).click();
     const row = section.locator('[data-spell="sleep"]');
-    await expect(row).toContainText('Is a hero with high attack next to it?');
+    await expect(row).toContainText('rolls 3 or more attack dice right next to it?');
     await expect(row.getByLabel('Sleep cast limit')).toHaveValue('1');
     await row.getByLabel('Sleep cast limit').selectOption({ label: 'Twice' });
     await expect(row.getByLabel('Sleep cast limit')).toHaveValue('2');
     await row.getByLabel('Sleep cast limit').selectOption({ label: 'Once in the quest' });
+    // the place where the spell is offered: random by default, or a fixed place
+    await expect(row.getByLabel('Sleep order')).toHaveValue('0');
+    await row.getByLabel('Sleep order').selectOption({ label: 'Offered first' });
+    await expect(row.getByLabel('Sleep order')).toHaveValue('1');
+    await row.getByLabel('Sleep order').selectOption({ label: 'Offered at random' });
 
     // a new spell: its popup lists the situations with their questions
     await section.getByRole('button', { name: 'New spell…' }).click();
     await expect(spellDlg(page)).toBeVisible();
-    await expect(page.getByTestId('spell-tags')).toContainText('Could it cast it?');
+    await expect(page.getByTestId('spell-tags')).toContainText('Can it see a hero?');
     await spellDlg(page).getByLabel('Name').fill('Mud');
     await spellDlg(page).getByLabel('Name').blur();
     await spellDlg(page).getByLabel('Add a situation').selectOption('heroAdjacent');
-    await expect(page.getByTestId('spell-tags')).toContainText('Is any hero next to it?');
+    await expect(page.getByTestId('spell-tags')).toContainText('Is a hero on a square right next to it?');
     await spellDlg(page).getByRole('button', { name: 'Remove any' }).click();
     await expect(page.locator('[data-tag="any"]')).toHaveCount(0);
     // the last situation cannot go without a question of the author's own

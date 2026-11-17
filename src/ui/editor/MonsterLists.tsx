@@ -24,6 +24,16 @@ const LIMITS = [
   { n: 5, label: '5 times' },
 ];
 
+/** Where a spell is offered on Zargon's turn: at random, or in a fixed place. */
+const PLACES = [
+  { n: 0, label: 'Offered at random' },
+  { n: 1, label: 'Offered first' },
+  { n: 2, label: 'Offered second' },
+  { n: 3, label: 'Offered third' },
+  { n: 4, label: 'Offered fourth' },
+  { n: 5, label: 'Offered fifth' },
+];
+
 type Patch = Parameters<typeof updateMonster>[2];
 
 /**
@@ -174,6 +184,24 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
                 Remove
               </button>
               <div className="ctl">
+                <select
+                  className="fr-sel"
+                  aria-label={`${sp?.name ?? id} order`}
+                  value={String(monster.spellOrder?.[id] ?? 0)}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    const order = { ...monster.spellOrder };
+                    if (n === 0) delete order[id];
+                    else order[id] = n;
+                    patch({ spellOrder: order });
+                  }}
+                >
+                  {PLACES.map((l) => (
+                    <option key={l.n} value={l.n}>
+                      {l.label}
+                    </option>
+                  ))}
+                </select>
                 <select
                   className="fr-sel"
                   aria-label={`${sp?.name ?? id} cast limit`}
