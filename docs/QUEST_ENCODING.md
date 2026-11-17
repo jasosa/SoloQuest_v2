@@ -39,7 +39,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 | 4 | Prince Magnus' Gold | done | A, home | ok | ok | ok (src/content/quests/q04.test.ts) | |
 | 5 | Melar's Maze | done | A to E, gargoyle wake, throne search notes | ok | ok | ok (src/content/quests/q05.test.ts) | |
 | 6 | Legacy of the Orc Warlord | done | start, cell, A, B, Grak dead | ok | ok | ok (src/content/quests/q06.test.ts) | |
-| 7 | The Lost Wizard | done | A to D | ok | ok | ok (src/content/quests/q07.test.ts) | |
+| 7 | The Lost Wizard | done | A to D | ok | ok | ok (src/content/quests/q07.test.ts) | approved 2026-11-17 (flask text to revisit with Quest items) |
 | 8 | The Fire Mage | done | A, Balur appears, escape, XX | ok | ok | ok (src/content/quests/q08.test.ts) | |
 | 9 | Race Against Time | done | A to C, stairs | ok | ok | ok (src/content/quests/q09.test.ts) | |
 | 10 | Castle of Mystery | done | start, A, B, door teleport choices | ok | ok | ok (src/content/quests/q10.test.ts) | |
