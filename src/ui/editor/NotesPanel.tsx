@@ -6,6 +6,7 @@
  * Targets (a door, a square, an area) are chosen from a list or by clicking on the board.
  */
 import { board, roomIds } from '../../engine/board/board';
+import { shownName } from './monsterLabel';
 import { removeNote, updateNote, type NotePatch } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
@@ -211,7 +212,7 @@ const YES_NO = (yes: string, no: string) =>
 const monsterOptions = (q: Quest) =>
   q.monsters.map((m) => ({
     value: m.id,
-    label: `${m.id} · ${m.name ?? MONSTER_NAMES[m.type]}`,
+    label: `${m.id} · ${shownName(q, m)}`,
   }));
 
 const areaOptions = (withCorridor: boolean) =>

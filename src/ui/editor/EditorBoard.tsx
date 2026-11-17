@@ -22,10 +22,10 @@ import {
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import { Furniture } from '../board/Furniture';
-import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { addAction } from './addAction';
+import { shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
 import {
@@ -648,7 +648,7 @@ export function EditorBoard({
           fontWeight={700}
           fontSize={11.5}
         >
-          {MONSTER_LETTER[m.type]}
+          {shownLetter(quest, m)}
         </text>
       </g>,
     );

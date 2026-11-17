@@ -12,6 +12,7 @@ import { Col, Fld, Frame, ListPanel, Panel, Toggle } from '../shared/Frame';
 import { SubjectActions } from './ActionsSection';
 import type { EditorStore } from './editorStore';
 import { StatFields } from './Inspector';
+import { shownName } from './monsterLabel';
 import { parseLines } from './inspectorForms';
 import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { deleteSelection } from './selectionActions';
@@ -52,7 +53,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                     data-monster-row={m.id}
                     onClick={() => st.select({ kind: 'monster', id: m.id })}
                   >
-                    {m.id} · {m.name ?? MONSTER_NAMES[m.type]}
+                    {m.id} · {shownName(quest, m)}
                     {m.special && <span className="star"> ★</span>}
                     {first && <span className="sub">{lookup.get(first)?.name ?? first}</span>}
                   </button>

@@ -204,6 +204,7 @@ test.describe('designer: the library', () => {
     await name(page, 'Marsh Skeleton');
     await card(page).getByLabel('Behaves like').selectOption('skeleton');
     await page.getByLabel('att').fill('4');
+    await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^NEW QUEST/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
@@ -222,10 +223,11 @@ test.describe('designer: the library', () => {
     await page.getByRole('tab', { name: 'Monsters' }).click();
     await expect(page.getByTestId('monster-list')).toContainText('Marsh Skeleton');
     await page.getByTestId('monster-list').getByRole('button').first().click();
-    await expect(page.getByTestId('monster-card').getByLabel('att')).toHaveAttribute(
-      'placeholder',
-      '4',
-    );
+    await expect(page.getByTestId('monster-card').getByLabel('att')).toHaveValue('4');
+    // the board token has the enemy's letter, not the skeleton's
+    await page.getByRole('tab', { name: 'Map' }).click();
+    await expect(page.locator('[data-monster="m1"]')).toContainText('M');
+    await page.getByRole('tab', { name: 'Monsters' }).click();
 
     // and the list adds one too, from the same menu
     await page.getByLabel('Monster to add').selectOption({ label: 'Marsh Skeleton' });

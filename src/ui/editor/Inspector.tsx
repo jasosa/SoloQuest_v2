@@ -15,7 +15,7 @@ import {
   type Issue,
   type TrapKind,
 } from '../../engine/editor';
-import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
+import { MONSTER_STATS } from '../../engine/data/monsters';
 import {
   type FurnitureDef,
   type MonsterDef,
@@ -25,6 +25,7 @@ import {
 import { FURNITURE_NAMES } from '../board/furnitureNames';
 import type { EditorStore, EditSelection } from './editorStore';
 import { SubjectActions } from './ActionsSection';
+import { shownName } from './monsterLabel';
 import { elementOf } from './elementActions';
 import { ProblemsPanel } from './ProblemsPanel';
 import { parseMapLetter } from './noteForms';
@@ -142,7 +143,7 @@ export function Inspector({
               ? `Square ${selection.cell[0]}, ${selection.cell[1]}`
               : selection.id}
             {furniture ? ` · ${FURNITURE_NAMES[furniture.type]}` : ''}
-            {monster ? ` · ${MONSTER_NAMES[monster.type]}` : ''}
+            {monster ? ` · ${shownName(quest, monster)}` : ''}
           </p>
           {door && <DoorFields store={store} door={door} />}
           {furniture && <FurnitureFields store={store} furniture={furniture} />}
@@ -308,15 +309,20 @@ export function StatFields({
   // The starting point is the type's stats with the enemy's own stats on top (decision 70).
   const enemy = store.getState().quest.enemyDefs.find((e) => e.id === monster.enemy);
   const base = { ...MONSTER_STATS[monster.type], ...(enemy?.overrides ?? {}) };
+  // The boxes show the stats the monster really has: its own, else the enemy's, else the type's.
   const [fields, setFields] = useState<Record<StatKey, string>>(() => ({
-    move: String(monster.overrides?.move ?? ''),
-    att: String(monster.overrides?.att ?? ''),
-    def: String(monster.overrides?.def ?? ''),
-    body: String(monster.overrides?.body ?? ''),
-    mind: String(monster.overrides?.mind ?? ''),
+    move: String(monster.overrides?.move ?? base.move),
+    att: String(monster.overrides?.att ?? base.att),
+    def: String(monster.overrides?.def ?? base.def),
+    body: String(monster.overrides?.body ?? base.body),
+    mind: String(monster.overrides?.mind ?? base.mind),
   }));
   const commit = () => {
-    const r = parseOverrides(fields);
+    // a box left at the starting value is no override
+    const kept = Object.fromEntries(
+      STAT_KEYS.map((k) => [k, fields[k] === String(base[k]) ? '' : fields[k]]),
+    ) as Record<StatKey, string>;
+    const r = parseOverrides(kept);
     if (!r.ok) {
       store.getState().say(r.error);
       return;
@@ -326,7 +332,7 @@ export function StatFields({
   };
   return (
     <>
-      <div className="lbl">Stats (empty keeps the base)</div>
+      <div className="lbl">Stats (they start from the enemy or the type)</div>
       <div className="ed-stats">
         {STAT_KEYS.map((k) => (
           <label key={k} className="ed-field">
