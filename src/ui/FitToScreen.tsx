@@ -19,7 +19,17 @@ const MAX_SCALE = 1.5;
  * screen, where the board must stay in one piece). `width`: the screen fills the width and the page
  * scrolls down when the window is shorter (select, editor, Designer), so nothing gets too small.
  */
-export type FitMode = 'contain' | 'width';
+export type FitMode = 'contain' | 'width' | 'fill';
+
+/** The smallest the play screen is drawn at before the whole screen starts to shrink. */
+const FILL_MIN_W = 1000;
+const FILL_MIN_H = 600;
+
+/** The height the screen is drawn at: the window's, on the play screen. */
+export function drawnHeight(width: number, height: number, mode: FitMode = 'contain'): number {
+  if (mode !== 'fill' || width <= 0 || height <= 0) return DESIGN_H;
+  return Math.max(FILL_MIN_H, Math.floor(height / fitScale(width, height, mode)));
+}
 
 /**
  * The width the screen is drawn at. It is the design width, except on the play screen in a window
@@ -28,6 +38,8 @@ export type FitMode = 'contain' | 'width';
  */
 export function drawnWidth(width: number, height: number, mode: FitMode = 'contain'): number {
   if (mode === 'width' || width <= 0 || height <= 0) return DESIGN_W;
+  if (mode === 'fill')
+    return Math.max(FILL_MIN_W, Math.floor(width / fitScale(width, height, mode)));
   const k = fitScale(width, height, mode);
   return Math.max(DESIGN_W, Math.floor(width / k));
 }
@@ -35,6 +47,7 @@ export function drawnWidth(width: number, height: number, mode: FitMode = 'conta
 /** The scale for a window of this size. */
 export function fitScale(width: number, height: number, mode: FitMode = 'contain'): number {
   if (width <= 0 || height <= 0) return 1;
+  if (mode === 'fill') return Math.min(1, width / FILL_MIN_W, height / FILL_MIN_H);
   const byWidth = width / DESIGN_W;
   return mode === 'width'
     ? Math.min(MAX_SCALE, byWidth)
@@ -75,10 +88,12 @@ export function FitToScreen({ children }: { children: ReactNode }) {
   }, []);
   const k = fitScale(size.w, size.h, mode);
   const W = drawnWidth(size.w, size.h, mode);
+  const H = drawnHeight(size.w, size.h, mode);
   const drawn = {
     width: W,
     '--app-w': `${W}px`,
-    height: DESIGN_H,
+    '--app-h': `${H}px`,
+    height: H,
     transformOrigin: '0 0',
     transform: k === 1 ? undefined : `scale(${k})`,
   } as React.CSSProperties;
@@ -102,15 +117,15 @@ export function FitToScreen({ children }: { children: ReactNode }) {
               ? {
                   position: 'relative',
                   width: W * k,
-                  height: DESIGN_H * k,
+                  height: H * k,
                   margin: '0 auto',
                 }
               : {
                   position: 'absolute',
                   left: (size.w - W * k) / 2,
-                  top: (size.h - DESIGN_H * k) / 2,
+                  top: (size.h - H * k) / 2,
                   width: W * k,
-                  height: DESIGN_H * k,
+                  height: H * k,
                 }
           }
         >

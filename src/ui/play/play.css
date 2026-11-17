@@ -715,16 +715,23 @@ header .goalline b {
   touch-action: none; /* pinch and drag are ours */
 }
 .zoomclip {
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 .zoomlayer {
-  padding: 18px 0 0 28px;
+  position: absolute;
+  left: 0;
+  top: 0;
   will-change: transform;
+}
+/* the play screen: the map takes what the right column leaves, whatever the window */
+.app.play {
+  grid-template-columns: 1fr 274px;
 }
 .zoomctl {
   position: absolute;
-  left: 34px;
+  left: 12px;
   bottom: 10px;
   z-index: 30;
   display: flex;

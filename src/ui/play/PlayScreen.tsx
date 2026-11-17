@@ -41,6 +41,7 @@ import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
+import { useFitMode } from '../FitToScreen';
 import { QuestSheet } from './QuestSheet';
 import { ZoomLayer } from './ZoomLayer';
 import { Helpers, Heroes } from './sidebar';
@@ -107,6 +108,7 @@ export interface PlayScreenProps {
 }
 
 export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
+  useFitMode('fill');
   const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;

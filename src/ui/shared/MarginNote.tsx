@@ -1,9 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
-import { useProject } from '../play/ZoomLayer';
+import { useZoom } from '../play/ZoomLayer';
 
 /** Size of the map area the note is placed in (the left grid cell of the play screen). */
-export const MAP_W = 920;
-export const MAP_H = 770;
 const NOTE_W = 252;
 /** The tallest margin note (a monster with wound and heal) stays below this. */
 const SLOT_H = 280;
@@ -32,7 +30,9 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
   }, [onClose]);
 
   // the thing it points at may have moved with the zoom
-  const project = useProject();
+  const { project, area } = useZoom();
+  const MAP_W = area.w;
+  const MAP_H = area.h;
   const { x, y } = project(anchor);
   const above = y > MAP_H * 0.5;
   let style: React.CSSProperties;
