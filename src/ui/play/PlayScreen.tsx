@@ -907,6 +907,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <QuestSheet
           number={playtest ? 'playtest' : quest.number}
           title={quest.title}
+          intro={quest.intro.summary}
           startTexts={startTexts(level)}
           objectives={objectives}
           confirms={confirms}

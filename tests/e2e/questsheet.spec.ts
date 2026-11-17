@@ -25,6 +25,8 @@ test.describe('Quest sheet (decision 67)', () => {
     await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
     await openQuestSheet(page);
     await expect(sheet(page)).toContainText('Place the heroes on the stairs.');
+    // the quest intro of the quest list can be read again inside the quest
+    await expect(sheet(page).getByTestId('quest-intro')).toContainText('Verag');
     await expect(sheet(page)).toContainText('Verag');
     await expect(sheet(page)).toContainText('A door was opened');
     await expect(sheet(page)).toContainText('The quest starts');

@@ -130,7 +130,7 @@ General, quick fixes
 - [x] Confirmation before slaying a monster
 - [x] Monster popups: show stats under Special
 - [x] Quest button renamed Quest Info
-- [ ] Quest intro readable inside the quest
+- [x] Quest intro readable inside the quest (Quest Info, "About this quest")
 - [x] Popup when an objective is achieved
 - [x] Trapped chest: show the trap first, then after Done the search; if the search for treasure springs the trap, drop the "search for traps in the chest" option
 

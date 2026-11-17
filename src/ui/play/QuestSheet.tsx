@@ -12,6 +12,8 @@ const LOG_SHOWN = 12;
 export interface QuestSheetProps {
   number: number | string;
   title: string;
+  /** The quest summary shown on the quest list, so it can be read again in play. */
+  intro: string;
   startTexts: readonly string[];
   objectives: ObjectivesView;
   confirms: readonly ObjectiveConfirm[];
@@ -33,7 +35,7 @@ const firstLine = (e: JournalEntry) => {
 
 /**
  * The Quest sheet (decision 67): a panel on the right with the start instruction, the goal and
- * its confirm buttons (each under its objective), the Quest actions (buttons of notes with no element), the notes read and the log.
+ * the quest intro, its confirm buttons (each under its objective), the Quest actions (buttons of notes with no element), the notes read and the log.
  * The board stays visible beside it. Esc or Close shuts it.
  */
 export function QuestSheet(p: QuestSheetProps) {
@@ -66,6 +68,11 @@ export function QuestSheet(p: QuestSheetProps) {
           ×
         </button>
       </div>
+
+      <section data-testid="quest-intro">
+        <div className="lbl">About this quest</div>
+        <p>{p.intro}</p>
+      </section>
 
       {p.startTexts.length > 0 && (
         <section>
