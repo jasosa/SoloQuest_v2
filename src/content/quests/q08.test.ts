@@ -7,7 +7,7 @@ import { buildLevel, cellKey } from '../../engine/board/level';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { initialState, reduce, replay } from '../../engine/game/reducer';
-import { objectivesStatus } from '../../engine/game/view';
+import { dormantFigures, objectivesStatus } from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 
@@ -216,6 +216,10 @@ describe('quest 8: Balur and the escape spell', () => {
     expect(s.spellsCast['m-balur']).toContain('fear');
   });
 
+  it('Balur is offered escape first', () => {
+    expect(quest.monsters.find((m) => m.id === 'm-balur')?.spellOrder).toEqual({ escape: 1 });
+  });
+
   it('a spell cannot be cast twice, even in a later turn', () => {
     const s = run(...inRoom, cast('fear'), { type: 'ZARGON_TURN_END' });
     expect(() => reduce(level, s, cast('fear'))).toThrow(/already cast/);
@@ -225,7 +229,9 @@ describe('quest 8: Balur and the escape spell', () => {
   it('escape before the center door opens: Balur is set aside and the flag is set', () => {
     const r = reduce(level, run(...inRoom), cast('escape'));
     expect(r.state.flags['escaped']).toBe(true);
-    expect(r.state.monsterStates['m-balur']?.state).toBe('dormant');
+    expect(r.state.monsterStates['m-balur']?.state).toBe('away');
+    // Nothing stays on the map where he stood (no statue figure).
+    expect(dormantFigures(level, r.state).some((f) => f.id === 'm-balur')).toBe(false);
     expect(noteIds(r.prompts)).toEqual(['n-escape-closed']);
   });
 

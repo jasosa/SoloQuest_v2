@@ -352,6 +352,9 @@ export function validateQuestIssues(
     for (const sp of m.spells ?? [])
       if (!spellIds.has(sp))
         err(`monster ${m.id}: unknown spell "${sp}" (known: ${[...spellIds].join(', ')})`, ref);
+    for (const k of Object.keys(m.spellOrder ?? {}))
+      if (!(m.spells ?? []).includes(k))
+        err(`monster ${m.id}: spellOrder names ${k}, which is not in its spells list`, ref);
     if (m.spellLimit && (m.spells ?? []).length === 0)
       err(`monster ${m.id}: spellLimit needs a spells list`, ref);
   }

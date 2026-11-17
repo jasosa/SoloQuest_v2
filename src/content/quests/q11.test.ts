@@ -261,7 +261,7 @@ describe('quest 11: letter C, the magic sword', () => {
 describe('quest 11: end', () => {
   it('the goal is to kill the monsters the heroes find, not every monster of the map', () => {
     expect(quest.monsters).toHaveLength(23);
-    expect(quest.objectives).toHaveLength(1);
+    expect(quest.objectives).toHaveLength(2);
     expect(quest.objectives[0]?.done).toEqual({ allSeenKilled: true });
     expect(objectivesStatus(level, run()).goalDone).toBe(false); // nothing seen yet
     const s = run(...toR13, search('R13'));
@@ -277,6 +277,12 @@ describe('quest 11: end', () => {
     const partial = run(...base, ...ids.slice(1).map((id) => kill(id)));
     expect(objectivesStatus(level, partial).goalDone).toBe(false);
     const all = run(...base, ...ids.map((id) => kill(id)));
-    expect(objectivesStatus(level, all).goalDone).toBe(true);
+    // The kills are done, but the quest also needs the escape by the stairs.
+    expect(objectivesStatus(level, all).goalDone).toBe(false);
+    const out = run(...base, ...ids.map((id) => kill(id)), {
+      type: 'CONFIRM_OBJECTIVE',
+      objective: 'o2',
+    });
+    expect(objectivesStatus(level, out).goalDone).toBe(true);
   });
 });

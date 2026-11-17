@@ -59,7 +59,8 @@ describe('SEARCH_TREASURE: validation', () => {
     const s = replay(fx, SEED, [treasure('R20', 'elf')]);
     expect(s.treasureSearched).toEqual({ R20: ['elf'] });
     expect(code(() => reduce(fx, s, treasure('R20', 'elf')))).toBe('ALREADY_SEARCHED');
-    expect(code(() => reduce(fx, s, treasure('R20', 'elf', true)))).toBe('ALREADY_SEARCHED');
+    // "Search anyway" (override) lets a hero search again.
+    expect(code(() => reduce(fx, s, treasure('R20', 'elf', true)))).toBeUndefined();
     const t = reduce(fx, s, treasure('R20', 'dwarf')).state;
     expect(t.treasureSearched.R20).toEqual(['elf', 'dwarf']);
   });

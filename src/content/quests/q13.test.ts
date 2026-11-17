@@ -115,14 +115,6 @@ describe('quest 13: walk-through', () => {
     expect(s.seenFurniture.has('f-stairs')).toBe(true);
   });
 
-  it('the start note explains the falling-block rule', () => {
-    const n = quest.notes.find((x) => x.id === 'n-start')!;
-    expect(n.trigger.type).toBe('questStart');
-    const text = JSON.stringify(n.effects);
-    expect(text).toContain('red die');
-    expect(text).toContain('helmet');
-  });
-
   it('d9 and d10 open the corridors north and south of the center room', () => {
     const north = run(...via('d9'));
     expect(north.seenCells.has(cellKey(11, 6))).toBe(true);

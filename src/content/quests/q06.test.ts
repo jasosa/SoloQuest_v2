@@ -71,7 +71,7 @@ describe('quest 6: data', () => {
     expect(g).toMatchObject({
       type: 'orc',
       name: 'Grak',
-      cell: [6, 16],
+      cell: [6, 15],
       overrides: { move: 8, att: 4, def: 4, body: 3, mind: 3 },
       spells: ['fear', 'sleep', 'tempest'],
       spellLimit: 'onePerTurn',

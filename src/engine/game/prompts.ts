@@ -54,7 +54,7 @@ export type Prompt =
       readonly kind: 'monsterState';
       readonly monster: string;
       readonly name: string;
-      readonly state: 'active' | 'dormant' | 'stone';
+      readonly state: 'active' | 'dormant' | 'stone' | 'away';
       readonly turns?: number | undefined;
     }
   /** A note opened doors on the map. */

@@ -73,7 +73,7 @@ export function searchTreasure(
   const hero = checkHero(event.hero, state);
   const room = checkRoom(level, state, event.room);
   const before = state.treasureSearched[room] ?? [];
-  if (before.includes(hero))
+  if (before.includes(hero) && event.override !== true)
     throw new EventError('ALREADY_SEARCHED', `${hero} already searched ${room}`);
   if (event.override !== true && liveMonstersInRoom(level, state, room).length > 0)
     throw new EventError('MONSTERS_IN_ROOM', `Monsters are in ${room}`);

@@ -516,7 +516,7 @@
         {
           "type": "showText",
           "title": "Trap disarmed",
-          "text": "The trap is neutralized. Tell the heroes what it was for: a search with the trap armed would have woken the gargoyle, and it would have struck at once. The statue stays still."
+          "text": "You disarmed the trap. Had it stayed armed, searching the chest would have woken the gargoyle, and it would have struck at once. The statue stays still."
         }
       ]
     },
@@ -550,6 +550,11 @@
       "done": {
         "allSeenKilled": true
       }
+    },
+    {
+      "id": "o2",
+      "text": "Leave by the stairs",
+      "confirm": "All surviving heroes have left by the stairs"
     }
   ],
   "rewards": "Bounty per kill, paid to the hero who killed: goblin 10 gold coins, orc 20, abomination 30, Dread warrior 50.",

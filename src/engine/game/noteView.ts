@@ -357,6 +357,8 @@ export interface NpcView {
   readonly cell: Cell;
   readonly defend: number;
   readonly body: number;
+  readonly move?: number | undefined;
+  readonly attack?: number | undefined;
   readonly text: string;
 }
 
@@ -378,6 +380,8 @@ export function npcsInPlay(level: Level, state: GameState): NpcView[] {
       name: n.name,
       cell: n.cell,
       defend: n.defend,
+      move: n.move,
+      attack: n.attack,
       body: n.body,
       text: n.text,
     }));

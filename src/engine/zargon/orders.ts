@@ -6,13 +6,13 @@
 import type { Level } from '../board/level';
 import type { AbilityDef } from '../data/abilities';
 import { HEROES, HERO_NAMES, type Hero } from '../data/heroes';
-import { next } from '../game/rng';
 import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
 import type { MonsterDef, MonsterType } from '../quest/schema';
+import { next } from '../game/rng';
 import { rngFor, shuffled } from './hash';
 import { SPELL_EFFECT_TEXT } from './spells';
-import { hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
+import { SPELL_TIMING_TEXT, hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
 import { pickSpell } from './spellPick';
 import { PLAN_TEXT, RULE_TEXT, noTargetText } from './texts';
 import { isCaster, profileOf, weightsOf, type Profile, type RuleKey } from './weights';
@@ -30,6 +30,11 @@ export interface SpellPick {
   readonly questions: readonly string[];
   /** A warning to show with the spell (it also hits monsters, for example). */
   readonly warning?: string;
+  /** When it is cast relative to the move, and that casting is the action. */
+  readonly timing: string;
+  /** Which spell this is of the ones it can still try this turn, and how many there are. */
+  readonly place: number;
+  readonly of: number;
 }
 
 export type OrderStatus = 'act' | 'stone' | 'fresh';
@@ -51,7 +56,7 @@ export interface Order {
   readonly plan?: string;
   /** Rules from the quest data that apply now (stat overrides, spell limit). */
   readonly special: readonly string[];
-  /** Casters with a spell to try: the random pick. Ask "Could it cast it?" (SPELL_CAST / SPELL_FAILED). */
+  /** Casters with a spell to try: the random pick. Ask "Can it see a hero?" (SPELL_CAST / SPELL_FAILED). */
   readonly spell?: SpellPick;
   /** Only for lastAttacker, caster and grudge on an acting monster: what to do with no valid target. */
   readonly noTarget?: string;
@@ -259,24 +264,10 @@ function buildOrder(
   const declined = state.spellsFailed[id] ?? [];
   if (Object.keys(left).length === 0)
     return { ...order, declined: [...declined], spellNote: 'No spells left.' };
-  // On 1 turn in 4 (seeded) a caster goes straight to its normal plan (decision 47).
-  const [roll] = next(rngFor(seed, turn, id, 'nospell'));
-  if (roll < 0.25)
-    return {
-      ...order,
-      declined: [],
-      spellNote: 'This turn it casts no spell: it uses its normal plan.',
-    };
-  // At most 3 spells are asked in one turn; after 3 "no" answers the normal plan (decision 47).
-  if (declined.length >= 3)
-    return {
-      ...order,
-      declined: [...declined],
-      spellNote: 'Three spells could not be cast: it uses its normal plan.',
-    };
-  const pick = pickSpell(seed, turn, id, Object.keys(left), declined);
-  if (pick === undefined)
-    return { ...order, declined: [...declined], spellNote: 'No spell this turn.' };
+  // A caster always tries a spell first (decision 72). Each "no" shows the next spell it has; when
+  // none is left the order is the normal plan, with no note.
+  const pick = pickSpell(seed, turn, id, Object.keys(left), declined, def?.spellOrder);
+  if (pick === undefined) return { ...order, declined: [...declined] };
   const { plan: _plan, ...rest } = order;
   void _plan;
   return {
@@ -287,8 +278,11 @@ function buildOrder(
       name: lookup.get(pick)?.name ?? pick,
       left: left[pick]!,
       effect: lookup.get(pick)?.text ?? SPELL_EFFECT_TEXT,
-      questions: lookup.get(pick) ? spellQuestions(lookup.get(pick)!) : ['Could it cast it?'],
+      questions: lookup.get(pick) ? spellQuestions(lookup.get(pick)!) : ['Can it see a hero?'],
       ...(lookup.get(pick)?.warning ? { warning: lookup.get(pick)!.warning } : {}),
+      timing: SPELL_TIMING_TEXT[lookup.get(pick)?.timing ?? 'either'],
+      place: declined.length + 1,
+      of: Object.keys(left).length,
     },
     fallbackPlan: PLAN_TEXT.caster,
   };

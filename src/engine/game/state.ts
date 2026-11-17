@@ -41,7 +41,7 @@ export type TrapState = 'sprung' | 'disarmed';
 
 /** The state of a monster set by the quest notes. Without a record, the quest data decides. */
 export interface MonsterStateRecord {
-  readonly state: 'active' | 'dormant' | 'stone';
+  readonly state: 'active' | 'dormant' | 'stone' | 'away';
   /** Zargon turns left as stone (counts down on ZARGON_TURN_END). Only for `stone`. */
   readonly turns?: number | undefined;
 }

@@ -9,6 +9,7 @@ import {
   updateTrap,
   type EditResult,
 } from './ops';
+import { addSpell, updateSpell } from './meta';
 
 function deepFreeze<T>(o: T): T {
   if (o && typeof o === 'object') {
@@ -164,5 +165,32 @@ describe('updateMonster behavior (decision 71)', () => {
     expect(updateMonster(q, 'm1', { behavior: { goesToward: 'marker', marker: 'k9' } }).ok).toBe(
       false,
     );
+  });
+});
+
+describe('updateMonster spellOrder', () => {
+  const withSpells = () => {
+    const q = base();
+    return good(updateMonster(q, 'm1', { spells: ['fear', 'sleep'] }));
+  };
+  it('sets a place, rejects a bad one, and drops a place when its spell is removed', () => {
+    const q = withSpells();
+    const set = good(updateMonster(q, 'm1', { spellOrder: { sleep: 1 } }));
+    expect(set.monsters.find((m) => m.id === 'm1')?.spellOrder).toEqual({ sleep: 1 });
+    expect(bad(updateMonster(q, 'm1', { spellOrder: { sleep: 0 } }))).toMatch(/1 to 9/);
+    const removed = good(updateMonster(set, 'm1', { spells: ['fear'] }));
+    expect(removed.monsters.find((m) => m.id === 'm1')?.spellOrder).toBeUndefined();
+  });
+});
+
+describe('spell timing', () => {
+  it('a spell of the quest can be cast instead of moving; "either" is the default and is not stored', () => {
+    const q = good(
+      addSpell(base(), { name: 'Mud', question: 'Is it raining?', timing: 'instead' }),
+    );
+    const id = q.spellDefs[0]!.id;
+    expect(q.spellDefs[0]?.timing).toBe('instead');
+    const back = good(updateSpell(q, id, { timing: 'either' }));
+    expect(back.spellDefs[0]?.timing).toBeUndefined();
   });
 });

@@ -22,7 +22,7 @@ export interface MonsterView {
   readonly maxBody: number;
   readonly dead: boolean;
   /** Dormant and stone monsters are in the roster but do not act. */
-  readonly state: 'active' | 'dormant' | 'stone';
+  readonly state: 'active' | 'dormant' | 'stone' | 'away';
   /** Zargon turns of stone left, when the quest says so. */
   readonly stoneTurns?: number;
   /** The square the quest names for a monster placed by a note. Text for the players. */
@@ -129,7 +129,8 @@ export function dormantFigures(level: Level, state: GameState): DormantFigure[] 
   const out: DormantFigure[] = [];
   for (const m of level.quest.monsters) {
     const cell = state.placedMonsterCells[m.id] ?? m.cell;
-    if (!cell || !state.seenMonsters.has(m.id) || !isDormant(m, state)) continue;
+    if (!cell || !state.seenMonsters.has(m.id) || monsterStateOf(m, state).state !== 'dormant')
+      continue;
     if (state.monsters[m.id]?.dead) continue;
     out.push({ id: m.id, type: m.type, cell });
   }
@@ -197,7 +198,13 @@ export function chestsInView(level: Level, state: GameState): ChestView[] {
       id: f.id,
       cells: f.cells,
       room,
-      searched: state.trapSearched.includes(f.id),
+      // A trap that already sprang or was disarmed leaves nothing to look for.
+      searched:
+        state.trapSearched.includes(f.id) ||
+        level.quest.traps.some(
+          (t) =>
+            t.kind === 'chest' && t.furniture === f.id && state.trapStates[t.id] !== undefined,
+        ),
       trapFound: level.quest.traps.some(
         (t) =>
           t.kind === 'chest' &&

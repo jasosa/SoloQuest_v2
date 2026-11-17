@@ -351,19 +351,6 @@
   "markers": [],
   "notes": [
     {
-      "id": "n-start",
-      "trigger": {
-        "type": "questStart"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "title": "Falling-block squares",
-          "text": "On this map, the six marked falling-block squares follow a special rule. Whenever a hero steps onto one, roll 1 red die: a 4, 5 or 6 costs 1 Body Point, but with a helmet only a 6 does. Monsters ignore these squares. Leave the block tiles in the box; the squares never stop a hero from walking over them. Tap the marker on such a square each time a hero steps on it."
-        }
-      ]
-    },
-    {
       "id": "n-fall1",
       "trigger": {
         "type": "squareEntered",

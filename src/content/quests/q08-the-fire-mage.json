@@ -351,6 +351,7 @@
       },
       "spells": ["ballOfFlame", "firestorm", "tempest", "summon", "fear", "escape"],
       "spellLimit": "onePerTurn",
+      "spellOrder": { "escape": 1 },
       "special": true,
       "abilities": ["fireImmune"]
     }
@@ -479,7 +480,7 @@
         {
           "type": "setMonsterState",
           "monster": "m-balur",
-          "state": "dormant"
+          "state": "away"
         },
         {
           "type": "setFlag",
@@ -488,7 +489,7 @@
         },
         {
           "type": "showText",
-          "text": "Balur vanishes. Keep his figure off the board for now.",
+          "text": "Balur vanishes. Take his figure off the board until he returns.",
           "title": "Balur escapes"
         }
       ]

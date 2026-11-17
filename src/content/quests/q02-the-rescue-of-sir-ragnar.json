@@ -500,6 +500,8 @@
       "id": "ragnar",
       "name": "Sir Ragnar",
       "cell": [5, 11],
+      "move": 1,
+      "attack": 0,
       "defend": 2,
       "body": 2,
       "text": ""

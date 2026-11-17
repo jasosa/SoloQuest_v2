@@ -420,13 +420,14 @@ describe('casters, random spell and tracking', () => {
     for (let i = 0; i < 3; i++) {
       const o = orderOf(events);
       expect(o.declined).toEqual(offered);
+      expect(o.spell!.place).toBe(i + 1);
       offered.push(o.spell!.spell);
       events = [...events, failed(o.spell!.spell)];
     }
     expect(new Set(offered).size).toBe(3);
     const last = orderOf(events);
     expect(last.spell).toBeUndefined();
-    expect(last.spellNote).toBe('Three spells could not be cast: it uses its normal plan.');
+    expect(last.spellNote).toBeUndefined();
     expect(last.plan).toBe(PLAN_TEXT.caster);
     expect(last.fallbackPlan).toBeUndefined();
     expect(last.declined).toEqual(offered);

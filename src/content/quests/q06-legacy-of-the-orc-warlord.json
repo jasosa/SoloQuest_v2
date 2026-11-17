@@ -271,7 +271,7 @@
     {
       "id": "m15",
       "type": "orc",
-      "cell": [6, 15]
+      "cell": [7, 16]
     },
     {
       "id": "m16",
@@ -286,7 +286,7 @@
     {
       "id": "m-grak",
       "type": "orc",
-      "cell": [6, 16],
+      "cell": [6, 15],
       "name": "Grak",
       "overrides": {
         "move": 8,
@@ -297,10 +297,6 @@
       },
       "spells": ["fear", "sleep", "tempest"],
       "spellLimit": "onePerTurn",
-      "traits": [
-        "Carries a staff that works like the armory staff",
-        "Wears a Wizard's Cloak (see the note when he dies)"
-      ],
       "special": true
     },
     {
@@ -418,6 +414,21 @@
         }
       ],
       "consumesTreasure": true
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R17"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "title": "The stairs",
+          "text": "These stairs lead out of the dungeon. Heroes who reach them can leave."
+        }
+      ]
     },
     {
       "id": "n-grak-dead",

@@ -5,7 +5,13 @@
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
 import { CORE_ABILITIES } from '../data/abilities';
-import { CORE_SPELLS, isSpellTag, type OfferWhen, type SpellTag } from '../data/spells';
+import {
+  CORE_SPELLS,
+  isSpellTag,
+  type OfferWhen,
+  type SpellTag,
+  type SpellTiming,
+} from '../data/spells';
 import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
@@ -67,6 +73,8 @@ export interface SpellInput {
   question?: string | null;
   warning?: string | null;
   offerWhen?: OfferWhen;
+  /** When it is cast in the turn. `either` is the default and is not stored. */
+  timing?: SpellTiming;
 }
 
 export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditResult {
@@ -91,6 +99,7 @@ export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditRes
     question,
     warning: input.warning?.trim() || undefined,
     offerWhen: input.offerWhen && input.offerWhen !== 'always' ? input.offerWhen : undefined,
+    timing: input.timing && input.timing !== 'either' ? input.timing : undefined,
   });
   const quest = { ...q, spellDefs: [...q.spellDefs, def] };
   return ok(quest, newIssues(q, quest));
@@ -122,6 +131,10 @@ export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult
     warning: pick(s.warning, patch.warning),
     offerWhen:
       (patch.offerWhen ?? s.offerWhen) === 'escapePoint' ? ('escapePoint' as const) : undefined,
+    timing: (() => {
+      const t = patch.timing ?? s.timing;
+      return t && t !== 'either' ? t : undefined;
+    })(),
   });
   const quest = { ...q, spellDefs: q.spellDefs.map((x) => (x.id === id ? next : x)) };
   return ok(quest, newIssues(q, quest));

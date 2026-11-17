@@ -35,11 +35,13 @@ export function monsterStateOf(
 
 /**
  * A dormant monster (a statue) is furniture until a note wakes it: it is not in the roster, not
- * counted by search guards, gets no orders and cannot be wounded (decision 28).
+ * counted by search guards, gets no orders and cannot be wounded (decision 28). An `away`
+ * monster (it escaped) acts the same, but nothing is drawn for it.
  */
 export function isDormant(
   def: Pick<MonsterDef, 'id' | 'state'>,
   state: Pick<GameState, 'monsterStates'>,
 ): boolean {
-  return monsterStateOf(def, state).state === 'dormant';
+  const s = monsterStateOf(def, state).state;
+  return s === 'dormant' || s === 'away';
 }

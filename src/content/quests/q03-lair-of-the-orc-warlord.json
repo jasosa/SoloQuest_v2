@@ -272,8 +272,8 @@
       "letter": "B"
     },
     {
-      "id": "f-throne",
-      "type": "throne",
+      "id": "f-chest-r14",
+      "type": "chest",
       "cells": [[8, 10]]
     },
     {

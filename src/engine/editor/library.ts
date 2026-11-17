@@ -41,6 +41,7 @@ export function spellChanged(def: SpellDefData): boolean {
       question: x.question ?? null,
       warning: x.warning ?? null,
       offerWhen: x.offerWhen ?? 'always',
+      timing: x.timing ?? 'either',
     });
   return norm(rest) !== norm(def as unknown as Record<string, unknown>);
 }

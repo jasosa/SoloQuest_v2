@@ -447,7 +447,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The statue stirs: the gargoyle is now a normal monster. The players apply this rule themselves: attacks against it do nothing until it has taken a step or struck a hero.",
+          "text": "Stone cracks and falls away: the statue is a living gargoyle. It is a normal monster from now on, but attacks against it do nothing until it has moved or struck a hero.",
           "title": "The gargoyle wakes"
         },
         {
@@ -533,7 +533,8 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Searching this wall turns up nothing."
+          "title": "Nothing found",
+          "text": "There is no secret door to find here."
         }
       ]
     },
@@ -546,7 +547,8 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Searching this wall turns up nothing."
+          "title": "Nothing found",
+          "text": "There is no secret door to find here."
         }
       ]
     }

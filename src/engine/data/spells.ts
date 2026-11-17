@@ -26,24 +26,40 @@ export const SPELL_TAG_IDS = [
 ] as const;
 export type SpellTag = (typeof SPELL_TAG_IDS)[number];
 
-/** The question the players answer for a tag. */
+/**
+ * The question the players answer for a tag. Each one can be answered by looking at the board:
+ * no vague words. Answer for where the monster can stand this turn (it may move first).
+ */
 export const SPELL_TAG_QUESTIONS: Readonly<Record<SpellTag, string>> = {
-  selfHurt: 'Has it lost Body Points?',
-  selfNearDeath: 'Does it have 1 Body Point left?',
-  allyHurt: 'Has another monster lost Body Points?',
-  manyInSight: 'Are 3 or more heroes in sight?',
-  heroesGrouped: 'Are 2 or more heroes close together in sight?',
-  heroesInSameRoom: 'Is it in a room with 2 or more heroes?',
+  selfHurt: 'Has this monster lost at least 1 Body Point?',
+  selfNearDeath: 'Does this monster have only 1 Body Point left?',
+  allyHurt: 'Has any other monster lost at least 1 Body Point?',
+  manyInSight: 'Can it see 3 or more heroes?',
+  heroesGrouped: 'Can it see 2 or more heroes standing within 2 squares of each other?',
+  heroesInSameRoom: 'Are 2 or more heroes in the same room as it?',
   heroesInSameArea: 'Are 2 or more heroes in the same room or corridor as it?',
-  heroInLine: 'Is a hero in a straight line from it, with no wall or closed door between?',
-  heroAdjacent: 'Is any hero next to it?',
-  strongAdjacent: 'Is a hero with high attack next to it?',
-  strongInSight: 'Is a hero with high attack in sight?',
-  casterInSight: 'Is the Wizard or Elf in sight?',
-  noneInReach: 'Is no hero in reach this turn?',
-  canBlockPath: 'Can it block a corridor or doorway between it and the heroes?',
-  nearObjective: 'Is a hero close to finishing the quest goal?',
-  any: 'Could it cast it?',
+  heroInLine:
+    'Is a hero in the same row or column as it, with no wall or closed door between them?',
+  heroAdjacent: 'Is a hero on a square right next to it?',
+  strongAdjacent: 'Is a hero that rolls 3 or more attack dice right next to it?',
+  strongInSight: 'Can it see a hero that rolls 3 or more attack dice?',
+  casterInSight: 'Can it see the Wizard or the Elf?',
+  noneInReach: 'Is every hero too far away for it to get next to this turn?',
+  canBlockPath: 'Can it stand in a doorway or a corridor square so that the heroes cannot pass it?',
+  nearObjective: 'Could a hero finish the quest goal within 2 turns?',
+  any: 'Can it see a hero?',
+};
+
+/** When in its turn a spell is cast, relative to the monster's move. */
+export const SPELL_TIMINGS = ['either', 'beforeMoving', 'afterMoving', 'instead'] as const;
+export type SpellTiming = (typeof SPELL_TIMINGS)[number];
+
+/** The line the players read with the spell. Casting is the monster's action: it does not attack. */
+export const SPELL_TIMING_TEXT: Readonly<Record<SpellTiming, string>> = {
+  either: 'It may move first, then cast. Casting is its action, so it does not attack.',
+  beforeMoving: 'Cast it first, then it may move. Casting is its action, so it does not attack.',
+  afterMoving: 'Move it first, then cast. Casting is its action, so it does not attack.',
+  instead: 'Cast it instead of moving. Casting is its action, so it does not attack.',
 };
 
 export function isSpellTag(s: string): s is SpellTag {
@@ -63,6 +79,8 @@ export interface SpellDef {
   readonly question?: string;
   readonly warning?: string;
   readonly offerWhen: OfferWhen;
+  /** When it is cast in the turn. Missing means `either`. */
+  readonly timing?: SpellTiming;
   readonly core: boolean;
 }
 
@@ -70,7 +88,7 @@ const core = (
   id: string,
   name: string,
   tags: readonly SpellTag[],
-  extra: Partial<Pick<SpellDef, 'question' | 'warning' | 'offerWhen'>> = {},
+  extra: Partial<Pick<SpellDef, 'question' | 'warning' | 'offerWhen' | 'timing'>> = {},
 ): SpellDef => ({ id, name, tags, offerWhen: 'always', core: true, ...extra });
 
 export const CORE_SPELLS: readonly SpellDef[] = [
@@ -87,7 +105,7 @@ export const CORE_SPELLS: readonly SpellDef[] = [
   }),
   core('cloudOfDread', 'Cloud of Dread', ['heroesInSameArea']),
   core('summon', 'Summon', ['manyInSight', 'selfHurt']),
-  core('escape', 'Escape', ['selfNearDeath'], { offerWhen: 'escapePoint' }),
+  core('escape', 'Escape', ['selfNearDeath'], { offerWhen: 'escapePoint', timing: 'instead' }),
   core('rust', 'Rust', [], {
     question: 'Does a hero in sight carry a metal sword or helmet that is not an artifact?',
   }),
@@ -108,6 +126,7 @@ export function spellLookup(
         ...(s.question ? { question: s.question } : {}),
         ...(s.warning ? { warning: s.warning } : {}),
         offerWhen: s.offerWhen ?? 'always',
+        ...(s.timing ? { timing: s.timing } : {}),
         core: false,
       });
   return out;

@@ -114,7 +114,7 @@ describe('quest 3: walk-through', () => {
     const base = [open('d1'), open('d2'), open('d3'), open('d5'), open('d6')];
     const r14 = run(...base, open('d8'), open('d9'), open('d7'));
     expect(r14.revealedRooms.has('R14')).toBe(true);
-    expect(r14.seenFurniture.has('f-throne')).toBe(true);
+    expect(r14.seenFurniture.has('f-chest-r14')).toBe(true);
     const r20 = run(...base, open('d8'));
     expect(r20.revealedRooms.has('R20')).toBe(true);
     for (const m of ['m15', 'm16', 'm17', 'm18']) expect(r20.seenMonsters.has(m)).toBe(true);

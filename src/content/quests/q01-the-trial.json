@@ -337,6 +337,7 @@
       "id": "m4",
       "type": "mummy",
       "cell": [6, 2],
+      "special": true,
       "overrides": {
         "att": 4
       }

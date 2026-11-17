@@ -117,20 +117,29 @@ describe('the spell flow of a caster (decisions 47 and 48)', () => {
     expect(p.spell?.name).toBe('Mud');
   });
 
-  it('about one turn in four has no spell, always the same for the same seed and turn', () => {
+  it('a caster always tries a spell first, the same for the same seed and turn', () => {
     const lv = levelWith([caster(['fear', 'sleep'])]);
-    let none = 0;
     for (let seed = 1; seed <= 200; seed++) {
       const o = orderAt(lv, seed);
-      if (!o.spell) {
-        none++;
-        expect(o.spellNote).toBe('This turn it casts no spell: it uses its normal plan.');
-        expect(o.plan).toBeDefined(); // the normal plan stays
-      }
+      expect(o.spell).toBeDefined();
+      expect(o.spell?.place).toBe(1);
+      expect(o.spell?.of).toBe(2);
+      expect(o.spell?.timing).toContain('it does not attack');
       expect(orderAt(lv, seed).spell).toEqual(o.spell);
     }
-    expect(none).toBeGreaterThan(30);
-    expect(none).toBeLessThan(70);
+  });
+
+  it('Escape is cast instead of moving', () => {
+    const lv = levelWith([caster(['escape'])], {
+      notes: [
+        {
+          id: 'n-esc',
+          trigger: { type: 'spellCast', monster: 'g', spell: 'escape' },
+          effects: [{ type: 'showText', text: 'It vanishes.' }],
+        },
+      ],
+    });
+    expect(orderAt(lv, 1).spell?.timing).toContain('instead of moving');
   });
 
   it('Escape is only offered when the quest has an escape point', () => {
@@ -154,18 +163,17 @@ describe('the spell flow of a caster (decisions 47 and 48)', () => {
     expect(offered).toBe(true);
   });
 
-  it('after three "no" answers it uses its normal plan', () => {
+  it('after a "no" for every spell it has, it uses its normal plan with no note', () => {
     const lv = levelWith([caster(['fear', 'sleep', 'tempest', 'command'])]);
-    let seed = 1;
-    while (!orderAt(lv, seed).spell && seed < 60) seed++;
+    const seed = 1;
     let events: GameEvent[] = [...seen];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const o = ordersFor(lv, replay(lv, seed, events), [...TEAM]).find((x) => x.monster === 'g')!;
       events = [...events, { type: 'SPELL_FAILED', monster: 'g', spell: o.spell!.spell }];
     }
     const last = ordersFor(lv, replay(lv, seed, events), [...TEAM]).find((x) => x.monster === 'g')!;
     expect(last.spell).toBeUndefined();
-    expect(last.spellNote).toBe('Three spells could not be cast: it uses its normal plan.');
+    expect(last.spellNote).toBeUndefined();
     expect(last.plan).toBeDefined();
   });
 });

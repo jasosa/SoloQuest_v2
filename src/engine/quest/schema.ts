@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
-import { SPELL_TAG_IDS } from '../data/spells';
+import { SPELL_TAG_IDS, SPELL_TIMINGS } from '../data/spells';
 
 export const SCHEMA_VERSION = 1;
 
@@ -46,7 +46,7 @@ export const MONSTER_TYPES = [
 export const TRAP_KINDS = ['pit', 'fallingBlock', 'spear', 'chest', 'scripted'] as const;
 
 const MonsterType = z.enum(MONSTER_TYPES);
-const MonsterState = z.enum(['active', 'dormant', 'stone']);
+const MonsterState = z.enum(['active', 'dormant', 'stone', 'away']);
 
 // ---- geometry
 
@@ -108,6 +108,8 @@ const MonsterSchema = z
     state: MonsterState.optional(),
     spells: z.array(nonEmpty).optional(),
     spellLimit: z.enum(['onePerTurn']).optional(),
+    /** Spell id to the place it is offered in (1 = first). A spell not listed is offered at random. */
+    spellOrder: z.record(nonEmpty, z.number().int().min(1).max(9)).optional(),
     /** Paraphrased special rules of a named monster, shown first on its Zargon order. */
     traits: z.array(nonEmpty).optional(),
     /** Story-critical monster (decision 69): drawn with a ring and a star. Not the same as having an ability. */
@@ -153,6 +155,7 @@ export const SpellDefSchema = z
     question: nonEmpty.optional(),
     warning: nonEmpty.optional(),
     offerWhen: z.enum(['always', 'escapePoint']).optional(),
+    timing: z.enum(SPELL_TIMINGS).optional(),
   })
   .refine((s) => s.tags.length > 0 || s.question !== undefined, {
     message: 'a spell needs situation tags or a question of its own',
@@ -265,7 +268,7 @@ export type Effect =
   | {
       type: 'setMonsterState';
       monster: string;
-      state: 'active' | 'dormant' | 'stone';
+      state: 'active' | 'dormant' | 'stone' | 'away';
       turns?: number | undefined;
     }
   | { type: 'addSecretDoor'; door: string }
@@ -370,6 +373,10 @@ const NpcSchema = z.strictObject({
   cell,
   defend: z.number().int().min(0),
   body: z.number().int().min(0),
+  /** Movement dice (shown only, never tracked). */
+  move: z.number().int().min(0).optional(),
+  /** Attack dice; 0 means it cannot attack. */
+  attack: z.number().int().min(0).optional(),
   text: z.string(),
 });
 

@@ -786,6 +786,8 @@ export interface MonsterPatch {
   state?: NonNullable<MonsterDef['state']> | null;
   spells?: string[] | null;
   spellLimit?: NonNullable<MonsterDef['spellLimit']> | null;
+  /** Spell id to its place of offer (1 = first). A spell without a place is random. `null` clears all. */
+  spellOrder?: Record<string, number> | null;
   traits?: string[] | null;
   hidden?: boolean | null;
   /** Story-critical monster (decision 69). `null` or `false` clears it. */
@@ -857,6 +859,20 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     set('enemy', patch.enemy);
   }
   if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);
+  if (patch.spellOrder !== undefined) {
+    for (const [k, v] of Object.entries(patch.spellOrder ?? {}))
+      if (!Number.isInteger(v) || v < 1 || v > 9)
+        return fail(`The place of ${k} must be a whole number from 1 to 9.`);
+    set('spellOrder', patch.spellOrder && Object.keys(patch.spellOrder).length ? patch.spellOrder : null);
+  }
+  // A place only makes sense for a spell the monster has.
+  if (next.spellOrder) {
+    const have = new Set(next.spells as string[] | undefined);
+    const kept = Object.fromEntries(
+      Object.entries(next.spellOrder as Record<string, number>).filter(([k]) => have.has(k)),
+    );
+    set('spellOrder', Object.keys(kept).length ? kept : null);
+  }
   if (patch.hidden !== undefined) set('hidden', patch.hidden === true ? true : null);
   if (patch.special !== undefined) set('special', patch.special === true ? true : null);
   if (patch.abilities !== undefined) {
