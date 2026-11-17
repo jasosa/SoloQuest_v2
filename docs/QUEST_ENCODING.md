@@ -42,7 +42,7 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 | 7 | The Lost Wizard | done | A to D | ok | ok | ok (src/content/quests/q07.test.ts) | approved 2026-11-17 (flask text to revisit with Quest items) |
 | 8 | The Fire Mage | done | A, Balur appears, escape, XX | ok | ok | ok (src/content/quests/q08.test.ts) | |
 | 9 | Race Against Time | done | A to C, stairs | ok | ok | ok (src/content/quests/q09.test.ts) | approved 2026-11-17 (first search of R13 gives 200 gold, later searches draw cards) |
-| 10 | Castle of Mystery | done | start, A, B, door teleport choices | ok | ok | ok (src/content/quests/q10.test.ts) | |
+| 10 | Castle of Mystery | done | start, A, B, door teleport choices | ok | ok | ok (src/content/quests/q10.test.ts) | approved 2026-11-17 (B: any hero who enters may take the gold; A: the ring replaces the card) |
 | 11 | Bastion of Dread | done | A to C, gargoyle wake and disarm | ok | ok | ok (src/content/quests/q11.test.ts) | |
 | 12 | Barak Tor: Barrow of the Witch Lord | done | A to E | ok | ok | ok (src/content/quests/q12.test.ts) | |
 | 13 | Quest for the Spirit Blade | done | A, B, falling-block squares, stairs | ok | ok | ok (src/content/quests/q13.test.ts) | |

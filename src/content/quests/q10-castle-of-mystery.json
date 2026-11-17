@@ -577,7 +577,7 @@
         {
           "type": "showText",
           "title": "Mine entrance",
-          "text": "This square is the way into the gold mine. One hero here may take 5,000 gold coins. A hero loaded with this gold cannot attack or defend. If the hero sets it down, the gold is gone again."
+          "text": "This square is the way into the gold mine. Any hero who enters this room may take 5,000 gold coins. A hero loaded with this gold cannot attack or defend. If the hero sets it down, the gold is gone again."
         }
       ]
     },
