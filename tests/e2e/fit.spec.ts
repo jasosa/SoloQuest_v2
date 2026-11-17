@@ -1,12 +1,14 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('fit to the screen', () => {
-  test('on a window shorter than the design, the Start button is still on screen', async ({
+  test('on a window shorter than the design, the Start button is on screen without scrolling and the screen is not shrunk', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1194, height: 640 });
     await page.goto('/?nosave=1');
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    // quest select fills the width and does not shrink: it is readable on a short window
+    expect(Number(await page.locator('[data-fit-scale]').getAttribute('data-fit-scale'))).toBe(1);
     const start = page.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeVisible();
     const box = (await start.boundingBox())!;

@@ -51,6 +51,7 @@ import {
 } from '../../persist/library';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../shared/Frame';
+import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
 
 type Data = Record<string, unknown>;
@@ -1477,6 +1478,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
 
 /** The Designer on its own (from the start screen): the top bar with the one tab, and Back. */
 export function DesignerScreen({ store, quests, updateQuests, onBack }: DesignerScreenProps) {
+  useFitMode('width');
   return (
     <div className="app fr designer">
       <TopBar tabs={['Designer']} active="Designer">

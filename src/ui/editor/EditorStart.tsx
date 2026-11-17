@@ -9,6 +9,7 @@ import {
 import type { Quest } from '../../engine/quest/schema';
 import type { UserQuestStore, UserQuestSummary } from '../../persist/userQuests';
 import { setOverride } from '../../persist/questOverrides';
+import { useFitMode } from '../FitToScreen';
 import { Dialog, Fld } from '../shared/Frame';
 import { questEntries } from '../quests';
 
@@ -26,6 +27,7 @@ interface Row extends UserQuestSummary {
 }
 
 export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
+  useFitMode('width');
   const [rows, setRows] = useState<Row[]>([]);
   const [title, setTitle] = useState('');
   const [number, setNumber] = useState('1');

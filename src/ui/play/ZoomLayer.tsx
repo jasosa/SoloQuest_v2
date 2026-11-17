@@ -46,6 +46,8 @@ const zoomAt = (v: View, s: number, cx: number, cy: number, w: number, h: number
 export function ZoomLayer({ children, notes }: { children: ReactNode; notes: ReactNode }) {
   const [view, setView] = useState<View>(NONE);
   const box = useRef<HTMLDivElement>(null);
+  // the part of the map that shows the board: this, not the whole map area, is what must be reachable
+  const clip = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ dist: number; v: View; mid: { x: number; y: number } } | null>(null);
   const pan = useRef<{ x: number; y: number; v: View; moved: boolean } | null>(null);
@@ -56,7 +58,7 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
    * app is drawn at (k, see FitToScreen): finger positions are in screen px, the view in layout px.
    */
   const size = () => {
-    const el = box.current;
+    const el = clip.current ?? box.current;
     const r = el?.getBoundingClientRect();
     const w = el?.offsetWidth || 920;
     const h = el?.offsetHeight || 770;
@@ -188,7 +190,7 @@ export function ZoomLayer({ children, notes }: { children: ReactNode; notes: Rea
           }
         }}
       >
-        <div className="zoomclip">
+        <div className="zoomclip" ref={clip}>
           <div
             className="zoomlayer"
             style={

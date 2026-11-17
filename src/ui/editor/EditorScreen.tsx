@@ -6,6 +6,7 @@ import { lettersMissingNotes, validateQuestIssues, type MonsterKind } from '../.
 import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
+import { useFitMode } from '../FitToScreen';
 import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore, EditorTabName, Tool } from './editorStore';
@@ -67,6 +68,7 @@ export function EditorScreen({
   quests,
   updateQuests,
 }: EditorScreenProps) {
+  useFitMode('width');
   const s = useStore(store);
   const { quest, tool, toast, warnings, saveErrors, tab } = s;
   const ref = useReference(quest.id, reference);

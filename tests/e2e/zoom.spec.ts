@@ -73,4 +73,36 @@ test.describe('board zoom', () => {
     expect(parseInt(await page.getByTestId('zoom-level').innerText())).toBeGreaterThan(100);
     await expect(page.getByRole('dialog')).toHaveCount(dialogsBefore);
   });
+
+  test('zoomed in all the way, the whole board can be reached, also its lower edge', async ({
+    page,
+  }) => {
+    await page.goto(board);
+    for (let i = 0; i < 8; i++) await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(page.getByTestId('zoom-level')).toHaveText('300%');
+    const fire = (type: string, x: number, y: number) =>
+      page.evaluate(
+        ([t, px, py]) => {
+          document.querySelector('.map.zoombox')!.dispatchEvent(
+            new PointerEvent(t as string, {
+              pointerId: 1,
+              pointerType: 'touch',
+              clientX: px as number,
+              clientY: py as number,
+              bubbles: true,
+            }),
+          );
+        },
+        [type, x, y] as const,
+      );
+    const clip = (await page.locator('.zoomclip').boundingBox())!;
+    // drag the board up (and left) a lot: the end of the board must come into view
+    await fire('pointerdown', clip.x + 400, clip.y + clip.height - 20);
+    for (let i = 1; i <= 100; i++)
+      await fire('pointermove', clip.x + 400 - i * 30, clip.y + clip.height - 20 - i * 30);
+    await fire('pointerup', clip.x, clip.y);
+    const drawn = (await page.locator('#board').boundingBox())!;
+    expect(drawn.y + drawn.height).toBeLessThanOrEqual(clip.y + clip.height + 1);
+    expect(drawn.x + drawn.width).toBeLessThanOrEqual(clip.x + clip.width + 1);
+  });
 });

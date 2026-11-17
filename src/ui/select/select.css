@@ -55,6 +55,10 @@
   color: var(--off);
 }
 
+.app.select .side {
+  overflow-y: auto; /* a tall quest summary scrolls inside the column */
+  min-height: 0;
+}
 .side h2 {
   font: 700 26px/1.15 'Bonum';
   color: var(--ink);
@@ -81,7 +85,7 @@
   margin-top: -4px;
 }
 .side .actions {
-  margin-top: auto;
+  margin-top: 0; /* right under the heroes, not at the bottom */
 }
 .side .heroes .chips {
   margin-bottom: 6px;

@@ -5,6 +5,7 @@ import { HEROES, HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { resume, type Resumed, type SaveStore } from '../../persist/saves';
 import { clearOverride, getOverrides } from '../../persist/questOverrides';
 import type { UserQuestStore } from '../../persist/userQuests';
+import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 
@@ -39,6 +40,7 @@ function downloadForPublishing(edited: Level, bundledId: string): void {
 }
 
 export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: SelectScreenProps) {
+  useFitMode('width');
   // Edited copies by bundled quest number. Reload after "Use original".
   const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
   useEffect(() => {
@@ -135,7 +137,6 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
             <section>
               <div className="lbl">Quest {level.quest.number}</div>
               <h2>{level.quest.title}</h2>
-              <p className="summary">{level.quest.intro.summary}</p>
               {edited.has(level.quest.number) && (
                 <>
                   <p className="hint">This is your edited copy.</p>
@@ -229,6 +230,12 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
                 </button>
               )}
             </div>
+
+            {/* the story comes after the buttons, so the Start button stays high on the screen */}
+            <section>
+              <div className="lbl">About this quest</div>
+              <p className="summary">{level.quest.intro.summary}</p>
+            </section>
           </>
         )}
       </aside>

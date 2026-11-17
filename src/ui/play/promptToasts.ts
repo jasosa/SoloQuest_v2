@@ -57,7 +57,11 @@ export type Sheet =
   | { readonly t: 'note'; readonly p: Extract<Prompt, { kind: 'note' }> }
   | { readonly t: 'place'; readonly p: Extract<Prompt, { kind: 'monsterPlaced' }> }
   /** An objective was achieved. `all` is true when it was the last one: the goal is done. */
-  | { readonly t: 'goal'; readonly p: Extract<Prompt, { kind: 'objectiveDone' }>; readonly all: boolean };
+  | {
+      readonly t: 'goal';
+      readonly p: Extract<Prompt, { kind: 'objectiveDone' }>;
+      readonly all: boolean;
+    };
 
 export function sheetsOf(prompts: readonly Prompt[]): Sheet[] {
   const out: Sheet[] = [];
