@@ -298,3 +298,5 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Pack preview.** Each pack in the Textures dialog has a Preview button that opens a wide dialog: a Check (pictures much smaller than they are shown, board not 26 : 19), the slots the pack leaves empty, a sample board of 14 x 9 squares drawn at real scale with the game's own drawing code (furniture, monsters, blocks, traps, doors), and the board picture itself with its pixel size.
 
+**Adjusting a pack from the app.** In the pack preview, "Adjust a picture" (a list grouped by monsters, furniture, doors, blocks and traps, or a tap on the picture in the sample) shows three knobs, Size, Right and Down: a slider, a 44 px minus button and a 44 px plus button, and the value. The sample redraws as they move, the picked picture glows, and "Unsaved changes" shows in the footer until "Save changes" (the other button is then "Close without saving"). Reset puts the picture back.
+

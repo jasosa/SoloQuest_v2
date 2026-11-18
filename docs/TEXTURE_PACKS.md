@@ -122,6 +122,15 @@ and the doors closed, open, secret and in a vertical wall. Above it:
   square up to 68 px wide) and a board picture that is not the shape of the board (26 x 19 squares).
 - **Not in this pack** lists the slots the pack leaves empty (the built-in drawing is used there).
 
+### Adjusting from the app
+
+Under the sample, **Adjust a picture** changes the size and position of any picture the pack has. Pick it from the
+list, or tap it in the sample. **Size** is 40% to 250%, **Right** and **Down** move it up to one square; each has a
+slider and − / + buttons for small steps (5%, a twentieth of a square). The sample updates as you move them, and the
+Check above it follows. **Reset this picture** puts it back. **Save changes** keeps them in the pack on this device
+(and uses them at once if the pack is in use); **Export** then includes them. It changes the same `scale` and
+`offset` of `theme.json` described above, so a pack made by hand and one adjusted in the app are the same thing.
+
 ## What a pack does not change
 
 The quest editor map can show the pack or not: View > Textures switches it. Markers keep their letters, a false door keeps its cross,

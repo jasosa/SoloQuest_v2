@@ -230,6 +230,7 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 
 - [x] Pack knobs (done): `scale` (0.4 to 2.5) and `offset` (squares) on monster, door, block, trap and furniture slots, as a file name or `{ file, scale, offset }`; documented in `docs/TEXTURE_PACKS.md`. Original note: `scale` on every slot, also above 1 for tokens (monsters bigger on the board, as in the monster list), and an optional offset `[dx, dy]` (in squares) to nudge a picture; for monsters, doors, blocks, traps and furniture. Documented in `docs/TEXTURE_PACKS.md`, checked by the pack reader. Today only furniture has `scale` (0.4 to 1), and nothing can be nudged
 - [x] Pack preview (done): Preview in the Textures dialog (sample board with every slot, checks for soft pictures and a wrong board shape, list of empty slots). Original note: in the Textures dialog, a sample board that shows every slot of the selected pack at real size (board, a room, each furniture type with its footprint, monsters, doors open and closed, blocks single and double, traps), with warnings such as a picture much smaller than it is shown (soft on a tablet), a board picture that is not 26 : 19, or a slot the pack leaves empty. It is how a pack author sees the result without opening a quest
+- [x] Adjust the knobs from the app (scale and offset of a picture) in the pack preview, saved into the pack
 
 ## Ideas (owner, not scheduled)
 

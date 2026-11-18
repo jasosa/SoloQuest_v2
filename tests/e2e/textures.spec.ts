@@ -150,4 +150,63 @@ test.describe('texture packs (decision 78)', () => {
     await expect(prev).toHaveCount(0);
     await expect(dlg).toBeVisible();
   });
+
+  test('Preview: adjust the size and position of a picture, save it, and it is kept', async ({
+    page,
+  }) => {
+    const manifest = {
+      format: 'sqtextures',
+      version: 1,
+      id: 'tune-me',
+      name: 'Tune me',
+      monster: { orc: 'orc.png' },
+    };
+    const zipped = Buffer.from(
+      zipSync({
+        'theme.json': strToU8(JSON.stringify(manifest)),
+        'orc.png': new Uint8Array(PNG),
+      }),
+    );
+    await page.goto('/?nosave=1');
+    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    const dlg = page.getByRole('dialog', { name: 'Texture packs' });
+    await dlg.getByLabel('Texture pack file').setInputFiles(file('tune.sqtextures', zipped));
+    await dlg.getByTestId('preview-tune-me').click();
+    const prev = page.getByRole('dialog', { name: 'Preview: Tune me' });
+    const orc = prev.locator('[data-slot="monster.orc"] image');
+    await expect(orc).toHaveAttribute('width', '32');
+    await expect(prev.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+
+    // tapping the picture in the sample chooses it
+    await prev.locator('[data-slot="monster.orc"]').click();
+    await expect(prev.getByLabel('Picture to adjust')).toHaveValue('monster.orc');
+    // five steps of 5% bigger: 125%, drawn 40 px wide, and nothing is saved yet
+    for (let i = 0; i < 5; i++) await prev.getByRole('button', { name: 'Size: more' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('125%');
+    await expect(orc).toHaveAttribute('width', '40');
+    await expect(prev.getByText('Unsaved changes')).toBeVisible();
+    // the buttons are big enough for a finger
+    for (const name of ['Size: less', 'Size: more', 'Right: more', 'Down: less']) {
+      expect(
+        (await prev.getByRole('button', { name }).boundingBox())!.height,
+      ).toBeGreaterThanOrEqual(44);
+    }
+    // a position too: half a square to the right
+    for (let i = 0; i < 10; i++) await prev.getByRole('button', { name: 'Right: more' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('+0.50 square');
+    await prev.getByRole('button', { name: 'Save changes' }).click();
+    await expect(dlg.getByRole('status')).toContainText('Saved the changes to Tune me');
+    await expect(prev.getByText('Unsaved changes')).toHaveCount(0);
+
+    // close and open again: the change was kept
+    await prev.getByRole('button', { name: 'Close', exact: true }).click();
+    await dlg.getByTestId('preview-tune-me').click();
+    const again = page.getByRole('dialog', { name: 'Preview: Tune me' });
+    await again.locator('[data-slot="monster.orc"]').click();
+    await expect(again.getByTestId('pack-adjust')).toContainText('125%');
+    await expect(again.getByTestId('pack-adjust')).toContainText('+0.50 square');
+    // reset puts it back
+    await again.getByRole('button', { name: 'Reset this picture' }).click();
+    await expect(again.locator('[data-slot="monster.orc"] image')).toHaveAttribute('width', '32');
+  });
 });

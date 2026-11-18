@@ -189,7 +189,26 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
           <p className="fr-help">No texture pack yet. Import a {PACK_EXTENSION} file to add one.</p>
         )}
       </Dialog>
-      {previewing && <PackPreview pack={previewing} onClose={() => setPreviewing(null)} />}
+      {previewing && (
+        <PackPreview
+          pack={previewing}
+          onClose={() => setPreviewing(null)}
+          onSave={async (manifest) => {
+            const next: StoredPack = { ...previewing, manifest };
+            try {
+              await store.save(next);
+            } catch {
+              setMessage({ text: 'The changes could not be stored on this device.', bad: true });
+              return;
+            }
+            // a pack in use is loaded again, so the game shows the new sizes at once
+            if (active === manifest.id) await applyPack(store, manifest.id);
+            setPreviewing(next);
+            setMessage({ text: `Saved the changes to ${manifest.name}.`, bad: false });
+            await refresh();
+          }}
+        />
+      )}
     </>
   );
 }

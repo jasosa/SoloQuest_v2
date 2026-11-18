@@ -9,8 +9,24 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { ThemeScope } from './activeTheme';
 import { checkPack, type PictureSize } from './check';
 import { BoardArt, blockPiece, doorPiece, floorCell, squarePiece, tokenBox } from './draw';
-import { manifestFiles, themeFromPack, type PackFile, type StoredPack } from './pack';
-import type { Theme, TrapSlot } from './theme';
+import {
+  manifestFiles,
+  themeFromPack,
+  type PackFile,
+  type PackManifest,
+  type StoredPack,
+} from './pack';
+import {
+  adjustableSlots,
+  GROUP_NAMES,
+  isNoTune,
+  NO_TUNE,
+  tuneOfSlot,
+  withTune,
+  type SlotGroup,
+  type SlotTune,
+} from './tune';
+import { OFFSET_MAX, SCALE_MAX, SCALE_MIN, type Theme, type TrapSlot } from './theme';
 
 /**
  * The pack preview (backlog, decision 78): a sample board that shows every slot of a pack with the same
@@ -66,7 +82,27 @@ function dataUrl(f: PackFile): string {
 }
 
 /** The sample board: every slot of the theme, with the built-in drawing where the pack has no picture. */
-function Sample({ theme }: { theme: Theme }) {
+function Sample({
+  theme,
+  selected,
+  onSelect,
+}: {
+  theme: Theme;
+  selected: string | null;
+  onSelect(id: string): void;
+}) {
+  /** A picture of the sample that can be clicked to adjust it. */
+  const tag = (id: string, key: string, node: ReactNode) => (
+    <g
+      key={key}
+      data-slot={id}
+      className={selected === id ? 'pv-sel' : undefined}
+      style={{ cursor: 'pointer' }}
+      onClick={() => onSelect(id)}
+    >
+      {node}
+    </g>
+  );
   const cx = (sx: number) => (sx + OX + 0.5) * U;
   const cy = (sy: number) => (sy + OY + 0.5) * U;
   const nodes: ReactNode[] = [];
@@ -89,61 +125,59 @@ function Sample({ theme }: { theme: Theme }) {
         nodes.push(floorCell(theme, sx + OX, sy + OY, U, false, `f${sx},${sy}`, 'pv-board'));
 
   // furniture
-  for (const f of SAMPLE_FURNITURE) nodes.push(<Furniture key={f.id} f={f} board={board} />);
+  for (const f of SAMPLE_FURNITURE)
+    nodes.push(tag(`furniture.${f.type}`, f.id, <Furniture f={f} board={board} />));
 
   // monsters, row 7
   MONSTER_TYPES.forEach((t: MonsterType, i) => {
     const x = cx(i);
     const y = cy(7);
     const href = theme.monster?.[t];
-    nodes.push(
-      href ? (
-        <image
-          key={`m${t}`}
-          href={href}
-          {...tokenBox(theme, t, x, y, U)}
-          preserveAspectRatio="xMidYMid meet"
+    const item = href ? (
+      <image href={href} {...tokenBox(theme, t, x, y, U)} preserveAspectRatio="xMidYMid meet" />
+    ) : (
+      <g>
+        <circle
+          cx={x}
+          cy={y}
+          r={13.5}
+          fill="var(--green)"
+          stroke={color.tokenText}
+          strokeWidth={2}
         />
-      ) : (
-        <g key={`m${t}`}>
-          <circle
-            cx={x}
-            cy={y}
-            r={13.5}
-            fill="var(--green)"
-            stroke={color.tokenText}
-            strokeWidth={2}
-          />
-          <text
-            x={x}
-            y={y + 4.2}
-            textAnchor="middle"
-            fill={color.tokenText}
-            fontFamily="Bonum"
-            fontWeight={700}
-            fontSize={11.5}
-          >
-            {MONSTER_LETTER[t]}
-          </text>
-        </g>
-      ),
+        <text
+          x={x}
+          y={y + 4.2}
+          textAnchor="middle"
+          fill={color.tokenText}
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={11.5}
+        >
+          {MONSTER_LETTER[t]}
+        </text>
+      </g>
     );
+    nodes.push(tag(`monster.${t}`, `m${t}`, item));
   });
 
   // blocks, row 7 to the right of the monsters
   const [bx1, by1] = at(10, 7);
   nodes.push(
-    squarePiece(theme, { group: 'block', key: 'single' }, bx1, by1, U, 'block') ?? (
-      <rect
-        key="b1"
-        x={bx1 * U + 2}
-        y={by1 * U + 2}
-        width={U - 4}
-        height={U - 4}
-        fill={color.white}
-        stroke={color.ink}
-        strokeWidth={1.5}
-      />
+    tag(
+      'block.single',
+      'b1',
+      squarePiece(theme, { group: 'block', key: 'single' }, bx1, by1, U, 'block') ?? (
+        <rect
+          x={bx1 * U + 2}
+          y={by1 * U + 2}
+          width={U - 4}
+          height={U - 4}
+          fill={color.white}
+          stroke={color.ink}
+          strokeWidth={1.5}
+        />
+      ),
     ),
   );
   const dbl: [number, number][] = [
@@ -151,21 +185,25 @@ function Sample({ theme }: { theme: Theme }) {
     at(13, 7) as unknown as [number, number],
   ];
   nodes.push(
-    blockPiece(theme, dbl, U, 'b2') ?? (
-      <g key="b2">
-        {dbl.map(([x, y]) => (
-          <rect
-            key={x}
-            x={x * U + 2}
-            y={y * U + 2}
-            width={U - 4}
-            height={U - 4}
-            fill={color.white}
-            stroke={color.ink}
-            strokeWidth={1.5}
-          />
-        ))}
-      </g>
+    tag(
+      'block.double',
+      'b2',
+      blockPiece(theme, dbl, U, 'b2') ?? (
+        <g>
+          {dbl.map(([x, y]) => (
+            <rect
+              key={x}
+              x={x * U + 2}
+              y={y * U + 2}
+              width={U - 4}
+              height={U - 4}
+              fill={color.white}
+              stroke={color.ink}
+              strokeWidth={1.5}
+            />
+          ))}
+        </g>
+      ),
     ),
   );
 
@@ -191,8 +229,12 @@ function Sample({ theme }: { theme: Theme }) {
     ] as const
   ).forEach(([kind, sx, vertical], i) => {
     nodes.push(
-      doorPiece(theme, kind, cx(sx), cy(8), vertical, U) ??
-        doorBuiltIn(`d${i}`, cx(sx), cy(8), vertical),
+      tag(
+        `door.${kind}`,
+        `d${i}`,
+        doorPiece(theme, kind, cx(sx), cy(8), vertical, U) ??
+          doorBuiltIn(`d${i}`, cx(sx), cy(8), vertical),
+      ),
     );
   });
 
@@ -200,27 +242,31 @@ function Sample({ theme }: { theme: Theme }) {
   TRAP_SAMPLES.forEach((k, i) => {
     const [x, y] = at(i, 8);
     nodes.push(
-      squarePiece(theme, { group: 'trap', key: k }, x, y, U, 'trap') ?? (
-        <g key={`t${k}`}>
-          <polygon
-            points={`${(x + 0.5) * U},${(y + 0.5) * U - 13} ${(x + 0.5) * U + 13},${(y + 0.5) * U + 10} ${(x + 0.5) * U - 13},${(y + 0.5) * U + 10}`}
-            fill={color.white}
-            stroke={color.ink}
-            strokeWidth={1.8}
-            strokeLinejoin="round"
-          />
-          <text
-            x={(x + 0.5) * U}
-            y={(y + 0.5) * U + 7}
-            textAnchor="middle"
-            fill={color.ink}
-            fontFamily="Bonum"
-            fontWeight={700}
-            fontSize={14}
-          >
-            ?
-          </text>
-        </g>
+      tag(
+        `trap.${k}`,
+        `t${k}`,
+        squarePiece(theme, { group: 'trap', key: k }, x, y, U, 'trap') ?? (
+          <g>
+            <polygon
+              points={`${(x + 0.5) * U},${(y + 0.5) * U - 13} ${(x + 0.5) * U + 13},${(y + 0.5) * U + 10} ${(x + 0.5) * U - 13},${(y + 0.5) * U + 10}`}
+              fill={color.white}
+              stroke={color.ink}
+              strokeWidth={1.8}
+              strokeLinejoin="round"
+            />
+            <text
+              x={(x + 0.5) * U}
+              y={(y + 0.5) * U + 7}
+              textAnchor="middle"
+              fill={color.ink}
+              fontFamily="Bonum"
+              fontWeight={700}
+              fontSize={14}
+            >
+              ?
+            </text>
+          </g>
+        ),
       ),
     );
   });
@@ -242,10 +288,69 @@ function Sample({ theme }: { theme: Theme }) {
   );
 }
 
-export function PackPreview({ pack, onClose }: { pack: StoredPack; onClose(): void }) {
-  const theme = useMemo(
-    () => themeFromPack(pack, (file) => dataUrl(pack.files[file] as PackFile)),
+/** One knob: a slider with - and + buttons (44 px, so a finger can make small steps) and its value. */
+function Knob({
+  label,
+  value,
+  min,
+  max,
+  step,
+  format,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format(v: number): string;
+  onChange(v: number): void;
+}) {
+  const set = (v: number) => onChange(Math.min(max, Math.max(min, Math.round(v * 100) / 100)));
+  return (
+    <div className="pv-knob">
+      <span className="pv-kl">{label}</span>
+      <button className="chip" aria-label={`${label}: less`} onClick={() => set(value - step)}>
+        {'\u2212'}
+      </button>
+      <input
+        type="range"
+        aria-label={label}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => set(Number(e.target.value))}
+      />
+      <button className="chip" aria-label={`${label}: more`} onClick={() => set(value + step)}>
+        +
+      </button>
+      <output className="pv-kv">{format(value)}</output>
+    </div>
+  );
+}
+
+export function PackPreview({
+  pack,
+  onClose,
+  onSave,
+}: {
+  pack: StoredPack;
+  onClose(): void;
+  /** Keep the adjusted manifest (the dialog that opened this preview stores the pack). */
+  onSave?: (manifest: PackManifest) => Promise<void>;
+}) {
+  const [draft, setDraft] = useState<PackManifest>(pack.manifest);
+  const [slot, setSlot] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  // every picture of the pack as a data URL, made once (an adjustment must not read the files again)
+  const urls = useMemo(
+    () => Object.fromEntries(Object.entries(pack.files).map(([name, f]) => [name, dataUrl(f)])),
     [pack],
+  );
+  const theme = useMemo(
+    () => themeFromPack({ manifest: draft, files: pack.files }, (file) => urls[file] ?? ''),
+    [draft, pack, urls],
   );
   const files = useMemo(() => manifestFiles(pack.manifest), [pack]);
   const [sizes, setSizes] = useState<Record<string, PictureSize>>({});
@@ -266,23 +371,57 @@ export function PackPreview({ pack, onClose }: { pack: StoredPack; onClose(): vo
         done();
       };
       img.onerror = done;
-      img.src = dataUrl(pack.files[file] as PackFile);
+      img.src = urls[file] ?? '';
     }
     return () => {
       live = false;
     };
-  }, [files, pack]);
-  const check = useMemo(() => checkPack(pack.manifest, sizes), [pack, sizes]);
+  }, [files, urls]);
+  const check = useMemo(() => checkPack(draft, sizes), [draft, sizes]);
   const boardSize = pack.manifest.board ? sizes[pack.manifest.board] : undefined;
+
+  const slots = useMemo(() => adjustableSlots(draft), [draft]);
+  const current = slot && slots.some((s) => s.id === slot) ? slot : null;
+  const tune = current ? tuneOfSlot(draft, current) : NO_TUNE;
+  const changed = JSON.stringify(draft) !== JSON.stringify(pack.manifest);
+  const change = (next: Partial<SlotTune>) => {
+    if (!current) return;
+    setDraft((m) => withTune(m, current, { ...tuneOfSlot(m, current), ...next }));
+  };
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  const sq = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(2)} square`;
 
   return (
     <Dialog
       title={`Preview: ${pack.manifest.name}`}
       wide
       foot={
-        <button className="btn" autoFocus onClick={onClose}>
-          Close
-        </button>
+        <>
+          {changed && onSave && (
+            <span className="pv-unsaved" role="status">
+              Unsaved changes
+            </span>
+          )}
+          <button className="btn alt" autoFocus={!changed} onClick={onClose}>
+            {changed ? 'Close without saving' : 'Close'}
+          </button>
+          {onSave && (
+            <button
+              className="btn"
+              disabled={!changed || saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await onSave(draft);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              Save changes
+            </button>
+          )}
+        </>
       }
     >
       <ThemeScope theme={theme}>
@@ -305,12 +444,76 @@ export function PackPreview({ pack, onClose }: { pack: StoredPack; onClose(): vo
             </p>
           )}
           <div className="lbl pv-gap">On the board</div>
-          <Sample theme={theme} />
+          <Sample theme={theme} selected={current} onSelect={setSlot} />
           <p className="fr-help">
             Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then
             monsters with a single block and a double block, then traps (hidden, pit, spear, falling
-            block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall).
+            block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap
+            a picture to adjust it.
           </p>
+          {onSave && slots.length > 0 && (
+            <div className="pv-adjust" data-testid="pack-adjust">
+              <div className="lbl">Adjust a picture</div>
+              <select
+                className="fr-sel"
+                aria-label="Picture to adjust"
+                value={current ?? ''}
+                onChange={(e) => setSlot(e.target.value || null)}
+              >
+                <option value="">Choose a picture</option>
+                {(Object.keys(GROUP_NAMES) as SlotGroup[]).map((g) => {
+                  const inGroup = slots.filter((x) => x.group === g);
+                  return inGroup.length === 0 ? null : (
+                    <optgroup key={g} label={GROUP_NAMES[g]}>
+                      {inGroup.map((x) => (
+                        <option key={x.id} value={x.id}>
+                          {x.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+              </select>
+              {current && (
+                <>
+                  <Knob
+                    label="Size"
+                    value={tune.scale}
+                    min={SCALE_MIN}
+                    max={SCALE_MAX}
+                    step={0.05}
+                    format={pct}
+                    onChange={(v) => change({ scale: v })}
+                  />
+                  <Knob
+                    label="Right"
+                    value={tune.offset[0]}
+                    min={-OFFSET_MAX}
+                    max={OFFSET_MAX}
+                    step={0.05}
+                    format={sq}
+                    onChange={(v) => change({ offset: [v, tune.offset[1]] })}
+                  />
+                  <Knob
+                    label="Down"
+                    value={tune.offset[1]}
+                    min={-OFFSET_MAX}
+                    max={OFFSET_MAX}
+                    step={0.05}
+                    format={sq}
+                    onChange={(v) => change({ offset: [tune.offset[0], v] })}
+                  />
+                  <button
+                    className="btn alt"
+                    disabled={isNoTune(tune)}
+                    onClick={() => change(NO_TUNE)}
+                  >
+                    Reset this picture
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           {pack.manifest.board && (
             <>
               <div className="lbl pv-gap">
@@ -318,7 +521,7 @@ export function PackPreview({ pack, onClose }: { pack: StoredPack; onClose(): vo
               </div>
               <img
                 className="pv-board"
-                src={dataUrl(pack.files[pack.manifest.board] as PackFile)}
+                src={urls[pack.manifest.board] ?? ''}
                 alt="The board picture"
               />
             </>

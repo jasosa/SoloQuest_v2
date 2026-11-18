@@ -658,3 +658,52 @@
   height: auto;
   border: 1.5px solid var(--ink);
 }
+
+.pv-adjust {
+  margin-top: 14px;
+  padding: 10px 12px 12px;
+  border: 1.5px solid var(--rock-line);
+  background: var(--paper-2);
+  display: grid;
+  gap: 8px;
+}
+.pv-adjust .fr-sel {
+  min-height: 44px;
+}
+.pv-knob {
+  display: grid;
+  grid-template-columns: 64px 44px 1fr 44px 120px;
+  gap: 8px;
+  align-items: center;
+}
+.pv-kl {
+  font: 700 12px 'Bonum';
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.pv-knob .chip {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
+}
+.pv-knob input[type='range'] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--ink);
+}
+.pv-kv {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pv-unsaved {
+  margin-right: auto;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  align-self: center;
+}
+.pv-sel {
+  filter: drop-shadow(0 0 3px var(--ink)) drop-shadow(0 0 6px var(--sel));
+}
