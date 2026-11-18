@@ -34,6 +34,9 @@ import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
 
+/** How strongly the selected room is tinted (a light touch: it must not hide the board picture). */
+const ROOM_TINT = 0.18;
+
 const EDGES = [
   [0, -1, 0, 0, 1, 0],
   [1, 0, 1, 0, 1, 1],
@@ -907,18 +910,10 @@ export function PlayBoard({
 
   const selCell = selection?.kind === 'cell' ? selection.at : null;
   const selRoom: ReactNode[] = [];
-  if (selection?.kind === 'room') {
-    const inRoom = new Set<string>();
+  if (selection?.kind === 'room')
     for (const k of state.seenCells) {
       const [x, y] = parseKey(k);
-      if (areaAt(board, x, y) === selection.room) inRoom.add(k);
-    }
-    // With a texture pack the room is outlined in ink (a tint would turn the pictures yellow);
-    // the built-in look keeps the sand tint.
-    const outline = theme.board !== undefined || theme.floor !== undefined;
-    for (const k of inRoom) {
-      const [x, y] = parseKey(k);
-      if (!outline) {
+      if (areaAt(board, x, y) === selection.room)
         selRoom.push(
           <rect
             key={`sr${k}`}
@@ -927,32 +922,11 @@ export function PlayBoard({
             width={S}
             height={S}
             fill={color.sel}
-            opacity={0.35}
+            opacity={ROOM_TINT}
             pointerEvents="none"
           />,
         );
-        continue;
-      }
-      for (const [dx, dy, ax, ay, bx, by] of EDGES) {
-        if (inRoom.has(cellKey(x + dx, y + dy))) continue; // inside the room, not on its border
-        selRoom.push(
-          <line
-            key={`sr${k},${dx},${dy}`}
-            x1={(x + ax) * S - dx * 3}
-            y1={(y + ay) * S - dy * 3}
-            x2={(x + bx) * S - dx * 3}
-            y2={(y + by) * S - dy * 3}
-            stroke={color.ink}
-            strokeWidth={2.5}
-            strokeDasharray="7 4"
-            strokeLinecap="butt"
-            pointerEvents="none"
-            data-room-outline={selection.room}
-          />,
-        );
-      }
     }
-  }
 
   let maxR = 0;
   if (ink)

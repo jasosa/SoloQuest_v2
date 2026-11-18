@@ -74,14 +74,13 @@ test.describe('themes (decision 78)', () => {
     await page.screenshot({ path: 'test-results/theme-board-play.png' });
   });
 
-  test('a selected room is tinted with the built-in look and outlined with a texture pack', async ({
-    page,
-  }) => {
-    await page.goto(`${PLAY}&select=room:R20`);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.locator('[data-room-outline]')).toHaveCount(0);
-    await page.goto(`${PLAY}&select=room:R20&theme=board`);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    expect(await page.locator('[data-room-outline="R20"]').count()).toBeGreaterThan(4);
+  test('a selected room is tinted lightly, with or without a texture pack', async ({ page }) => {
+    for (const extra of ['', '&theme=board']) {
+      await page.goto(`${PLAY}&select=room:R20${extra}`);
+      await page.getByRole('button', { name: 'Continue' }).click();
+      const tint = page.locator('rect[opacity="0.18"]').first();
+      await expect(tint).toBeAttached();
+      await expect(page.locator('[data-room-outline]')).toHaveCount(0);
+    }
   });
 });
