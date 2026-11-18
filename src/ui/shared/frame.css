@@ -133,6 +133,10 @@
 .fr-list li.on {
   background: var(--sel);
 }
+/* the small text on the selected row: muted is only 3.8:1 on the selection color */
+.fr-list li.on .sub {
+  color: var(--ink);
+}
 .fr-list li > button.fr-pick {
   all: unset;
   display: flex;

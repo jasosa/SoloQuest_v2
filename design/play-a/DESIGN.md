@@ -306,3 +306,7 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 Every dialog (the shared dialog, message cards, margin notes, the quest sheet, the editor dialogs and the import sheet) uses one hook, `useModal` (`src/ui/shared/useModal.ts`). **Escape** closes only the top dialog, and does nothing for a dialog that needs an answer or has unsaved work (a pack preview with changes). **Tab** stays inside a modal dialog (a margin note, the quest sheet and the alignment bar are not modal: the board stays usable). **Focus** goes into the dialog when it opens (the first control, or the title when the dialog asks for it) and comes back to the control that opened it when it closes, unless the person has moved it. While a dialog is open the quest editor's own shortcuts (Esc to deselect, Delete, R, tool letters) do nothing, and Delete and Backspace delete the selection only when the board has focus or nothing does.
 
+## Accessibility checks (M8)
+
+`tests/e2e/a11y.spec.ts` runs axe (WCAG 2.1 A and AA: contrast, names, roles, ARIA) on every main screen and dialog, and must stay clean. Rules it enforced: a control's accessible name must contain its visible text (do not put an `aria-label` that differs from it; leave a space before a count or badge), a list keeps its list role (put `role="status"` on a wrapper), a group with an `aria-label` needs a role, and small text on the selection color uses ink, not muted (3.8:1).
+

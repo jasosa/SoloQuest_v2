@@ -58,7 +58,7 @@ export const Frame = ({ children, narrow }: { children: ReactNode; narrow?: bool
 );
 
 export const Col = ({ children, label }: { children: ReactNode; label?: string }) => (
-  <div className="fr-col" aria-label={label}>
+  <div className="fr-col" role={label ? 'group' : undefined} aria-label={label}>
     {children}
   </div>
 );

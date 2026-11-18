@@ -169,7 +169,7 @@ Per quest
 - [ ] Polish from the UI review: board squares are 34 px at the default fit on tablet. Add a larger invisible hit area (44 px) or an easier select, without changing the drawing
 - [ ] Prettier flags `promptToasts.ts` (`SelectScreen.tsx` is formatted now) (not touched by the review pass): format them
 - [ ] Wake lock, settings (sound off, reduced motion), resume screen
-- [ ] Accessibility pass (labels, focus, contrast)
+- [x] Accessibility pass (done): axe (WCAG 2.1 A and AA) runs in `tests/e2e/a11y.spec.ts` on quest select and its popups, play (start card, board, margin note, quest sheet, Zargon, end card), the quest editor (every tab and dialog), the Library popups and the texture pack preview; fixed: accessible names that did not contain their visible text (Problems chip and tab, Library kinds), a group without a role, a list with a status role, and low contrast of the small text on a selected row. Focus and Escape are in `modal.spec.ts`. Still to do by hand: a screen reader pass on a real tablet
 - [ ] Full session test on a real tablet
 
 ## Zargon spell tags (core, can land before M9)

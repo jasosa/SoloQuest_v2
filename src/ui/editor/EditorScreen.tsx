@@ -159,7 +159,6 @@ export function EditorScreen({
             s.setTab('Map');
             s.setPanel('problems');
           }}
-          aria-label="Problems"
           data-errors={errors}
         >
           {countLabel(issues)}

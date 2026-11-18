@@ -94,14 +94,16 @@ export function Inspector({
       <button
         className="chip"
         aria-pressed={panel === 'problems'}
-        aria-label={issues.length > 0 ? `Problems, ${issues.length}` : 'Problems'}
         onClick={() => st.setPanel('problems')}
       >
         Problems
         {issues.length > 0 && (
-          <span className="ed-badge" data-testid="problem-count">
-            {issues.length}
-          </span>
+          <>
+            {' '}
+            <span className="ed-badge" data-testid="problem-count">
+              {issues.length}
+            </span>
+          </>
         )}
       </button>
     </div>

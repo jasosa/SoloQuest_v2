@@ -1171,11 +1171,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   <button
                     className="fr-pick"
                     aria-pressed={k === kind}
-                    aria-label={`${LIBRARY_KIND_NAMES[k]} (${count(k)})`}
                     onClick={() => switchKind(k)}
                   >
-                    {LIBRARY_KIND_NAMES[k]}
-                    <span className="sub">{count(k)}</span>
+                    {LIBRARY_KIND_NAMES[k]} <span className="sub">{count(k)}</span>
                   </button>
                 </li>
               ))}

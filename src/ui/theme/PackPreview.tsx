@@ -558,11 +558,13 @@ export function PackPreview({
               No problems found with the pictures.
             </p>
           ) : (
-            <ul className="pv-warnings" role="status">
-              {check.warnings.map((w) => (
-                <li key={w}>{w}</li>
-              ))}
-            </ul>
+            <div role="status">
+              <ul className="pv-warnings">
+                {check.warnings.map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            </div>
           )}
           {check.missing.length > 0 && (
             <p className="fr-help" data-testid="pack-missing">
