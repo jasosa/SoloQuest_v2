@@ -467,6 +467,13 @@
   flex: 1 1 auto;
   min-width: 0;
 }
+.fr-recent li > .fr-open-static {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .fr-recent li > button.fr-open:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;

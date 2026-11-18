@@ -20,6 +20,8 @@ export interface SelectScreenProps {
   notice?: string | undefined;
   /** Open the quest editor. */
   onEditor?: (() => void) | undefined;
+  /** Open the texture packs dialog. */
+  onTextures?: (() => void) | undefined;
   /** Edited copies of bundled quests replace them in the list. */
   userStore?: UserQuestStore | undefined;
 }
@@ -39,7 +41,14 @@ function downloadForPublishing(edited: Level, bundledId: string): void {
   }
 }
 
-export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: SelectScreenProps) {
+export function SelectScreen({
+  saves,
+  onStart,
+  notice,
+  onEditor,
+  onTextures,
+  userStore,
+}: SelectScreenProps) {
   useFitMode('width');
   // Edited copies by bundled quest number. Reload after "Use original".
   const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
@@ -115,11 +124,18 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
       <header>
         <span className="qn">SoloQuest</span>
         <h1>Choose a quest</h1>
-        {onEditor && (
-          <button className="link" onClick={onEditor} style={{ marginLeft: 'auto' }}>
-            Quest editor
-          </button>
-        )}
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {onTextures && (
+            <button className="link" onClick={onTextures}>
+              Textures
+            </button>
+          )}
+          {onEditor && (
+            <button className="link" onClick={onEditor}>
+              Quest editor
+            </button>
+          )}
+        </span>
       </header>
 
       <div className="pick">

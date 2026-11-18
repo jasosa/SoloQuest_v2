@@ -1,4 +1,7 @@
+import { restorePack } from './theme/activate';
 import { setActiveTheme } from './theme/activeTheme';
+import { TexturesDialog } from './theme/TexturesDialog';
+import { DexieThemeStore, MemoryThemeStore, type ThemeStore } from '../persist/themes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { board } from '../engine/board/board';
 import { buildLevel } from '../engine/board/level';
@@ -137,6 +140,15 @@ function Game({ params }: { params: URLSearchParams }) {
     () => (params.has('nosave') ? new MemoryUserQuestStore() : new DexieUserQuestStore()),
     [params],
   );
+  const themeStore = useMemo<ThemeStore>(
+    () => (params.has('nosave') ? new MemoryThemeStore() : new DexieThemeStore()),
+    [params],
+  );
+  const [textures, setTextures] = useState(false);
+  // The texture pack chosen last time is used from the start.
+  useEffect(() => {
+    void restorePack(themeStore);
+  }, [themeStore]);
   const referenceStore = useMemo<ReferenceStore>(
     () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
     [params],
@@ -304,12 +316,16 @@ function Game({ params }: { params: URLSearchParams }) {
       <PlayScreen store={game} onLeave={() => setGame(null)} initialSelect={params.get('select')} />
     );
   return (
-    <SelectScreen
-      saves={saves}
-      onStart={start}
-      notice={notice}
-      onEditor={() => setEditor('start')}
-      userStore={userStore}
-    />
+    <>
+      <SelectScreen
+        saves={saves}
+        onStart={start}
+        notice={notice}
+        onEditor={() => setEditor('start')}
+        onTextures={() => setTextures(true)}
+        userStore={userStore}
+      />
+      {textures && <TexturesDialog store={themeStore} onClose={() => setTextures(false)} />}
+    </>
   );
 }
