@@ -24,12 +24,20 @@ export function Furniture({ f, board }: { f: FurnitureDef; board?: Board | undef
 
   // A theme picture replaces the line art (decision 78); turned by 90 degrees when the piece stands the other way.
   if (slot) {
-    const degrees =
+    // `f.turn` is the quarter turns made in the editor. The picture first fits the shape the piece
+    // was placed with (the footprint before those turns), then turns with them. Stairs also
+    // follow their room corner, and the editor turns add to that.
+    const quarters = f.turn ?? 0;
+    const odd = quarters % 2 === 1;
+    const placedW = (odd ? h : w) / S;
+    const placedH = (odd ? w : h) / S;
+    const base =
       slot.corner && board
         ? cornerTurn(board, f.cells, slot.corner)
-        : needsTurn(slot, w / S, h / S)
+        : needsTurn(slot, placedW, placedH)
           ? 90
           : 0;
+    const degrees = (base + 90 * quarters) % 360;
     const sideways = degrees === 90 || degrees === 270;
     const fit = slot.scale ?? 1;
     const pw = (sideways && !slot.corner ? h : w) * fit;

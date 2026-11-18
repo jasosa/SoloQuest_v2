@@ -83,4 +83,26 @@ test.describe('themes (decision 78)', () => {
       await expect(page.locator('[data-room-outline]')).toHaveCount(0);
     }
   });
+
+  test('editor: a piece can be turned through a position that does not fit; the picture turns with it', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1&theme=board');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Open it', exact: true }).click();
+    const piece = page.locator('[data-furniture="f-table-c"]');
+    const picture = piece.locator('[data-themed="furniture"]');
+    await piece.click({ position: { x: 5, y: 5 } });
+    await expect(page.locator('.ed-inspector')).toContainText(/table/i);
+    // two quarter turns, one after the other: the squares are the same, the picture is turned over
+    await page.keyboard.press('r');
+    await page.keyboard.press('r');
+    await expect(picture).toHaveAttribute('transform', /rotate\((180|270)/);
+    // four quarter turns: back to how it was placed
+    await page.keyboard.press('r');
+    await page.keyboard.press('r');
+    expect((await picture.getAttribute('transform')) ?? '').not.toMatch(/rotate\((180|270)/);
+  });
 });

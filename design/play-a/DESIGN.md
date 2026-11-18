@@ -280,3 +280,7 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Text size.** The select, editor and Library screens (width mode) shrink on a window narrower than the tablet but are never scaled up (they used to grow to 1.5 times on a big window, which made their text much bigger than on the play screen, which is never scaled up). On a wide window they stay 1194 px wide and centered.
 
+## Turning furniture in the editor (owner)
+
+**Rotate** (button or the R key) turns the selected piece a quarter turn clockwise, in place, around the middle of its squares: a half turn keeps the same squares, four turns bring it back. It never refuses because the new squares are taken (a piece on a wall or next to others could not otherwise reach a half turn): it shows a warning, and the Problems check, Save and Playtest look at the final position. It only refuses a turn that would leave the board. The quest remembers the quarter turns (`turn` on the piece) so a texture pack can turn the picture with the piece; with the built-in line art it changes nothing you can see.
+

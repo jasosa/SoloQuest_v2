@@ -358,6 +358,19 @@ export function validateQuestIssues(
     if (m.spellLimit && (m.spells ?? []).length === 0)
       err(`monster ${m.id}: spellLimit needs a spells list`, ref);
   }
+  // Stairs share no square with a block, other furniture or a visible monster (the editor ops refuse it
+  // too; the Rotate of the editor can pass through such a position, so Save must catch it).
+  for (const f of quest.furniture)
+    if (f.type === 'stairs')
+      for (const c of f.cells) {
+        const other = used.get(key(c));
+        if (other)
+          err(`furniture ${f.id}: cell ${key(c)} is already used by ${other}`, {
+            kind: 'furniture',
+            id: f.id,
+            cell: cellOf(c),
+          });
+      }
   for (const t of quest.traps) {
     const ref: IssueRef = t.cell
       ? { kind: 'trap', id: t.id, cell: cellOf(t.cell) }

@@ -339,7 +339,7 @@ describe('furniture', () => {
     expect(bad(moveFurniture(q, 'f1', [1, 14]))).toMatch(/stairs/);
     expect(bad(moveFurniture(q, 'nope', [1, 14]))).toMatch(/no furniture/);
   });
-  it('rotates 90 degrees clockwise around the first square', () => {
+  it('rotates 90 degrees clockwise, in place, around the middle of its squares', () => {
     let q = good(
       addFurniture(empty(), 'table', [
         [2, 16],
@@ -349,33 +349,114 @@ describe('furniture', () => {
     );
     q = good(rotateFurniture(q, 'f1'));
     expect(q.furniture[1]?.cells).toEqual([
+      [3, 16],
+      [3, 17],
       [2, 16],
-      [2, 17],
-      [1, 16],
     ]);
-    // the next turn would put a square on the stairs
-    expect(bad(rotateFurniture(q, 'f1'))).toMatch(/stairs/);
+    expect(q.furniture[1]?.turn).toBe(1);
   });
-  it('four rotations give the first shape back', () => {
+  it('a half turn keeps the same squares and four turns give the first shape back', () => {
     let q = good(
       addFurniture(empty(), 'table', [
         [12, 9],
         [13, 9],
+        [14, 9],
         [12, 10],
+        [13, 10],
+        [14, 10],
       ]),
     );
-    const start = q.furniture[1]?.cells;
-    for (let i = 0; i < 4; i++) q = good(rotateFurniture(q, 'f1'));
-    expect(q.furniture[1]?.cells).toEqual(start);
+    const start = [...(q.furniture[1]?.cells ?? [])].map((c) => c.join(','));
+    q = good(rotateFurniture(q, 'f1'));
+    expect(q.furniture[1]?.turn).toBe(1);
+    q = good(rotateFurniture(q, 'f1'));
+    expect(q.furniture[1]?.turn).toBe(2);
+    expect([...(q.furniture[1]?.cells ?? [])].map((c) => c.join(',')).sort()).toEqual(
+      [...start].sort(),
+    );
+    q = good(rotateFurniture(good(rotateFurniture(q, 'f1')), 'f1'));
+    expect([...(q.furniture[1]?.cells ?? [])].map((c) => c.join(',')).sort()).toEqual(
+      [...start].sort(),
+    );
+    expect(q.furniture[1]?.turn).toBeUndefined();
   });
-  it('refuses a rotation that leaves the room', () => {
+  it('turns even when the new squares are taken, and warns; the next turn can be free again', () => {
+    // a 1 x 3 piece beside the stairs: turned flat it would sit on the stairs, turned again it is free
+    let q = good(
+      addFurniture(empty(), 'table', [
+        [3, 14],
+        [3, 15],
+        [3, 16],
+      ]),
+    );
+    const r = rotateFurniture(q, 'f1');
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.warnings.map((w) => w.message).join(' ')).toMatch(/stairs/);
+    expect(r.warnings[0]?.ref).toEqual({ kind: 'furniture', id: 'f1' });
+    q = r.quest;
+    const again = rotateFurniture(q, 'f1');
+    expect(again.ok && again.warnings).toEqual([]);
+    expect(
+      good(again)
+        .furniture[1]?.cells.map((c) => c.join(','))
+        .sort(),
+    ).toEqual(['3,14', '3,15', '3,16']);
+    expect(good(again).furniture[1]?.turn).toBe(2);
+  });
+  it('turns a piece that leaves its room (the checks of Save report it), but not off the board', () => {
     const q = good(
       addFurniture(empty(), 'table', [
         [3, 17],
         [4, 17],
       ]),
     );
-    expect(bad(rotateFurniture(q, 'f1'))).toMatch(/one room/);
+    const r = rotateFurniture(q, 'f1');
+    expect(r.ok).toBe(true);
+    const edge = {
+      ...empty(),
+      furniture: [
+        {
+          id: 'f9',
+          type: 'table' as const,
+          cells: [
+            [0, 5],
+            [0, 6],
+            [0, 7],
+          ] as [number, number][],
+        },
+      ],
+    };
+    expect(bad(rotateFurniture(edge, 'f9'))).toMatch(/leave the board/);
+  });
+  it('a piece left on taken squares is an error for Save and Playtest, a fitting one is not', () => {
+    const q = good(
+      addFurniture(empty(), 'table', [
+        [3, 14],
+        [3, 15],
+        [3, 16],
+      ]),
+    );
+    const flat = good(rotateFurniture(q, 'f1')); // lies on the stairs
+    const errorsOf = (x: Quest) =>
+      validateQuestIssues(x, board, { editor: true })
+        .filter((i) => i.severity === 'error' && i.message.includes('f1'))
+        .map((i) => i.message);
+    expect(errorsOf(flat).join(' ')).toMatch(/already used by furniture f1/);
+    // the next turn gives the same squares as at the start: no error about it
+    expect(errorsOf(good(rotateFurniture(flat, 'f1')))).toEqual([]);
+    expect(errorsOf(q)).toEqual([]);
+  });
+  it('moving a turned piece keeps its turn', () => {
+    let q = good(
+      addFurniture(empty(), 'table', [
+        [3, 14],
+        [4, 14],
+      ]),
+    );
+    q = good(rotateFurniture(good(rotateFurniture(q, 'f1')), 'f1'));
+    q = good(moveFurniture(q, 'f1', [3, 16]));
+    expect(q.furniture[1]?.turn).toBe(2);
   });
   it('removing furniture removes its chest trap and warns about notes on that trap', () => {
     const q = testQuest({

@@ -26,6 +26,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "falseDoors": [ { "id": "x1", "a": [5, 2], "b": [5, 3] } ],
   "blocks": [ { "cells": [[14, 18]] }, { "cells": [[12, 5], [13, 5]] } ],   // single or double blocked squares
   "furniture": [ { "id": "f1", "type": "weaponsRack", "cells": [[11, 15], [11, 16], [11, 17]], "letter": "A" } ],
+`furniture` may have `"turn": 1 | 2 | 3` (quarter turns clockwise made in the editor; left out for 0). It is drawing only: `cells` is the real footprint. The editor's Rotate turns a piece in place around the middle of its squares and always allows the turn, even onto squares that are taken, so a half turn (same squares, facing the other way) can be reached through a quarter turn that does not fit; the checks of Save and Playtest look at the final position. A texture pack turns the piece's picture with it.
   "monsters": [ { "id": "m1", "type": "orc", "cell": [7, 14] } ],
   "traps": [ { "id": "t1", "kind": "pit", "cell": [11, 18] } ],
   "zones": [ { "id": "z1", "cells": [[3, 16], [4, 16]] } ],   // a set of squares: "a hero enters" and buttons (decision 68)

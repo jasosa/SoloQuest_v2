@@ -477,16 +477,41 @@ export function moveFurniture(q: Quest, id: string, to: Cell): EditResult {
   );
 }
 
-/** Turn a piece 90 degrees clockwise around its first square. */
+/**
+ * Turn a piece 90 degrees clockwise, in place: around the middle of its squares, so a half turn keeps
+ * the same squares and four turns bring it back. It never refuses because the new squares are taken
+ * (the piece may sit on a wall, a block or another piece for a moment, so that a second turn can
+ * reach a free position): it warns, and the checks of Save and Playtest look at the final position.
+ * It only refuses squares outside the board. `turn` counts the quarter turns, so a picture turns too.
+ */
 export function rotateFurniture(q: Quest, id: string): EditResult {
   const f = q.furniture.find((x) => x.id === id);
   if (!f) return fail(`There is no furniture ${id}.`);
-  const [ox, oy] = f.cells[0] as Cell;
-  return replaceCells(
-    q,
-    id,
-    f.cells.map((c): Cell => [ox - (c[1] - oy), oy + (c[0] - ox)]),
-  );
+  const xs = f.cells.map((c) => c[0]);
+  const ys = f.cells.map((c) => c[1]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const turn = f.turn ?? 0;
+  // A half square is rounded up on one turn and down on the next, so four turns give the start back.
+  const snap = (v: number) => (turn % 2 === 0 ? Math.floor(v + 0.5) : Math.ceil(v - 0.5));
+  const cells = f.cells.map((c): Cell => [snap(cx - (c[1] - cy)), snap(cy + (c[0] - cx))]);
+  if (cells.some((c) => !inBoard(board, c[0], c[1])))
+    return fail('There is no room to turn it here: it would leave the board.');
+  const next = (turn + 1) % 4;
+  const turned: FurnitureDef = { ...f, cells };
+  if (next === 0) delete turned.turn;
+  else turned.turn = next as 1 | 2 | 3;
+  const problem = footprintProblem(q, f.type, cells, id);
+  const warnings: Issue[] = problem
+    ? [
+        {
+          severity: 'warning',
+          message: `${problem} Turn it again or move it: Save and Playtest need a position that fits.`,
+          ref: { kind: 'furniture', id },
+        },
+      ]
+    : [];
+  return ok({ ...q, furniture: q.furniture.map((x) => (x.id === id ? turned : x)) }, warnings);
 }
 
 /**

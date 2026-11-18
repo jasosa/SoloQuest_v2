@@ -278,6 +278,10 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
       <button className="btn alt" onClick={() => rotateSelection(store)}>
         Rotate
       </button>
+      <p className="ed-note">
+        Rotate turns it a quarter turn (key R). It may overlap something in between: only the last
+        position has to fit.
+      </p>
     </>
   );
 }

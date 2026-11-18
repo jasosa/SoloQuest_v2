@@ -66,6 +66,12 @@ const FurnitureSchema = z.strictObject({
   type: z.enum(FURNITURE_TYPES),
   cells,
   letter: z.string().min(1).optional(),
+  /**
+   * Quarter turns clockwise made in the editor (1 to 3; left out for 0). It is drawing only: the
+   * squares in `cells` are the real footprint. It lets a piece face a different way (a bookcase
+   * turned 180 degrees keeps the same squares), and a texture pack turns its picture with it.
+   */
+  turn: z.number().int().min(1).max(3).optional(),
 });
 
 /** A small picture as a data URL (the editor shrinks it). */
@@ -171,7 +177,9 @@ export const EnemyDefSchema = z
   .refine(
     (e) =>
       e.base !== undefined ||
-      (['move', 'att', 'def', 'body', 'mind'] as const).every((k) => e.overrides?.[k] !== undefined),
+      (['move', 'att', 'def', 'body', 'mind'] as const).every(
+        (k) => e.overrides?.[k] !== undefined,
+      ),
     { message: 'an enemy with no base type needs all five stats', path: ['overrides'] },
   );
 
