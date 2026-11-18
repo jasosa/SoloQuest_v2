@@ -14,11 +14,7 @@
       "data": {
         "id": "summon",
         "name": "Summon Undead",
-        "tags": [
-          "manyInSight",
-          "selfHurt",
-          "heroesInSameRoom"
-        ],
+        "tags": ["manyInSight", "selfHurt", "heroesInSameRoom"],
         "offerWhen": "always",
         "timing": "instead"
       }

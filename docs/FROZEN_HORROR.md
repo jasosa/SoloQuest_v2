@@ -99,7 +99,7 @@ Targets, profiles, weights, states, spell flow and tag questions: `ZARGON_AI.md`
 | Gothar (Q3, NPC) | 6 | 1 | 2 | 2 | 4 | NPC chip (decision 27), never a target |
 | Snowdasher, wolf (Q0, animal ally) | 10 | 3 | 2 | 5 | 1 | team member, attacks diagonally; stats not tracked |
 
-Named monsters carry their stats and spells in the quest data (decision 21).
+Named monsters carry their stats and spells in the quest data (decision 21). The generic monsters, their special rules (as Library abilities) and the six Frozen Horror spells are in `src/content/library/frozen-horror.json`, box "Frozen Horror".
 
 Frozen Horror spells: Chill, Ice Storm, Ice Wall, Mind Freeze, Skate, Soothe + 6 random from core Dread spells (no Escape), changeable in setup (#47).
 

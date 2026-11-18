@@ -2,6 +2,139 @@
   "format": "soloquest-core",
   "items": [
     {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhLarge",
+        "name": "Large",
+        "text": "Fills a block of 2 x 2 squares. It attacks any square next to any part of it, diagonals included.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhSqueeze",
+        "name": "Squeezes through",
+        "text": "Can move through a corridor that is only 1 square wide.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhTwoAttacks",
+        "name": "Two attacks",
+        "text": "Attacks twice each turn. A hero defends once per turn against it, and may see the first attack before deciding whether to defend.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhDiagonal",
+        "name": "Diagonal attack",
+        "text": "Attacks a hero on a diagonal square as if the hero were next to it.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhSteal",
+        "name": "Thief",
+        "text": "Can steal an item from a hero instead of attacking, then runs away. If no hero can see it at the start of Zargon's turn, it escapes with the item. If it is killed first, the hero gets the item back.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhHug",
+        "name": "Bear hug",
+        "text": "A hero it hugs loses 2 Body Points, cannot defend and cannot act, and the Yeti does nothing else. It starts hugging a hero when its attack makes that hero lose at least 1 Body Point.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "ability",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhRanged",
+        "name": "Crossbow",
+        "text": "Shoots at a hero it can see, not only one next to it.",
+        "kind": "ability"
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhSoothe",
+        "name": "Soothe",
+        "tags": ["selfHurt", "allyHurt"],
+        "offerWhen": "always",
+        "warning": "Can heal itself or another monster."
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhMindFreeze",
+        "name": "Mind Freeze",
+        "tags": ["strongInSight"],
+        "offerWhen": "always"
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhIceStorm",
+        "name": "Ice Storm",
+        "tags": ["heroesGrouped"],
+        "offerWhen": "always",
+        "warning": "Area spell: it also hits monsters in the area."
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhSkate",
+        "name": "Skate",
+        "tags": ["noneInReach", "selfNearDeath"],
+        "offerWhen": "always"
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhIceWall",
+        "name": "Ice Wall",
+        "tags": ["canBlockPath"],
+        "offerWhen": "always"
+      }
+    },
+    {
+      "kind": "spell",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "fhChill",
+        "name": "Chill",
+        "tags": ["heroAdjacent"],
+        "offerWhen": "always",
+        "warning": "Hurts heroes and monsters right next to it, not diagonally."
+      }
+    },
+    {
       "kind": "enemy",
       "expansion": "Frozen Horror",
       "data": {
@@ -23,10 +156,8 @@
           "lastAttacker": 1
         },
         "size": 2,
-        "traits": [
-          "A large monster of 2 x 2 squares: it attacks any adjacent square, diagonals included",
-          "It can squeeze through a corridor 1 square wide"
-        ]
+        "abilities": ["fhLarge", "fhSqueeze"],
+        "spells": ["fhSoothe", "fhMindFreeze", "fhIceStorm", "fhSkate", "fhIceWall", "fhChill"]
       }
     },
     {
@@ -48,7 +179,8 @@
           "closest": 3,
           "lowestDef": 2,
           "lowestBody": 1
-        }
+        },
+        "abilities": ["fhSteal"]
       }
     },
     {
@@ -73,10 +205,7 @@
           "grudge": 1
         },
         "attacks": 2,
-        "traits": [
-          "Attacks twice per turn, 4 dice each",
-          "A hero defends once per turn against it, and may see the first attack before deciding"
-        ]
+        "abilities": ["fhTwoAttacks"]
       }
     },
     {
@@ -98,7 +227,8 @@
           "lowestDef": 3,
           "lowestBody": 2,
           "closest": 2
-        }
+        },
+        "abilities": ["fhHug"]
       }
     },
     {
@@ -120,7 +250,8 @@
           "caster": 3,
           "lowestDef": 2,
           "lastAttacker": 2
-        }
+        },
+        "abilities": ["fhRanged"]
       }
     },
     {
@@ -145,9 +276,7 @@
           "highestAtt": 1,
           "grudge": 1
         },
-        "traits": [
-          "Attacks diagonally"
-        ]
+        "abilities": ["fhDiagonal"]
       }
     },
     {
