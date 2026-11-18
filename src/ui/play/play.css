@@ -633,6 +633,15 @@ header .goalline b {
 }
 
 /* ---------- monster pictures (decision 70): the picture, with the code as a small label ---------- */
+.roster li.has-pic button {
+  grid-template-columns: 58px 1fr auto;
+  min-height: 66px;
+}
+.roster li.has-pic .coin.pic {
+  width: 58px;
+  height: 58px;
+  font-size: 11px;
+}
 .roster .coin.pic {
   background-size: cover;
   background-position: center;
@@ -751,6 +760,18 @@ header .goalline b {
 .zoomctl .chip {
   min-width: 44px;
   min-height: 44px;
+}
+/* Move buttons, shown when the map is zoomed in: they sit beside the zoom chips. */
+.zoomctl .panctl {
+  display: flex;
+  gap: 6px;
+  margin-left: 14px;
+  padding-left: 14px;
+  border-left: 1px solid var(--rock-line);
+}
+.zoomctl .panctl .chip {
+  font-size: 18px;
+  touch-action: none;
 }
 
 /* ---------- play screen: title band and right column order ---------- */

@@ -150,6 +150,55 @@ export function ZoomLayer({
   }, [view.x, view.y, view.e]);
   useEffect(() => () => window.clearTimeout(settleTimer.current), []);
 
+  /** The map moves by this share of the map area for one tap on a move button. */
+  const NUDGE = 0.25;
+  const nudge = (dx: number, dy: number) => {
+    const v = viewRef.current;
+    setPicked(
+      clampView(
+        { ...v, x: v.x + dx * area.w * NUDGE, y: v.y + dy * area.h * NUDGE },
+        area,
+        content,
+      ),
+    );
+  };
+  /** Can the map still move that way? (A move button is disabled at the edge.) */
+  const canMove = (dx: number, dy: number) => {
+    const moved = clampView({ ...view, x: view.x + dx * 2, y: view.y + dy * 2 }, area, content);
+    return Math.abs(moved.x - view.x) > 0.5 || Math.abs(moved.y - view.y) > 0.5;
+  };
+  // Held down, a move button repeats.
+  const repeat = useRef(0);
+  const stopRepeat = () => {
+    window.clearInterval(repeat.current);
+    repeat.current = 0;
+  };
+  useEffect(() => stopRepeat, []);
+  const moveButton = (label: string, glyph: string, dx: number, dy: number) => (
+    <button
+      className="chip"
+      aria-label={label}
+      disabled={!canMove(dx, dy)}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        nudge(dx, dy);
+        stopRepeat();
+        repeat.current = window.setInterval(() => nudge(dx, dy), 140);
+      }}
+      onPointerUp={stopRepeat}
+      onPointerLeave={stopRepeat}
+      onPointerCancel={stopRepeat}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          nudge(dx, dy);
+        }
+      }}
+    >
+      {glyph}
+    </button>
+  );
+
   /** Where the map area is on the screen, and the scale the whole app is drawn at (FitToScreen). */
   const screen = () => {
     const r = clip.current?.getBoundingClientRect();
@@ -346,6 +395,19 @@ export function ZoomLayer({
           >
             +
           </button>
+          {pct > 100 && (
+            <span
+              className="panctl"
+              role="group"
+              aria-label="Move the map"
+              data-testid="pan-controls"
+            >
+              {moveButton('Move the map left', '←', 1, 0)}
+              {moveButton('Move the map up', '↑', 0, 1)}
+              {moveButton('Move the map down', '↓', 0, -1)}
+              {moveButton('Move the map right', '→', -1, 0)}
+            </span>
+          )}
         </div>
       </div>
     </ZoomCtx.Provider>

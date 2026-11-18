@@ -46,4 +46,39 @@ test.describe('editor map zoom', () => {
     await level.click();
     await expect(level).toHaveText('100%');
   });
+
+  test('when zoomed in, move buttons pan the board (and repeat when held); they are hidden at 100%', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('Pan quest');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    const pan = page.getByTestId('pan-controls');
+    await expect(pan).toHaveCount(0);
+    for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(pan).toBeVisible();
+    for (const name of ['left', 'up', 'down', 'right']) {
+      const b = pan.getByRole('button', { name: `Move the map ${name}` });
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    const pos = async () => (await board(page).boundingBox())!;
+    const start = await pos();
+    await pan.getByRole('button', { name: 'Move the map left' }).click();
+    const afterLeft = await pos();
+    // "left" moves the view to the left: the board moves right on the screen
+    expect(afterLeft.x).toBeGreaterThan(start.x + 20);
+    await pan.getByRole('button', { name: 'Move the map up' }).click();
+    expect((await pos()).y).toBeGreaterThan(afterLeft.y + 20);
+    // held down it keeps moving until the edge, where the button is disabled
+    const right = pan.getByRole('button', { name: 'Move the map right' });
+    const box = (await right.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(right).toBeDisabled({ timeout: 6000 });
+    await page.mouse.up();
+    // back to 100%: the controls go away
+    await page.getByTestId('zoom-level').click();
+    await expect(pan).toHaveCount(0);
+  });
 });

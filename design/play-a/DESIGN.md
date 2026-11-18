@@ -284,3 +284,11 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Rotate** (button or the R key) turns the selected piece a quarter turn clockwise, in place, around the middle of its squares: a half turn keeps the same squares, four turns bring it back. It never refuses because the new squares are taken (a piece on a wall or next to others could not otherwise reach a half turn): it shows a warning, and the Problems check, Save and Playtest look at the final position. It only refuses a turn that would leave the board. The quest remembers the quarter turns (`turn` on the piece) so a texture pack can turn the picture with the piece; with the built-in line art it changes nothing you can see.
 
+## Scrollbars, monster list pictures, moving a zoomed map (owner)
+
+**Scrollbars** are styled like the page everywhere: a 12 px paper-2 track with a hairline, a square ink thumb (3 px paper-2 border, at least 44 px long so it is easy to grab), ink-2 on hover. Firefox gets `scrollbar-width: thin` and the ink and paper-2 colors. Touch tablets keep their own overlay scrollbars.
+
+**Monster list.** A monster with a picture (its own or from a texture pack) shows it in a 58 px coin, with its code on the picture; the row is 66 px tall. Monsters without a picture keep the 28 px coin.
+
+**Moving a zoomed map.** When the map is zoomed in, four move buttons (left, up, down, right; 44 px, an arrow each) appear beside the zoom chips, in the strip under the board, on the play screen and in the editor. A tap moves the map a quarter of the map area; held down it repeats until the edge, where the button is disabled. They go away at 100%.
+

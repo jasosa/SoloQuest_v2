@@ -1136,7 +1136,14 @@ function RosterRow({
   return (
     <li
       ref={ref}
-      className={[fresh ? 'new' : '', selected ? 'sel' : '', m.dead ? 'dead' : ''].join(' ').trim()}
+      className={[
+        fresh ? 'new' : '',
+        selected ? 'sel' : '',
+        m.dead ? 'dead' : '',
+        pic ? 'has-pic' : '',
+      ]
+        .join(' ')
+        .trim()}
       title={monsterTip(m, code)}
     >
       <button data-hit disabled={m.dead} onClick={onTap}>
