@@ -729,7 +729,6 @@ header .goalline b {
   position: absolute;
   left: 0;
   top: 0;
-  will-change: transform;
 }
 /* the play screen: the map takes what the right column leaves, whatever the window */
 /* On a wide window the board (fitted to the height) and the right column stay together in the

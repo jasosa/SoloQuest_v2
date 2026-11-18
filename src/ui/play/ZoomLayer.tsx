@@ -111,6 +111,8 @@ export function ZoomLayer({
   const [picked, setPicked] = useState<View | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const clip = useRef<HTMLDivElement>(null);
+  const layer = useRef<HTMLDivElement>(null);
+  const settleTimer = useRef(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ dist: number; v: View; mid: { x: number; y: number } } | null>(null);
   const pan = useRef<{ x: number; y: number; v: View; moved: boolean } | null>(null);
@@ -133,6 +135,20 @@ export function ZoomLayer({
   useLayoutEffect(() => {
     viewRef.current = view;
   });
+
+  // While the board moves or zooms it is its own layer (`will-change`), so it moves smoothly. A moment
+  // after it stops the hint is dropped, so the browser draws the board again at the scale it is shown at.
+  // Left on, `will-change` keeps the first, smaller drawing: pictures on the board stay soft.
+  useEffect(() => {
+    const el = layer.current;
+    if (!el) return;
+    el.style.willChange = 'transform';
+    window.clearTimeout(settleTimer.current);
+    settleTimer.current = window.setTimeout(() => {
+      el.style.willChange = 'auto';
+    }, 200);
+  }, [view.x, view.y, view.e]);
+  useEffect(() => () => window.clearTimeout(settleTimer.current), []);
 
   /** Where the map area is on the screen, and the scale the whole app is drawn at (FitToScreen). */
   const screen = () => {
@@ -293,6 +309,7 @@ export function ZoomLayer({
         <div className="zoomclip" ref={clip} style={strip ? { bottom: strip } : undefined}>
           <div
             className="zoomlayer"
+            ref={layer}
             style={{
               padding,
               transformOrigin: '0 0',
