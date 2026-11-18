@@ -73,4 +73,15 @@ test.describe('themes (decision 78)', () => {
     await page.waitForTimeout(800);
     await page.screenshot({ path: 'test-results/theme-board-play.png' });
   });
+
+  test('a selected room is tinted with the built-in look and outlined with a texture pack', async ({
+    page,
+  }) => {
+    await page.goto(`${PLAY}&select=room:R20`);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.locator('[data-room-outline]')).toHaveCount(0);
+    await page.goto(`${PLAY}&select=room:R20&theme=board`);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    expect(await page.locator('[data-room-outline="R20"]').count()).toBeGreaterThan(4);
+  });
 });
