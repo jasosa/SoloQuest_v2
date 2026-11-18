@@ -45,6 +45,7 @@ import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
 import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
+import { liveMonstersInSight } from '../../engine/game/search';
 import { useRuleHints } from '../settings';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
@@ -311,7 +312,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const refused = () => {
     if (store.getState().error?.code === 'MONSTERS_IN_ROOM') {
       dismissToast();
-      setStep((st) => (st.t === 'pick' ? { ...st, blocked: true } : st));
+      // a corridor search: ask the players to confirm, as a treasure search does in a room
+      setStep((st) =>
+        st.t === 'pick' ? { ...st, blocked: true } : { t: 'pick', what: 'secret', override: false },
+      );
     }
   };
 
@@ -431,7 +435,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           title="A monster is in the way"
           onClose={closeNote}
         >
-          <SecretGuard monsters={[]} onOverride={() => search(true)} />
+          <SecretGuard
+            monsters={liveMonstersInSight(level, state, sel.at).map((id) => codes.get(id) ?? id)}
+            onOverride={() => search(true)}
+            clear="The corridor is clear, search anyway"
+          />
         </MarginNote>
       );
     } else {

@@ -451,16 +451,18 @@ export function SecretGuard(props: {
   /** Codes of living monsters in the way (may be empty when the engine only says "in sight"). */
   monsters: readonly string[];
   onOverride(): void;
+  /** The words of the button: a room is "clear", a corridor is "free of monsters". */
+  clear?: string;
 }) {
   return (
     <>
       <p className="warn">
         {props.monsters.length > 0
-          ? `${props.monsters.join(', ')} still here. A search needs a clear room.`
+          ? `${props.monsters.join(', ')} still here. A search needs a clear ${props.clear ? 'corridor' : 'room'}.`
           : 'A monster is in sight. A search needs a clear corridor.'}
       </p>
       <button className="btn alt" onClick={props.onOverride}>
-        The room is clear, search anyway
+        {props.clear ?? 'The room is clear, search anyway'}
       </button>
     </>
   );

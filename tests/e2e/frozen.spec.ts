@@ -95,3 +95,18 @@ test.describe('terrain and rule hints', () => {
     await expect(page.getByTestId('free-move')).toContainText('counting each red die as 4');
   });
 });
+
+test('a corridor search with a monster in sight asks to confirm, like a room (bug)', async ({
+  page,
+}) => {
+  await gotoQuest(page, URL + '&open=in');
+  // the wandering monster trap puts two goblins on the corridor
+  await trap(page, 'wt').click();
+  await page.getByRole('button', { name: 'Step onto it' }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.locator('[data-cell="9,18"]').click();
+  await page.getByRole('button', { name: 'Search for secret doors' }).click();
+  await expect(page.getByText(/still here. A search needs a clear corridor/)).toBeVisible();
+  await page.getByRole('button', { name: 'The corridor is clear, search anyway' }).click();
+  await expect(page.getByText('Nothing found')).toBeVisible();
+});

@@ -40,7 +40,8 @@ function checkRoom(level: Level, state: GameState, room: string): AreaId {
   return room;
 }
 
-function liveMonstersInSight(level: Level, state: GameState, from: Cell): string[] {
+/** Ids of the seen, living monsters in line of sight of a corridor square (they stop a search there). */
+export function liveMonstersInSight(level: Level, state: GameState, from: Cell): string[] {
   const map = sightMap(level, state.openDoors, state.placedBlocks, state.sightBlockers);
   const quest = level.quest.monsters
     .filter(
