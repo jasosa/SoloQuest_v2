@@ -177,9 +177,13 @@ test.describe('texture packs (decision 78)', () => {
     await expect(orc).toHaveAttribute('width', '32');
     await expect(prev.getByRole('button', { name: 'Save changes' })).toBeDisabled();
 
+    // nothing picked yet: the sample and the knobs are not pinned, so the board picture below stays reachable
+    await expect(prev.getByTestId('pack-work')).not.toHaveClass(/pinned/);
     // tapping the picture in the sample chooses it
     await prev.locator('[data-slot="monster.orc"]').click();
     await expect(prev.getByLabel('Picture to adjust')).toHaveValue('monster.orc');
+    // while adjusting, they stay pinned at the top of the dialog
+    await expect(prev.getByTestId('pack-work')).toHaveClass(/pinned/);
     // a tap on + is 1%: five taps, 105%, drawn 33.6 px wide
     for (let i = 0; i < 5; i++) await prev.getByRole('button', { name: 'Size: more' }).click();
     await expect(prev.getByTestId('pack-adjust')).toContainText('105%');

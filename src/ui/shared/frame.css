@@ -665,12 +665,16 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  position: sticky;
-  top: -1px;
-  z-index: 3;
   background: var(--paper-3);
   padding: 6px 0 10px;
   margin-top: 10px;
+}
+/* Pinned only while a picture is picked: with nothing picked, the whole dialog scrolls (the board
+   picture below the sample must stay reachable). */
+.pv-work.pinned {
+  position: sticky;
+  top: -1px;
+  z-index: 3;
   border-bottom: 1px solid var(--rock-line);
 }
 .pv-left {

@@ -501,18 +501,14 @@ export function PackPreview({
             </p>
           )}
           <div
-            className={onSave && slots.length > 0 ? 'pv-work' : undefined}
+            className={
+              onSave && slots.length > 0 ? (current ? 'pv-work pinned' : 'pv-work') : undefined
+            }
             data-testid="pack-work"
           >
             <div className="pv-left">
               <div className="lbl">On the board</div>
               <Sample theme={theme} selected={current} onSelect={setSlot} />
-              <p className="fr-help">
-                Squares are 34 px; the real board shows them up to twice as big. Rows: furniture,
-                then monsters with a single block and a double block, then traps (hidden, pit,
-                spear, falling block, chest, scripted) and doors (closed, open, secret, closed in a
-                vertical wall). Tap a picture to adjust it.
-              </p>
             </div>
             {onSave && slots.length > 0 && (
               <div className="pv-adjust" data-testid="pack-adjust">
@@ -580,6 +576,12 @@ export function PackPreview({
               </div>
             )}
           </div>
+          <p className="fr-help">
+            Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then
+            monsters with a single block and a double block, then traps (hidden, pit, spear, falling
+            block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap
+            a picture to adjust it.
+          </p>
           {pack.manifest.board && (
             <>
               <div className="lbl pv-gap">
