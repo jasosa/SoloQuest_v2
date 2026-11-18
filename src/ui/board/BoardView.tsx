@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { areaAt, cellsOf, isWallBetween, roomIds, type Board } from '../../engine/board/board';
 import { color } from '../shared/tokens';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell, RockPattern, wallSegment } from '../theme/draw';
+import { BoardArt, floorCell, RockPattern, wallSegment } from '../theme/draw';
 
 export const CELL = 34;
 
@@ -47,6 +47,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
       cells.push(floorCell(theme, x, y, CELL, corridor, `f${x},${y}`));
       for (const [dx, dy, ax, ay, bx, by] of EDGES) {
         if (!isWallBetween(board, [x, y], [x + dx, y + dy])) continue;
+        if (theme.board) continue; // the board picture has the walls
         walls.push(
           wallSegment(
             theme,
@@ -72,6 +73,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
     >
       <defs>
         <RockPattern id="hatch" theme={theme} size={CELL} />
+        <BoardArt id="board-art" theme={theme} w={W} h={H} size={CELL} />
       </defs>
       <rect x={0} y={0} width={W * CELL} height={H * CELL} fill="url(#hatch)" />
       {cells}

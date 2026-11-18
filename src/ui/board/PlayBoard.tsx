@@ -20,8 +20,16 @@ import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { monsterPicture } from '../theme/theme';
-import { doorPiece, floorCell, RockPattern, squarePiece, wallSegment } from '../theme/draw';
+import { isThemeToken, monsterPicture } from '../theme/theme';
+import {
+  BoardArt,
+  blockPiece,
+  doorPiece,
+  floorCell,
+  RockPattern,
+  squarePiece,
+  wallSegment,
+} from '../theme/draw';
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
@@ -167,6 +175,7 @@ export function PlayBoard({
         const nx = x + dx;
         const ny = y + dy;
         if (!isWallBetween(board, [x, y], [nx, ny]) && !level.rock.has(cellKey(nx, ny))) continue;
+        if (theme.board && isWallBetween(board, [x, y], [nx, ny])) continue; // already in the picture
         (f ? walls.neu : walls.old).push(
           wallSegment(
             theme,
@@ -180,19 +189,34 @@ export function PlayBoard({
       }
     }
 
-  // Blocked squares that were seen.
-  const blockList: Cell[] = [];
-  for (const b of level.blocks) if (state.seenBlocks.has(b.id)) blockList.push(...b.cells);
-  for (const k of state.placedBlocks) blockList.push(parseKey(k)); // falling block traps
-  {
-    for (const [x, y] of blockList) {
+  // Blocked squares that were seen: a block of one or two squares, or a block a falling-block trap left.
+  const blockGroups: { cells: readonly Cell[]; fallen: boolean }[] = [];
+  for (const b of level.blocks)
+    if (state.seenBlocks.has(b.id)) blockGroups.push({ cells: b.cells, fallen: false });
+  for (const k of state.placedBlocks) blockGroups.push({ cells: [parseKey(k)], fallen: true });
+  for (const g of blockGroups) {
+    const first = g.cells[0];
+    if (!first) continue;
+    const together = g.fallen ? null : blockPiece(theme, g.cells, S, `bb${first[0]},${first[1]}`);
+    if (together) {
+      into(fresh(cellKey(first[0], first[1]))).push(
+        <g key={`b${first[0]},${first[1]}`} data-block={`${first[0]},${first[1]}`}>
+          {together}
+        </g>,
+      );
+      continue;
+    }
+    for (const [x, y] of g.cells) {
       const f = fresh(cellKey(x, y));
       const px = x * S;
       const py = y * S;
       const q = (S - 4) / 4;
+      const href = g.fallen
+        ? (theme.trap?.fallingBlock ?? theme.block?.single)
+        : theme.block?.single;
       into(f).push(
         <g key={`b${x},${y}`} data-block={`${x},${y}`}>
-          {squarePiece(theme.block, x, y, S, 'block') ?? (
+          {squarePiece(href, x, y, S, 'block') ?? (
             <>
               <rect
                 x={px + 2}
@@ -241,7 +265,9 @@ export function PlayBoard({
   for (const f of level.quest.furniture) {
     if (!state.seenFurniture.has(f.id)) continue;
     const first = f.cells[0];
-    into(first !== undefined && fresh(keyOf(first))).push(<Furniture key={`u${f.id}`} f={f} />);
+    into(first !== undefined && fresh(keyOf(first))).push(
+      <Furniture key={`u${f.id}`} f={f} board={board} />,
+    );
   }
 
   // Doors (seen only). Closed doors get a 44 px tap target, drawn last.
@@ -262,7 +288,7 @@ export function PlayBoard({
     into(isFresh).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        {doorPiece(theme, open, cx, cy, vertical, S) ?? (
+        {doorPiece(theme, open ? 'open' : 'closed', cx, cy, vertical, S) ?? (
           <>
             <rect
               x={cx - w / 2}
@@ -423,7 +449,7 @@ export function PlayBoard({
       <g key={`t${t.id}`} data-trap-mark={t.id}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
         {squarePiece(
-          t.state === 'sprung' ? theme.trap?.sprung : theme.trap?.armed,
+          t.state === 'sprung' ? (t.kind ? theme.trap?.[t.kind] : undefined) : theme.trap?.armed,
           tx,
           ty,
           S,
@@ -504,6 +530,7 @@ export function PlayBoard({
     const stampIndex = freshOrder.indexOf(m.id);
     const hurt = m.maxBody > 1 && m.body < m.maxBody;
     const pic = monsterPicture(theme, m.image, m.type);
+    const whole = isThemeToken(theme, m.image, m.type); // a theme token has its own frame
     tokens.push(
       <g key={`m${m.id}`}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -511,29 +538,46 @@ export function PlayBoard({
           className={'tok' + (stampIndex >= 0 ? ' stamp' : '')}
           style={stampIndex >= 0 ? { animationDelay: `${380 + 70 * stampIndex}ms` } : undefined}
         >
-          <circle
-            cx={cx}
-            cy={cy}
-            r={13.5}
-            fill="var(--green)"
-            stroke={color.tokenText}
-            strokeWidth={2}
-          />
+          {!whole && (
+            <circle
+              cx={cx}
+              cy={cy}
+              r={13.5}
+              fill="var(--green)"
+              stroke={color.tokenText}
+              strokeWidth={2}
+            />
+          )}
           {pic ? (
             <>
-              <clipPath id={`clip-${m.id}`}>
-                <circle cx={cx} cy={cy} r={12.5} />
-              </clipPath>
-              <image
-                href={pic}
-                x={cx - 12.5}
-                y={cy - 12.5}
-                width={25}
-                height={25}
-                preserveAspectRatio="xMidYMid slice"
-                clipPath={`url(#clip-${m.id})`}
-                data-token-image={m.id}
-              />
+              {whole ? (
+                <image
+                  href={pic}
+                  x={cx - 16}
+                  y={cy - 16}
+                  width={32}
+                  height={32}
+                  preserveAspectRatio="xMidYMid meet"
+                  data-token-image={m.id}
+                  data-themed="token"
+                />
+              ) : (
+                <>
+                  <clipPath id={`clip-${m.id}`}>
+                    <circle cx={cx} cy={cy} r={12.5} />
+                  </clipPath>
+                  <image
+                    href={pic}
+                    x={cx - 12.5}
+                    y={cy - 12.5}
+                    width={25}
+                    height={25}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#clip-${m.id})`}
+                    data-token-image={m.id}
+                  />
+                </>
+              )}
               <rect
                 x={cx - 9}
                 y={cy + 5}
@@ -936,6 +980,7 @@ export function PlayBoard({
     >
       <defs>
         <RockPattern id="hatch" theme={theme} size={S} />
+        <BoardArt id="board-art" theme={theme} w={W} h={H} size={S} />
         {ink && (
           <mask
             id="inkmask"

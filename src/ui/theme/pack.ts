@@ -1,7 +1,7 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { z } from 'zod';
-import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
-import type { Theme } from './theme';
+import { FURNITURE_TYPES, MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
+import { CORNERS, type Theme } from './theme';
 
 /**
  * The texture pack file (decision 78): `.sqtextures`, a zip with `theme.json` and the pictures it
@@ -37,19 +37,27 @@ export const PackManifestSchema = z
     name: z.string().trim().min(1).max(60),
     origin: z.enum(['official', 'fan']).default('fan'),
     author: z.string().max(80).optional(),
+    board: FileName.optional(),
     floor: Files.optional(),
     corridor: Files.optional(),
     rock: FileName.optional(),
     wall: FileName.optional(),
-    door: z.object({ closed: FileName.optional(), open: FileName.optional() }).optional(),
-    block: FileName.optional(),
-    trap: z.object({ armed: FileName.optional(), sprung: FileName.optional() }).optional(),
+    door: z
+      .object({
+        closed: FileName.optional(),
+        open: FileName.optional(),
+        secret: FileName.optional(),
+      })
+      .optional(),
+    block: z.object({ single: FileName.optional(), double: FileName.optional() }).optional(),
+    trap: z.partialRecord(z.enum(['armed', ...TRAP_KINDS]), FileName).optional(),
     monster: z.partialRecord(z.enum(MONSTER_TYPES), FileName).optional(),
     furniture: z
       .partialRecord(
         z.enum(FURNITURE_TYPES),
         z.object({
           file: FileName,
+          corner: z.enum(CORNERS).optional(),
           cells: z
             .tuple([z.number().int().min(1).max(6), z.number().int().min(1).max(6)])
             .optional(),
@@ -93,15 +101,17 @@ function mimeOf(name: string, b: Uint8Array): string | undefined {
 /** Every picture file a manifest names. */
 export function manifestFiles(m: PackManifest): string[] {
   const out: (string | undefined)[] = [
+    m.board,
     ...(m.floor ?? []),
     ...(m.corridor ?? []),
     m.rock,
     m.wall,
     m.door?.closed,
     m.door?.open,
-    m.block,
-    m.trap?.armed,
-    m.trap?.sprung,
+    m.door?.secret,
+    m.block?.single,
+    m.block?.double,
+    ...Object.values(m.trap ?? {}),
     ...Object.values(m.monster ?? {}),
     ...Object.values(m.furniture ?? {}).map((f) => f?.file),
   ];
@@ -174,36 +184,43 @@ export function writePack(pack: StoredPack): Uint8Array {
 /** A theme from a pack. `url` turns a file name into something an `<image>` can load. */
 export function themeFromPack(pack: StoredPack, url: (file: string) => string): Theme {
   const m = pack.manifest;
-  const one = (f: string | undefined) => (f ? url(f) : undefined);
-  const door = {
-    ...(m.door?.closed ? { closed: url(m.door.closed) } : {}),
-    ...(m.door?.open ? { open: url(m.door.open) } : {}),
-  };
-  const trap = {
-    ...(m.trap?.armed ? { armed: url(m.trap.armed) } : {}),
-    ...(m.trap?.sprung ? { sprung: url(m.trap.sprung) } : {}),
-  };
-  const monster = Object.fromEntries(Object.entries(m.monster ?? {}).map(([t, f]) => [t, url(f)]));
-  const furniture = Object.fromEntries(
-    Object.entries(m.furniture ?? {}).map(([t, f]) => [
-      t,
-      { href: url(f.file), ...(f.cells ? { cells: f.cells } : {}) },
-    ]),
+  const some = <T extends object>(o: T): T | undefined => (Object.keys(o).length ? o : undefined);
+  // each group keeps only the slots the pack fills, so an empty group is left out
+  const pick = <K extends string>(src: Partial<Record<K, string | undefined>> | undefined) =>
+    Object.fromEntries(
+      Object.entries(src ?? {}).flatMap(([k, f]) => (typeof f === 'string' ? [[k, url(f)]] : [])),
+    ) as Partial<Record<K, string>>;
+  const board = m.board ? url(m.board) : undefined;
+  const rock = m.rock ? url(m.rock) : undefined;
+  const wall = m.wall ? url(m.wall) : undefined;
+  const door = some(pick(m.door));
+  const block = some(pick(m.block));
+  const trap = some(pick(m.trap));
+  const monster = some(pick(m.monster));
+  const furniture = some(
+    Object.fromEntries(
+      Object.entries(m.furniture ?? {}).map(([t, f]) => [
+        t,
+        {
+          href: url(f.file),
+          ...(f.cells ? { cells: f.cells } : {}),
+          ...(f.corner ? { corner: f.corner } : {}),
+        },
+      ]),
+    ),
   );
-  const rock = one(m.rock);
-  const wall = one(m.wall);
-  const block = one(m.block);
   return {
     id: m.id,
     name: m.name,
+    ...(board ? { board } : {}),
     ...(m.floor ? { floor: m.floor.map(url) } : {}),
     ...(m.corridor ? { corridor: m.corridor.map(url) } : {}),
     ...(rock ? { rock } : {}),
     ...(wall ? { wall } : {}),
+    ...(door ? { door } : {}),
     ...(block ? { block } : {}),
-    ...(Object.keys(door).length ? { door } : {}),
-    ...(Object.keys(trap).length ? { trap } : {}),
-    ...(Object.keys(monster).length ? { monster } : {}),
-    ...(Object.keys(furniture).length ? { furniture } : {}),
+    ...(trap ? { trap } : {}),
+    ...(monster ? { monster } : {}),
+    ...(furniture ? { furniture } : {}),
   };
 }

@@ -1,4 +1,6 @@
+import { areaAt, cellsOf, type Board, type Cell } from '../../engine/board/board';
 import type { FurnitureDef, MonsterType } from '../../engine/quest/schema';
+import { TRAP_KINDS } from '../../engine/quest/schema';
 
 /**
  * Themes (decision 78). A theme says how board elements are drawn. It never changes rules, data or
@@ -8,38 +10,67 @@ import type { FurnitureDef, MonsterType } from '../../engine/quest/schema';
 
 export type FurnitureType = FurnitureDef['type'];
 
-/** One picture for a piece of furniture. */
+/** The four corners of a room, clockwise from the top left. */
+export const CORNERS = ['topLeft', 'topRight', 'bottomRight', 'bottomLeft'] as const;
+export type Corner = (typeof CORNERS)[number];
+
+/** One picture for a piece of furniture. It keeps its proportions inside the footprint. */
 export interface FurnitureSlot {
   /** Image URL (a data URL or an object URL made from a pack file). */
   readonly href: string;
   /**
-   * The footprint in squares as the picture is drawn, for example [2, 1] for a landscape table.
+   * The footprint in squares as the picture is drawn, for example [3, 2] for a landscape table.
    * When the piece stands the other way on the board, the picture is turned by 90 degrees.
-   * Left out: the picture is stretched to the footprint and never turned.
+   * Left out: the picture is never turned.
    */
   readonly cells?: readonly [number, number];
+  /**
+   * For a picture that belongs in a room corner (stairs): which corner of the picture is the solid
+   * one. The picture is turned so that corner points into the corner of the room the piece is in.
+   */
+  readonly corner?: Corner;
 }
+
+/** The traps that can have a picture: the hidden "armed" look, and one per kind of trap. */
+export type TrapSlot = 'armed' | (typeof TRAP_KINDS)[number];
 
 export interface Theme {
   readonly id: string;
   readonly name: string;
-  /** Floor tiles of rooms. Several pictures are used in turn, so the floor does not repeat. */
+  /**
+   * One picture of the whole board (26 x 19 squares, the same shape as the grid). It is shown
+   * through the squares the heroes have seen, and it already has the walls, so no wall lines are
+   * drawn between rooms. Rock and fog are still drawn over what is not seen.
+   */
+  readonly board?: string;
+  /** Floor tiles of rooms, used in turn. Not needed when the theme has a `board` picture. */
   readonly floor?: readonly string[];
   /** Floor tiles of corridors. */
   readonly corridor?: readonly string[];
   /** One tile that fills the rock. */
   readonly rock?: string;
   readonly furniture?: Readonly<Partial<Record<FurnitureType, FurnitureSlot>>>;
-  /** A wall piece, one square long, drawn along every wall edge (turned for vertical walls). */
+  /** A wall piece, one square long, drawn along wall edges that the board picture does not cover. */
   readonly wall?: string;
   /** A door, one square wide, drawn across the opening (turned for a door in a vertical wall). */
-  readonly door?: { readonly closed?: string; readonly open?: string };
-  /** The default picture of each monster type on its token and roster coin. An enemy's own image wins. */
+  readonly door?: {
+    readonly closed?: string;
+    readonly open?: string;
+    /** Seen by Zargon only: a door the heroes have not found yet. */
+    readonly secret?: string;
+  };
+  /**
+   * The whole token of each monster type (its own frame included). An enemy's own image from
+   * the Library wins. The app draws no frame behind it.
+   */
   readonly monster?: Readonly<Partial<Record<MonsterType, string>>>;
-  /** A blocked square (rubble, a fallen block). */
-  readonly block?: string;
-  /** A trap: armed (what the heroes see before it springs) and sprung (the pit tile). */
-  readonly trap?: { readonly armed?: string; readonly sprung?: string };
+  /** Blocked squares: one square, and two squares side by side. */
+  readonly block?: { readonly single?: string; readonly double?: string };
+  /**
+   * Traps. `armed` is what the heroes see before a trap springs (its kind stays hidden). A picture per
+   * kind is shown once it is known: a sprung pit, a fallen block, and, for Zargon, every trap.
+   */
+  readonly trap?: Readonly<Partial<Record<TrapSlot, string>>>;
 }
 
 export const CLASSIC_THEME: Theme = { id: 'classic', name: 'Classic' };
@@ -59,6 +90,40 @@ export function needsTurn(slot: FurnitureSlot, w: number, h: number): boolean {
   return a > b !== w > h;
 }
 
+/**
+ * How far (0, 90, 180 or 270 degrees clockwise) a corner picture must turn so that its solid corner
+ * is the corner of the room that the piece stands in. 0 when the piece is not in one corner of its room.
+ */
+export function cornerTurn(board: Board, cells: readonly Cell[], solid: Corner): number {
+  const first = cells[0];
+  if (!first) return 0;
+  const area = areaAt(board, first[0], first[1]);
+  if (area === undefined) return 0;
+  const room = cellsOf(board, area);
+  const bounds = (cs: readonly Cell[]) => ({
+    x0: Math.min(...cs.map((c) => c[0])),
+    x1: Math.max(...cs.map((c) => c[0])),
+    y0: Math.min(...cs.map((c) => c[1])),
+    y1: Math.max(...cs.map((c) => c[1])),
+  });
+  const r = bounds(room);
+  const f = bounds(cells);
+  const left = f.x0 === r.x0;
+  const right = f.x1 === r.x1;
+  const top = f.y0 === r.y0;
+  const bottom = f.y1 === r.y1;
+  if (left === right || top === bottom) return 0; // in the middle of a wall, or fills the room
+  const actual: Corner = top
+    ? left
+      ? 'topLeft'
+      : 'topRight'
+    : left
+      ? 'bottomLeft'
+      : 'bottomRight';
+  const steps = (CORNERS.indexOf(actual) - CORNERS.indexOf(solid) + 4) % 4;
+  return steps * 90;
+}
+
 /** The picture of a monster: its own (an enemy's image) first, then the theme's for its type. */
 export function monsterPicture(
   theme: Theme,
@@ -66,4 +131,9 @@ export function monsterPicture(
   type: MonsterType,
 ): string | undefined {
   return own ?? theme.monster?.[type];
+}
+
+/** True when the picture comes from the theme, so it is a whole token and the app draws no frame. */
+export function isThemeToken(theme: Theme, own: string | undefined, type: MonsterType): boolean {
+  return own === undefined && theme.monster?.[type] !== undefined;
 }

@@ -61,7 +61,7 @@ import {
 import { parseSelection, type Selection } from './selection';
 import { progressLabel } from './zargonView';
 import { useTheme } from '../theme/activeTheme';
-import { monsterPicture } from '../theme/theme';
+import { isThemeToken, monsterPicture } from '../theme/theme';
 import { ZargonDialog } from './ZargonDialog';
 import { turnSequence } from './zargonView';
 import { ordersFor, turnProgress } from '../../engine/zargon';
@@ -1130,7 +1130,9 @@ function RosterRow({
   useEffect(() => {
     if (focus) ref.current?.scrollIntoView({ block: 'nearest' });
   }, [focus]);
-  const pic = monsterPicture(useTheme(), m.image, m.type);
+  const theme = useTheme();
+  const pic = monsterPicture(theme, m.image, m.type);
+  const whole = isThemeToken(theme, m.image, m.type);
   return (
     <li
       ref={ref}
@@ -1139,7 +1141,9 @@ function RosterRow({
     >
       <button data-hit disabled={m.dead} onClick={onTap}>
         <span
-          className={'coin' + (m.dead ? ' off' : '') + (pic ? ' pic' : '')}
+          className={
+            'coin' + (m.dead ? ' off' : '') + (pic ? ' pic' : '') + (pic && whole ? ' whole' : '')
+          }
           style={pic ? { backgroundImage: `url(${pic})` } : undefined}
           data-coin-image={pic ? m.id : undefined}
         >

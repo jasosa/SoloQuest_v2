@@ -45,4 +45,32 @@ test.describe('themes (decision 78)', () => {
     expect(await page.locator('[data-token-image]').count()).toBeGreaterThan(10);
     await page.screenshot({ path: 'test-results/theme-editor.png' });
   });
+
+  test('a board picture shows through the squares that are seen, and brings its own walls', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1&theme=board');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Open it', exact: true }).click();
+    await expect(page.locator('[data-themed="board"]')).toBeAttached();
+    expect(await page.locator('[data-themed="floor"]').count()).toBeGreaterThan(100);
+    // the pictures of the board show the walls between rooms: no wall lines of ours
+    await expect(page.locator('[data-themed="wall"]')).toHaveCount(0);
+    // a theme token is a whole token: orcs and skeletons show their picture, the others keep the letter coin
+    expect(await page.locator('[data-themed="token"]').count()).toBeGreaterThanOrEqual(5);
+    // stairs and the table use theme pictures
+    expect(await page.locator('[data-themed="furniture"]').count()).toBeGreaterThanOrEqual(3);
+    await page.screenshot({ path: 'test-results/theme-board-editor.png' });
+  });
+
+  test('play with a board picture: the picture is under the seen squares', async ({ page }) => {
+    await page.goto(`${PLAY}&theme=board`);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.locator('[data-themed="board"]')).toBeAttached();
+    await expect(page.locator('[data-themed="floor"]').first()).toBeAttached();
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: 'test-results/theme-board-play.png' });
+  });
 });

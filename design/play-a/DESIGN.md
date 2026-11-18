@@ -264,3 +264,7 @@ Every board (play, Zargon view, editor, debug board) draws floor squares and the
 
 On these screens the base text is 14 px (the play screen keeps 15 px), buttons 14 px, chips 13 px, page headings 22 px (select header 24 px), card and list titles 15 px, small labels and help 12 to 13 px, dialog titles 19 px. Inputs stay at 16 px, because a smaller input makes iPad Safari zoom the page on focus. Touch targets stay at 44 px: only the text got smaller.
 
+## Texture packs: whole pictures (decision 78, second pass)
+
+A pack is made of whole pictures, not square tiles (owner). **`board`**: one picture of the 26 x 19 board, shown through the squares the heroes have seen (an SVG pattern in each board's `defs`; the walls between rooms are in the picture, so the built-in wall lines are not drawn there, only along rock edges). **Monsters**: a whole token each, drawn about one square wide with no green circle behind it (the roster coin shows it whole too). **Furniture** keeps its proportions in its footprint; **stairs** turn to the corner of their room (`corner` in the pack). **Blocks**: `single`, and `double` for two squares side by side. **Traps**: a picture per kind once known (a sprung pit, a fallen block) and for every trap in Zargon view; `armed` is the one hidden look. **Doors**: closed, open, and `secret` (Zargon view). The per-square `floor`, `corridor`, `rock` and `wall` slots remain for packs without a board picture. The format is in `docs/TEXTURE_PACKS.md`.
+

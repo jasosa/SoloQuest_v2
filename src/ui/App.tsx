@@ -99,8 +99,11 @@ export function App() {
 
   // Development only: `?theme=test` loads flat test pictures (never bundled in production).
   useEffect(() => {
-    if (!import.meta.env.DEV || params.get('theme') !== 'test') return;
-    void import('./theme/testTheme').then((m) => setActiveTheme(m.TEST_THEME));
+    const which = params.get('theme');
+    if (!import.meta.env.DEV || (which !== 'test' && which !== 'board')) return;
+    void import('./theme/testTheme').then((m) =>
+      setActiveTheme(which === 'board' ? m.TEST_BOARD_THEME : m.TEST_THEME),
+    );
   }, [params]);
 
   // Debug board for map checks: `?state=fog|partial|full&labels=1`.

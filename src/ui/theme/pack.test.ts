@@ -12,9 +12,16 @@ const manifest = {
   id: 'stone-dungeon',
   name: 'Stone dungeon',
   floor: ['f1.png', 'f2.webp'],
+  board: 'board.png',
   wall: 'w.png',
+  door: { closed: 'door.png', secret: 'secret.png' },
+  block: { single: 'b1.png', double: 'b2.png' },
+  trap: { armed: 'q.png', pit: 'pit.png', spear: 'spear.png' },
   monster: { orc: 'orc.png' },
-  furniture: { table: { file: 'table.png', cells: [2, 1] } },
+  furniture: {
+    table: { file: 'table.png', cells: [2, 1] },
+    stairs: { file: 'stairs.png', corner: 'topLeft' },
+  },
 };
 
 function zip(m: unknown, extra: Record<string, Uint8Array> = {}, skip: string[] = []): Uint8Array {
@@ -25,6 +32,15 @@ function zip(m: unknown, extra: Record<string, Uint8Array> = {}, skip: string[] 
     'w.png': PNG,
     'orc.png': PNG,
     'table.png': PNG,
+    'stairs.png': PNG,
+    'board.png': PNG,
+    'door.png': PNG,
+    'secret.png': PNG,
+    'b1.png': PNG,
+    'b2.png': PNG,
+    'q.png': PNG,
+    'pit.png': PNG,
+    'spear.png': PNG,
     ...extra,
   };
   for (const s of skip) delete files[s];
@@ -73,6 +89,7 @@ describe('readPack', () => {
 
   it('refuses an unknown monster or furniture type', () => {
     expect(readPack(zip({ ...manifest, monster: { dragon: 'orc.png' } })).ok).toBe(false);
+    expect(readPack(zip({ ...manifest, trap: { lava: 'pit.png' } })).ok).toBe(false);
     expect(readPack(zip({ ...manifest, furniture: { sofa: { file: 'table.png' } } })).ok).toBe(
       false,
     );
@@ -106,7 +123,15 @@ describe('writePack and themeFromPack', () => {
     expect(theme.wall).toBe('blob:w.png');
     expect(theme.monster?.orc).toBe('blob:orc.png');
     expect(theme.furniture?.table).toEqual({ href: 'blob:table.png', cells: [2, 1] });
+    expect(theme.furniture?.stairs).toEqual({ href: 'blob:stairs.png', corner: 'topLeft' });
+    expect(theme.board).toBe('blob:board.png');
+    expect(theme.door).toEqual({ closed: 'blob:door.png', secret: 'blob:secret.png' });
+    expect(theme.block).toEqual({ single: 'blob:b1.png', double: 'blob:b2.png' });
+    expect(theme.trap).toEqual({
+      armed: 'blob:q.png',
+      pit: 'blob:pit.png',
+      spear: 'blob:spear.png',
+    });
     expect(theme.rock).toBeUndefined();
-    expect(theme.door).toBeUndefined();
   });
 });

@@ -27,8 +27,8 @@ import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { useTheme } from '../theme/activeTheme';
-import { monsterPicture } from '../theme/theme';
-import { floorCell, RockPattern, wallSegment } from '../theme/draw';
+import { isThemeToken, monsterPicture } from '../theme/theme';
+import { BoardArt, floorCell, RockPattern, wallSegment } from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
@@ -403,7 +403,7 @@ export function EditorBoard({
         continue;
       }
       const corridor = areaAt(board, x, y) === 'C';
-      cells.push(floorCell(theme, x, y, U, corridor, `f${k}`));
+      cells.push(floorCell(theme, x, y, U, corridor, `f${k}`, 'ed-board-art'));
       for (const [dx, dy, ax, ay, bx, by] of [
         [0, -1, 0, 0, 1, 0],
         [1, 0, 1, 0, 1, 1],
@@ -415,6 +415,7 @@ export function EditorBoard({
           !rockSet.has(cellKey(x + dx, y + dy))
         )
           continue;
+        if (theme.board && isWallBetween(board, [x, y], [x + dx, y + dy])) continue; // in the picture
         walls.push(
           wallSegment(
             theme,
@@ -581,7 +582,7 @@ export function EditorBoard({
               className="selring"
             />
           ))}
-        <Furniture f={f} />
+        <Furniture f={f} board={board} />
       </g>,
     );
   }
@@ -624,16 +625,30 @@ export function EditorBoard({
     things.push(
       <g key={`m${m.id}`} data-monster={m.id}>
         {sel && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={13.5}
-          fill="var(--green)"
-          stroke={color.tokenText}
-          strokeWidth={2}
-          opacity={m.state === 'dormant' ? 0.55 : 1}
-        />
-        {monsterPicture(theme, shownImage(quest, m), m.type) ? (
+        {!isThemeToken(theme, shownImage(quest, m), m.type) && (
+          <circle
+            cx={cx}
+            cy={cy}
+            r={13.5}
+            fill="var(--green)"
+            stroke={color.tokenText}
+            strokeWidth={2}
+            opacity={m.state === 'dormant' ? 0.55 : 1}
+          />
+        )}
+        {isThemeToken(theme, shownImage(quest, m), m.type) ? (
+          <image
+            href={monsterPicture(theme, shownImage(quest, m), m.type)}
+            x={cx - 16}
+            y={cy - 16}
+            width={32}
+            height={32}
+            preserveAspectRatio="xMidYMid meet"
+            opacity={m.state === 'dormant' ? 0.55 : 1}
+            data-token-image={m.id}
+            data-themed="token"
+          />
+        ) : monsterPicture(theme, shownImage(quest, m), m.type) ? (
           <>
             <clipPath id={`eclip-${m.id}`}>
               <circle cx={cx} cy={cy} r={12.5} />
@@ -962,6 +977,7 @@ export function EditorBoard({
           >
             <defs>
               <RockPattern id="ed-hatch" theme={theme} size={U} />
+              <BoardArt id="ed-board-art" theme={theme} w={BOARD_W} h={BOARD_H} size={U} />
               {bad}
             </defs>
             {cells}

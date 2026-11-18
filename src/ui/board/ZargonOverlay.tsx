@@ -10,7 +10,8 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell, wallSegment } from '../theme/draw';
+import { blockPiece, doorPiece, floorCell, squarePiece, wallSegment } from '../theme/draw';
+import { isThemeToken, monsterPicture } from '../theme/theme';
 import { Furniture } from './Furniture';
 import { hiddenView, type HiddenTrap } from './hiddenView';
 
@@ -41,6 +42,7 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
       const nx = x + dx;
       const ny = y + dy;
       if (!isWallBetween(board, [x, y], [nx, ny]) && !level.rock.has(cellKey(nx, ny))) continue;
+      if (theme.board && isWallBetween(board, [x, y], [nx, ny])) continue; // in the picture
       walls.push(
         wallSegment(
           theme,
@@ -54,20 +56,33 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
     }
   }
 
-  const blocks = hv.blocks.flatMap((b) =>
-    b.cells.map(([x, y]: Cell) => (
-      <rect
-        key={`zb${x},${y}`}
-        x={x * S + 2}
-        y={y * S + 2}
-        width={S - 4}
-        height={S - 4}
-        fill={color.white}
-        stroke={color.ink}
-        strokeWidth={1.5}
-      />
-    )),
-  );
+  const blocks: React.ReactNode[] = [];
+  hv.blocks.forEach((b, bi) => {
+    const together = blockPiece(theme, b.cells, S, `zbb${bi}`);
+    if (together) {
+      blocks.push(together);
+      return;
+    }
+    for (const [x, y] of b.cells as readonly Cell[]) {
+      const pic = squarePiece(theme.block?.single, x, y, S, 'block');
+      blocks.push(
+        pic ? (
+          <g key={`zb${x},${y}`}>{pic}</g>
+        ) : (
+          <rect
+            key={`zb${x},${y}`}
+            x={x * S + 2}
+            y={y * S + 2}
+            width={S - 4}
+            height={S - 4}
+            fill={color.white}
+            stroke={color.ink}
+            strokeWidth={1.5}
+          />
+        ),
+      );
+    }
+  });
 
   const doors = hv.doors.map((d) => {
     const vertical = d.a[1] === d.b[1];
@@ -77,6 +92,13 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
     const cy = (vertical ? ey + 0.5 : ey) * S;
     const w = vertical ? 10 : 24;
     const h = vertical ? 24 : 10;
+    const piece = doorPiece(theme, d.kind === 'secret' ? 'secret' : 'closed', cx, cy, vertical, S);
+    if (piece && d.kind !== 'false')
+      return (
+        <g key={`zd${d.id}`} data-zdoor={d.id} data-kind={d.kind}>
+          {piece}
+        </g>
+      );
     return (
       <g key={`zd${d.id}`} data-zdoor={d.id} data-kind={d.kind}>
         <rect
@@ -103,6 +125,20 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
   const monsters = hv.monsters.map((m) => {
     const cx = (m.cell[0] + 0.5) * S;
     const cy = (m.cell[1] + 0.5) * S;
+    const pic = monsterPicture(theme, undefined, m.type);
+    if (pic && isThemeToken(theme, undefined, m.type))
+      return (
+        <g key={`zm${m.id}`} data-zmonster={m.id}>
+          <image
+            href={pic}
+            x={cx - 16}
+            y={cy - 16}
+            width={32}
+            height={32}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </g>
+      );
     return (
       <g key={`zm${m.id}`} data-zmonster={m.id}>
         <circle
@@ -132,6 +168,13 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
   const traps = hv.traps.map((t) => {
     const cx = (t.cell[0] + 0.5) * S;
     const cy = (t.cell[1] + 0.5) * S;
+    const picture = squarePiece(theme.trap?.[t.kind], t.cell[0], t.cell[1], S, 'trap');
+    if (picture)
+      return (
+        <g key={`zt${t.id}`} data-ztrap={t.id}>
+          {picture}
+        </g>
+      );
     return (
       <g key={`zt${t.id}`} data-ztrap={t.id}>
         <polygon
@@ -188,7 +231,7 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
       {walls}
       {blocks}
       {hv.furniture.map((f) => (
-        <Furniture key={`zu${f.id}`} f={f} />
+        <Furniture key={`zu${f.id}`} f={f} board={board} />
       ))}
       {doors}
       {traps}

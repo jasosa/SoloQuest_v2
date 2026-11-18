@@ -1,15 +1,17 @@
+import type { Board } from '../../engine/board/board';
 import type { FurnitureDef } from '../../engine/quest/schema';
 import { CELL } from './BoardView';
 import { color } from '../shared/tokens';
 import { useTheme } from '../theme/activeTheme';
-import { needsTurn } from '../theme/theme';
+import { cornerTurn, needsTurn } from '../theme/theme';
 
 const S = CELL;
 const INK = color.ink;
 const WHITE = color.white;
 
 /** Furniture footprint as simple line art (ported from the prototype). Rooms are never partly drawn. */
-export function Furniture({ f }: { f: FurnitureDef }) {
+/** `board` is only needed for a themed corner piece (stairs): it says which room corner it is in. */
+export function Furniture({ f, board }: { f: FurnitureDef; board?: Board | undefined }) {
   const slot = useTheme().furniture?.[f.type];
   const xs = f.cells.map((c) => c[0]);
   const ys = f.cells.map((c) => c[1]);
@@ -22,9 +24,15 @@ export function Furniture({ f }: { f: FurnitureDef }) {
 
   // A theme picture replaces the line art (decision 78); turned by 90 degrees when the piece stands the other way.
   if (slot) {
-    const turn = needsTurn(slot, w / S, h / S);
-    const pw = turn ? h : w;
-    const ph = turn ? w : h;
+    const degrees =
+      slot.corner && board
+        ? cornerTurn(board, f.cells, slot.corner)
+        : needsTurn(slot, w / S, h / S)
+          ? 90
+          : 0;
+    const sideways = degrees === 90 || degrees === 270;
+    const pw = sideways && !slot.corner ? h : w;
+    const ph = sideways && !slot.corner ? w : h;
     const mx = x + w / 2;
     const my = y + h / 2;
     return (
@@ -34,8 +42,8 @@ export function Furniture({ f }: { f: FurnitureDef }) {
         y={my - ph / 2}
         width={pw}
         height={ph}
-        preserveAspectRatio="none"
-        transform={turn ? `rotate(90 ${mx} ${my})` : undefined}
+        preserveAspectRatio="xMidYMid meet"
+        transform={degrees ? `rotate(${degrees} ${mx} ${my})` : undefined}
         data-themed="furniture"
       />
     );

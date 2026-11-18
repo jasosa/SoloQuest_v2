@@ -15,7 +15,21 @@ export function floorCell(
   size: number,
   corridor: boolean,
   key: string,
+  art = 'board-art',
 ): ReactNode {
+  // the board picture shows through the squares that are drawn (the pattern is `<BoardArt id={art} />`)
+  if (theme.board)
+    return (
+      <rect
+        key={key}
+        x={x * size}
+        y={y * size}
+        width={size}
+        height={size}
+        fill={`url(#${art})`}
+        data-themed="floor"
+      />
+    );
   const tile = tileFor((corridor ? theme.corridor : undefined) ?? theme.floor ?? [], x, y);
   if (tile)
     return (
@@ -41,6 +55,34 @@ export function floorCell(
       stroke={color.cellLine}
       strokeWidth={0.8}
     />
+  );
+}
+
+/** The picture of the whole board as a pattern called `id`, `w` x `h` squares of `size` px. */
+export function BoardArt({
+  id,
+  theme,
+  w,
+  h,
+  size,
+}: {
+  id: string;
+  theme: Theme;
+  w: number;
+  h: number;
+  size: number;
+}) {
+  if (!theme.board) return null;
+  return (
+    <pattern id={id} width={w * size} height={h * size} patternUnits="userSpaceOnUse" x={0} y={0}>
+      <image
+        href={theme.board}
+        width={w * size}
+        height={h * size}
+        preserveAspectRatio="none"
+        data-themed="board"
+      />
+    </pattern>
   );
 }
 
@@ -113,13 +155,13 @@ export function wallSegment(
 /** A door at (cx, cy), `size` px wide: the theme's picture, or null for the built-in drawing. */
 export function doorPiece(
   theme: Theme,
-  open: boolean,
+  kind: 'closed' | 'open' | 'secret',
   cx: number,
   cy: number,
   vertical: boolean,
   size: number,
 ): ReactNode {
-  const href = open ? theme.door?.open : theme.door?.closed;
+  const href = theme.door?.[kind];
   if (!href) return null;
   return (
     <image
@@ -151,8 +193,46 @@ export function squarePiece(
       y={y * size}
       width={size}
       height={size}
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
       data-themed={kind}
     />
   );
+}
+
+/**
+ * A block of one or two squares as one picture, or null for the built-in drawing. Two squares
+ * side by side use the `double` picture (turned when they stand one above the other).
+ */
+export function blockPiece(
+  theme: Theme,
+  cells: readonly (readonly [number, number])[],
+  size: number,
+  key: string,
+): ReactNode {
+  const a = cells[0];
+  const b = cells[1];
+  if (a && b && cells.length === 2 && Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) === 1) {
+    if (!theme.block?.double) return null;
+    const vertical = a[0] === b[0];
+    const x0 = Math.min(a[0], b[0]) * size;
+    const y0 = Math.min(a[1], b[1]) * size;
+    const w = (vertical ? 1 : 2) * size;
+    const h = (vertical ? 2 : 1) * size;
+    const mx = x0 + w / 2;
+    const my = y0 + h / 2;
+    return (
+      <image
+        key={key}
+        href={theme.block.double}
+        x={mx - size}
+        y={my - size / 2}
+        width={2 * size}
+        height={size}
+        preserveAspectRatio="xMidYMid meet"
+        transform={vertical ? `rotate(90 ${mx} ${my})` : undefined}
+        data-themed="block2"
+      />
+    );
+  }
+  return null;
 }

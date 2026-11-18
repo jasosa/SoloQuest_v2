@@ -645,6 +645,12 @@ header .goalline b {
     0 0 2px var(--ink),
     0 0 3px var(--ink);
 }
+/* a texture pack token is a whole token (its frame included): show all of it, no green behind */
+.roster .coin.pic.whole {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
 
 /* ---------- adding a monster in play (decision 66) ---------- */
 .add-monster-btn {
