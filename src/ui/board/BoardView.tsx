@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { areaAt, cellsOf, isWallBetween, roomIds, type Board } from '../../engine/board/board';
 import { color } from '../shared/tokens';
+import { useTheme } from '../theme/activeTheme';
+import { floorCell, RockPattern } from '../theme/draw';
 
 export const CELL = 34;
 
@@ -22,6 +24,7 @@ const EDGES = [
 export function BoardView({ board, known, labels = false }: BoardViewProps) {
   const { width: W, height: H } = board;
   const rooms = useMemo(() => roomIds(board), [board]);
+  const theme = useTheme();
 
   const cells = [];
   const walls = [];
@@ -41,18 +44,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
       );
       if (!known(x, y)) continue;
       const corridor = areaAt(board, x, y) === 'C';
-      cells.push(
-        <rect
-          key={`f${x},${y}`}
-          x={x * CELL}
-          y={y * CELL}
-          width={CELL}
-          height={CELL}
-          fill={corridor ? color.corridor : color.floor}
-          stroke={color.cellLine}
-          strokeWidth={0.8}
-        />,
-      );
+      cells.push(floorCell(theme, x, y, CELL, corridor, `f${x},${y}`));
       for (const [dx, dy, ax, ay, bx, by] of EDGES) {
         if (!isWallBetween(board, [x, y], [x + dx, y + dy])) continue;
         walls.push(
@@ -81,16 +73,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
       viewBox={`-2 -2 ${W * CELL + 4} ${H * CELL + 4}`}
     >
       <defs>
-        <pattern
-          id="hatch"
-          width={6}
-          height={6}
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          <rect width={6} height={6} fill={color.rock} />
-          <line x1={0} y1={0} x2={0} y2={6} stroke={color.rockLine} strokeWidth={2} />
-        </pattern>
+        <RockPattern id="hatch" theme={theme} size={CELL} />
       </defs>
       <rect x={0} y={0} width={W * CELL} height={H * CELL} fill="url(#hatch)" />
       {cells}

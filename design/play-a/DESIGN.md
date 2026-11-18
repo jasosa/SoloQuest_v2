@@ -255,3 +255,7 @@ A monster the quest marks special has a second ink ring around its token and a s
 **Quest identity.** A quest is always shown as "QUEST N" (small caps, ink-2) over its title (bold, ink) on paper-3 with a 2 px ink outline. The select screen uses it in a grid of cards; the editor's recent list uses it in rows, with the status (Unsaved draft or Saved, and the date) and Delete on the right.
 
 **Names.** Whole tool: Quest editor. Library of abilities, spells, enemies, heroes and companions: Library (decision 77). Buttons and labels use sentence case ("Quest info", "End quest", "Add a monster").
+
+## Themes and texture packs (decision 78)
+
+Every board (play, Zargon view, editor, debug board) draws floor squares and the rock fill through `src/ui/theme/draw.tsx`, and furniture through `Furniture.tsx`, using the active theme (`src/ui/theme/`). The built-in theme has no pictures and is the line art described above: nothing changes unless a theme gives a picture. A theme slot is one picture (floor and corridor: a list used in turn by square, so the floor does not repeat; rock: one tile; furniture: one picture per type, stretched over the footprint and turned by 90 degrees when the piece stands the other way than the picture's `cells`). A slot with no picture falls back to the built-in drawing. A theme cannot change the UI tokens, contrast or touch sizes. In development `?theme=test` loads flat test pictures. Not built yet: walls, doors, traps, stairs, markers, tokens, the pack file (`.sqtextures`) and the picker.

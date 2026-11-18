@@ -1,3 +1,4 @@
+import { setActiveTheme } from './theme/activeTheme';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { board } from '../engine/board/board';
 import { buildLevel } from '../engine/board/level';
@@ -92,6 +93,12 @@ function startFromUrl(
 
 export function App() {
   const params = useMemo(() => new URLSearchParams(location.search), []);
+
+  // Development only: `?theme=test` loads flat test pictures (never bundled in production).
+  useEffect(() => {
+    if (!import.meta.env.DEV || params.get('theme') !== 'test') return;
+    void import('./theme/testTheme').then((m) => setActiveTheme(m.TEST_THEME));
+  }, [params]);
 
   // Debug board for map checks: `?state=fog|partial|full&labels=1`.
   if (params.has('state'))

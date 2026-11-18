@@ -26,6 +26,8 @@ import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
+import { useTheme } from '../theme/activeTheme';
+import { floorCell, RockPattern } from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
@@ -123,6 +125,7 @@ export function EditorBoard({
   reference?: ReferenceApi;
 }) {
   const { quest, tool, opts, selection, pendingBlock, picking, flash } = useStore(store);
+  const theme = useTheme();
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -399,18 +402,7 @@ export function EditorBoard({
         continue;
       }
       const corridor = areaAt(board, x, y) === 'C';
-      cells.push(
-        <rect
-          key={`f${k}`}
-          x={x * U}
-          y={y * U}
-          width={U}
-          height={U}
-          fill={corridor ? color.corridor : color.floor}
-          stroke={color.cellLine}
-          strokeWidth={0.8}
-        />,
-      );
+      cells.push(floorCell(theme, x, y, U, corridor, `f${k}`));
       for (const [dx, dy, ax, ay, bx, by] of [
         [0, -1, 0, 0, 1, 0],
         [1, 0, 1, 0, 1, 1],
@@ -970,16 +962,7 @@ export function EditorBoard({
             onBlur={() => setFocused(false)}
           >
             <defs>
-              <pattern
-                id="ed-hatch"
-                width={6}
-                height={6}
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)"
-              >
-                <rect width={6} height={6} fill={color.rock} />
-                <line x1={0} y1={0} x2={0} y2={6} stroke={color.rockLine} strokeWidth={2} />
-              </pattern>
+              <RockPattern id="ed-hatch" theme={theme} size={U} />
               {bad}
             </defs>
             {cells}

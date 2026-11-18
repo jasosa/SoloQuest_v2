@@ -1,6 +1,8 @@
 import type { FurnitureDef } from '../../engine/quest/schema';
 import { CELL } from './BoardView';
 import { color } from '../shared/tokens';
+import { useTheme } from '../theme/activeTheme';
+import { needsTurn } from '../theme/theme';
 
 const S = CELL;
 const INK = color.ink;
@@ -8,6 +10,7 @@ const WHITE = color.white;
 
 /** Furniture footprint as simple line art (ported from the prototype). Rooms are never partly drawn. */
 export function Furniture({ f }: { f: FurnitureDef }) {
+  const slot = useTheme().furniture?.[f.type];
   const xs = f.cells.map((c) => c[0]);
   const ys = f.cells.map((c) => c[1]);
   const cx0 = Math.min(...xs);
@@ -16,6 +19,27 @@ export function Furniture({ f }: { f: FurnitureDef }) {
   const h = (Math.max(...ys) - cy0 + 1) * S;
   const x = cx0 * S;
   const y = cy0 * S;
+
+  // A theme picture replaces the line art (decision 78); turned by 90 degrees when the piece stands the other way.
+  if (slot) {
+    const turn = needsTurn(slot, w / S, h / S);
+    const pw = turn ? h : w;
+    const ph = turn ? w : h;
+    const mx = x + w / 2;
+    const my = y + h / 2;
+    return (
+      <image
+        href={slot.href}
+        x={mx - pw / 2}
+        y={my - ph / 2}
+        width={pw}
+        height={ph}
+        preserveAspectRatio="none"
+        transform={turn ? `rotate(90 ${mx} ${my})` : undefined}
+        data-themed="furniture"
+      />
+    );
+  }
 
   if (f.type === 'stairs') {
     const n = Math.round(Math.min(w, h) / 10.5);

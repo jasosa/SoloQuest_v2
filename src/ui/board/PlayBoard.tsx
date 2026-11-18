@@ -19,6 +19,8 @@ import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
+import { useTheme } from '../theme/activeTheme';
+import { floorCell, RockPattern } from '../theme/draw';
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
@@ -108,6 +110,7 @@ export function PlayBoard({
   onPickCell,
   zargonView = false,
 }: PlayBoardProps) {
+  const theme = useTheme();
   const { board } = level;
   const W = board.width;
   const H = board.height;
@@ -158,18 +161,7 @@ export function PlayBoard({
       const k = cellKey(x, y);
       const f = fresh(k);
       const corridor = areaAt(board, x, y) === 'C';
-      (f ? floors.neu : floors.old).push(
-        <rect
-          key={`f${k}`}
-          x={x * S}
-          y={y * S}
-          width={S}
-          height={S}
-          fill={corridor ? color.corridor : color.floor}
-          stroke={color.cellLine}
-          strokeWidth={0.8}
-        />,
-      );
+      (f ? floors.neu : floors.old).push(floorCell(theme, x, y, S, corridor, `f${k}`));
       for (const [dx, dy, ax, ay, bx, by] of EDGES) {
         const nx = x + dx;
         const ny = y + dy;
@@ -928,16 +920,7 @@ export function PlayBoard({
       viewBox={`-2 -2 ${W * S + 4} ${H * S + 4}`}
     >
       <defs>
-        <pattern
-          id="hatch"
-          width={6}
-          height={6}
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          <rect width={6} height={6} fill={color.rock} />
-          <line x1={0} y1={0} x2={0} y2={6} stroke={color.rockLine} strokeWidth={2} />
-        </pattern>
+        <RockPattern id="hatch" theme={theme} size={S} />
         {ink && (
           <mask
             id="inkmask"

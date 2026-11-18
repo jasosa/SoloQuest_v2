@@ -9,6 +9,8 @@ import type { GameState } from '../../engine/game/state';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import { CELL as S } from './BoardView';
+import { useTheme } from '../theme/activeTheme';
+import { floorCell } from '../theme/draw';
 import { Furniture } from './Furniture';
 import { hiddenView, type HiddenTrap } from './hiddenView';
 
@@ -28,23 +30,13 @@ const TRAP_LETTER: Record<HiddenTrap['kind'], string> = {
 };
 
 export function ZargonOverlay({ level, state }: { level: Level; state: GameState }) {
+  const theme = useTheme();
   const { board } = level;
   const hv = hiddenView(level, state);
   const floors: React.ReactNode[] = [];
   const walls: React.ReactNode[] = [];
   for (const [x, y] of hv.cells) {
-    floors.push(
-      <rect
-        key={`zf${x},${y}`}
-        x={x * S}
-        y={y * S}
-        width={S}
-        height={S}
-        fill={areaAt(board, x, y) === 'C' ? color.corridor : color.floor}
-        stroke={color.cellLine}
-        strokeWidth={0.8}
-      />,
-    );
+    floors.push(floorCell(theme, x, y, S, areaAt(board, x, y) === 'C', `zf${x},${y}`));
     for (const [dx, dy, ax, ay, bx, by] of EDGES) {
       const nx = x + dx;
       const ny = y + dy;
