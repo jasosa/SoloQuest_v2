@@ -131,7 +131,8 @@
 }
 .note-slot.beside {
   display: flex;
-  align-items: center;
+  /* centered on the tapped object, but never above the top of the slot (a tall note grows down) */
+  align-items: safe center;
 }
 .callout {
   pointer-events: auto;

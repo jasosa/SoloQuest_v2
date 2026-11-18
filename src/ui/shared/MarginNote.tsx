@@ -34,9 +34,12 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
   const above = y > MAP_H * 0.5;
   let style: React.CSSProperties;
   let origin: { ox: string; oy: string };
+  // a tall note never goes past the map: it takes the room there is and scrolls inside
+  let maxHeight: number;
   if (above) {
     const left = Math.max(28, Math.min(x - 60, MAP_W - NOTE_W - 4));
     style = { left, bottom: MAP_H - y + 24 };
+    maxHeight = Math.max(160, y - 24 - 8);
     origin = { ox: `${x - left}px`, oy: '100%' };
   } else {
     let left = x + 26;
@@ -47,6 +50,7 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
     }
     const top = Math.max(8, Math.min(y - SLOT_H / 2, MAP_H - SLOT_H - 8));
     style = { left, top, height: SLOT_H };
+    maxHeight = Math.max(160, MAP_H - top - 8);
     origin = { ox, oy: `${y - top - 0}px` };
   }
 
@@ -58,7 +62,14 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
         role="dialog"
         aria-label={title}
         data-keep
-        style={{ '--ox': origin.ox, '--oy': above ? origin.oy : '50%' } as React.CSSProperties}
+        style={
+          {
+            '--ox': origin.ox,
+            '--oy': above ? origin.oy : '50%',
+            maxHeight,
+            overflowY: 'auto',
+          } as React.CSSProperties
+        }
       >
         <button className="close" aria-label="Close" onClick={onClose}>
           ×
