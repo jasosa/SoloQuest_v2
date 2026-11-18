@@ -288,7 +288,15 @@ export function PlayBoard({
     into(isFresh).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        {doorPiece(theme, open ? 'open' : 'closed', cx, cy, vertical, S) ?? (
+        {doorPiece(
+          theme,
+          // a found secret door keeps its own picture, closed or open
+          d.kind === 'secret' && theme.door?.secret ? 'secret' : open ? 'open' : 'closed',
+          cx,
+          cy,
+          vertical,
+          S,
+        ) ?? (
           <>
             <rect
               x={cx - w / 2}

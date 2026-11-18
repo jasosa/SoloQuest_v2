@@ -163,6 +163,22 @@ export function doorPiece(
 ): ReactNode {
   const href = theme.door?.[kind];
   if (!href) return null;
+  if (kind === 'secret') {
+    // A secret door picture is about square (a slab on the wall line with its leaf swung up): its
+    // bottom edge sits on the wall, and it is turned for a door in a vertical wall.
+    return (
+      <image
+        href={href}
+        x={cx - size / 2}
+        y={cy - size + 5}
+        width={size}
+        height={size}
+        preserveAspectRatio="xMidYMid meet"
+        transform={vertical ? `rotate(90 ${cx} ${cy})` : undefined}
+        data-themed="door"
+      />
+    );
+  }
   return (
     <image
       href={href}
