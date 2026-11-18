@@ -159,6 +159,11 @@ export function createGameStore(init: GameStoreInit): GameStore {
             `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} slain.`,
             true,
           );
+        if (event.type === 'MONSTER_LEAVE')
+          toast = toastOf(
+            `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} ${event.reason === 'freed' ? 'was freed' : event.reason}. Not a kill.`,
+            true,
+          );
         // The real Zargon page (orders per monster) is milestone M5. For now the button only
         // ends the turn; notes that fire on a turn come back as prompts and show as sheets.
         if (event.type === 'ZARGON_TURN_END')

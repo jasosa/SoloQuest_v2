@@ -29,6 +29,12 @@ export const EventSchema = z.discriminatedUnion('type', [
     amount: z.number().int().min(1),
   }),
   z.object({ type: z.literal('MONSTER_KILL'), monster: z.string() }),
+  z.object({
+    type: z.literal('MONSTER_LEAVE'),
+    monster: z.string(),
+    reason: z.enum(['escaped', 'surrendered', 'freed']),
+  }),
+  z.object({ type: z.literal('MONSTER_WAKE'), monster: z.string() }),
   z.object({ type: z.literal('ZARGON_TURN_END') }),
   z.object({
     type: z.literal('SEARCH_TREASURE'),

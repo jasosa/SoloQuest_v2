@@ -28,6 +28,8 @@ export function resolveMonster(m: MonsterDef, enemies: Quest['enemyDefs']): Mons
   const image = m.image ?? e.image;
   const profile = m.profile ?? e.profile;
   const weights = m.weights ?? e.weights;
+  const attacks = m.attacks ?? e.attacks;
+  const size = m.size ?? e.size;
   return {
     ...m,
     name: m.name ?? e.name,
@@ -39,6 +41,8 @@ export function resolveMonster(m: MonsterDef, enemies: Quest['enemyDefs']): Mons
     ...(image ? { image } : {}),
     ...(profile ? { profile } : {}),
     ...(weights ? { weights } : {}),
+    ...(attacks ? { attacks } : {}),
+    ...(size ? { size } : {}),
   };
 }
 

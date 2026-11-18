@@ -20,6 +20,17 @@ export type GameEvent =
   | { readonly type: 'MONSTER_HEAL'; readonly monster: string; readonly amount: number }
   /** A seen monster dies at once (body 0). */
   | { readonly type: 'MONSTER_KILL'; readonly monster: string }
+  /**
+   * A seen monster leaves the roster without being killed (decision 51): a thief escaped with its
+   * loot, an enemy surrendered, a caged monster was freed. It is not a kill: no kill notes.
+   */
+  | {
+      readonly type: 'MONSTER_LEAVE';
+      readonly monster: string;
+      readonly reason: 'escaped' | 'surrendered' | 'freed';
+    }
+  /** A passive monster is attacked and becomes active (decision 51). */
+  | { readonly type: 'MONSTER_WAKE'; readonly monster: string }
   /** End of a Zargon turn: the turn counter goes up by one. */
   | { readonly type: 'ZARGON_TURN_END' }
   /** A hero searches a revealed room for treasure (once per hero per room). `override` skips the

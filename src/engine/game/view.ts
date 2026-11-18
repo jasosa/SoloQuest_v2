@@ -5,6 +5,7 @@ import { areaAt, roomIds, type AreaId, type Cell } from '../board/board';
 import type { Level } from '../board/level';
 import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
+import { profileOf, type Profile } from '../zargon/weights';
 import type { TrapKindName } from './prompts';
 import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
 import type { GameState } from './state';
@@ -21,8 +22,12 @@ export interface MonsterView {
   readonly body: number;
   readonly maxBody: number;
   readonly dead: boolean;
-  /** Dormant and stone monsters are in the roster but do not act. */
-  readonly state: 'active' | 'dormant' | 'stone' | 'away';
+  /** Dormant and stone monsters are in the roster but do not act; so is a passive one (it has buttons). */
+  readonly state: 'active' | 'dormant' | 'stone' | 'away' | 'passive';
+  /** Its Zargon plan (a thief can escape, a passive monster can leave or be attacked). */
+  readonly profile: Profile;
+  /** Squares along a side (2 is a large monster). */
+  readonly size?: number;
   /** Zargon turns of stone left, when the quest says so. */
   readonly stoneTurns?: number;
   /** The square the quest names for a monster placed by a note. Text for the players. */
@@ -77,6 +82,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       maxBody: stats.body,
       dead: rec.dead,
       state: st.state,
+      profile: profileOf(m),
+      ...(m.size && m.size > 1 ? { size: m.size } : {}),
       special: m.special === true,
       abilities: abilitiesOf(lookup, m.abilities),
       ...(m.letter ? { letter: m.letter } : {}),
@@ -87,7 +94,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
   }
   for (const [id, w] of Object.entries(state.wanderers)) {
     const rec = state.monsters[id];
-    if (!rec) continue;
+    // a wanderer that escaped (MONSTER_LEAVE) is off the roster
+    if (!rec || state.monsterStates[id]?.state === 'away') continue;
     const stats = statsOf({ type: w.type });
     out.push({
       id,
@@ -98,6 +106,7 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       maxBody: stats.body,
       dead: rec.dead,
       state: 'active',
+      profile: profileOf({ type: w.type }),
       wandering: w.added !== true,
       ...(w.wanderAt ? { wanderAt: w.wanderAt } : {}),
       ...(w.added ? { added: true } : {}),

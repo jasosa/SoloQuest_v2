@@ -187,7 +187,7 @@ Order of work. Each slice ends green with tests and a commit.
 
 Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs in `C:/Users/Juanan/Documents/Games/Heroquest/01_Rules/Official/`.
 
-- [ ] Slice 1: the monsters as data: new profiles (thief, grappler, shooter, passive, multi-attack, large) in the Zargon AI with their weights, `size` 2 x 2 and `passive` state on a monster; the Frozen Horror monsters, named monsters and mercenaries as a Core file (`src/content/library/frozen-horror.json`, expansion "Frozen Horror") from the stats in `FROZEN_HORROR.md` section 5
+- [x] Slice 1: the monsters as data: profiles thief, grappler, shooter and passive, `attacks` (several attacks) and `size` 2 on a monster, the `passive` state, `MONSTER_LEAVE` (Escaped, It left) and `MONSTER_WAKE` events with buttons; the 8 generic Frozen Horror monsters as a Core file (`src/content/library/frozen-horror.json`). Named monsters (Krag, Vilor, Kelvinos, Jracksfot, Gothar, Snowdasher) and mercenaries come with the quests, and the Frozen Horror's spells with slice 2
 - [ ] Slice 2: the Frozen Horror spells (Chill, Ice Storm, Ice Wall, Mind Freeze, Skate, Soothe) with their tags and warnings, and the six random extra spells; animal allies (the wolf) and the alternate Barbarian as Core items
 - [ ] Slice 3: trap kinds as data (decision 44) and the hazards: stalactite, swinging axe, wandering monster trap, slippery ice, ice slide, optional decoys, ice slide reveal on a good jump
 - [ ] Slice 4: the board: board-edge doors (iron entry, wooden exit, locked, `hiddenUntil`), start kinds (stairway, iron door, tile), room tiles, terrain, area merge, sight blockers until a flag, ice tunnels with design ids, wandering monster list

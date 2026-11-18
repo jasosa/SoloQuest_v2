@@ -137,6 +137,10 @@ const PROFILE_LABELS: Readonly<Record<Profile, string>> = {
   fighter: 'Fighter: attacks, sometimes moves back',
   relentless: 'Relentless: never falls back',
   caster: 'Caster: a spell first',
+  thief: 'Thief: steals, then runs away',
+  grappler: 'Grappler: hugs a hero it wounds',
+  shooter: 'Shooter: shoots from a distance',
+  passive: 'Passive: no orders',
 };
 const LIMITS = [
   { n: 1, label: 'Once in the quest' },

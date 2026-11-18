@@ -20,8 +20,20 @@ export type RuleKey = (typeof RULE_KEYS)[number];
 /**
  * The plan of a monster (decision 74): skirmisher (goblins), fighter (orcs, abominations, dread
  * warriors: sometimes attack and move back), relentless (undead, gargoyles: never fall back), caster.
+ * Pack profiles (decision 49): thief (steals, then runs), grappler (hugs), shooter (shoots from a
+ * distance) and passive (no orders). Several attacks and a large size are not profiles: they are
+ * `attacks` and `size` on the monster.
  */
-export const PROFILES = ['skirmisher', 'fighter', 'relentless', 'caster'] as const;
+export const PROFILES = [
+  'skirmisher',
+  'fighter',
+  'relentless',
+  'caster',
+  'thief',
+  'grappler',
+  'shooter',
+  'passive',
+] as const;
 export type Profile = (typeof PROFILES)[number];
 
 export type Weights = Readonly<Partial<Record<RuleKey, number>>>;

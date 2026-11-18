@@ -1,0 +1,197 @@
+{
+  "format": "soloquest-core",
+  "items": [
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "frozenHorror",
+        "name": "Frozen Horror",
+        "letter": "FH",
+        "overrides": {
+          "move": 8,
+          "att": 5,
+          "def": 4,
+          "body": 6,
+          "mind": 4
+        },
+        "profile": "caster",
+        "weights": {
+          "highestAtt": 3,
+          "highestBody": 2,
+          "grudge": 2,
+          "lastAttacker": 1
+        },
+        "size": 2,
+        "traits": [
+          "A large monster of 2 x 2 squares: it attacks any adjacent square, diagonals included",
+          "It can squeeze through a corridor 1 square wide"
+        ]
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "iceGremlin",
+        "name": "Ice Gremlin",
+        "letter": "IG",
+        "overrides": {
+          "move": 10,
+          "att": 2,
+          "def": 3,
+          "body": 3,
+          "mind": 3
+        },
+        "profile": "thief",
+        "weights": {
+          "closest": 3,
+          "lowestDef": 2,
+          "lowestBody": 1
+        }
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "polarWarbear",
+        "name": "Polar Warbear",
+        "letter": "PW",
+        "overrides": {
+          "move": 6,
+          "att": 4,
+          "def": 3,
+          "body": 6,
+          "mind": 2
+        },
+        "profile": "relentless",
+        "weights": {
+          "closest": 3,
+          "highestAtt": 2,
+          "lastAttacker": 2,
+          "grudge": 1
+        },
+        "attacks": 2,
+        "traits": [
+          "Attacks twice per turn, 4 dice each",
+          "A hero defends once per turn against it, and may see the first attack before deciding"
+        ]
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "yeti",
+        "name": "Yeti",
+        "letter": "Y",
+        "overrides": {
+          "move": 8,
+          "att": 3,
+          "def": 3,
+          "body": 5,
+          "mind": 2
+        },
+        "profile": "grappler",
+        "weights": {
+          "lowestDef": 3,
+          "lowestBody": 2,
+          "closest": 2
+        }
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "crossbowman",
+        "name": "Crossbowman",
+        "letter": "CB",
+        "overrides": {
+          "move": 6,
+          "att": 3,
+          "def": 3,
+          "body": 2,
+          "mind": 2
+        },
+        "profile": "shooter",
+        "weights": {
+          "caster": 3,
+          "lowestDef": 2,
+          "lastAttacker": 2
+        }
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "halberdier",
+        "name": "Halberdier",
+        "letter": "HB",
+        "overrides": {
+          "move": 6,
+          "att": 3,
+          "def": 3,
+          "body": 2,
+          "mind": 2
+        },
+        "profile": "fighter",
+        "weights": {
+          "closest": 3,
+          "lastAttacker": 3,
+          "lowestBody": 2,
+          "highestAtt": 1,
+          "grudge": 1
+        },
+        "traits": [
+          "Attacks diagonally"
+        ]
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "scout",
+        "name": "Scout",
+        "letter": "SC",
+        "overrides": {
+          "move": 9,
+          "att": 2,
+          "def": 3,
+          "body": 2,
+          "mind": 2
+        },
+        "profile": "skirmisher",
+        "weights": {
+          "isolated": 1
+        }
+      }
+    },
+    {
+      "kind": "enemy",
+      "expansion": "Frozen Horror",
+      "data": {
+        "id": "swordsman",
+        "name": "Swordsman",
+        "letter": "SW",
+        "overrides": {
+          "move": 5,
+          "att": 4,
+          "def": 5,
+          "body": 2,
+          "mind": 2
+        },
+        "profile": "fighter",
+        "weights": {
+          "highestAtt": 3,
+          "highestBody": 2,
+          "grudge": 2,
+          "lastAttacker": 1
+        }
+      }
+    }
+  ]
+}

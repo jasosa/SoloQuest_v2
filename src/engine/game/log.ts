@@ -84,6 +84,16 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
       return { turn, kind: 'look', text: 'A hero looked along the corridor' };
     case 'MONSTER_KILL':
       return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} slain` };
+    case 'MONSTER_LEAVE': {
+      const how = { escaped: 'escaped', surrendered: 'surrendered', freed: 'was freed' }[e.reason];
+      return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} ${how}` };
+    }
+    case 'MONSTER_WAKE':
+      return {
+        turn,
+        kind: 'monster',
+        text: `${monsterName(level, before, e.monster)} was attacked`,
+      };
     case 'SEARCH_TREASURE':
       return { turn, kind: 'search', text: `The ${cap(e.hero)} searched for treasure` };
     case 'SEARCH_SECRET_DOORS':

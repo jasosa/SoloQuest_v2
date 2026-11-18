@@ -11,6 +11,7 @@ const view = (extra: Partial<MonsterView> = {}): MonsterView => ({
   maxBody: 3,
   dead: false,
   state: 'active',
+  profile: 'fighter',
   special: false,
   abilities: [],
   ...extra,

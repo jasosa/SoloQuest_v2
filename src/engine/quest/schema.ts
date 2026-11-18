@@ -54,7 +54,7 @@ export const MONSTER_TYPES = [
 export const TRAP_KINDS = ['pit', 'fallingBlock', 'spear', 'chest', 'scripted'] as const;
 
 const MonsterType = z.enum(MONSTER_TYPES);
-const MonsterState = z.enum(['active', 'dormant', 'stone', 'away']);
+const MonsterState = z.enum(['active', 'dormant', 'stone', 'away', 'passive']);
 
 // ---- geometry
 
@@ -140,6 +140,10 @@ const MonsterSchema = z
     /** Its own Zargon plan and who it goes for (from its enemy, decision 75). */
     profile: z.enum(PROFILES).optional(),
     weights: WeightsSchema.optional(),
+    /** Attacks per turn when it has more than one (Polar Warbear: 2); one target rule is drawn for each (decision 49). */
+    attacks: z.number().int().min(1).max(3).optional(),
+    /** Squares along a side: 2 is a large monster of 2 x 2 squares (Frozen Horror). The square is its top left corner. */
+    size: z.number().int().min(1).max(2).optional(),
     /** Paraphrased special rules of a named monster, shown first on its Zargon order. */
     traits: z.array(nonEmpty).optional(),
     /** Story-critical monster (decision 69): drawn with a ring and a star. Not the same as having an ability. */
@@ -170,6 +174,8 @@ export const EnemyDefSchema = z
     /** Its Zargon plan, and who it goes for with a weight per rule (decision 75). */
     profile: z.enum(PROFILES).optional(),
     weights: WeightsSchema.optional(),
+    attacks: z.number().int().min(1).max(3).optional(),
+    size: z.number().int().min(1).max(2).optional(),
     abilities: z.array(id).optional(),
     spells: z.array(nonEmpty).optional(),
     traits: z.array(nonEmpty).optional(),
@@ -316,7 +322,7 @@ export type Effect =
   | {
       type: 'setMonsterState';
       monster: string;
-      state: 'active' | 'dormant' | 'stone' | 'away';
+      state: 'active' | 'dormant' | 'stone' | 'away' | 'passive';
       turns?: number | undefined;
     }
   | { type: 'addSecretDoor'; door: string }

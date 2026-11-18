@@ -126,6 +126,9 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       }));
     case 'MONSTER_KILL':
       return monsterChange(level, state, event.monster, () => ({ body: 0, dead: true }));
+    case 'MONSTER_LEAVE':
+    case 'MONSTER_WAKE':
+      return monsterStatus(level, state, event);
     case 'ZARGON_TURN_END': {
       const d = draftOf(state);
       const ended = d.turn;
@@ -360,6 +363,38 @@ function monsterChange(
     beforeRooms: new Set(state.revealedRooms),
   });
   return { state: d, prompts: r.prompts };
+}
+
+/**
+ * A seen, living monster leaves the roster without a kill (`MONSTER_LEAVE`, decision 51), or a passive
+ * one wakes (`MONSTER_WAKE`). Both only change the state: no kill notes fire, and a monster that
+ * left is not counted as killed.
+ */
+function monsterStatus(
+  level: Level,
+  state: GameState,
+  event: Extract<GameEvent, { type: 'MONSTER_LEAVE' | 'MONSTER_WAKE' }>,
+): Reduced {
+  const id = event.monster;
+  const def = level.quest.monsters.find((m) => m.id === id);
+  const wanderer = state.wanderers[id];
+  if (!def && !wanderer) throw new EventError('UNKNOWN_MONSTER', `Unknown monster ${id}`);
+  const rec = state.monsters[id];
+  if (!state.seenMonsters.has(id) || !rec)
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} has not been seen yet`);
+  if (rec.dead) throw new EventError('MONSTER_DEAD', `Monster ${id} is already dead`);
+  if (def && isDormant(def, state))
+    throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} is not in the roster`);
+  const d = draftOf(state);
+  if (event.type === 'MONSTER_WAKE') {
+    if (!def || monsterStateOf(def, state).state !== 'passive')
+      throw new EventError('MONSTER_INACTIVE', `Monster ${id} is not passive`);
+    d.monsterStates[id] = { state: 'active' };
+    return { state: d, prompts: [] };
+  }
+  // a wandering monster has no quest def: its record is kept the same way, by id
+  d.monsterStates[id] = { state: 'away', reason: event.reason };
+  return { state: d, prompts: [] };
 }
 
 /** A seen, living, active quest monster, or an error. Wanderers are returned without a def. */

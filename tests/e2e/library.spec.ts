@@ -70,7 +70,7 @@ test.describe('Library layers (decision 76)', () => {
     page,
   }) => {
     await open(page);
-    await expect(page.getByTestId('dz-expansions')).toContainText('No expansion');
+    await expect(page.getByTestId('dz-expansions')).toContainText('Frozen Horror');
     // the owner makes an official enemy of an expansion
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
@@ -107,7 +107,9 @@ test.describe('Library layers (decision 76)', () => {
     await page.getByLabel('Title').first().fill('Second quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await expect(page.getByTestId('custom-monsters')).toHaveCount(0);
+    await expect(
+      page.getByTestId('custom-monsters').getByRole('button', { name: /Frosty/ }),
+    ).toHaveCount(0);
     // and the Library screen still lists it
     await page.getByRole('tab', { name: 'Library' }).click();
     await kind(page, /^Enemies/);

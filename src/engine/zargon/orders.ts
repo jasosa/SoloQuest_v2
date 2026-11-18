@@ -14,7 +14,16 @@ import { rngFor, shuffled } from './hash';
 import { SPELL_EFFECT_TEXT } from './spells';
 import { SPELL_TIMING_TEXT, hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
 import { pickSpell } from './spellPick';
-import { PLAN_TEXT, RULE_TEXT, fighterPlan, noTargetText } from './texts';
+import {
+  PLAN_TEXT,
+  RULE_TEXT,
+  fighterPlan,
+  grapplerPlan,
+  multiAttackLines,
+  noTargetText,
+  shooterPlan,
+  thiefPlan,
+} from './texts';
 import {
   isCaster,
   profileOf,
@@ -201,6 +210,61 @@ export function spellsLeft(
   return left;
 }
 
+const grudgeAlive = (living: readonly Hero[], g: Hero) => living.includes(g);
+
+/** The plan line of one turn. The seeded draws use their own labels, so they never change the rule draw. */
+function planOf(
+  profile: Profile,
+  seed: number,
+  turn: number,
+  id: string,
+  attacks: number,
+  caps: Caps,
+  living: readonly Hero[],
+  grudgeOk: boolean,
+): string {
+  const draw = (label: string) => next(rngFor(seed, turn, id, label))[0];
+  let plan: string;
+  switch (profile) {
+    case 'fighter':
+      plan = fighterPlan(draw('back') < 1 / 3);
+      break;
+    case 'thief':
+      plan = thiefPlan(draw('steal') < 1 / 2);
+      break;
+    case 'grappler':
+      plan = grapplerPlan(true);
+      break;
+    case 'shooter':
+      plan = shooterPlan(draw('stepback') < 0.7);
+      break;
+    default:
+      plan = PLAN_TEXT[profile];
+  }
+  if (attacks < 2) return plan;
+  // One target rule per attack: the first is the order's own rule, the others are drawn here.
+  const rules: string[] = [];
+  for (let k = 1; k < attacks; k++) {
+    const entries = availableRules(caps, living, grudgeOk);
+    if (entries.length === 0) {
+      rules.push(RULE_TEXT.closest);
+      continue;
+    }
+    const total = entries.reduce((s, [, w]) => s + w, 0);
+    let pick = next(rngFor(seed, turn, id, `rule${k + 1}`))[0] * total;
+    let chosen = entries[entries.length - 1]![0];
+    for (const [key, w] of entries) {
+      if (pick < w) {
+        chosen = key;
+        break;
+      }
+      pick -= w;
+    }
+    rules.push(RULE_TEXT[chosen]);
+  }
+  return `${plan} ${multiAttackLines(['The target above', ...rules])}`;
+}
+
 function buildOrder(
   level: Level,
   state: GameState,
@@ -234,6 +298,19 @@ function buildOrder(
     };
   }
 
+  if (view.state === 'passive') {
+    return {
+      ...base,
+      status: 'stone',
+      profile,
+      tie: living,
+      special: [],
+      note: 'Passive: no orders. If the heroes free it or it leaves, tap "It left". If a hero attacks it, tap "A hero attacked it".',
+      turn: state.turn,
+      done,
+    };
+  }
+
   const fresh = view.wandering === true && view.fresh === true;
   const turn = fresh ? state.turn + 1 : state.turn;
   // The grudge hero comes from the FULL team; once he is dead the rule is no longer offered.
@@ -249,10 +326,16 @@ function buildOrder(
     ...(grudge ? { grudgeHero: grudge } : {}),
     // The shuffle is of the full team, so the relative order stays the same after a death.
     tie: shuffled(full, rngFor(seed, turn, id, 'tie')).filter((h) => living.includes(h)),
-    plan:
-      profile === 'fighter'
-        ? fighterPlan(next(rngFor(seed, turn, id, 'back'))[0] < 1 / 3)
-        : PLAN_TEXT[profile],
+    plan: planOf(
+      profile,
+      seed,
+      turn,
+      id,
+      def?.attacks ?? 1,
+      caps,
+      living,
+      grudgeAlive(living, grudgeHeroOfMonster),
+    ),
     ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
       ? {}
       : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),

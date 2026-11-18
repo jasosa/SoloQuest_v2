@@ -32,7 +32,7 @@ test.describe('designer: the library', () => {
     page,
   }) => {
     await open(page);
-    await expect(lib(page).getByRole('button', { name: /^Enemies 9 core/ })).toBeVisible();
+    await expect(lib(page).getByRole('button', { name: /^Enemies 17 core/ })).toBeVisible();
     await expect(lib(page).getByRole('button', { name: /^Heroes 4 core/ })).toBeVisible();
     await items(page).getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByLabel('Source')).toContainText('Core (you can change it)');
@@ -54,7 +54,7 @@ test.describe('designer: the library', () => {
     await items(page).getByRole('button', { name: /^Orc/ }).click();
     await items(page).getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Orc copy');
-    await expect(lib(page).getByRole('button', { name: /^Enemies 9 core · 1/ })).toBeVisible();
+    await expect(lib(page).getByRole('button', { name: /^Enemies 17 core · 1/ })).toBeVisible();
   });
 
   test('make an ability, a spell and an enemy that uses them', async ({ page }) => {
@@ -87,7 +87,7 @@ test.describe('designer: the library', () => {
       page.getByTestId('dz-spells').getByText('Mud', { exact: true }).first(),
     ).toBeVisible();
     await expect(items(page).getByRole('button', { name: 'Marsh Orc' })).toBeVisible();
-    await expect(lib(page).getByRole('button', { name: /^Enemies 9 core · 1/ })).toBeVisible();
+    await expect(lib(page).getByRole('button', { name: /^Enemies 17 core · 1/ })).toBeVisible();
     await shot(page, 'designer-enemy');
   });
 

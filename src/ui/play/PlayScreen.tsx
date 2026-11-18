@@ -793,6 +793,30 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               Slain
             </button>
           )}
+          {m.state === 'passive' && (
+            <div className="row">
+              <button
+                className="btn alt"
+                onClick={() => act({ type: 'MONSTER_LEAVE', monster: m.id, reason: 'freed' })}
+              >
+                It left
+              </button>
+              <button
+                className="btn alt"
+                onClick={() => act({ type: 'MONSTER_WAKE', monster: m.id })}
+              >
+                A hero attacked it
+              </button>
+            </div>
+          )}
+          {m.profile === 'thief' && (
+            <button
+              className="btn alt"
+              onClick={() => act({ type: 'MONSTER_LEAVE', monster: m.id, reason: 'escaped' })}
+            >
+              Escaped
+            </button>
+          )}
           {c && lookButton(c)}
           {forQuest('monster', m.id)}
         </MarginNote>
