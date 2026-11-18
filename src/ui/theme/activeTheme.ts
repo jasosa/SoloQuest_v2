@@ -1,4 +1,10 @@
-import { useSyncExternalStore } from 'react';
+import {
+  createContext,
+  createElement,
+  useContext,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { CLASSIC_THEME, type Theme } from './theme';
 
 /** The theme in use. A small store, so the board redraws when it changes. */
@@ -14,7 +20,8 @@ export function getActiveTheme(): Theme {
   return active;
 }
 
-export function useTheme(): Theme {
+/** The theme the app uses (the pack the person chose), whatever a screen draws with. */
+export function useActiveTheme(): Theme {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
@@ -22,4 +29,18 @@ export function useTheme(): Theme {
     },
     () => active,
   );
+}
+
+const ScopeCtx = createContext<Theme | undefined>(undefined);
+
+/** Draw what is inside with another theme (the editor map with the built-in look, for example). */
+export function ThemeScope({ theme, children }: { theme: Theme | undefined; children: ReactNode }) {
+  return createElement(ScopeCtx.Provider, { value: theme }, children);
+}
+
+/** The theme to draw with: the one of the nearest `ThemeScope`, or the theme the app uses. */
+export function useTheme(): Theme {
+  const scoped = useContext(ScopeCtx);
+  const app = useActiveTheme();
+  return scoped ?? app;
 }

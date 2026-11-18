@@ -110,4 +110,37 @@ test.describe('themes (decision 78)', () => {
     await page.keyboard.press('r');
     expect((await picture.getAttribute('transform')) ?? '').not.toMatch(/rotate\((180|270)/);
   });
+
+  test('editor: a Textures switch turns the pack on and off for the map; on uses all its pictures', async ({
+    page,
+  }) => {
+    // no pack in use: no switch
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByLabel('Title').first().fill('No pack');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+    await expect(page.getByTestId('editor-textures')).toHaveCount(0);
+
+    await page.goto('/?editor=1&nosave=1&theme=board');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('3');
+    await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Open it', exact: true }).click();
+    const sw = page.getByTestId('editor-textures');
+    await expect(sw).toHaveText('Textures: on');
+    await expect(sw).toHaveAttribute('aria-pressed', 'true');
+    // on: board, doors, the pit trap, furniture all use the pack
+    await expect(page.locator('[data-themed="board"]')).toBeAttached();
+    expect(await page.locator('[data-themed="door"]').count()).toBeGreaterThan(3);
+    await expect(page.locator('[data-trap] [data-themed="trap"]')).toHaveCount(1);
+    // off: the built-in drawing everywhere, and the choice is remembered
+    await sw.click();
+    await expect(sw).toHaveText('Textures: off');
+    await expect(page.locator('#editor-board [data-themed]')).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem('soloquest-editor-textures'))).toBe(
+      'off',
+    );
+    await sw.click();
+    await expect(page.locator('[data-themed="board"]')).toBeAttached();
+  });
 });

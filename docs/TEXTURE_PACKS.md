@@ -101,7 +101,7 @@ The board draws a square at 34 px, and tablets show it at up to 2x. Make picture
 
 ## What a pack does not change
 
-The editor keeps its own door symbols (so secret and false doors stay readable), markers keep their letters,
+The quest editor map can show the pack or not: View > Textures switches it. Markers keep their letters, a false door keeps its cross,
 Zargon view keeps its semi-transparent look for what the heroes have not seen, and the buttons, panels and colors
 of the app do not change. Saves and quest files never name a pack.
 

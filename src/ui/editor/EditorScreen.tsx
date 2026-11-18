@@ -24,6 +24,9 @@ import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
+import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
+import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
+import { CLASSIC_THEME } from '../theme/theme';
 
 const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'select', label: 'Select', key: 's' },
@@ -71,6 +74,8 @@ export function EditorScreen({
   useFitMode('width');
   const s = useStore(store);
   const { quest, tool, toast, warnings, saveErrors, tab } = s;
+  // The map uses the texture pack in use unless the person turned that off (View > Textures).
+  const mapTextures = useEditorTextures();
   const ref = useReference(quest.id, reference);
   const dropFile = async (file: File | undefined) => {
     if (!file) return;
@@ -218,7 +223,9 @@ export function EditorScreen({
               void dropFile(e.dataTransfer.files[0]);
             }}
           >
-            <EditorBoard store={store} reference={ref} />
+            <ThemeScope theme={mapTextures ? undefined : CLASSIC_THEME}>
+              <EditorBoard store={store} reference={ref} />
+            </ThemeScope>
             {warnings.length > 0 && (
               <div className="ed-warnings" role="status">
                 <button className="link" onClick={() => s.dismissWarnings()}>
@@ -261,6 +268,9 @@ function ToolOptions({ store }: { store: EditorStore }) {
   const lib = { abilities: library.abilities, spells: library.spells };
   const mine = new Set(quest.enemyDefs.map((e) => e.id));
   const libEnemies = library.enemies.filter((e) => !mine.has(e.id));
+  // the switch only means something when a texture pack is in use
+  const packInUse = useActiveTheme().id !== CLASSIC_THEME.id;
+  const mapTextures = useEditorTextures();
   const chip = (label: string, on: boolean, onClick: () => void) => (
     <button key={label} className="chip" aria-pressed={on} onClick={onClick}>
       {label}
@@ -388,6 +398,16 @@ function ToolOptions({ store }: { store: EditorStore }) {
       {tool === 'start' && <p className="ed-note">Click a room to make it the start.</p>}
       <div className="lbl ed-gap">View</div>
       {chip('Room ids', opts.roomIds, () => set({ roomIds: !opts.roomIds }))}
+      {packInUse && (
+        <button
+          className="chip"
+          aria-pressed={mapTextures}
+          data-testid="editor-textures"
+          onClick={() => setEditorTextures(!mapTextures)}
+        >
+          Textures: {mapTextures ? 'on' : 'off'}
+        </button>
+      )}
     </div>
   );
 }

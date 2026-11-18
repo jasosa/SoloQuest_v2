@@ -31,6 +31,7 @@ import { isThemeToken, monsterPicture } from '../theme/theme';
 import {
   BoardArt,
   blockPiece,
+  doorPiece,
   floorCell,
   RockPattern,
   squarePiece,
@@ -505,20 +506,29 @@ export function EditorBoard({
     const w = vertical ? 10 : 24;
     const h = vertical ? 24 : 10;
     const sel = selection?.kind === 'door' && selection.id === d.id;
+    // a texture pack gives a door its picture (a false door has none: it keeps its cross)
+    const doorArt =
+      d.kind === 'false'
+        ? null
+        : doorPiece(theme, d.kind === 'secret' ? 'secret' : 'closed', cx, cy, vertical, U);
     doors.push(
       <g key={`d${d.id}`} data-door={d.id}>
         {sel && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        <rect
-          x={cx - w / 2}
-          y={cy - h / 2}
-          width={w}
-          height={h}
-          fill={color.white}
-          stroke={color.ink}
-          strokeWidth={1.6}
-          strokeDasharray={d.kind === 'secret' ? '3 2' : undefined}
-        />
-        {d.kind === 'false' ? (
+        {doorArt ? (
+          doorArt
+        ) : (
+          <rect
+            x={cx - w / 2}
+            y={cy - h / 2}
+            width={w}
+            height={h}
+            fill={color.white}
+            stroke={color.ink}
+            strokeWidth={1.6}
+            strokeDasharray={d.kind === 'secret' ? '3 2' : undefined}
+          />
+        )}
+        {doorArt ? null : d.kind === 'false' ? (
           <path
             d={`M ${cx - 5} ${cy - 5} L ${cx + 5} ${cy + 5} M ${cx + 5} ${cy - 5} L ${cx - 5} ${cy + 5}`}
             stroke={color.ink}
@@ -612,27 +622,33 @@ export function EditorBoard({
     const cx = (c[0] + 0.5) * U;
     const cy = (c[1] + 0.5) * U;
     const sel = selection?.kind === 'trap' && selection.id === t.id;
+    // the author sees the kind of every trap, so a pack's picture of that kind is used
+    const trapArt = squarePiece(theme.trap?.[t.kind], c[0], c[1], U, 'trap');
     things.push(
       <g key={`t${t.id}`} data-trap={t.id} opacity={0.65}>
         {sel && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        <polygon
-          points={`${cx},${cy - 13} ${cx + 13},${cy + 10} ${cx - 13},${cy + 10}`}
-          fill={color.white}
-          stroke={color.ink}
-          strokeWidth={1.8}
-          strokeLinejoin="round"
-        />
-        <text
-          x={cx}
-          y={cy + 7}
-          textAnchor="middle"
-          fill={color.ink}
-          fontFamily="Bonum"
-          fontWeight={700}
-          fontSize={14}
-        >
-          ?
-        </text>
+        {trapArt ?? (
+          <>
+            <polygon
+              points={`${cx},${cy - 13} ${cx + 13},${cy + 10} ${cx - 13},${cy + 10}`}
+              fill={color.white}
+              stroke={color.ink}
+              strokeWidth={1.8}
+              strokeLinejoin="round"
+            />
+            <text
+              x={cx}
+              y={cy + 7}
+              textAnchor="middle"
+              fill={color.ink}
+              fontFamily="Bonum"
+              fontWeight={700}
+              fontSize={14}
+            >
+              ?
+            </text>
+          </>
+        )}
       </g>,
     );
   }
