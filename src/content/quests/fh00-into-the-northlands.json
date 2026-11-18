@@ -931,19 +931,8 @@
         11,
         9
       ],
-      "name": "Jracksfot Rimebreath",
-      "letter": "JR",
-      "special": true,
-      "overrides": {
-        "move": 8,
-        "att": 3,
-        "def": 3,
-        "body": 4,
-        "mind": 4
-      },
-      "spells": [
-        "tempest"
-      ]
+      "enemy": "jracksfot",
+      "special": true
     }
   ],
   "traps": [
@@ -1036,60 +1025,206 @@
       ]
     }
   ],
-  "markers": [
+  "tunnels": [
     {
-      "id": "tun1a",
-      "label": "Ice tunnel 1",
-      "cell": [
+      "id": "tun1",
+      "design": 1,
+      "a": [
         15,
         12
       ],
-      "visible": "players"
-    },
-    {
-      "id": "tun1b",
-      "label": "Ice tunnel 1",
-      "cell": [
+      "b": [
         18,
         10
-      ],
-      "visible": "players"
+      ]
     },
     {
-      "id": "tun2a",
-      "label": "Ice tunnel 2",
-      "cell": [
+      "id": "tun2",
+      "design": 2,
+      "a": [
         10,
         6
       ],
-      "visible": "players"
-    },
-    {
-      "id": "tun2b",
-      "label": "Ice tunnel 2",
-      "cell": [
+      "b": [
         8,
         12
-      ],
-      "visible": "players"
+      ]
     },
     {
-      "id": "tun3a",
-      "label": "Ice tunnel 3",
-      "cell": [
+      "id": "tun3",
+      "design": 3,
+      "a": [
         15,
         6
       ],
-      "visible": "players"
-    },
-    {
-      "id": "tun3b",
-      "label": "Ice tunnel 3",
-      "cell": [
+      "b": [
         20,
         8
+      ]
+    }
+  ],
+  "boardTiles": [
+    {
+      "type": "iceCaveEntrance",
+      "cells": [
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          4,
+          7
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          8
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          5,
+          8
+        ],
+        [
+          0,
+          9
+        ],
+        [
+          1,
+          9
+        ],
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          0,
+          10
+        ],
+        [
+          1,
+          10
+        ],
+        [
+          2,
+          10
+        ],
+        [
+          3,
+          10
+        ],
+        [
+          4,
+          10
+        ],
+        [
+          5,
+          10
+        ],
+        [
+          0,
+          11
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          2,
+          11
+        ],
+        [
+          3,
+          11
+        ],
+        [
+          4,
+          11
+        ],
+        [
+          5,
+          11
+        ]
+      ]
+    },
+    {
+      "type": "cage",
+      "cells": [
+        [
+          6,
+          2
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ]
       ],
-      "visible": "players"
+      "hiddenWhen": "cageOpen"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "snowdasher",
+      "name": "Snowdasher",
+      "cell": [
+        6,
+        9
+      ],
+      "move": 10,
+      "attack": 3,
+      "defend": 2,
+      "body": 5,
+      "text": "The hero's wolf ally. She moves and attacks right after the hero, may attack diagonally, and has 1 Mind Point. She cannot carry items or open doors and gets no treasure."
     }
   ],
   "enemyDefs": [
@@ -1112,7 +1247,8 @@
       },
       "abilities": [
         "fhSteal"
-      ]
+      ],
+      "expansion": "Frozen Horror"
     },
     {
       "id": "polarWarbear",
@@ -1135,7 +1271,8 @@
       "attacks": 2,
       "abilities": [
         "fhTwoAttacks"
-      ]
+      ],
+      "expansion": "Frozen Horror"
     },
     {
       "id": "yeti",
@@ -1154,8 +1291,26 @@
         "lowestBody": 2,
         "closest": 2
       },
+      "expansion": "Frozen Horror",
       "traits": [
         "In this solo quest it does not hug: it only punches"
+      ]
+    },
+    {
+      "id": "jracksfot",
+      "name": "Jracksfot Rimebreath",
+      "letter": "JR",
+      "expansion": "Frozen Horror",
+      "base": "dreadSorcerer",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 4,
+        "mind": 4
+      },
+      "spells": [
+        "tempest"
       ]
     }
   ],
@@ -1168,12 +1323,16 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The hero has a wolf ally for this solo quest. Use the eye token or a spare figure for Snowdasher. She moves 10, attacks with 3 dice (she may attack diagonally), defends with 2 and has 5 Body Points and 1 Mind Point. She moves and attacks right after the hero, and she cannot carry items or open doors.",
+          "text": "Snowdasher, the wolf, joins the hero as an animal ally. Her stats are in the NPC list.",
           "title": "Snowdasher"
         },
         {
+          "type": "spawnNpc",
+          "npc": "snowdasher"
+        },
+        {
           "type": "showText",
-          "text": "Ice tunnels come in pairs with the same picture (1, 2 or 3). A hero or monster that lands on one moves at once to the other square of the pair, and that ends its move. If that square is taken, move the figure there to a free square next to it.",
+          "text": "Ice tunnels come in pairs with the same number. A hero or monster that lands on one comes out at the other, and that ends its move.",
           "title": "Ice tunnels"
         }
       ]
@@ -1426,154 +1585,11 @@
           "value": true
         }
       ]
-    },
-    {
-      "id": "n-tun1a",
-      "target": {
-        "kind": "marker",
-        "id": "tun1a"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 1, the square at 18,10. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            18,
-            10
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-tun1b",
-      "target": {
-        "kind": "marker",
-        "id": "tun1b"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 1, the square at 15,12. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            15,
-            12
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-tun2a",
-      "target": {
-        "kind": "marker",
-        "id": "tun2a"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 2, the square at 8,12. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            8,
-            12
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-tun2b",
-      "target": {
-        "kind": "marker",
-        "id": "tun2b"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 2, the square at 10,6. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            10,
-            6
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-tun3a",
-      "target": {
-        "kind": "marker",
-        "id": "tun3a"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 3, the square at 20,8. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            20,
-            8
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-tun3b",
-      "target": {
-        "kind": "marker",
-        "id": "tun3b"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "A hero used this tunnel"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "The hero comes out at the other end of ice tunnel 3, the square at 15,6. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
-        },
-        {
-          "type": "lookFrom",
-          "cell": [
-            15,
-            6
-          ]
-        }
-      ]
     }
   ],
   "wandering": {
-    "text": "An Ice Gremlin appears next to the hero and attacks at once."
+    "monster": "goblin",
+    "enemy": "iceGremlin"
   },
   "objectives": [
     {

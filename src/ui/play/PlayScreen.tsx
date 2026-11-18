@@ -102,6 +102,7 @@ function resultKind(prompts: readonly Prompt[]): string {
   if (has('wanderingMonster', 'wanderingText')) return 'Wandering monster';
   if (has('secretDoorsFound', 'nothingFound')) return 'Secret doors';
   if (has('doorStuck')) return 'Door';
+  if (has('tunnelUsed')) return 'Ice tunnel';
   if (has('trapFound', 'noTrap')) return 'Chest';
   return 'Treasure';
 }
@@ -665,6 +666,32 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         );
       }
     }
+  } else if (sel?.kind === 'tunnel') {
+    const t = level.quest.tunnels.find((x) => x.id === sel.id);
+    if (t) {
+      const at = t[sel.end];
+      const anchor = toMap(at[0] + 0.5, at[1] + 0.5);
+      note = (
+        <MarginNote
+          anchor={anchor}
+          kind="Ice tunnel"
+          title={`Tunnel ${t.design}`}
+          onClose={closeNote}
+        >
+          <p>
+            It leads to the other square with the same picture. A hero or monster that lands here
+            comes out there, and the move ends. If that square is taken, move the figure there to a
+            free square next to it.
+          </p>
+          <button
+            className="btn"
+            onClick={() => run({ type: 'TUNNEL_USE', tunnel: t.id, from: sel.end }, anchor)}
+          >
+            A hero used this tunnel
+          </button>
+        </MarginNote>
+      );
+    }
   } else if (sel?.kind === 'chest') {
     const cv = chestsInView(level, state).find((c) => c.id === sel.id);
     if (cv) {
@@ -952,7 +979,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           {wandering && (
             <p className="wander">
               Wandering monster:{' '}
-              <b>{'monster' in wandering ? MONSTER_NAMES[wandering.monster] : wandering.text}</b>
+              <b>
+                {'monster' in wandering
+                  ? ((wandering.enemy
+                      ? quest.enemyDefs.find((e) => e.id === wandering.enemy)?.name
+                      : undefined) ?? MONSTER_NAMES[wandering.monster])
+                  : wandering.text}
+              </b>
             </p>
           )}
           {adding?.t === 'type' ? (
@@ -1191,8 +1224,8 @@ function RosterRow({
     if (focus) ref.current?.scrollIntoView({ block: 'nearest' });
   }, [focus]);
   const theme = useTheme();
-  const pic = monsterPicture(theme, m.image, m.type);
-  const whole = isThemeToken(theme, m.image, m.type);
+  const pic = monsterPicture(theme, m.image, m.pictureType);
+  const whole = isThemeToken(theme, m.image, m.pictureType);
   return (
     <li
       ref={ref}
@@ -1209,7 +1242,11 @@ function RosterRow({
       <button data-hit disabled={m.dead} onClick={onTap}>
         <span
           className={
-            'coin' + (m.dead ? ' off' : '') + (pic ? ' pic' : '') + (pic && whole ? ' whole' : '')
+            'coin' +
+            (m.dead ? ' off' : '') +
+            (m.box === 'Frozen Horror' ? ' ice' : '') +
+            (pic ? ' pic' : '') +
+            (pic && whole ? ' whole' : '')
           }
           style={pic ? { backgroundImage: `url(${pic})` } : undefined}
           data-coin-image={pic ? m.id : undefined}

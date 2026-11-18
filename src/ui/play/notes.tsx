@@ -284,6 +284,8 @@ export function headingOf(p: Prompt): string {
       return 'You land safely';
     case 'trapDisarmed':
       return `It was a ${TRAP_NAMES[p.trapKind]}`;
+    case 'tunnelUsed':
+      return `Ice tunnel ${p.design}`;
     case 'note':
       return p.letter ? `Quest note ${p.letter}` : 'Quest note';
     case 'drawCard':
@@ -324,6 +326,10 @@ function lines(p: Prompt): string[] {
       return [...p.texts];
     case 'drawCard':
       return ['No quest treasure here. Read the card aloud.'];
+    case 'tunnelUsed':
+      return [
+        `The hero comes out at the other square of ice tunnel ${p.design}. If a figure is on it, move that figure to a free square next to it. The move ends here.`,
+      ];
     case 'wanderingMonster':
       return wanderingLines(p);
     case 'wanderingText':
@@ -354,6 +360,7 @@ const RESULT_KINDS: readonly Prompt['kind'][] = [
   'trapJumped',
   'trapDisarmed',
   'drawCard',
+  'tunnelUsed',
   'wanderingMonster',
   'wanderingText',
   'secretDoorsFound',

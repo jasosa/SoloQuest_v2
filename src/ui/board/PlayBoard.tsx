@@ -13,8 +13,11 @@ import {
   squareMarkers,
   zoneLabels,
   trapsInView,
+  tunnelsInView,
+  boardTilesInView,
 } from '../../engine/game/view';
 import { monsterTip } from '../play/monsterTip';
+import { boxTokenFill } from '../shared/boxColor';
 import { TRAP_NAMES } from '../play/texts';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
@@ -559,7 +562,29 @@ export function PlayBoard({
           S,
           'trap',
         ) ??
-          (t.state === 'sprung' && t.kind === 'pit' ? (
+          (t.state === 'sprung' && t.kind === 'slipperyIce' ? (
+            <>
+              <rect
+                x={tx * S + 3}
+                y={ty * S + 3}
+                width={S - 6}
+                height={S - 6}
+                fill="var(--ice)"
+                stroke={color.ink}
+                strokeWidth={1.5}
+              />
+              {[-6, 0, 6].map((dy) => (
+                <path
+                  key={dy}
+                  d={`M${tx * S + 7} ${cy + dy} q4 -4 6 0 t6 0 t6 0`}
+                  fill="none"
+                  stroke={color.tokenText}
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                />
+              ))}
+            </>
+          ) : t.state === 'sprung' && t.kind === 'pit' ? (
             <>
               <rect
                 x={tx * S + 3}
@@ -619,6 +644,124 @@ export function PlayBoard({
     );
   }
 
+  // Board tiles (Frozen Horror): the ice cave entrance under the start, a cage. A labeled outline.
+  for (const [ti, t] of boardTilesInView(level, state).entries()) {
+    const xs = t.cells.map((c) => c[0]);
+    const ys = t.cells.map((c) => c[1]);
+    const x0 = Math.min(...xs) * S;
+    const y0 = Math.min(...ys) * S;
+    const w = (Math.max(...xs) + 1) * S - x0;
+    const h = (Math.max(...ys) + 1) * S - y0;
+    const bars: ReactNode[] = [];
+    if (t.type === 'cage')
+      for (let bx = x0 + 7; bx < x0 + w - 3; bx += 9)
+        bars.push(
+          <line
+            key={bx}
+            x1={bx}
+            y1={y0 + 3}
+            x2={bx}
+            y2={y0 + h - 3}
+            stroke={color.ink}
+            strokeWidth={1.6}
+            opacity={0.55}
+          />,
+        );
+    into(false).push(
+      <g key={`bt${ti}`} data-board-tile={t.type} pointerEvents="none">
+        <rect
+          x={x0 + 2}
+          y={y0 + 2}
+          width={w - 4}
+          height={h - 4}
+          fill={t.type === 'cage' ? 'none' : 'var(--ice)'}
+          fillOpacity={t.type === 'cage' ? 0 : 0.3}
+          stroke={t.type === 'cage' ? color.ink : 'var(--ice)'}
+          strokeWidth={t.type === 'cage' ? 3 : 2.5}
+          strokeDasharray={t.type === 'cage' ? undefined : '7 4'}
+        />
+        {bars}
+        <text
+          x={x0 + w / 2}
+          y={t.type === 'cage' ? y0 + h + 11 : y0 + h / 2 + 4}
+          textAnchor="middle"
+          fill={t.type === 'cage' ? color.ink : color.tokenText}
+          stroke={t.type === 'cage' ? color.paper : 'none'}
+          strokeWidth={t.type === 'cage' ? 3 : 0}
+          paintOrder="stroke"
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={t.type === 'cage' ? 10 : 13}
+          letterSpacing={1}
+        >
+          {t.name.toUpperCase()}
+        </text>
+      </g>,
+    );
+  }
+
+  // Ice tunnels (Frozen Horror): a square with the number of its design, for every end that was seen.
+  const tunnelHits: ReactNode[] = [];
+  for (const e of tunnelsInView(level, state)) {
+    const [tx, ty] = e.cell;
+    const cx = (tx + 0.5) * S;
+    const cy = (ty + 0.5) * S;
+    const selected =
+      selection?.kind === 'tunnel' && selection.id === e.tunnel && selection.end === e.end;
+    into(fresh(keyOf(e.cell))).push(
+      <g key={`tn${e.tunnel}${e.end}`} data-tunnel={`${e.tunnel}:${e.end}`} data-design={e.design}>
+        {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
+        <rect
+          x={tx * S + 3}
+          y={ty * S + 3}
+          width={S - 6}
+          height={S - 6}
+          rx={5}
+          fill="var(--ice)"
+          stroke={color.ink}
+          strokeWidth={1.5}
+        />
+        <ellipse
+          cx={cx}
+          cy={cy}
+          rx={9.5}
+          ry={6.5}
+          transform={`rotate(-30 ${cx} ${cy})`}
+          fill="none"
+          stroke={color.tokenText}
+          strokeWidth={1.4}
+          strokeDasharray="3 2"
+        />
+        <text
+          x={cx}
+          y={cy + 4.5}
+          textAnchor="middle"
+          fill={color.tokenText}
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={13}
+        >
+          {e.design}
+        </text>
+      </g>,
+    );
+    tunnelHits.push(
+      <rect
+        key={`tnh${e.tunnel}${e.end}`}
+        className="hit"
+        data-hit
+        data-tunnel-hit={`${e.tunnel}:${e.end}`}
+        x={cx - 22}
+        y={cy - 22}
+        width={44}
+        height={44}
+        {...press(`Ice tunnel ${e.design}`, () =>
+          onSelect({ kind: 'tunnel', id: e.tunnel, end: e.end }),
+        )}
+      />,
+    );
+  }
+
   // Monster tokens.
   const freshOrder = fx?.freshMonsters ?? [];
   const tokens: ReactNode[] = [];
@@ -633,8 +776,8 @@ export function PlayBoard({
     const selected = selection?.kind === 'monster' && selection.id === m.id;
     const stampIndex = freshOrder.indexOf(m.id);
     const hurt = m.maxBody > 1 && m.body < m.maxBody;
-    const pic = monsterPicture(theme, m.image, m.type);
-    const whole = isThemeToken(theme, m.image, m.type); // a theme token has its own frame
+    const pic = monsterPicture(theme, m.image, m.pictureType);
+    const whole = isThemeToken(theme, m.image, m.pictureType); // a theme token has its own frame
     tokens.push(
       <g key={`m${m.id}`}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -647,7 +790,7 @@ export function PlayBoard({
               cx={cx}
               cy={cy}
               r={13.5}
-              fill="var(--green)"
+              fill={boxTokenFill(m.box)}
               stroke={color.tokenText}
               strokeWidth={2}
             />
@@ -1145,6 +1288,7 @@ export function PlayBoard({
       {monsterHits}
       {letterHits}
       {doorHits}
+      {tunnelHits}
       {pickLayer}
       {hoverLabel}
     </svg>

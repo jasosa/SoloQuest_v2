@@ -286,6 +286,9 @@ export function validateQuestIssues(
     if (enemyIds.has(e.id)) err(`enemy ${e.id}: duplicate id`, { kind: 'quest' });
     enemyIds.add(e.id);
   }
+  if (quest.wandering && 'enemy' in quest.wandering && quest.wandering.enemy !== undefined)
+    if (!enemyIds.has(quest.wandering.enemy))
+      err(`wandering: unknown enemy ${quest.wandering.enemy}`, { kind: 'quest' });
   for (const m of quest.monsters)
     if (m.enemy && !enemyIds.has(m.enemy))
       err(`monster ${m.id}: unknown enemy ${m.enemy}`, { kind: 'monster', id: m.id });
@@ -498,6 +501,40 @@ export function validateQuestIssues(
     const twin = trapCells.get(key(t.cell));
     if (twin) err(`trap ${t.id}: same cell as trap ${twin}`, ref);
     else trapCells.set(key(t.cell), t.id);
+  }
+  // Board tiles: every square is on the board (the cave entrance may lie over rock).
+  quest.boardTiles.forEach((t, i) =>
+    t.cells.forEach((c) =>
+      inside(`board tile ${i + 1} (${t.type})`, c, { kind: 'quest', cell: cellOf(c) }, true),
+    ),
+  );
+  // Ice tunnels: both ends on bare floor, two different squares, one pair per design.
+  {
+    const ids = new Set<string>();
+    const designs = new Set<number>();
+    const ends = new Map<string, string>();
+    for (const t of quest.tunnels) {
+      const ref: IssueRef = { kind: 'quest', cell: cellOf(t.a) };
+      if (ids.has(t.id)) err(`tunnel ${t.id}: duplicate id`, ref);
+      ids.add(t.id);
+      if (designs.has(t.design))
+        err(`tunnel ${t.id}: design ${t.design} is used by another tunnel`, ref);
+      designs.add(t.design);
+      if (key(t.a) === key(t.b)) err(`tunnel ${t.id}: both ends are the same square`, ref);
+      for (const [end, c] of [
+        ['a', t.a],
+        ['b', t.b],
+      ] as const) {
+        inside(`tunnel ${t.id} end ${end}`, c, ref);
+        const other = solid.get(key(c));
+        if (other) err(`tunnel ${t.id}: end ${end} ${key(c)} is under ${other}`, ref);
+        const twin = ends.get(key(c));
+        if (twin) err(`tunnel ${t.id}: end ${end} ${key(c)} is also an end of tunnel ${twin}`, ref);
+        else ends.set(key(c), t.id);
+        if (trapCells.has(key(c)))
+          err(`tunnel ${t.id}: end ${end} ${key(c)} has trap ${trapCells.get(key(c))}`, ref);
+      }
+    }
   }
   // Stacking: a trap may share a monster's square (a chest trap sits on its chest). A monster
   // never shares an NPC square. A trap never sits on stairs or an NPC. Door squares are fine.

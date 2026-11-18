@@ -152,6 +152,7 @@ describe('monstersInPlay', () => {
         dead: true,
         state: 'active',
         profile: 'fighter',
+        pictureType: 'orc',
         special: false,
         abilities: [],
       },

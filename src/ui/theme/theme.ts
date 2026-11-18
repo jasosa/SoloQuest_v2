@@ -177,12 +177,17 @@ export function cornerTurn(board: Board, cells: readonly Cell[], solid: Corner):
 export function monsterPicture(
   theme: Theme,
   own: string | undefined,
-  type: MonsterType,
+  type: MonsterType | undefined,
 ): string | undefined {
-  return own ?? theme.monster?.[type];
+  // no type: an enemy of its own kind that the pack has no picture of: the built-in token is drawn
+  return own ?? (type === undefined ? undefined : theme.monster?.[type]);
 }
 
 /** True when the picture comes from the theme, so it is a whole token and the app draws no frame. */
-export function isThemeToken(theme: Theme, own: string | undefined, type: MonsterType): boolean {
-  return own === undefined && theme.monster?.[type] !== undefined;
+export function isThemeToken(
+  theme: Theme,
+  own: string | undefined,
+  type: MonsterType | undefined,
+): boolean {
+  return own === undefined && type !== undefined && theme.monster?.[type] !== undefined;
 }

@@ -102,10 +102,21 @@ export type Prompt =
       readonly via: 'jump' | 'disarm' | 'step' | 'search';
       readonly effect?: string | undefined;
       /** A wandering monster trap: the monsters that joined the roster, with no square. */
-      readonly spawned?: readonly { readonly monster: string; readonly monsterType: MonsterType }[];
+      readonly spawned?: readonly {
+        readonly monster: string;
+        readonly monsterType: MonsterType;
+        readonly name?: string;
+      }[];
     }
   /** A jump worked. A jumped ice slide shows its whole path (decision 42). */
   | { readonly kind: 'trapJumped'; readonly trap: string; readonly slide?: boolean }
+  /** A hero used an ice tunnel and comes out at `to` (the other end of the pair). */
+  | {
+      readonly kind: 'tunnelUsed';
+      readonly tunnel: string;
+      readonly design: number;
+      readonly to: readonly [number, number];
+    }
   | { readonly kind: 'trapDisarmed'; readonly trap: string; readonly trapKind: TrapKindName }
   /** A wandering monster joined the roster, with no square. The UI phrases the placement rule:
    *  next to `hero`, attacks that hero at once; if no square is free, the closest square in
@@ -114,6 +125,9 @@ export type Prompt =
       readonly kind: 'wanderingMonster';
       readonly monster: string;
       readonly monsterType: MonsterType;
+      /** Its name and attack dice when it is an enemy of the quest (an Ice Gremlin). */
+      readonly name?: string;
+      readonly attackDice?: number;
       readonly hero: Hero;
       readonly room: AreaId;
       readonly placement: {

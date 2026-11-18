@@ -20,6 +20,8 @@ export type EventErrorCode =
   | 'NO_WANDERING'
   | 'UNKNOWN_TRAP'
   | 'TRAP_NOT_SEEN'
+  | 'UNKNOWN_TUNNEL'
+  | 'TUNNEL_NOT_SEEN'
   | 'TRAP_GONE'
   | 'TRAP_CANNOT'
   | 'BAD_RESULT'

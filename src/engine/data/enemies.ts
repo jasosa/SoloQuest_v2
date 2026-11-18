@@ -46,6 +46,26 @@ export function resolveMonster(m: MonsterDef, enemies: Quest['enemyDefs']): Mons
   };
 }
 
+/**
+ * The core type whose texture-pack picture a monster may use. A monster that is an enemy with no
+ * base type is its own kind (an Ice Gremlin is not a goblin), so no pack picture of a core type fits it.
+ */
+export function pictureTypeOf(
+  m: Pick<MonsterDef, 'type' | 'enemy'>,
+  enemies: Quest['enemyDefs'],
+): MonsterDef['type'] | undefined {
+  const e = m.enemy ? enemies.find((x) => x.id === m.enemy) : undefined;
+  return e && e.base === undefined ? undefined : m.type;
+}
+
+/** The box (expansion) a monster's enemy comes from, if it has one. */
+export function boxOfMonster(
+  m: Pick<MonsterDef, 'enemy'>,
+  enemies: Quest['enemyDefs'],
+): string | undefined {
+  return m.enemy ? enemies.find((x) => x.id === m.enemy)?.expansion : undefined;
+}
+
 /** The quest with every monster resolved. The same object when no monster uses an enemy. */
 export function resolveEnemies(quest: Quest): Quest {
   if (!quest.monsters.some((m) => m.enemy)) return quest;

@@ -171,6 +171,16 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
             "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
 ```
 
+## Tunnels, board tiles and a wandering enemy (Frozen Horror)
+
+`tunnels: [{ "id": "tun1", "design": 1, "a": [15, 12], "b": [18, 10] }]`: two squares of bare floor that lead to each other. `design` (1 to 9) is the number drawn on both, one pair per design. A tap on a seen end gives the button "A hero used this tunnel" (event `TUNNEL_USE`, `from` is `a` or `b`): the other end is looked from, as after "Look from here".
+
+`boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. Drawing only: the cage does not yet block sight or squares (slice 4e).
+
+`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count` for a wandering monster trap.
+
+An NPC such as an animal ally (`npcs`, with `spawnNpc` on the first note) shows with its stats in the Companions list.
+
 ## Room tiles and merged rooms (Frozen Horror)
 
 `roomTiles: [{ "type": "iceVault", "area": "R17" }]` gives a room a tile with its own name and rule, shown in the room note (types in `src/engine/data/roomTiles.ts`: `iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`). One tile per room. The rule is a reminder: rolls and hits stay with the players.

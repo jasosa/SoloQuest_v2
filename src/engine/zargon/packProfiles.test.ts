@@ -29,13 +29,13 @@ const orderOf = (monster: Record<string, unknown>, seed = 1) => {
 };
 
 describe('pack profiles (decision 49)', () => {
-  it('thief: the plan names the steal or the attack, and the escape rule', () => {
+  it('thief: the plan names the steal or the attack and leaves the rest to the ability', () => {
     const plans = new Set<string>();
     for (let seed = 1; seed <= 40; seed++) {
       const o = orderOf({ profile: 'thief' }, seed);
       expect(o?.profile).toBe('thief');
       plans.add(o!.plan!.startsWith('Steal') ? 'steal' : 'attack');
-      expect(o!.plan).toMatch(/tap Escaped/);
+      expect(o!.plan).not.toMatch(/Escaped/);
     }
     expect(plans).toEqual(new Set(['steal', 'attack']));
   });

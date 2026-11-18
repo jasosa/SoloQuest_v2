@@ -16,6 +16,7 @@ export type Selection =
     }
   | { readonly kind: 'trap'; readonly id: string }
   | { readonly kind: 'chest'; readonly id: string }
+  | { readonly kind: 'tunnel'; readonly id: string; readonly end: 'a' | 'b' }
   | { readonly kind: 'square'; readonly at: readonly [number, number] }
   | { readonly kind: 'zone'; readonly id: string; readonly at?: readonly [number, number] }
   | { readonly kind: 'hero'; readonly hero: Hero };

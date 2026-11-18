@@ -8,7 +8,14 @@ import { applyCoreFile, parseCoreFile } from '../../engine/data/coreFile';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { reduce, replay, startGame } from '../../engine/game/reducer';
-import { monstersInPlay, objectivesStatus, trapsInView } from '../../engine/game/view';
+import {
+  boardTilesInView,
+  monstersInPlay,
+  npcsInPlay,
+  objectivesStatus,
+  trapsInView,
+  tunnelsInView,
+} from '../../engine/game/view';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
 import { ordersFor } from '../../engine/zargon/orders';
@@ -46,7 +53,11 @@ const reach = (base: GameEvent[], door: string): GameEvent[] => {
   }
   throw new Error(`door ${door} never seen`);
 };
-const tunnel = (marker: string): GameEvent => ({ type: 'MANUAL_TRIGGER', note: `n-${marker}` });
+const tunnel = (id: string, from: 'a' | 'b'): GameEvent => ({
+  type: 'TUNNEL_USE',
+  tunnel: id,
+  from,
+});
 
 const toA: GameEvent[] = [open('in'), open('d1')];
 const toR03: GameEvent[] = reach([open('in')], 'd2');
@@ -54,7 +65,7 @@ const toCage: GameEvent[] = [...toR03, open('d3')];
 const toR05: GameEvent[] = reach(reach([...toR03, open('d4')], 'd5'), 'd6');
 // Row 6 is blocked at (11,6) and (14,6): the way to the center room is ice tunnel 3, from
 // room R09 (20,8) to the corridor at (15,6). Then door F is on the corridor, column 16.
-const toCenter: GameEvent[] = reach([...toR05, open('d7'), tunnel('tun3b')], 'd8');
+const toCenter: GameEvent[] = reach([...toR05, open('d7'), tunnel('tun3', 'b')], 'd8');
 
 describe('quest 0: data', () => {
   it('is valid against the board', () => {
@@ -73,14 +84,13 @@ describe('quest 0: data', () => {
     expect(kinds.filter((k) => k === 'stalactite')).toHaveLength(8);
     expect(kinds.filter((k) => k === 'slipperyIce')).toHaveLength(2);
     expect(kinds.filter((k) => k === 'fallingBlock')).toHaveLength(1);
-    expect(quest.markers).toHaveLength(6);
+    expect(quest.tunnels).toHaveLength(3);
     expect(quest.number).toBe(0);
     expect(quest.pack).toBe('frozen-horror');
   });
 
-  it('the two ends of each ice tunnel are paired by design', () => {
-    for (const d of ['1', '2', '3'])
-      expect(quest.markers.filter((m) => m.label === `Ice tunnel ${d}`)).toHaveLength(2);
+  it('the ice tunnels are three pairs, one per design', () => {
+    expect(quest.tunnels.map((t) => t.design).sort()).toEqual([1, 2, 3]);
   });
 
   it('every letter on the map has a note', () => {
@@ -106,6 +116,72 @@ describe('quest 0: the start', () => {
     for (const x of [6, 7, 8, 9]) expect(s.seenCells.has(`${x},9`)).toBe(true);
     expect(s.seenDoors.has('d1')).toBe(true);
     expect(trapsInView(level, s).map((t) => t.id)).toContain('t-ice-1');
+  });
+});
+
+describe('quest 0: the cast', () => {
+  it('Snowdasher is an NPC with her stats, from the start', () => {
+    const s = startGame(level, 1).state;
+    expect(s.spawnedNpcs).toContain('snowdasher');
+    expect(npcsInPlay(level, s).find((n) => n.id === 'snowdasher')).toMatchObject({
+      name: 'Snowdasher',
+      move: 10,
+      attack: 3,
+      defend: 2,
+      body: 5,
+    });
+  });
+
+  it('the wandering monster is an Ice Gremlin, with the Ice Gremlin stats', () => {
+    const lvl = buildLevel(quest);
+    const open2 = replay(lvl, 1, [open('in'), open('d1')]);
+    const r = reduce(lvl, open2, { type: 'WANDERING_MONSTER', room: 'R14', hero: 'dwarf' });
+    const v = monstersInPlay(lvl, r.state).find((m) => m.id === 'w1')!;
+    expect(v.name).toBe('Ice Gremlin');
+    expect(v.stats.body).toBe(3);
+    expect(v.profile).toBe('thief');
+  });
+
+  it('Frozen Horror monsters know their box and have no core picture; core ones do', () => {
+    const s = run(...toCenter);
+    const by = (id: string) => monstersInPlay(level, s).find((m) => m.id === id)!;
+    for (const id of ['m-jrack', 'm-yeti-1']) expect(by(id).box).toBe('Frozen Horror');
+    expect(by('m-yeti-1').pictureType).toBeUndefined();
+    expect(by('m-jrack').pictureType).toBe('dreadSorcerer'); // named after a core type
+    const mummy = monstersInPlay(level, run(...toA)).find((m) => m.id === 'm-gremlin-a')!;
+    expect(mummy.box).toBe('Frozen Horror');
+    expect(mummy.pictureType).toBeUndefined();
+  });
+});
+
+describe('quest 0: tunnels and tiles', () => {
+  it('a tunnel end shows only after its square is seen, and the other end stays hidden', () => {
+    const s = run(...toR05, open('d7'));
+    const ends = tunnelsInView(level, s);
+    expect(ends.some((e) => e.tunnel === 'tun3' && e.end === 'b')).toBe(true); // (20,8) in R09
+    expect(ends.some((e) => e.tunnel === 'tun3' && e.end === 'a')).toBe(false); // (15,6) not seen yet
+  });
+
+  it('using a tunnel shows what is in sight at the other end, and works again', () => {
+    const s = run(...toR05, open('d7'), tunnel('tun3', 'b'));
+    expect(s.seenCells.has('15,6')).toBe(true);
+    expect(s.seenCells.has('16,6')).toBe(true); // along the corridor, toward door F
+    const again = reduce(level, s, tunnel('tun3', 'b'));
+    expect(again.prompts.some((p) => p.kind === 'tunnelUsed')).toBe(true);
+    expect(() => run(...toA, tunnel('tun3', 'a'))).toThrow(/has not been seen yet/);
+  });
+
+  it('the cave entrance is drawn from the start; the cage shows with its room and goes when the lever is pulled', () => {
+    const start = startGame(level, 1).state;
+    expect(boardTilesInView(level, start).map((t) => t.type)).toEqual(['iceCaveEntrance']);
+    const cage = run(...toCage);
+    expect(
+      boardTilesInView(level, cage)
+        .map((t) => t.type)
+        .sort(),
+    ).toEqual(['cage', 'iceCaveEntrance']);
+    const open3 = reduce(level, cage, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' }).state;
+    expect(boardTilesInView(level, open3).map((t) => t.type)).toEqual(['iceCaveEntrance']);
   });
 });
 

@@ -116,6 +116,9 @@
   place-items: center;
   font: 700 12px 'Bonum';
 }
+.coin.ice {
+  background: var(--ice);
+}
 .coin.off {
   background: var(--off);
 }

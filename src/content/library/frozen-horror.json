@@ -47,7 +47,7 @@
       "data": {
         "id": "fhSteal",
         "name": "Thief",
-        "text": "Can steal an item from a hero instead of attacking, then runs away. If no hero can see it at the start of Zargon's turn, it escapes with the item. If it is killed first, the hero gets the item back.",
+        "text": "Can steal one item from a hero instead of attacking (never the armor or shield they use, nor the weapon they wield), then runs away at full speed. If no hero can see it at the start of Zargon's turn, it escapes with the item: tap Escaped. If it is killed first, the hero gets the item back.",
         "kind": "ability"
       }
     },

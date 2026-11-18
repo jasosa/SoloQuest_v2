@@ -7,7 +7,7 @@ import type { MonsterType, TrapDef } from '../quest/schema';
 import { areaAt } from '../board/board';
 import { keyOf, type Level } from '../board/level';
 import { trapKind } from '../data/trapKinds';
-import { joinRoster } from './roster';
+import { joinRoster, wandererDef } from './roster';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
@@ -29,14 +29,22 @@ export function springTrap(level: Level, d: Draft, trap: TrapDef, via: Use): Pro
   if (kind.slide) showSlide(d, trap);
   let effect =
     trap.effect ?? (trap.kind === 'fallingBlock' ? level.quest.rules.fallingBlock : undefined);
-  const spawned: { monster: string; monsterType: MonsterType }[] = [];
+  const spawned: { monster: string; monsterType: MonsterType; name?: string }[] = [];
   if (kind.bringsWanderers && trap.cell) {
     const w = level.quest.wandering;
     if (w && 'monster' in w) {
       const room = areaAt(level.board, trap.cell[0], trap.cell[1]) ?? 'C';
       for (let i = 0; i < (w.count ?? 1); i++) {
-        const id = joinRoster(level, d, { type: w.monster, room, fresh: true });
-        spawned.push({ monster: id, monsterType: w.monster });
+        const id = joinRoster(level, d, {
+          type: w.monster,
+          ...(w.enemy ? { enemy: w.enemy } : {}),
+          room,
+          fresh: true,
+        });
+        const name = w.enemy
+          ? wandererDef(level, { type: w.monster, enemy: w.enemy }, id).name
+          : undefined;
+        spawned.push({ monster: id, monsterType: w.monster, ...(name ? { name } : {}) });
       }
     } else if (w) effect = effect ?? w.text;
   }

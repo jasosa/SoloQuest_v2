@@ -23,7 +23,7 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
   // The plan of a caster that has no spell to cast: as a duelist.
   caster: 'Move in and attack. No hero in reach: move toward the nearest hero.',
   // The thief, grappler and shooter plans change a little each turn (below); these are the base lines.
-  thief: 'Steal an item from a hero, or attack. See the card.',
+  thief: 'Steal an item from a hero, or attack.',
   grappler: 'Hug a hero it wounds, otherwise move in and attack.',
   shooter: 'Shoot a hero in sight from where it stands.',
   passive: 'No orders. It does nothing until the quest, or the players, say otherwise.',
@@ -34,17 +34,17 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
  * does not know what was stolen, so the card says what to do in both cases.
  */
 export function thiefPlan(steals: boolean): string {
-  const stolen =
-    "If it has already stolen: it runs away at full speed. If no hero can see it at the start of Zargon's turn, it escapes with the item: tap Escaped. If it is killed first, the hero gets the item back.";
+  // What stealing is (and the escape) is in the Thief ability; the plan only picks this turn's choice.
   return steals
-    ? `Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry, never the armor, shield or weapon in use. Then it runs away. ${stolen}`
-    : `Attack: ${PLAN_TEXT.skirmisher} ${stolen}`;
+    ? 'Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry.'
+    : `Attack: ${PLAN_TEXT.skirmisher}`;
 }
 
 /** The grappler (Yeti, decision 49): the hug is in the card text, the app keeps no state for it. */
 export function grapplerPlan(hugs: boolean): string {
+  // What the hug does is in the Bear hug ability.
   return hugs
-    ? 'Hugging a hero: that hero loses 2 Body Points, cannot defend and cannot act, and the monster does nothing else. If its attack makes a hero lose at least 1 Body Point, it starts hugging that hero. Otherwise: move in and attack.'
+    ? 'Already hugging a hero: it does nothing else. Otherwise: move in and attack.'
     : 'Move in and attack. (In a solo quest it does not hug.)';
 }
 

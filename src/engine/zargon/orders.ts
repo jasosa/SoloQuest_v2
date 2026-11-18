@@ -10,6 +10,7 @@ import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
 import type { MonsterDef, MonsterType } from '../quest/schema';
 import { next } from '../game/rng';
+import { wandererDef } from '../game/roster';
 import { rngFor, shuffled } from './hash';
 import { SPELL_EFFECT_TEXT } from './spells';
 import { SPELL_TIMING_TEXT, hasEscapePoint, spellLookup, spellQuestions } from '../data/spells';
@@ -189,11 +190,7 @@ function specialRules(
   if (!def) return [];
   const out: string[] = [...behaviorLines(def, markers), ...(def.traits ?? [])];
   for (const a of abilities) out.push(`${a.name}: ${a.text}`);
-  const o = def.overrides;
-  if (o?.att !== undefined) out.push(`Rolls ${o.att} attack ${o.att === 1 ? 'die' : 'dice'}`);
-  if (o?.def !== undefined) out.push(`Rolls ${o.def} defend ${o.def === 1 ? 'die' : 'dice'}`);
-  if (o?.move !== undefined) out.push(`Moves ${o.move} ${o.move === 1 ? 'square' : 'squares'}`);
-  if (o?.body !== undefined) out.push(`Has ${o.body} Body Points`);
+  // The stats are on the card above (Move, Att, Def, Body, Mind): Special never repeats them.
   return out;
 }
 
@@ -408,7 +405,19 @@ export function ordersFor(
   const defs = new Map(level.quest.monsters.map((m) => [m.id, m]));
   return monstersInPlay(level, state)
     .filter((v) => !v.dead)
-    .map((view) => buildOrder(level, state, team, seed, view, defs.get(view.id)));
+    .map((view) =>
+      buildOrder(
+        level,
+        state,
+        team,
+        seed,
+        view,
+        defs.get(view.id) ??
+          (state.wanderers[view.id]
+            ? wandererDef(level, state.wanderers[view.id]!, view.id)
+            : undefined),
+      ),
+    );
 }
 
 export interface TurnProgress {

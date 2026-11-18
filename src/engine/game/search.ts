@@ -7,7 +7,9 @@ import { areaAt, cellsOf, inBoard, type AreaId, type Cell } from '../board/board
 import { keyOf, sightMap, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
 import { HEROES, type Hero } from '../data/heroes';
-import { joinRoster } from './roster';
+import { MONSTER_NAMES, statsOf } from '../data/monsters';
+import type { MonsterType } from '../quest/schema';
+import { joinRoster, wandererDef } from './roster';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
@@ -177,6 +179,18 @@ export function addMonster(
   return { state: d, prompts: [] };
 }
 
+/** The name and attack dice of a wandering monster that is an enemy of the quest. */
+function wandererFacts(
+  level: Level,
+  id: string,
+  type: MonsterType,
+  enemy: string | undefined,
+): { name?: string; attackDice?: number } {
+  if (!enemy) return {};
+  const def = wandererDef(level, { type, enemy }, id);
+  return { name: def.name ?? MONSTER_NAMES[type], attackDice: statsOf(def).att };
+}
+
 export function wanderingMonster(
   level: Level,
   state: GameState,
@@ -192,6 +206,7 @@ export function wanderingMonster(
   const cell = event.cell ? floorCell(level, event.cell) : undefined;
   const id = joinRoster(level, d, {
     type: w.monster,
+    ...(w.enemy ? { enemy: w.enemy } : {}),
     room,
     wanderAt: hero,
     fresh: true,
@@ -204,6 +219,7 @@ export function wanderingMonster(
         kind: 'wanderingMonster',
         monster: id,
         monsterType: w.monster,
+        ...wandererFacts(level, id, w.monster, w.enemy),
         hero,
         room,
         placement: {

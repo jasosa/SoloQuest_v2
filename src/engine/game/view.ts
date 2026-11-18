@@ -1,5 +1,6 @@
 /** Read-only selectors over the game state, for the UI. Pure. */
 import { abilityLookup, type AbilityDef } from '../data/abilities';
+import { boxOfMonster, pictureTypeOf } from '../data/enemies';
 import { MONSTER_NAMES, statsOf, type MonsterStats } from '../data/monsters';
 import { areaAt, roomIds, type AreaId, type Cell } from '../board/board';
 import type { Level } from '../board/level';
@@ -9,6 +10,8 @@ import { profileOf, type Profile } from '../zargon/weights';
 import type { TrapKindName } from './prompts';
 import { trapKind } from '../data/trapKinds';
 import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
+import { wandererDef } from './roster';
+import { BOARD_TILES, type BoardTileType } from '../data/roomTiles';
 import type { GameState } from './state';
 
 export * from './noteView';
@@ -25,6 +28,10 @@ export interface MonsterView {
   readonly dead: boolean;
   /** Dormant and stone monsters are in the roster but do not act; so is a passive one (it has buttons). */
   readonly state: 'active' | 'dormant' | 'stone' | 'away' | 'passive';
+  /** The box it comes from (its enemy's expansion), for the look of its token. */
+  readonly box?: string;
+  /** The core type whose texture-pack picture it may use; none for an enemy of its own kind. */
+  readonly pictureType?: MonsterType;
   /** Its Zargon plan (a thief can escape, a passive monster can leave or be attacked). */
   readonly profile: Profile;
   /** Squares along a side (2 is a large monster). */
@@ -84,6 +91,12 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       dead: rec.dead,
       state: st.state,
       profile: profileOf(m),
+      ...(boxOfMonster(m, level.quest.enemyDefs)
+        ? { box: boxOfMonster(m, level.quest.enemyDefs)! }
+        : {}),
+      ...(pictureTypeOf(m, level.quest.enemyDefs)
+        ? { pictureType: pictureTypeOf(m, level.quest.enemyDefs)! }
+        : {}),
       ...(m.size && m.size > 1 ? { size: m.size } : {}),
       special: m.special === true,
       abilities: abilitiesOf(lookup, m.abilities),
@@ -97,26 +110,70 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
     const rec = state.monsters[id];
     // a wanderer that escaped (MONSTER_LEAVE) is off the roster
     if (!rec || state.monsterStates[id]?.state === 'away') continue;
-    const stats = statsOf({ type: w.type });
+    const def = wandererDef(level, w, id);
+    const stats = statsOf(def);
+    const bx = boxOfMonster(def, level.quest.enemyDefs);
+    const pt = pictureTypeOf(def, level.quest.enemyDefs);
     out.push({
       id,
       type: w.type,
-      name: MONSTER_NAMES[w.type],
+      name: def.name ?? MONSTER_NAMES[w.type],
       stats,
       body: rec.body,
       maxBody: stats.body,
       dead: rec.dead,
       state: 'active',
-      profile: profileOf({ type: w.type }),
+      profile: profileOf(def),
+      ...(bx ? { box: bx } : {}),
+      ...(pt ? { pictureType: pt } : {}),
+      ...(def.letter ? { letter: def.letter } : {}),
+      ...(def.image ? { image: def.image } : {}),
       wandering: w.added !== true,
       ...(w.wanderAt ? { wanderAt: w.wanderAt } : {}),
       ...(w.added ? { added: true } : {}),
       ...(w.cell ? { cell: [w.cell[0], w.cell[1]] as Cell } : {}),
       fresh: w.fresh,
       special: false,
-      abilities: [],
+      abilities: abilitiesOf(lookup, def.abilities),
     });
   }
+  return out;
+}
+
+export interface BoardTileView {
+  readonly type: BoardTileType;
+  readonly name: string;
+  readonly cells: readonly Cell[];
+}
+
+/**
+ * Board tiles the players can see: a tile that is always shown (the cave under the start), or one
+ * with a square they have seen, unless its `hiddenWhen` flag is set.
+ */
+export function boardTilesInView(level: Level, state: GameState): BoardTileView[] {
+  return level.quest.boardTiles
+    .filter(
+      (t) =>
+        !(t.hiddenWhen !== undefined && state.flags[t.hiddenWhen] === true) &&
+        (BOARD_TILES[t.type].always || t.cells.some((c) => state.seenCells.has(`${c[0]},${c[1]}`))),
+    )
+    .map((t) => ({ type: t.type, name: BOARD_TILES[t.type].name, cells: t.cells }));
+}
+
+export interface TunnelEndView {
+  readonly tunnel: string;
+  readonly design: number;
+  readonly end: 'a' | 'b';
+  readonly cell: Cell;
+}
+
+/** The ends of ice tunnels whose square the heroes have seen (the other end stays unknown). */
+export function tunnelsInView(level: Level, state: GameState): TunnelEndView[] {
+  const out: TunnelEndView[] = [];
+  for (const t of level.quest.tunnels)
+    for (const end of ['a', 'b'] as const)
+      if (state.seenCells.has(`${t[end][0]},${t[end][1]}`))
+        out.push({ tunnel: t.id, design: t.design, end, cell: t[end] });
   return out;
 }
 

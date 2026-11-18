@@ -9,6 +9,7 @@
  *
  * Undo is "drop the last event and replay" (see `undo`).
  */
+import { wandererDef } from './roster';
 import { inBoard, areaAt, type Cell } from '../board/board';
 import { keyOf, type CellKey, type Level } from '../board/level';
 import { EventError } from './errors';
@@ -117,6 +118,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       return openDoor(level, state, event.door);
     case 'LOOK_FROM':
       return lookFrom(level, state, event.cell);
+    case 'TUNNEL_USE':
+      return tunnelUse(level, state, event.tunnel, event.from);
     case 'MONSTER_DAMAGE':
       return monsterChange(level, state, event.monster, (r) => {
         const body = Math.max(0, r.body - checkAmount(event.amount));
@@ -329,6 +332,28 @@ function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
   return { state: d, prompts: withNotes(shown.prompts, notes) };
 }
 
+/**
+ * A hero used an ice tunnel from `from`: they come out at the other end (the players move the
+ * figure; the app keeps no positions). What can be seen from there shows, as after a look.
+ */
+function tunnelUse(level: Level, state: GameState, id: string, from: 'a' | 'b'): Reduced {
+  const t = level.quest.tunnels.find((x) => x.id === id);
+  if (!t) throw new EventError('UNKNOWN_TUNNEL', `Unknown tunnel ${id}`);
+  if (from !== 'a' && from !== 'b')
+    throw new EventError('BAD_TARGET', `A tunnel end is a or b, got ${String(from)}`);
+  if (!state.seenCells.has(keyOf(t[from])))
+    throw new EventError('TUNNEL_NOT_SEEN', `Tunnel ${id} end ${from} has not been seen yet`);
+  const to = from === 'a' ? t.b : t.a;
+  const d = draftOf(state);
+  const before = progress(d);
+  d.looked.add(keyOf(to));
+  const { cells } = revealFrom(level, d, to);
+  const shown = finish(d, before, cells, [to[0] + 0.5, to[1] + 0.5], true);
+  const notes = runTriggers(level, d, [], { beforeRooms: new Set(state.revealedRooms) }).prompts;
+  const info: Prompt = { kind: 'tunnelUsed', tunnel: id, design: t.design, to: [to[0], to[1]] };
+  return { state: d, prompts: [info, ...withNotes(shown.prompts, notes)] };
+}
+
 function checkCell(level: Level, cell: Cell): void {
   const [x, y] = cell;
   if (!Number.isInteger(x) || !Number.isInteger(y) || !inBoard(level.board, x, y))
@@ -352,7 +377,7 @@ function monsterChange(
   change: (r: MonsterRecord, maxBody: number) => MonsterRecord,
 ): Reduced {
   const w = state.wanderers[id];
-  const def = w ? { type: w.type } : level.quest.monsters.find((m) => m.id === id);
+  const def = w ? wandererDef(level, w, id) : level.quest.monsters.find((m) => m.id === id);
   if (!def) throw new EventError('UNKNOWN_MONSTER', `Unknown monster ${id}`);
   const rec = state.monsters[id];
   if (!state.seenMonsters.has(id) || !rec)

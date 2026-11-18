@@ -97,3 +97,34 @@ export function roomTileOf(
   const t = quest.roomTiles.find((x) => x.area === area);
   return t ? ROOM_TILES[t.type] : undefined;
 }
+
+/**
+ * Tiles that are drawn on squares, not tied to one room (Frozen Horror): the ice cave entrance
+ * (the heroes start on it, and it lies over rock) and the cage of a cage room. The built-in look is
+ * a labeled outline; a texture pack can give them a picture later.
+ */
+export const BOARD_TILE_TYPES = ['iceCaveEntrance', 'cage'] as const;
+export type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
+
+export interface BoardTileDef {
+  readonly id: BoardTileType;
+  readonly name: string;
+  /** Drawn from the start, even on squares the heroes have not seen (the cave under the start). */
+  readonly always: boolean;
+  readonly rule: readonly string[];
+}
+
+export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
+  iceCaveEntrance: {
+    id: 'iceCaveEntrance',
+    name: 'Ice cave entrance',
+    always: true,
+    rule: ['The heroes start here, outside the iron door, and leave here when the quest says so.'],
+  },
+  cage: {
+    id: 'cage',
+    name: 'Cage',
+    always: false,
+    rule: ['Nobody can enter the cage and it blocks line of sight, until the quest opens it.'],
+  },
+};

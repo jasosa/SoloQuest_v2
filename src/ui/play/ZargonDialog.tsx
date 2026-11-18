@@ -128,10 +128,6 @@ function Entry({ order: o }: { order: Order }) {
       <dl className="zdl">
         <dt>Target</dt>
         <dd>{o.ruleText}.</dd>
-        <dt>Tie</dt>
-        <dd>
-          <span className="tgt">{tieText(o.tie)}</span>
-        </dd>
         {o.plan && (
           <>
             <dt>Plan</dt>
@@ -154,6 +150,11 @@ function Entry({ order: o }: { order: Order }) {
             </dd>
           </>
         )}
+        {/* the tie list is the last thing on the card (owner) */}
+        <dt>Tie</dt>
+        <dd>
+          <span className="tgt">{tieText(o.tie)}</span>
+        </dd>
       </dl>
       {o.spellNote && <p className="rule">{o.spellNote}</p>}
     </>

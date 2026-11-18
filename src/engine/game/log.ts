@@ -1,3 +1,4 @@
+import { wandererDef } from './roster';
 import type { Level } from '../board/level';
 import { MONSTER_NAMES } from '../data/monsters';
 import type { GameEvent } from './events';
@@ -36,7 +37,7 @@ function monsterName(level: Level, state: GameState, id: string): string {
   const m = level.quest.monsters.find((x) => x.id === id);
   if (m) return m.name ?? MONSTER_NAMES[m.type];
   const w = state.wanderers[id];
-  return w ? MONSTER_NAMES[w.type] : 'A monster';
+  return w ? (wandererDef(level, w, id).name ?? MONSTER_NAMES[w.type]) : 'A monster';
 }
 
 /** Lines that the prompts of one event add (notes, goals, new monsters). */
@@ -80,6 +81,8 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
   switch (e.type) {
     case 'OPEN_DOOR':
       return { turn, kind: 'door', text: 'A door was opened' };
+    case 'TUNNEL_USE':
+      return { turn, kind: 'look', text: 'A hero used an ice tunnel' };
     case 'LOOK_FROM':
       return { turn, kind: 'look', text: 'A hero looked along the corridor' };
     case 'MONSTER_KILL':

@@ -306,6 +306,16 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 A slide whose path is known (a spring, or a good jump over it) is drawn on the board as a dashed line in the ink color from its first square to its last, with an arrowhead on the last square. It sits under the trap mark and takes no taps. Other sprung hazards that stay (axe, slippery ice) keep the "?" mark; only a pit shows the pit square. The trap menu names a trap that sprang ("The swinging axe trap is still here") and offers Disarm only when the kind allows it after a spring.
 
+## Frozen Horror look (owner feedback, M10)
+
+**Blue tokens.** A monster whose enemy comes from the Frozen Horror box has a blue coin (`--ice` #3B6B8C, token text #F2EBDD on it is 4.7:1) instead of the green one, on the board and in the roster. Core monsters stay green. The box is the `expansion` of the quest enemy; other boxes get their own color the same way later. **Texture packs:** a monster that is an enemy of its own kind (no base type, like the Ice Gremlin) never gets the picture of a core type from a pack: it keeps the built-in coin unless the quest gives it an image.
+
+**Ice tunnels.** Each seen end is a rounded `--ice` square with a dashed ring and the number of its design in token text (13 px), 44 px tap target. The tap opens a margin note with the rule and the button "A hero used this tunnel", which shows what can be seen from the other end and names it in a result sheet. The other end stays hidden until seen.
+
+**Board tiles.** The ice cave entrance is a dashed `--ice` outline filled at 30% over its squares (rock too), with its name in capitals, drawn from the start. A cage is an ink outline with vertical bars at 55% and the name "CAGE" below it; it goes when its flag is set (the lever). **Slippery ice** that sprang is an `--ice` square with three wavy lines; hidden slippery ice is still the "?".
+
+**Zargon card.** Order: Target, Plan, Else, Special, Tie. Special never repeats the stats (they are on the card header) or what a plan says.
+
 ## Room tiles (M10, slice 4c)
 
 A room that holds a tile (Ice Vault, Living Fog Room, Cage Room...) shows its name as the kind line of the room note, and its rule under it: the name in the special-note style, then the rule lines as hints. Nothing is drawn on the board for it yet; a texture pack can give the room its own picture later.

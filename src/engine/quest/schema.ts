@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
 import { SPELL_TAG_IDS, SPELL_TIMINGS } from '../data/spells';
-import { ROOM_TILE_TYPES } from '../data/roomTiles';
+import { BOARD_TILE_TYPES, ROOM_TILE_TYPES } from '../data/roomTiles';
 import { TRAP_KIND_NAMES } from '../data/trapKinds';
 import { PROFILES, RULE_KEYS } from '../zargon/weights';
 
@@ -428,7 +428,12 @@ const NoteSchema = z.strictObject({
 
 const WanderingSchema = z.union([
   /** `count`: how many come at once from a wandering monster trap (1 when missing). */
-  z.strictObject({ monster: MonsterType, count: z.number().int().min(1).max(6).optional() }),
+  z.strictObject({
+    monster: MonsterType,
+    count: z.number().int().min(1).max(6).optional(),
+    /** An enemy of the quest (`enemyDefs`) that this wandering monster is (an Ice Gremlin); `monster` is its carrier type. */
+    enemy: id.optional(),
+  }),
   z.strictObject({ text: nonEmpty }),
 ]);
 
@@ -514,6 +519,19 @@ export const QuestSchema = z.strictObject({
   /** Rooms that hold a tile with its own look and rule (Frozen Horror). One tile per room. */
   roomTiles: z.array(z.strictObject({ type: z.enum(ROOM_TILE_TYPES), area: roomId })).default([]),
   /**
+   * Tiles drawn on squares: the ice cave entrance, a cage. `hiddenWhen` is a quest flag that takes
+   * the tile off the board when it is set (the cage opens).
+   */
+  boardTiles: z
+    .array(
+      z.strictObject({
+        type: z.enum(BOARD_TILE_TYPES),
+        cells,
+        hiddenWhen: nonEmpty.optional(),
+      }),
+    )
+    .default([]),
+  /**
    * Two rooms that are one room in this quest (a tile laid over both: Q10 K). The second room
    * becomes part of the first: the wall between them is gone for sight and reveal.
    */
@@ -525,6 +543,20 @@ export const QuestSchema = z.strictObject({
   monsters: z.array(MonsterSchema).default([]),
   traps: z.array(TrapSchema).default([]),
   markers: z.array(MarkerSchema).default([]),
+  /**
+   * Ice tunnels (Frozen Horror): two squares with the same `design` (1, 2, 3...) lead to each other.
+   * A hero or monster that lands on one comes out at the other, and that ends the move.
+   */
+  tunnels: z
+    .array(
+      z.strictObject({
+        id,
+        design: z.number().int().min(1).max(9),
+        a: cell,
+        b: cell,
+      }),
+    )
+    .default([]),
   zones: z.array(ZoneSchema).default([]),
   /** The quest's own abilities, next to the core library (decision 69). */
   abilityDefs: z.array(AbilityDefSchema).default([]),
@@ -583,6 +615,7 @@ export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;
 export type MonsterDef = z.infer<typeof MonsterSchema>;
 export type TrapDef = z.infer<typeof TrapSchema>;
+export type TunnelDef = Quest['tunnels'][number];
 export type MarkerDef = z.infer<typeof MarkerSchema>;
 export type EndingDef = z.infer<typeof EndingSchema>;
 export type NpcDef = z.infer<typeof NpcSchema>;

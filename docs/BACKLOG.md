@@ -197,7 +197,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
   - [x] Quest 0 (Into the Northlands) encoded for the owner to check, with the `lookFrom` effect, see decision 80
   - [ ] 4d: terrain (ice ledge, icy river, chasm) with rule hints on tap and on first reveal when Rule hints is on
   - [ ] 4e: sight blockers until a flag (the Q0 cage), `replaceFurnitureWithDoor`
-  - [ ] 4f: ice tunnels with design ids and the "did someone use it" question
+  - [x] 4f: ice tunnels as a quest field with design numbers, drawn on the board, `TUNNEL_USE` (decision 81). The editor cannot place tunnels, tiles or edge doors yet (slice 7)
   - [ ] 4g: the wandering monster list with counts for a wandering monster CARD
 - [ ] Slice 5: notes: a question on a letter and a hidden part (decision 53) and the new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, clear a sight blocker, `crossMap`)
 - [ ] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event, one entry in the quest list

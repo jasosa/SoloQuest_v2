@@ -345,11 +345,11 @@ describe('special rules', () => {
     };
     const o = ordersFor(l, s, TEAM)[0]!;
     expect(o.monster).toBe(mummy.id);
-    expect(o.special).toEqual(['Rolls 4 attack dice']);
+    expect(o.special).toEqual([]);
     expect(o.profile).toBe('relentless');
   });
 
-  it('covers defend, move, body and the spell limit; nothing for base stats', () => {
+  it('stat overrides are not repeated in Special', () => {
     const l = levelWith([
       {
         id: 'w',
@@ -363,12 +363,8 @@ describe('special rules', () => {
     const s = replay(l, SEED, [open('d2')]);
     const orders = ordersFor(l, s, TEAM);
     expect(orders.find((o) => o.monster === 'm1')!.special).toEqual([]);
-    expect(orders.find((o) => o.monster === 'w')!.special).toEqual([
-      'Rolls 2 attack dice',
-      'Rolls 6 defend dice',
-      'Moves 1 square',
-      'Has 5 Body Points',
-    ]);
+    // the stats are on the card header, not in Special
+    expect(orders.find((o) => o.monster === 'w')!.special).toEqual([]);
   });
 });
 
@@ -682,7 +678,7 @@ describe('one action per turn for every caster', () => {
 });
 
 describe('traits and override lines', () => {
-  it('shows traits first, then every override that is present, even equal to the base', () => {
+  it('shows the traits, and never the stat overrides', () => {
     const l = levelWith([
       {
         id: 'wl',
@@ -696,8 +692,6 @@ describe('traits and override lines', () => {
     expect(o.special).toEqual([
       'Only the Spirit Blade can harm him',
       'Fire spells do not affect him',
-      'Rolls 3 attack dice',
-      'Moves 1 square',
     ]);
   });
 

@@ -18,6 +18,7 @@ const CellSchema = z.tuple([z.number().int(), z.number().int()]);
 export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
   z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
+  z.object({ type: z.literal('TUNNEL_USE'), tunnel: z.string(), from: z.enum(['a', 'b']) }),
   z.object({
     type: z.literal('MONSTER_DAMAGE'),
     monster: z.string(),

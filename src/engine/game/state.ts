@@ -26,6 +26,8 @@ export interface WandererRecord {
   readonly type: MonsterType;
   /** The room where the search happened, or the area of its square. */
   readonly room: AreaId;
+  /** An enemy of the quest that it is (`quest.enemyDefs`), so it has that enemy's stats and plan. */
+  readonly enemy?: string;
   /** The hero a wandering monster came for. */
   readonly wanderAt?: Hero;
   /** True from the moment it appears until the end of the Zargon turn ("attacks now"). */

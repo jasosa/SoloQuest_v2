@@ -27,6 +27,8 @@ import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { useTheme } from '../theme/activeTheme';
+import { boxOfMonster, pictureTypeOf } from '../../engine/data/enemies';
+import { boxTokenFill } from '../shared/boxColor';
 import { isThemeToken, monsterPicture } from '../theme/theme';
 import {
   BoardArt,
@@ -660,36 +662,38 @@ export function EditorBoard({
     const cx = (m.cell[0] + 0.5) * U;
     const cy = (m.cell[1] + 0.5) * U;
     const sel = selection?.kind === 'monster' && selection.id === m.id;
+    const pt = pictureTypeOf(m, quest.enemyDefs);
+    const bx = boxOfMonster(m, quest.enemyDefs);
     things.push(
       <g key={`m${m.id}`} data-monster={m.id}>
         {sel && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        {!isThemeToken(theme, shownImage(quest, m), m.type) && (
+        {!isThemeToken(theme, shownImage(quest, m), pt) && (
           <circle
             cx={cx}
             cy={cy}
             r={13.5}
-            fill="var(--green)"
+            fill={boxTokenFill(bx)}
             stroke={color.tokenText}
             strokeWidth={2}
             opacity={m.state === 'dormant' ? 0.55 : 1}
           />
         )}
-        {isThemeToken(theme, shownImage(quest, m), m.type) ? (
+        {isThemeToken(theme, shownImage(quest, m), pt) ? (
           <image
-            href={monsterPicture(theme, shownImage(quest, m), m.type)}
+            href={monsterPicture(theme, shownImage(quest, m), pt)}
             {...tokenBox(theme, m.type, cx, cy, U)}
             preserveAspectRatio="xMidYMid meet"
             opacity={m.state === 'dormant' ? 0.55 : 1}
             data-token-image={m.id}
             data-themed="token"
           />
-        ) : monsterPicture(theme, shownImage(quest, m), m.type) ? (
+        ) : monsterPicture(theme, shownImage(quest, m), pt) ? (
           <>
             <clipPath id={`eclip-${m.id}`}>
               <circle cx={cx} cy={cy} r={12.5} />
             </clipPath>
             <image
-              href={monsterPicture(theme, shownImage(quest, m), m.type)}
+              href={monsterPicture(theme, shownImage(quest, m), pt)}
               x={cx - 12.5}
               y={cy - 12.5}
               width={25}

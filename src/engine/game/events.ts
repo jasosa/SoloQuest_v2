@@ -14,6 +14,8 @@ export type GameEvent =
   | { readonly type: 'OPEN_DOOR'; readonly door: string }
   /** Show what a hero standing on a seen corridor square can see. */
   | { readonly type: 'LOOK_FROM'; readonly cell: Cell }
+  /** A hero (or monster) used an ice tunnel from end `from`: it comes out at the other end, and what is in sight there shows. */
+  | { readonly type: 'TUNNEL_USE'; readonly tunnel: string; readonly from: 'a' | 'b' }
   /** A seen monster loses Body Points (integer >= 1). At 0 it is dead. */
   | { readonly type: 'MONSTER_DAMAGE'; readonly monster: string; readonly amount: number }
   /** A seen, living monster regains Body Points, up to its maximum. */

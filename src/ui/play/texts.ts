@@ -26,8 +26,11 @@ export function sprungLines(p: Sprung): string[] {
     lines.push('Read the trap effect in the quest notes.');
   if (p.spawned?.length) {
     const counts = new Map<string, number>();
-    for (const m of p.spawned) counts.set(m.monsterType, (counts.get(m.monsterType) ?? 0) + 1);
-    const what = [...counts].map(([t, n]) => `${n} ${MONSTER_NAMES[t as MonsterType]}`).join(', ');
+    for (const m of p.spawned) {
+      const nm = m.name ?? MONSTER_NAMES[m.monsterType];
+      counts.set(nm, (counts.get(nm) ?? 0) + 1);
+    }
+    const what = [...counts].map(([nm, n]) => `${n} ${nm}`).join(', ');
     lines.push(`Put on the board: ${what}. They are on the roster now and attack at once.`);
   } else if (kind.bringsWanderers && p.effect === undefined)
     lines.push('The quest names no wandering monster for this trap.');
@@ -38,9 +41,10 @@ export function sprungLines(p: Sprung): string[] {
 /** The wandering monster card (decision 33): always next to the hero, attacks at once. */
 export function wanderingLines(p: Extract<Prompt, { kind: 'wanderingMonster' }>): string[] {
   const hero = HERO_NAMES[p.hero];
-  const name = MONSTER_NAMES[p.monsterType as MonsterType];
+  const name = p.name ?? MONSTER_NAMES[p.monsterType as MonsterType];
+  const dice = p.attackDice ?? MONSTER_STATS[p.monsterType].att;
   return [
-    `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${MONSTER_STATS[p.monsterType].att} attack dice. This round it attacks nobody else.`,
+    `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${dice} attack dice. This round it attacks nobody else.`,
   ];
 }
 

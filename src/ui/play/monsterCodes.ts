@@ -22,13 +22,18 @@ export const MONSTER_LETTER: Readonly<Record<MonsterType, string>> = {
 export function monsterCodes(
   level: Level,
   seen: Iterable<string>,
-  wanderers: Readonly<Record<string, { type: MonsterType }>> = {},
+  wanderers: Readonly<Record<string, { type: MonsterType; enemy?: string }>> = {},
 ): ReadonlyMap<string, string> {
   // The letter of a monster: its enemy's letter, else the letter of its type.
   const letter = new Map<string, string>(
     level.quest.monsters.map((m) => [m.id, m.letter ?? MONSTER_LETTER[m.type]]),
   );
-  for (const [id, w] of Object.entries(wanderers)) letter.set(id, MONSTER_LETTER[w.type]);
+  for (const [id, w] of Object.entries(wanderers))
+    letter.set(
+      id,
+      (w.enemy ? level.quest.enemyDefs.find((e) => e.id === w.enemy)?.letter : undefined) ??
+        MONSTER_LETTER[w.type],
+    );
   const counters = new Map<string, number>();
   const out = new Map<string, string>();
   for (const id of seen) {
