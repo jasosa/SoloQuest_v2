@@ -802,7 +802,11 @@ export function EditorBoard({
               const st = store.getState();
               if (l.note) st.setNoteId(l.note);
               else
-                addAction(store, { kind: 'area', id: store.getState().quest.start.area }, l.letter);
+                addAction(
+                  store,
+                  { kind: 'area', id: store.getState().quest.start.area ?? 'R01' },
+                  l.letter,
+                );
             }}
           />
         )}

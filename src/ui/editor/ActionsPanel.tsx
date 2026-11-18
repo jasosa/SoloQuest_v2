@@ -62,7 +62,7 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
               <button
                 key={l}
                 className="chip"
-                onClick={() => addAction(store, { kind: 'area', id: quest.start.area }, l)}
+                onClick={() => addAction(store, { kind: 'area', id: quest.start.area ?? 'R01' }, l)}
               >
                 Add action {l}
               </button>

@@ -111,6 +111,16 @@ export function revealFrom(level: Level, d: Draft, from: Cell): RevealResult {
  * Call it after the door was added to `openDoors`.
  */
 export function revealThroughDoor(level: Level, d: Draft, door: DoorInfo): CellKey[] {
+  // An edge door: the heroes are outside the board, so look in from the square inside the door.
+  if (door.edge) {
+    const [x, y] = door.a;
+    const area = areaAt(level.board, x, y);
+    if (area === undefined) return [];
+    if (area !== 'C') return d.revealedRooms.has(area) ? [] : revealRoom(level, d, area).cells;
+    if (d.looked.has(keyOf(door.a))) return [];
+    d.looked.add(keyOf(door.a));
+    return revealFrom(level, d, door.a).cells;
+  }
   const sides = [door.a, door.b];
   const roomSeenBefore = sides.map((c) => {
     const area = areaAt(level.board, c[0], c[1]);

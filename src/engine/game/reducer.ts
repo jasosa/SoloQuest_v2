@@ -56,7 +56,10 @@ export interface Reduced {
  */
 export function startGame(level: Level, seed: number): Reduced {
   const d = draftOf(emptyState(seed));
-  revealRoom(level, d, level.quest.start.area);
+  const start = level.quest.start;
+  // Heroes at an iron entry door see only that door. The first tap on it opens it and looks in.
+  if (start.door) d.seenDoors.add(start.door);
+  else if (start.area) revealRoom(level, d, start.area);
   const r = runTriggers(
     level,
     d,

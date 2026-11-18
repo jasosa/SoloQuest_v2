@@ -10,6 +10,7 @@ import {
   edgeKey,
   isWall,
   keyOf,
+  outsideOf,
   parseKey,
   type Level,
 } from '../board/level';
@@ -100,17 +101,31 @@ export function validateQuestIssues(
    * the walk, like rock, blocked squares and walls.
    */
   function checkReachable() {
-    if (!rooms.has(quest.start.area) || rockRooms.has(quest.start.area)) return;
+    const startRoom = quest.start.area;
+    if (startRoom !== undefined && (!rooms.has(startRoom) || rockRooms.has(startRoom))) return;
     const level = buildLevel(quest, board);
-    const passable = new Set([...quest.doors, ...quest.secretDoors].map((d) => d.id));
+    // The heroes can use every edge door too (the exit leads out of the board, so it ends the walk).
+    const passable = new Set(
+      [...quest.doors, ...quest.secretDoors, ...quest.edgeDoors].map((d) => d.id),
+    );
     const seen = new Set<string>();
     const todo: [number, number][] = [];
     for (let y = 0; y < board.height; y++)
       for (let x = 0; x < board.width; x++)
-        if (areaAt(board, x, y) === quest.start.area && !blocksMove(level, x, y)) {
+        if (
+          startRoom !== undefined &&
+          areaAt(board, x, y) === startRoom &&
+          !blocksMove(level, x, y)
+        ) {
           seen.add(keyOf([x, y]));
           todo.push([x, y]);
         }
+    // Outside an iron entry door they begin on the square inside it.
+    const entry = quest.edgeDoors.find((e) => e.id === quest.start.door);
+    if (entry && !blocksMove(level, entry.cell[0], entry.cell[1])) {
+      seen.add(keyOf(entry.cell));
+      todo.push([entry.cell[0], entry.cell[1]]);
+    }
     while (todo.length) {
       const c = todo.pop() as [number, number];
       for (const [dx, dy] of [
@@ -171,10 +186,18 @@ export function validateQuestIssues(
   };
 
   // ---- start
-  if (!rooms.has(quest.start.area))
-    err(`start.area: unknown room ${quest.start.area}`, { kind: 'area', area: quest.start.area });
-  else if (rockRooms.has(quest.start.area))
-    err(`start.area: ${quest.start.area} is rock`, { kind: 'area', area: quest.start.area });
+  const startArea = quest.start.area;
+  if (startArea !== undefined) {
+    if (!rooms.has(startArea))
+      err(`start.area: unknown room ${startArea}`, { kind: 'area', area: startArea });
+    else if (rockRooms.has(startArea))
+      err(`start.area: ${startArea} is rock`, { kind: 'area', area: startArea });
+  } else {
+    const entry = quest.edgeDoors.find((e) => e.id === quest.start.door);
+    if (!entry) err(`start.door: unknown edge door ${String(quest.start.door)}`, { kind: 'quest' });
+    else if (entry.kind !== 'ironEntry')
+      err(`start.door: ${entry.id} is not an iron entry door`, { kind: 'door', id: entry.id });
+  }
 
   // ---- unique ids per namespace
   const unique = (label: string, ids: string[], kind: IssueRefKind) => {
@@ -189,6 +212,7 @@ export function validateQuestIssues(
     'doors',
     [
       ...quest.doors.map((d) => d.id),
+      ...quest.edgeDoors.map((d) => d.id),
       ...quest.secretDoors.map((d) => d.id),
       ...quest.falseDoors.map((d) => d.id),
     ],
@@ -303,6 +327,25 @@ export function validateQuestIssues(
       else edges.set(ek, d.id);
     }
   };
+  // Edge doors: on the outer wall of the board, on a floor square, one iron entry at most.
+  const edgeSeen = new Set<string>();
+  for (const e of quest.edgeDoors) {
+    const ref: IssueRef = { kind: 'door', id: e.id, cell: cellOf(e.cell) };
+    const [x, y] = e.cell;
+    if (!inBoard(board, x, y)) {
+      err(`edge door ${e.id}: cell ${key(e.cell)} is outside the board`, ref);
+      continue;
+    }
+    const outside = outsideOf(e.cell, e.side);
+    if (inBoard(board, outside[0], outside[1]))
+      err(`edge door ${e.id}: ${key(e.cell)} is not on the ${e.side} edge of the board`, ref);
+    if (isRock(e.cell)) err(`edge door ${e.id}: touches rock`, ref);
+    const ek = `${key(e.cell)}${e.side}`;
+    if (edgeSeen.has(ek)) err(`edge door ${e.id}: same edge as another edge door`, ref);
+    edgeSeen.add(ek);
+  }
+  if (quest.edgeDoors.filter((e) => e.kind === 'ironEntry').length > 1)
+    err('edge doors: only one iron entry door', { kind: 'quest' });
   checkDoors('door', quest.doors, false);
   checkDoors('secret door', quest.secretDoors, false);
   checkDoors('false door', quest.falseDoors, true); // a false door may lead into rock

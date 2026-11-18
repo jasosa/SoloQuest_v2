@@ -66,7 +66,7 @@ export function conditionKey(c: Condition): ConditionKey {
 }
 
 const firstCell = (q: Quest): [number, number] => {
-  const c = cellsOf(board, q.start.area)[0];
+  const c = cellsOf(board, q.start.area ?? 'R01')[0];
   return c ? [c[0], c[1]] : [0, 0];
 };
 
@@ -76,7 +76,7 @@ const bad = <T>(error: string): Made<T> => ({ ok: false, error });
 
 /** A trigger of this type that the schema accepts, or the reason there is none yet. */
 export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
-  const area = q.start.area;
+  const area = q.start.area ?? 'R01';
   switch (type) {
     case 'questStart':
       return good({ type });
@@ -127,7 +127,7 @@ export function defaultEffect(q: Quest, type: Effect['type']): Made<Effect> {
     case 'showText':
       return good({ type, text: 'Write the text here.' });
     case 'revealArea':
-      return good({ type, area: q.start.area });
+      return good({ type, area: q.start.area ?? 'R01' });
     case 'revealAll':
     case 'openAllDoors':
       return good({ type });
@@ -179,9 +179,9 @@ export function defaultCondition(q: Quest, key: ConditionKey): Made<Condition> {
       return m ? good({ monster: m.id, alive: false }) : bad('Add a monster first.');
     }
     case 'monstersAliveIn':
-      return good({ monstersAliveIn: q.start.area, is: 0 });
+      return good({ monstersAliveIn: q.start.area ?? 'R01', is: 0 });
     case 'areaRevealed':
-      return good({ areaRevealed: q.start.area });
+      return good({ areaRevealed: q.start.area ?? 'R01' });
     case 'doorOpened': {
       const d = q.doors[0];
       return d ? good({ doorOpened: d.id }) : bad('Add a door first.');

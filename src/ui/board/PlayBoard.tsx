@@ -113,6 +113,56 @@ function InkCircle({ fx, maxR }: { fx: Fx; maxR: number }) {
   return <circle ref={ref} cx={fx.origin[0] * S} cy={fx.origin[1] * S} r={0} fill="white" />;
 }
 
+/**
+ * A door in the outer wall of the board (Frozen Horror): drawn on the wall line, moved a little
+ * into the board so it stays inside the picture, with an arrow into the board for the iron entry and
+ * out of it for the wooden exit. (dx, dy) points from outside into the board.
+ */
+function EdgeDoorMark(props: {
+  kind: 'ironEntry' | 'woodenExit';
+  open: boolean;
+  cx: number;
+  cy: number;
+  dx: number;
+  dy: number;
+}) {
+  const { kind, open, dx, dy } = props;
+  const vertical = dy === 0;
+  const cx = props.cx + dx * 6;
+  const cy = props.cy + dy * 6;
+  const w = vertical ? 12 : 30;
+  const h = vertical ? 30 : 12;
+  const iron = kind === 'ironEntry';
+  // the arrow points into the board for the entry, out of it for the exit
+  const sign = iron ? 1 : -1;
+  const ax = dx * sign;
+  const ay = dy * sign;
+  const tipX = cx + ax * 9;
+  const tipY = cy + ay * 9;
+  const baseX = cx - ax * 3;
+  const baseY = cy - ay * 3;
+  const px = -ay * 6;
+  const py = ax * 6;
+  return (
+    <g data-edge-door={kind} data-open={open ? 'true' : 'false'}>
+      <rect
+        x={cx - w / 2}
+        y={cy - h / 2}
+        width={w}
+        height={h}
+        fill={iron ? color.ink : color.white}
+        stroke={color.ink}
+        strokeWidth={1.6}
+        opacity={open ? 0.45 : 1}
+      />
+      <polygon
+        points={`${tipX},${tipY} ${baseX + px},${baseY + py} ${baseX - px},${baseY - py}`}
+        fill={iron ? color.white : color.ink}
+      />
+    </g>
+  );
+}
+
 export function PlayBoard({
   level,
   state,
@@ -296,46 +346,58 @@ export function PlayBoard({
     into(isFresh).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        {doorPiece(
-          theme,
-          // a found secret door keeps its own picture, closed or open
-          d.kind === 'secret' && theme.door?.secret ? 'secret' : open ? 'open' : 'closed',
-          cx,
-          cy,
-          vertical,
-          S,
-        ) ?? (
-          <>
-            <rect
-              x={cx - w / 2}
-              y={cy - h / 2}
-              width={w}
-              height={h}
-              fill={open ? color.floor : color.white}
-              stroke={color.ink}
-              strokeWidth={1.6}
-            />
-            {open ? (
-              <line
-                x1={cx - (vertical ? 0 : 7)}
-                y1={cy - (vertical ? 7 : 0)}
-                x2={cx + (vertical ? 0 : 7)}
-                y2={cy + (vertical ? 7 : 0)}
+        {d.edge ? (
+          <EdgeDoorMark
+            kind={d.edge}
+            open={open}
+            cx={cx}
+            cy={cy}
+            // from the outside square toward the board: -1 or 1 on one axis
+            dx={d.a[0] - d.b[0]}
+            dy={d.a[1] - d.b[1]}
+          />
+        ) : (
+          (doorPiece(
+            theme,
+            // a found secret door keeps its own picture, closed or open
+            d.kind === 'secret' && theme.door?.secret ? 'secret' : open ? 'open' : 'closed',
+            cx,
+            cy,
+            vertical,
+            S,
+          ) ?? (
+            <>
+              <rect
+                x={cx - w / 2}
+                y={cy - h / 2}
+                width={w}
+                height={h}
+                fill={open ? color.floor : color.white}
                 stroke={color.ink}
-                strokeWidth={1}
-                strokeDasharray="2 2"
+                strokeWidth={1.6}
               />
-            ) : (
-              <line
-                x1={cx - (vertical ? 0 : 6)}
-                y1={cy - (vertical ? 6 : 0)}
-                x2={cx + (vertical ? 0 : 6)}
-                y2={cy + (vertical ? 6 : 0)}
-                stroke={color.ink}
-                strokeWidth={2.2}
-              />
-            )}
-          </>
+              {open ? (
+                <line
+                  x1={cx - (vertical ? 0 : 7)}
+                  y1={cy - (vertical ? 7 : 0)}
+                  x2={cx + (vertical ? 0 : 7)}
+                  y2={cy + (vertical ? 7 : 0)}
+                  stroke={color.ink}
+                  strokeWidth={1}
+                  strokeDasharray="2 2"
+                />
+              ) : (
+                <line
+                  x1={cx - (vertical ? 0 : 6)}
+                  y1={cy - (vertical ? 6 : 0)}
+                  x2={cx + (vertical ? 0 : 6)}
+                  y2={cy + (vertical ? 6 : 0)}
+                  stroke={color.ink}
+                  strokeWidth={2.2}
+                />
+              )}
+            </>
+          ))
         )}
       </g>,
     );

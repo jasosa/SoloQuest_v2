@@ -351,6 +351,16 @@ export interface EndSummary {
   readonly objectives: readonly ObjectiveStatus[];
 }
 
+/**
+ * How the heroes leave, in words: by the stairs, or through the wooden exit door when the quest has
+ * one (Frozen Horror). The outcome stays `stairs` either way (one way to leave, saved the same).
+ */
+export function leaveWay(level: Level): string {
+  return level.quest.edgeDoors.some((e) => e.kind === 'woodenExit')
+    ? 'through the exit door'
+    : 'by the stairs';
+}
+
 /** The end screen data. Undefined until END_QUEST. */
 export function endSummary(level: Level, state: GameState): EndSummary | undefined {
   if (!state.ended) return undefined;

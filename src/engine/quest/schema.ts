@@ -60,6 +60,19 @@ const MonsterState = z.enum(['active', 'dormant', 'stone', 'away', 'passive']);
 // ---- geometry
 
 const DoorSchema = z.strictObject({ id, a: cell, b: cell });
+
+/**
+ * A door in the outer wall of the board (Frozen Horror). `cell` is the board square inside the door,
+ * `side` is the board edge it sits on. The heroes start outside an iron entry door and leave through
+ * a wooden exit door. The square outside is not stored: the level derives it.
+ */
+export const EDGE_DOOR_KINDS = ['ironEntry', 'woodenExit'] as const;
+const EdgeDoorSchema = z.strictObject({
+  id,
+  cell,
+  side: z.enum(['n', 'e', 's', 'w']),
+  kind: z.enum(EDGE_DOOR_KINDS),
+});
 const BlockSchema = z.strictObject({ id: id.optional(), cells: z.array(cell).min(1).max(2) });
 
 const FurnitureSchema = z.strictObject({
@@ -464,7 +477,19 @@ export const QuestSchema = z.strictObject({
     .optional(),
   title: nonEmpty,
   intro: z.strictObject({ summary: nonEmpty, userText: z.string().optional() }),
-  start: z.strictObject({ area: roomId }),
+  /**
+   * Where the heroes begin: in a room (the stairway, or an ice cave entrance tile with `kind`), or
+   * outside an iron entry door (`door`, an id of `edgeDoors`). Exactly one of `area` and `door`.
+   */
+  start: z
+    .strictObject({
+      area: roomId.optional(),
+      door: id.optional(),
+      kind: z.enum(['stairway', 'tile']).optional(),
+    })
+    .refine((s) => (s.area === undefined) !== (s.door === undefined), {
+      message: 'start needs a room (area) or an iron door (door), not both',
+    }),
   rock: z
     .strictObject({
       rooms: z.array(roomId).default([]),
@@ -472,6 +497,7 @@ export const QuestSchema = z.strictObject({
     })
     .default({ rooms: [], cells: [] }),
   doors: z.array(DoorSchema).default([]),
+  edgeDoors: z.array(EdgeDoorSchema).default([]),
   secretDoors: z.array(DoorSchema).default([]),
   falseDoors: z.array(DoorSchema).default([]),
   blocks: z.array(BlockSchema).default([]),
@@ -532,6 +558,7 @@ export type CompanionDef = z.infer<typeof CompanionDefSchema>;
 export type AbilityDefData = z.infer<typeof AbilityDefSchema>;
 export type SpellDefData = z.infer<typeof SpellDefSchema>;
 export type DoorDef = z.infer<typeof DoorSchema>;
+export type EdgeDoorDef = z.infer<typeof EdgeDoorSchema>;
 export type BlockDef = z.infer<typeof BlockSchema>;
 export type FurnitureDef = z.infer<typeof FurnitureSchema>;
 export type MonsterDef = z.infer<typeof MonsterSchema>;

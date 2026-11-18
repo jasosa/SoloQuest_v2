@@ -12,6 +12,7 @@ import {
   availableEndings,
   chestsInView,
   endSummary,
+  leaveWay,
   enterableAreas,
   journal,
   livingHeroes,
@@ -1028,6 +1029,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           title={quest.title}
           onLeave={playtest ? playtest.onBack : onLeave}
           leaveLabel={playtest ? 'Back to editor' : 'Back to the quests'}
+          leave={leaveWay(level)}
           onUndo={() => undo()}
         />
       ) : sheet?.t === 'note' ? (
@@ -1074,7 +1076,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               dispatch({ type: 'END_QUEST', outcome: 'stairs' });
             }}
           >
-            Heroes left by the stairs
+            Heroes left {leaveWay(level)}
           </button>
           {endings.map((e) => (
             <button
@@ -1301,9 +1303,12 @@ function EndScreen({
   title,
   onLeave,
   leaveLabel,
+  leave,
   onUndo,
 }: {
   end: NonNullable<ReturnType<typeof endSummary>>;
+  /** "by the stairs" or "through the exit door". */
+  leave: string;
   title: string;
   onLeave(): void;
   leaveLabel: string;
@@ -1330,7 +1335,7 @@ function EndScreen({
         </>
       ) : (
         <p>
-          {end.outcome === 'fell' ? 'All the heroes fell.' : 'The heroes left by the stairs.'}{' '}
+          {end.outcome === 'fell' ? 'All the heroes fell.' : `The heroes left ${leave}.`}{' '}
           {end.goalDone ? 'The goal was done.' : 'The goal was not done.'}
         </p>
       )}

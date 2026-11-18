@@ -46,7 +46,7 @@ function rebuild(src: Quest): Quest {
   q = ok(setSummary(q, src.intro.summary));
   // The skeleton has stairs of its own: replace them with the ones of the source.
   q = ok(removeFurniture(q, 'f-stairs'));
-  q = ok(setStartArea(q, src.start.area));
+  q = ok(setStartArea(q, src.start.area ?? 'R01'));
   for (const room of src.rock.rooms) q = ok(setRockRoom(q, room, true));
   for (const c of src.rock.cells) q = ok(setRockCell(q, c, true));
   for (const d of src.doors) q = ok(addDoor(q, d.a, d.b, 'normal'));

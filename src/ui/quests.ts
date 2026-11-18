@@ -41,9 +41,39 @@ export function levelOfNumber(n: number): Level | undefined {
  * door) plus one falling block, so the trap flows can be tried and tested. It is never listed in
  * the quest select, and `import.meta.env.DEV` is false in a production build.
  */
-export async function devTestLevel(): Promise<Level | undefined> {
+export async function devTestLevel(which: string = 'test'): Promise<Level | undefined> {
   if (!import.meta.env.DEV) return undefined;
   const { testQuest } = await import('../engine/quest/testQuest');
+  // `?quest=frozen`: the heroes start outside an iron door in the bottom wall and leave through a
+  // wooden exit; the bottom corridor holds the Frozen Horror hazards.
+  if (which === 'frozen')
+    return buildLevel(
+      testQuest({
+        blocks: [],
+        start: { door: 'in' },
+        edgeDoors: [
+          { id: 'in', cell: [3, 18], side: 's', kind: 'ironEntry' },
+          { id: 'out', cell: [20, 18], side: 's', kind: 'woodenExit' },
+        ],
+        traps: [
+          { id: 'st', kind: 'stalactite', cell: [4, 18] },
+          { id: 'ax', kind: 'swingingAxe', cell: [5, 18] },
+          { id: 'wt', kind: 'wanderingTrap', cell: [6, 18] },
+          { id: 'si', kind: 'slipperyIce', cell: [7, 18] },
+          {
+            id: 'sl',
+            kind: 'iceSlide',
+            cell: [10, 18],
+            path: [
+              [10, 18],
+              [11, 18],
+              [12, 18],
+            ],
+          },
+        ],
+        wandering: { monster: 'goblin', count: 2 },
+      }),
+    );
   const base = testQuest();
   return buildLevel(
     testQuest({

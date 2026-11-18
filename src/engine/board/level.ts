@@ -34,7 +34,22 @@ export interface DoorInfo {
   readonly id: string;
   readonly kind: DoorKind;
   readonly a: Cell;
+  /** For an edge door this square is outside the board (it can be -1 or the board size). */
   readonly b: Cell;
+  /** A door in the outer wall of the board: the iron entry or the wooden exit (Frozen Horror). */
+  readonly edge?: 'ironEntry' | 'woodenExit';
+}
+
+/** The square outside the board next to `cell`, on `side`. */
+export function outsideOf(cell: Cell, side: 'n' | 'e' | 's' | 'w'): Cell {
+  const [x, y] = cell;
+  return side === 'n'
+    ? [x, y - 1]
+    : side === 's'
+      ? [x, y + 1]
+      : side === 'w'
+        ? [x - 1, y]
+        : [x + 1, y];
 }
 export interface BlockInfo {
   readonly id: string;
@@ -87,6 +102,18 @@ export function buildLevel(source: Quest, board: Board = defaultBoard): Level {
     }
   };
   add(quest.doors, 'normal');
+  for (const e of quest.edgeDoors) {
+    const info: DoorInfo = {
+      id: e.id,
+      kind: 'normal',
+      a: e.cell,
+      b: outsideOf(e.cell, e.side),
+      edge: e.kind,
+    };
+    doors.set(e.id, info);
+    doorAtEdge.set(edgeKey(info.a, info.b), info);
+    doorsAt.set(keyOf(e.cell), [...(doorsAt.get(keyOf(e.cell)) ?? []), info]);
+  }
   add(quest.secretDoors, 'secret');
   add(quest.falseDoors, 'false');
 

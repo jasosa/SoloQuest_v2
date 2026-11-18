@@ -71,7 +71,10 @@ function startFromUrl(
   saves: SaveStore,
   level: Level | undefined = levelFromParams(params),
 ): GameStore | 'resume' | 'dev' | null {
-  if (!level) return params.get('quest') === 'test' && import.meta.env.DEV ? 'dev' : null;
+  if (!level)
+    return ['test', 'frozen'].includes(params.get('quest') ?? '') && import.meta.env.DEV
+      ? 'dev'
+      : null;
   if (params.has('resume')) return 'resume';
   const team = (params.get('team') ?? 'dwarf')
     .split(',')
@@ -227,7 +230,7 @@ function Game({ params }: { params: URLSearchParams }) {
   useEffect(() => {
     if (game !== 'dev') return;
     let live = true;
-    void devTestLevel().then((level) => {
+    void devTestLevel(params.get('quest') ?? 'test').then((level) => {
       if (!live) return;
       const next = level ? startFromUrl(params, saves, level) : null;
       setGame(next === 'dev' ? null : next);

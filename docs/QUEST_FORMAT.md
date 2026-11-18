@@ -169,6 +169,14 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
             "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
 ```
 
+## Edge doors and the start (Frozen Horror)
+
+`edgeDoors: [{ "id": "in", "cell": [3, 18], "side": "s", "kind": "ironEntry" }, { "id": "out", "cell": [20, 18], "side": "s", "kind": "woodenExit" }]` are doors in the outer wall of the board. `cell` is the board square inside the door and `side` (`n`, `e`, `s`, `w`) the board edge it sits on; the square outside is derived. At most one iron entry. They share the door id space (notes can use `doorOpened` with their id).
+
+`start` is `{ "area": "R20" }` (the stairway room), `{ "area": "R20", "kind": "tile" }` (an ice cave entrance tile, drawn like any start room), or `{ "door": "in" }`: the heroes begin outside that iron entry door and see only it; the first tap opens it and looks in from the square inside. Exactly one of `area` and `door`.
+
+Leaving: heroes who go out through a wooden exit door end the quest as usual (End quest). The end buttons then say "through the exit door".
+
 ## Pack
 
 A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose manifest lists it (`PACKS.md`); a quest made in the editor is in no pack. `number` is 1 to 14 in the core book and may be 0 (a prelude).
