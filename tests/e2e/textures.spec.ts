@@ -184,6 +184,14 @@ test.describe('texture packs (decision 78)', () => {
     await expect(prev.getByLabel('Picture to adjust')).toHaveValue('monster.orc');
     // while adjusting, they stay pinned at the top of the dialog
     await expect(prev.getByTestId('pack-work')).toHaveClass(/pinned/);
+    // the sample zooms in on the picked picture (a few squares around it), and a switch shows it all again
+    const viewWidth = async () =>
+      Number(((await prev.getByTestId('pack-sample').getAttribute('viewBox')) ?? '').split(' ')[2]);
+    expect(await viewWidth()).toBeLessThan(300);
+    await prev.getByTestId('pack-closeup').click();
+    expect(await viewWidth()).toBe(14 * 34);
+    await prev.getByTestId('pack-closeup').click();
+    expect(await viewWidth()).toBeLessThan(300);
     // a tap on + is 1%: five taps, 105%, drawn 33.6 px wide
     for (let i = 0; i < 5; i++) await prev.getByRole('button', { name: 'Size: more' }).click();
     await expect(prev.getByTestId('pack-adjust')).toContainText('105%');

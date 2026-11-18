@@ -74,6 +74,67 @@ const SAMPLE_FURNITURE: FurnitureDef[] = [
 
 const TRAP_SAMPLES: TrapSlot[] = ['armed', ...TRAP_KINDS];
 
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+const cellBox = (sx: number, sy: number, w = 1, h = 1): Box => ({
+  x: (sx + OX) * U,
+  y: (sy + OY) * U,
+  w: w * U,
+  h: h * U,
+});
+
+/** Where the picture of a slot sits in the sample (in board px), or null for a slot the sample does not show. */
+function slotBox(id: string): Box | null {
+  const [group, key = ''] = id.split('.');
+  if (group === 'furniture') {
+    const f = SAMPLE_FURNITURE.find((x) => x.type === key);
+    if (!f) return null;
+    const xs = f.cells.map((c) => c[0]);
+    const ys = f.cells.map((c) => c[1]);
+    const x0 = Math.min(...xs);
+    const y0 = Math.min(...ys);
+    return {
+      x: x0 * U,
+      y: y0 * U,
+      w: (Math.max(...xs) - x0 + 1) * U,
+      h: (Math.max(...ys) - y0 + 1) * U,
+    };
+  }
+  if (group === 'monster') {
+    const i = (MONSTER_TYPES as readonly string[]).indexOf(key);
+    return i < 0 ? null : cellBox(i, 7);
+  }
+  if (group === 'block')
+    return key === 'single' ? cellBox(10, 7) : key === 'double' ? cellBox(12, 7, 2, 1) : null;
+  if (group === 'door') {
+    const sx = ({ closed: 7, open: 8, secret: 9 } as Record<string, number>)[key];
+    return sx === undefined ? null : cellBox(sx, 8);
+  }
+  if (group === 'trap') {
+    const i = (TRAP_SAMPLES as readonly string[]).indexOf(key);
+    return i < 0 ? null : cellBox(i, 8);
+  }
+  return null;
+}
+
+/** The view that zooms in on a picture: a few squares around it, 3 wide for every 2 high. */
+function closeUpView(box: Box): string {
+  let w = Math.max(6 * U, box.w + 2 * U);
+  let h = (w * 2) / 3;
+  if (h < box.h + U) {
+    h = box.h + U;
+    w = h * 1.5;
+  }
+  // never past the edge of the board, where there is nothing to draw
+  const x = Math.min(Math.max(0, box.x + box.w / 2 - w / 2), board.width * U - w);
+  const y = Math.min(Math.max(0, box.y + box.h / 2 - h / 2), board.height * U - h);
+  return `${x} ${y} ${w} ${h}`;
+}
+
 function dataUrl(f: PackFile): string {
   let bin = '';
   for (let i = 0; i < f.bytes.length; i += 0x8000)
@@ -86,10 +147,13 @@ function Sample({
   theme,
   selected,
   onSelect,
+  view,
 }: {
   theme: Theme;
   selected: string | null;
   onSelect(id: string): void;
+  /** A `viewBox` to zoom in with; the whole sample when left out. */
+  view?: string | null;
 }) {
   /** A picture of the sample that can be clicked to adjust it. */
   const tag = (id: string, key: string, node: ReactNode) => (
@@ -273,7 +337,7 @@ function Sample({
 
   return (
     <svg
-      viewBox={`${OX * U} ${OY * U} ${COLS * U} ${ROWS * U}`}
+      viewBox={view ?? `${OX * U} ${OY * U} ${COLS * U} ${ROWS * U}`}
       width="100%"
       role="img"
       aria-label="Sample board"
@@ -400,6 +464,8 @@ export function PackPreview({
   const [draft, setDraft] = useState<PackManifest>(pack.manifest);
   const [slot, setSlot] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // while a picture is picked the sample zooms in on it (it is hard to judge at the size of the sample)
+  const [closeUp, setCloseUp] = useState(true);
   // every picture of the pack as a data URL, made once (an adjustment must not read the files again)
   const urls = useMemo(
     () => Object.fromEntries(Object.entries(pack.files).map(([name, f]) => [name, dataUrl(f)])),
@@ -440,6 +506,8 @@ export function PackPreview({
   const slots = useMemo(() => adjustableSlots(draft), [draft]);
   const current = slot && slots.some((s) => s.id === slot) ? slot : null;
   const tune = current ? tuneOfSlot(draft, current) : NO_TUNE;
+  const box = current ? slotBox(current) : null;
+  const view = box && closeUp ? closeUpView(box) : null;
   const changed = JSON.stringify(draft) !== JSON.stringify(pack.manifest);
   const change = (next: Partial<SlotTune>) => {
     if (!current) return;
@@ -507,8 +575,20 @@ export function PackPreview({
             data-testid="pack-work"
           >
             <div className="pv-left">
-              <div className="lbl">On the board</div>
-              <Sample theme={theme} selected={current} onSelect={setSlot} />
+              <div className="pv-views">
+                <div className="lbl">{view ? 'Close-up' : 'On the board'}</div>
+                {box && (
+                  <button
+                    className="chip"
+                    data-testid="pack-closeup"
+                    aria-pressed={closeUp}
+                    onClick={() => setCloseUp(!closeUp)}
+                  >
+                    {closeUp ? 'Show the whole sample' : 'Close-up'}
+                  </button>
+                )}
+              </div>
+              <Sample theme={theme} selected={current} onSelect={setSlot} view={view} />
             </div>
             {onSave && slots.length > 0 && (
               <div className="pv-adjust" data-testid="pack-adjust">

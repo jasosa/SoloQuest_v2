@@ -125,7 +125,8 @@ and the doors closed, open, secret and in a vertical wall. Above it:
 ### Adjusting from the app
 
 Under the sample, **Adjust a picture** changes the size and position of any picture the pack has. Pick it from the
-list, or tap it in the sample. **Size** is 40% to 250%, **Right** and **Down** move it up to one square; each has a
+list, or tap it in the sample: the sample then zooms in on that picture (a few squares around it, about three times
+bigger than the whole sample), and **Show the whole sample** switches back. **Size** is 40% to 250%, **Right** and **Down** move it up to one square; each has a
 slider and − / + buttons that move it in steps of 1% (a hundredth of a square). Held down, a button repeats, and after about a second it moves five steps at a time. The sample updates as you move them, and the
 Check above it follows. **Reset this picture** puts it back. **Save changes** keeps them in the pack on this device
 (and uses them at once if the pack is in use); **Export** then includes them. It changes the same `scale` and
