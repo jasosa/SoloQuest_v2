@@ -215,12 +215,12 @@ Per quest
 
 Goal: a user changes the look of play mode by applying a texture pack, for an expansion or a quest. A pack gives images for the board, walls, doors, furniture, monsters, heroes and tokens. See the idea in the owner's reference picture (stone floor tiles, lit walls and torches, wooden doors, 3D-looking chests, round portrait tokens, parchment and wood panels).
 
-- [ ] Decision first: what a pack may change (drawing only, never rules), where it lives (pack file, IndexedDB, quest keeps a pack id), and whether a quest can name a default pack
+- [x] Decision first: decision 78 (drawing only, `.sqtextures` file, stored in the browser, a quest may only suggest a pack)
 - [ ] Theme layer: every drawn element asks a `Theme` for its look (floor, rock, wall, door, each furniture type, trap, stairs, token, marker, fog). Today `BoardView.tsx` and `Furniture.tsx` draw them as SVG line art with token colors, so the default theme is the current drawing
 - [ ] Image slots for all elements, including every furniture type, with a rule for size, anchor, rotation and footprint (a 2x1 table is one image over 2 squares)
 - [ ] Board styles: floor tile images (with variants so it does not repeat), wall pieces (top face, side face, corners), rock fill, room lighting; the board stays a 26 x 19 grid, only the drawing changes
 - [ ] Walls with depth (as in the reference): decide between a flat top-down skin and a raised wall strip; the second needs extra space around rooms and a change of how sight, doors and tokens are laid out
-- [ ] Texture pack file format (`.hqtextures`, images + `theme.json`), import and export, a picker in Settings, preview in the Library
+- [ ] Texture pack file format (`.sqtextures`, images + `theme.json`; decision 78), import and export, a picker in Settings, preview in the Library
 - [ ] Monster, hero and companion pictures from the pack (the Library already has a per-enemy `image`; the pack gives the default per type)
 - [ ] UI chrome from the pack (parchment panels, wood buttons, gear icon) is a later, separate step: it needs the token colors and sizes to stay readable (contrast, 44 px targets)
 - [ ] Performance and offline: images in the PWA cache or IndexedDB, small formats (webp), lazy load, sprite sheets for large packs
