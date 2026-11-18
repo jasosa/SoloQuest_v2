@@ -74,7 +74,7 @@ describe('quest 0: data', () => {
 
   it('has the map of the prelude: doors, blocks, furniture, monsters, traps and tunnels', () => {
     expect(quest.edgeDoors).toHaveLength(1);
-    expect(quest.doors).toHaveLength(13);
+    expect(quest.doors).toHaveLength(14); // 13 on the map and the throne door
     expect(quest.blocks).toHaveLength(10);
     expect(quest.furniture.map((f) => f.type).sort()).toEqual(
       ['bookcase', 'rack', 'throne', 'tomb'].sort(),
@@ -211,6 +211,19 @@ describe('quest 0: rooms and notes', () => {
     expect(fired(run(...toCage, search('R02')), 'n-C-search')).toBe(true);
   });
 
+  it('the cage blocks sight until the lever is pulled', () => {
+    const s = run(...toCage);
+    expect(s.sightBlockers.has('6,2') && s.sightBlockers.has('7,3')).toBe(true);
+    const open = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' }).state;
+    expect(open.sightBlockers.size).toBe(0);
+  });
+
+  it('the throne door is not on the map before the throne melts', () => {
+    const s = run(...toCenter);
+    expect(s.seenDoors.has('d-throne')).toBe(false);
+    expect(s.seenFurniture.has('f-throne')).toBe(true);
+  });
+
   it('the cage room and the top row of R08 are one room', () => {
     expect(level.board.cells[4]?.[6]).toBe('R02');
     expect(level.board.cells[8]?.[6]).toBe('R02'); // the rest of R08 joins too, but it is rock
@@ -252,6 +265,11 @@ describe('quest 0: rooms and notes', () => {
     const dead = reduce(level, s, { type: 'MONSTER_KILL', monster: 'm-jrack' }).state;
     expect(fired(dead, 'n-throne')).toBe(true);
     expect(dead.flags['throneMelted']).toBe(true);
+    // the throne is gone and an open door stands where it was
+    expect(dead.removedFurniture).toEqual(['f-throne']);
+    expect(dead.seenFurniture.has('f-throne')).toBe(false);
+    expect(dead.seenDoors.has('d-throne')).toBe(true);
+    expect(dead.openDoors.has('d-throne')).toBe(true);
     expect(objectivesStatus(level, dead).items.find((o) => o.id === 'o1')?.done).toBe(true);
     expect(fired(run(...toCenter, search('R11')), 'n-G-search')).toBe(true);
   });

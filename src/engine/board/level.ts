@@ -194,13 +194,19 @@ export function sightMap(
   level: Level,
   openDoors: ReadonlySet<string>,
   placedBlocks: ReadonlySet<CellKey> = new Set(),
+  sightBlockers: ReadonlySet<CellKey> = new Set(),
 ): SightMap {
   return {
     width: level.board.width,
     height: level.board.height,
     cellKind(x, y): CellKind {
       if (isRock(level, x, y)) return 'rock';
-      if (isBlocked(level, x, y) || placedBlocks.has(cellKey(x, y))) return 'block';
+      if (
+        isBlocked(level, x, y) ||
+        placedBlocks.has(cellKey(x, y)) ||
+        sightBlockers.has(cellKey(x, y))
+      )
+        return 'block';
       return 'floor';
     },
     edgeOpen: (a, b) => edgeOpen(level, a, b, openDoors),

@@ -92,6 +92,10 @@ export interface GameState {
   readonly seenTraps: ReadonlySet<string>;
   /** Traps that sprung or were disarmed. Armed traps are not listed. */
   readonly trapStates: Readonly<Record<string, TrapState>>;
+  /** Squares of a tile that blocks sight and movement until its flag is set (the cage of Q0). */
+  readonly sightBlockers: ReadonlySet<CellKey>;
+  /** Furniture a note replaced (a throne that became a door): never drawn again. */
+  readonly removedFurniture: readonly string[];
   /** Doors a note removed: they are walls now, never drawn, never opened. */
   readonly removedDoors: readonly string[];
   /** Ice slides whose whole path is visible (a spring or a good jump, decision 42). */
@@ -163,6 +167,8 @@ export function emptyState(seed: number): GameState {
     trapStates: {},
     slidesShown: [],
     removedDoors: [],
+    sightBlockers: new Set(),
+    removedFurniture: [],
     placedBlocks: new Set(),
     treasureSearched: {},
     trapSearched: [],
@@ -231,6 +237,7 @@ export function draftOf(s: GameState): Draft {
     seenTraps: new Set(s.seenTraps),
     trapStates: { ...s.trapStates },
     placedBlocks: new Set(s.placedBlocks),
+    sightBlockers: new Set(s.sightBlockers),
     treasureSearched: { ...s.treasureSearched },
     wanderers: { ...s.wanderers },
     flags: { ...s.flags },

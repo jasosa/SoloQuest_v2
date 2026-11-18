@@ -1053,6 +1053,23 @@ function EffectFields({
           />
         </>
       );
+    case 'replaceFurnitureWithDoor':
+      return (
+        <>
+          <Choose
+            label="Furniture"
+            value={e.furniture}
+            options={quest.furniture.map((f) => ({ value: f.id, label: f.id }))}
+            onChange={(furniture) => onChange({ ...e, furniture })}
+          />
+          <Choose
+            label="Door (it opens)"
+            value={e.door}
+            options={quest.doors.map((d) => ({ value: d.id, label: d.id }))}
+            onChange={(door) => onChange({ ...e, door })}
+          />
+        </>
+      );
     case 'lookFrom':
       return (
         <>

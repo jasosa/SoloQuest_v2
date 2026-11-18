@@ -21,7 +21,14 @@ import { EventError } from './errors';
 import { liveMonstersInRoom } from './monstersIn';
 import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
-import { doorMayShow, revealEverything, revealFrom, revealRoom, revealThroughDoor } from './reveal';
+import {
+  doorMayShow,
+  syncBlockers,
+  revealEverything,
+  revealFrom,
+  revealRoom,
+  revealThroughDoor,
+} from './reveal';
 import { seeMonster, type Draft, type GameState } from './state';
 
 /** What happened, as the notes engine sees it. */
@@ -473,6 +480,7 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
     }
     case 'setFlag':
       d.flags[e.flag] = e.value;
+      syncBlockers(level, d);
       // A door that waited for this flag shows now, if the heroes can see one of its squares.
       for (const door of level.doors.values())
         if (
@@ -483,6 +491,21 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
         )
           d.seenDoors.add(door.id);
       return;
+    case 'replaceFurnitureWithDoor': {
+      // A throne that melts: the piece is gone and a door stands where it was (open: the way out).
+      const door = level.doors.get(e.door);
+      if (!d.removedFurniture.includes(e.furniture))
+        d.removedFurniture = [...d.removedFurniture, e.furniture];
+      d.seenFurniture.delete(e.furniture);
+      if (!door || d.removedDoors.includes(door.id)) return;
+      d.seenDoors.add(door.id);
+      if (!d.openDoors.has(door.id)) {
+        d.openDoors.add(door.id);
+        const cells = revealThroughDoor(level, d, door);
+        if (cells.length > 0) prompts.push(revealedPrompt(cells));
+      }
+      return;
+    }
     case 'removeDoor': {
       const door = level.doors.get(e.door);
       if (!door || d.removedDoors.includes(door.id)) return;

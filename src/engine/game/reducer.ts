@@ -40,7 +40,7 @@ import {
   tickStone,
 } from './notes';
 import { objectivesStatus } from './noteView';
-import { progress, revealFrom, revealRoom, revealThroughDoor } from './reveal';
+import { progress, revealFrom, revealRoom, revealThroughDoor, syncBlockers } from './reveal';
 import { draftOf, emptyState, type Draft, type GameState, type MonsterRecord } from './state';
 
 export { EventError, type EventErrorCode } from './errors';
@@ -57,6 +57,7 @@ export interface Reduced {
  */
 export function startGame(level: Level, seed: number): Reduced {
   const d = draftOf(emptyState(seed));
+  syncBlockers(level, d);
   const start = level.quest.start;
   // Heroes at an iron entry door see only that door. The first tap on it opens it and looks in.
   if (start.door) d.seenDoors.add(start.door);

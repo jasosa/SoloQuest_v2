@@ -3,12 +3,8 @@
   "id": "frozen-horror",
   "name": "Frozen Horror",
   "description": "The Frozen Horror quest pack and its free prelude, Into the Northlands. The quests are added as they are encoded.",
-  "dependsOn": [
-    "core"
-  ],
-  "quests": [
-    "fh00-into-the-northlands"
-  ],
+  "dependsOn": ["core"],
+  "quests": ["fh00-into-the-northlands"],
   "campaignSettings": [
     {
       "id": "raiment-of-the-frozen-champion",

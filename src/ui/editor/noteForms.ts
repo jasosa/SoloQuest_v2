@@ -33,6 +33,7 @@ export const EFFECT_TYPES: readonly { type: Effect['type']; label: string }[] = 
   { type: 'addSecretDoor', label: 'Show a secret door' },
   { type: 'removeDoor', label: 'Remove a door' },
   { type: 'lookFrom', label: 'Look from a square' },
+  { type: 'replaceFurnitureWithDoor', label: 'Replace furniture with a door' },
   { type: 'placeBlock', label: 'Place a block' },
   { type: 'giveItem', label: 'Give an item' },
   { type: 'setFlag', label: 'Set a flag' },
@@ -147,6 +148,13 @@ export function defaultEffect(q: Quest, type: Effect['type']): Made<Effect> {
     }
     case 'lookFrom':
       return good({ type, cell: firstCell(q) });
+    case 'replaceFurnitureWithDoor': {
+      const f = q.furniture[0];
+      const d = q.doors[0];
+      return f && d
+        ? good({ type, furniture: f.id, door: d.id })
+        : bad('Add a piece of furniture and a door first.');
+    }
     case 'removeDoor': {
       const d = q.doors[0];
       return d ? good({ type, door: d.id }) : bad('Add a door first.');

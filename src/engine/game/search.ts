@@ -41,7 +41,7 @@ function checkRoom(level: Level, state: GameState, room: string): AreaId {
 }
 
 function liveMonstersInSight(level: Level, state: GameState, from: Cell): string[] {
-  const map = sightMap(level, state.openDoors, state.placedBlocks);
+  const map = sightMap(level, state.openDoors, state.placedBlocks, state.sightBlockers);
   const quest = level.quest.monsters
     .filter(
       (m) =>
@@ -261,7 +261,7 @@ export function searchSecretDoors(
         'NOT_A_SEEN_CORRIDOR_CELL',
         `Cell ${x},${y} is not a seen corridor square`,
       );
-    const map = sightMap(level, state.openDoors, state.placedBlocks);
+    const map = sightMap(level, state.openDoors, state.placedBlocks, state.sightBlockers);
     monsters = liveMonstersInSight(level, state, cell);
     doorIds = quest.secretDoors
       .filter((s) =>

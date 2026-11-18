@@ -365,6 +365,7 @@ export type Effect =
   | { type: 'addSecretDoor'; door: string }
   | { type: 'removeDoor'; door: string }
   | { type: 'lookFrom'; cell: [number, number] }
+  | { type: 'replaceFurnitureWithDoor'; furniture: string; door: string }
   | { type: 'placeBlock'; cells: [number, number][] }
   | { type: 'giveItem'; text: string }
   | { type: 'setFlag'; flag: string; value: boolean }
@@ -389,6 +390,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
     z.strictObject({ type: z.literal('addSecretDoor'), door: id }),
     z.strictObject({ type: z.literal('removeDoor'), door: id }),
     z.strictObject({ type: z.literal('lookFrom'), cell }),
+    z.strictObject({ type: z.literal('replaceFurnitureWithDoor'), furniture: id, door: id }),
     z.strictObject({ type: z.literal('placeBlock'), cells }),
     z.strictObject({ type: z.literal('giveItem'), text: nonEmpty }),
     z.strictObject({ type: z.literal('setFlag'), flag: nonEmpty, value: z.boolean() }),
@@ -528,6 +530,11 @@ export const QuestSchema = z.strictObject({
         type: z.enum(BOARD_TILE_TYPES),
         cells,
         hiddenWhen: nonEmpty.optional(),
+        /**
+         * The tile blocks line of sight and nobody can stand on it, until `hiddenWhen` is set
+         * (the cage of Q0: decision 56). Needs `hiddenWhen`.
+         */
+        blocks: z.boolean().optional(),
       }),
     )
     .default([]),

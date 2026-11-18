@@ -502,6 +502,18 @@ export function validateQuestIssues(
     if (twin) err(`trap ${t.id}: same cell as trap ${twin}`, ref);
     else trapCells.set(key(t.cell), t.id);
   }
+  const flagsSetEarly = new Set<string>();
+  forEachEffect(quest, (e) => {
+    if (e.type === 'setFlag') flagsSetEarly.add(e.flag);
+  });
+  quest.boardTiles.forEach((t, i) => {
+    if (t.blocks && t.hiddenWhen === undefined)
+      err(`board tile ${i + 1} (${t.type}): blocks needs a hiddenWhen flag`, { kind: 'quest' });
+    if (t.hiddenWhen !== undefined && !flagsSetEarly.has(t.hiddenWhen))
+      err(`board tile ${i + 1} (${t.type}): hiddenWhen flag ${t.hiddenWhen} is never set`, {
+        kind: 'quest',
+      });
+  });
   // Board tiles: every square is on the board (the cave entrance may lie over rock).
   quest.boardTiles.forEach((t, i) =>
     t.cells.forEach((c) =>
@@ -560,6 +572,11 @@ export function validateQuestIssues(
       if (hit) err(`trap ${t.id}: cell ${key(t.cell)} is on ${what} (${hit})`, ref);
     }
   }
+  // A door that replaces a piece of furniture (a melted throne) may stand on its squares.
+  const replaces = new Map<string, string>();
+  forEachEffect(quest, (e) => {
+    if (e.type === 'replaceFurnitureWithDoor') replaces.set(e.door, e.furniture);
+  });
   // A door cell must be walkable: no block or furniture on either side.
   for (const [label, list] of [
     ['door', quest.doors],
@@ -574,7 +591,8 @@ export function validateQuestIssues(
           label === 'secret door' &&
           other !== undefined &&
           quest.furniture.some((f) => other === `furniture ${f.id}` && f.type === 'throne');
-        if (other && !hidingThrone)
+        const replaced = other !== undefined && other === `furniture ${replaces.get(d.id)}`;
+        if (other && !hidingThrone && !replaced)
           err(`${label} ${d.id}: cell ${key(c)} is under ${other}`, {
             kind: 'door',
             id: d.id,
@@ -670,6 +688,11 @@ export function validateQuestIssues(
         break;
       case 'lookFrom':
         inside(where, e.cell, noteRef);
+        break;
+      case 'replaceFurnitureWithDoor':
+        if (!furnitureIds.has(e.furniture))
+          err(`${where}: unknown furniture ${e.furniture}`, noteRef);
+        if (!doorIds.has(e.door)) err(`${where}: unknown door ${e.door}`, noteRef);
         break;
       case 'removeDoor':
         if (!doorIds.has(e.door)) err(`${where}: unknown door ${e.door}`, noteRef);

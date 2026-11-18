@@ -43,6 +43,22 @@ function sizeOf(d: Draft): number {
 /** True when the draft learned anything since `before` (a value from `progress`). */
 export const progress = sizeOf;
 
+/**
+ * Tiles that block sight and squares until a flag is set (the cage): the squares are in
+ * `sightBlockers` while the flag is unset. Call after the flags change, and at the start.
+ */
+export function syncBlockers(level: Level, d: Draft): void {
+  for (const t of level.quest.boardTiles) {
+    if (!t.blocks || t.hiddenWhen === undefined) continue;
+    const active = d.flags[t.hiddenWhen] !== true;
+    for (const c of t.cells) {
+      const k = cellKey(c[0], c[1]);
+      if (active) d.sightBlockers.add(k);
+      else d.sightBlockers.delete(k);
+    }
+  }
+}
+
 /** A door that a note removed, or that waits for a flag, is not drawn. */
 export function doorMayShow(door: DoorInfo, d: Pick<Draft, 'removedDoors' | 'flags'>): boolean {
   if (d.removedDoors.includes(door.id)) return false;
@@ -62,7 +78,7 @@ function markCell(level: Level, d: Draft, x: number, y: number): boolean {
   d.seenCells.add(k);
   const q = level.quest;
   for (const f of q.furniture)
-    if (f.cells.some((c) => c[0] === x && c[1] === y)) {
+    if (!d.removedFurniture.includes(f.id) && f.cells.some((c) => c[0] === x && c[1] === y)) {
       d.seenFurniture.add(f.id);
       // A chest trap stays hidden until the chest is searched for traps (SEARCH_TRAPS).
       for (const t of q.traps)
@@ -95,7 +111,7 @@ export function revealRoom(level: Level, d: Draft, area: AreaId): RevealResult {
  * Blocked squares in sight are revealed, nothing behind them.
  */
 export function revealFrom(level: Level, d: Draft, from: Cell): RevealResult {
-  const map = sightMap(level, d.openDoors, d.placedBlocks);
+  const map = sightMap(level, d.openDoors, d.placedBlocks, d.sightBlockers);
   const cells: CellKey[] = [];
   for (let y = 0; y < level.board.height; y++)
     for (let x = 0; x < level.board.width; x++) {
