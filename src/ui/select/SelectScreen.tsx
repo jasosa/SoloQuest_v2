@@ -50,8 +50,19 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
       const map = new Map<number, Level>();
       for (const [n, id] of Object.entries(getOverrides())) {
         try {
-          const quest = await userStore.load(id);
-          if (quest) map.set(Number(n), buildLevel(quest));
+          // The editor autosaves a draft; Save removes it. A draft is the newest version, so play it.
+          let level: Level | undefined;
+          try {
+            const draft = await userStore.loadDraft(id);
+            if (draft) level = buildLevel(draft.quest);
+          } catch {
+            /* a draft that cannot be built is ignored: the saved copy is played */
+          }
+          if (!level) {
+            const quest = await userStore.load(id);
+            if (quest) level = buildLevel(quest);
+          }
+          if (level) map.set(Number(n), level);
         } catch {
           /* a broken copy is ignored: the original is played */
         }

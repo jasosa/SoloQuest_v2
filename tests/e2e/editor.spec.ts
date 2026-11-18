@@ -269,6 +269,23 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
+  test('an edit of a bundled quest that is not saved yet is what the quest list plays', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await btn(page, 'Edit it now').click();
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    const title = page.getByTestId('quest-general').getByLabel('Title');
+    await title.fill('The Trial, edited');
+    await title.blur();
+    await expect(page.locator('.fr-title')).toHaveText('The Trial, edited');
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.locator('.qcard .qtitle').first()).toHaveText('The Trial, edited');
+  });
+
   test('copy a bundled quest from the list', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
     await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
