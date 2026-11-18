@@ -213,7 +213,9 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
                   </button>
                 ))}
               </div>
-              <p className="hint">Pick 1 to 4 heroes.</p>
+              <p className="hint" id="team-hint">
+                {ready ? 'Pick 1 to 4 heroes.' : 'Pick 1 to 4 heroes to start the quest.'}
+              </p>
             </section>
 
             <div className="actions">
@@ -233,6 +235,7 @@ export function SelectScreen({ saves, onStart, notice, onEditor, userStore }: Se
                 <button
                   className={resumed ? 'btn alt' : 'btn'}
                   disabled={!ready}
+                  aria-describedby={ready ? undefined : 'team-hint'}
                   onClick={() =>
                     resumed ? setConfirming(true) : onStart({ kind: 'new', level, team })
                   }

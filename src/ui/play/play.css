@@ -100,7 +100,8 @@ aside {
 .roster li.dead .nm,
 .roster li.dead .st,
 .roster li.dead .bp {
-  color: var(--off);
+  /* a fallen hero is information, not a disabled control: keep it readable (the line-through says "fallen") */
+  color: var(--muted);
 }
 .roster li.dead .nm {
   text-decoration: line-through;
@@ -331,7 +332,7 @@ aside {
 .chip.fallen {
   text-decoration: line-through;
   border-color: var(--off);
-  color: var(--off);
+  color: var(--muted);
 }
 
 .roster .bp .tickdone {

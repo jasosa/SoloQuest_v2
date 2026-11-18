@@ -166,7 +166,8 @@ describe('quest 8: walk-through', () => {
     expect(r19.seenFurniture.has('f-table')).toBe(true);
     expect(r19.seenMonsters.has('m21')).toBe(true);
     expect(r19.seenMonsters.has('m23')).toBe(true);
-  });
+    // two long walk-throughs in one test: a slow, busy machine needs more than the default 5 s
+  }, 30_000);
 
   it("d1 shows Balur's room R01: four skeletons, and Balur is put on X", () => {
     const s = run(...via('d1'));

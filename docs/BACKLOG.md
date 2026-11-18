@@ -164,9 +164,9 @@ Per quest
 
 - [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 
-- [ ] Polish from the UI review (decision 77): contrast tokens. Lighten `--sel`; dead-hero text (`--off`) is 1.77:1; `--green` on paper-2 is 4.49:1 (needs 4.5:1); the disabled Start button needs a hint saying why
+- [x] Polish from the UI review (decision 77): contrast tokens (done: `--green` darkened to 4.83:1 on paper-2; fallen heroes use `--muted`, 5.25:1; the selected quest card uses ink for small text; `--sel` was fine as a background, 6.5:1; the Start button now says why it is off). Original note:  Lighten `--sel`; dead-hero text (`--off`) is 1.77:1; `--green` on paper-2 is 4.49:1 (needs 4.5:1); the disabled Start button needs a hint saying why
 - [ ] Polish from the UI review: board squares are 34 px at the default fit on tablet. Add a larger invisible hit area (44 px) or an easier select, without changing the drawing
-- [ ] Prettier flags `promptToasts.ts` and `SelectScreen.tsx` (not touched by the review pass): format them
+- [ ] Prettier flags `promptToasts.ts` (`SelectScreen.tsx` is formatted now) (not touched by the review pass): format them
 - [ ] Wake lock, settings (sound off, reduced motion), resume screen
 - [ ] Accessibility pass (labels, focus, contrast)
 - [ ] Full session test on a real tablet
