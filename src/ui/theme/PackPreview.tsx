@@ -309,23 +309,27 @@ function Knob({
   const set = (v: number) => onChange(Math.min(max, Math.max(min, Math.round(v * 100) / 100)));
   return (
     <div className="pv-knob">
-      <span className="pv-kl">{label}</span>
-      <button className="chip" aria-label={`${label}: less`} onClick={() => set(value - step)}>
-        {'\u2212'}
-      </button>
-      <input
-        type="range"
-        aria-label={label}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => set(Number(e.target.value))}
-      />
-      <button className="chip" aria-label={`${label}: more`} onClick={() => set(value + step)}>
-        +
-      </button>
-      <output className="pv-kv">{format(value)}</output>
+      <div className="pv-kh">
+        <span className="pv-kl">{label}</span>
+        <output className="pv-kv">{format(value)}</output>
+      </div>
+      <div className="pv-kr">
+        <button className="chip" aria-label={`${label}: less`} onClick={() => set(value - step)}>
+          {'\u2212'}
+        </button>
+        <input
+          type="range"
+          aria-label={label}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => set(Number(e.target.value))}
+        />
+        <button className="chip" aria-label={`${label}: more`} onClick={() => set(value + step)}>
+          +
+        </button>
+      </div>
     </div>
   );
 }
@@ -443,77 +447,86 @@ export function PackPreview({
               Not in this pack (the built-in drawing is used): {check.missing.join(', ')}.
             </p>
           )}
-          <div className="lbl pv-gap">On the board</div>
-          <Sample theme={theme} selected={current} onSelect={setSlot} />
-          <p className="fr-help">
-            Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then
-            monsters with a single block and a double block, then traps (hidden, pit, spear, falling
-            block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap
-            a picture to adjust it.
-          </p>
-          {onSave && slots.length > 0 && (
-            <div className="pv-adjust" data-testid="pack-adjust">
-              <div className="lbl">Adjust a picture</div>
-              <select
-                className="fr-sel"
-                aria-label="Picture to adjust"
-                value={current ?? ''}
-                onChange={(e) => setSlot(e.target.value || null)}
-              >
-                <option value="">Choose a picture</option>
-                {(Object.keys(GROUP_NAMES) as SlotGroup[]).map((g) => {
-                  const inGroup = slots.filter((x) => x.group === g);
-                  return inGroup.length === 0 ? null : (
-                    <optgroup key={g} label={GROUP_NAMES[g]}>
-                      {inGroup.map((x) => (
-                        <option key={x.id} value={x.id}>
-                          {x.label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  );
-                })}
-              </select>
-              {current && (
-                <>
-                  <Knob
-                    label="Size"
-                    value={tune.scale}
-                    min={SCALE_MIN}
-                    max={SCALE_MAX}
-                    step={0.05}
-                    format={pct}
-                    onChange={(v) => change({ scale: v })}
-                  />
-                  <Knob
-                    label="Right"
-                    value={tune.offset[0]}
-                    min={-OFFSET_MAX}
-                    max={OFFSET_MAX}
-                    step={0.05}
-                    format={sq}
-                    onChange={(v) => change({ offset: [v, tune.offset[1]] })}
-                  />
-                  <Knob
-                    label="Down"
-                    value={tune.offset[1]}
-                    min={-OFFSET_MAX}
-                    max={OFFSET_MAX}
-                    step={0.05}
-                    format={sq}
-                    onChange={(v) => change({ offset: [tune.offset[0], v] })}
-                  />
-                  <button
-                    className="btn alt"
-                    disabled={isNoTune(tune)}
-                    onClick={() => change(NO_TUNE)}
-                  >
-                    Reset this picture
-                  </button>
-                </>
-              )}
+          <div
+            className={onSave && slots.length > 0 ? 'pv-work' : undefined}
+            data-testid="pack-work"
+          >
+            <div className="pv-left">
+              <div className="lbl">On the board</div>
+              <Sample theme={theme} selected={current} onSelect={setSlot} />
+              <p className="fr-help">
+                Squares are 34 px; the real board shows them up to twice as big. Rows: furniture,
+                then monsters with a single block and a double block, then traps (hidden, pit,
+                spear, falling block, chest, scripted) and doors (closed, open, secret, closed in a
+                vertical wall). Tap a picture to adjust it.
+              </p>
             </div>
-          )}
+            {onSave && slots.length > 0 && (
+              <div className="pv-adjust" data-testid="pack-adjust">
+                <div className="lbl">Adjust a picture</div>
+                <select
+                  className="fr-sel"
+                  aria-label="Picture to adjust"
+                  value={current ?? ''}
+                  onChange={(e) => setSlot(e.target.value || null)}
+                >
+                  <option value="">Choose a picture</option>
+                  {(Object.keys(GROUP_NAMES) as SlotGroup[]).map((g) => {
+                    const inGroup = slots.filter((x) => x.group === g);
+                    return inGroup.length === 0 ? null : (
+                      <optgroup key={g} label={GROUP_NAMES[g]}>
+                        {inGroup.map((x) => (
+                          <option key={x.id} value={x.id}>
+                            {x.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
+                </select>
+                {current ? (
+                  <>
+                    <Knob
+                      label="Size"
+                      value={tune.scale}
+                      min={SCALE_MIN}
+                      max={SCALE_MAX}
+                      step={0.05}
+                      format={pct}
+                      onChange={(v) => change({ scale: v })}
+                    />
+                    <Knob
+                      label="Right"
+                      value={tune.offset[0]}
+                      min={-OFFSET_MAX}
+                      max={OFFSET_MAX}
+                      step={0.05}
+                      format={sq}
+                      onChange={(v) => change({ offset: [v, tune.offset[1]] })}
+                    />
+                    <Knob
+                      label="Down"
+                      value={tune.offset[1]}
+                      min={-OFFSET_MAX}
+                      max={OFFSET_MAX}
+                      step={0.05}
+                      format={sq}
+                      onChange={(v) => change({ offset: [tune.offset[0], v] })}
+                    />
+                    <button
+                      className="btn alt"
+                      disabled={isNoTune(tune)}
+                      onClick={() => change(NO_TUNE)}
+                    >
+                      Reset this picture
+                    </button>
+                  </>
+                ) : (
+                  <p className="fr-help">Choose a picture here, or tap one in the sample.</p>
+                )}
+              </div>
+            )}
+          </div>
           {pack.manifest.board && (
             <>
               <div className="lbl pv-gap">

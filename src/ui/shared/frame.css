@@ -638,7 +638,7 @@
 
 /* A wider dialog (the texture pack preview). */
 .fr-dlg.wide {
-  width: min(760px, calc(100vw - 32px));
+  width: min(940px, calc(100vw - 32px));
 }
 .pv-warnings {
   margin: 0 0 8px;
@@ -659,20 +659,51 @@
   border: 1.5px solid var(--ink);
 }
 
+/* The sample and the knobs sit side by side and stay pinned at the top while the rest of the dialog
+   scrolls under them, so the picture can be watched while it is adjusted. */
+.pv-work {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: sticky;
+  top: -1px;
+  z-index: 3;
+  background: var(--paper-3);
+  padding: 6px 0 10px;
+  margin-top: 10px;
+  border-bottom: 1px solid var(--rock-line);
+}
+.pv-left {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.pv-left .fr-help {
+  margin: 6px 0 0;
+}
 .pv-adjust {
-  margin-top: 14px;
-  padding: 10px 12px 12px;
+  flex: 0 0 316px;
+  padding: 8px 10px 10px;
   border: 1.5px solid var(--rock-line);
   background: var(--paper-2);
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  align-content: start;
 }
 .pv-adjust .fr-sel {
   min-height: 44px;
 }
 .pv-knob {
   display: grid;
-  grid-template-columns: 64px 44px 1fr 44px 120px;
+  gap: 0;
+}
+.pv-kh {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.pv-kr {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
   gap: 8px;
   align-items: center;
 }
@@ -682,12 +713,12 @@
   text-transform: uppercase;
   color: var(--ink-2);
 }
-.pv-knob .chip {
+.pv-kr .chip {
   min-width: 44px;
   min-height: 44px;
   font-size: 18px;
 }
-.pv-knob input[type='range'] {
+.pv-kr input[type='range'] {
   width: 100%;
   min-height: 44px;
   accent-color: var(--ink);
