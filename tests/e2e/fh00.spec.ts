@@ -51,4 +51,19 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
       .evaluate((el) => getComputedStyle(el).fill);
     expect(fill).toBe('rgb(59, 107, 140)'); // --ice: the Polar Warbear in its cage
   });
+
+  test('the cage is drawn with the room that reveals it, not under its floor (bug)', async ({
+    page,
+  }) => {
+    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.locator('[data-door="d3"]').click();
+    await page.getByRole('button', { name: 'Open the door', exact: true }).click();
+    // while the room is washing in, its cage is in the same (masked) layer as its floor
+    const inFreshLayer = await page.evaluate(
+      () =>
+        !!document.querySelector('[data-board-tile="cage"]')?.parentElement?.getAttribute('mask'),
+    );
+    expect(inFreshLayer).toBe(true);
+  });
 });

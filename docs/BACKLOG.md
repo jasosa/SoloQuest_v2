@@ -205,7 +205,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
 
 ## Bugs from the quest 0 review (owner, 2026-11-18)
 
-- [ ] The cage of quest 0 (note C) is painted below the room (z-order) until a search happens in the room, and then it appears on top
+- [x] The cage of quest 0 (note C) is painted below the room (z-order) until a search happens in the room, and then it appears on top (a tile is now drawn in the same layer as its squares)
 - [ ] No eye icon ("Look from here") on a square that has a trap, a marker or another piece; the Look from here action stays available in its note when it applies
 - [ ] Searching for secret doors from a corridor with an enemy in sight does not work; it should behave like Search for treasure in a room (the "monsters in the way" guard with an override)
 - [ ] Eye icons show on more squares than the crossroads and the squares beside them; and when a crossroad square is occupied the eye must move to the squares beside it

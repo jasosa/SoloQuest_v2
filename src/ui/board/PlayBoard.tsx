@@ -646,6 +646,9 @@ export function PlayBoard({
 
   // Board tiles (Frozen Horror): the ice cave entrance under the start, a cage. A labeled outline.
   for (const t of boardTilesInView(level, state)) {
+    // Drawn in the same layer as its squares: while they are fresh (inside the ink wash) they cover
+    // anything in the old layer, which hid a cage until the next event.
+    const layer = into(t.cells.some((c) => fresh(keyOf(c))));
     const xs = t.cells.map((c) => c[0]);
     const ys = t.cells.map((c) => c[1]);
     const x0 = Math.min(...xs) * S;
@@ -655,7 +658,7 @@ export function PlayBoard({
     // Terrain is drawn square by square: an icy river with waves, an ice ledge with a dashed edge,
     // a chasm dark with a crack.
     if (t.type === 'icyRiver' || t.type === 'iceLedge' || t.type === 'chasm') {
-      into(false).push(
+      layer.push(
         <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
           {t.cells.map(([cx0, cy0]) => {
             const px = cx0 * S;
@@ -715,7 +718,7 @@ export function PlayBoard({
             opacity={0.55}
           />,
         );
-    into(false).push(
+    layer.push(
       <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
         <rect
           x={x0 + 2}
