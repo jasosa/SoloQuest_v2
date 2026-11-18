@@ -176,3 +176,16 @@ test.describe('Library layers (decision 76)', () => {
     await expect(items(page).getByRole('button', { name: /^Ghoul/ })).toContainText('fan-made');
   });
 });
+
+test('the Core list shows the box of each item and can be filtered by box', async ({ page }) => {
+  await open(page);
+  await kind(page, /^Enemies/);
+  const boxes = page.getByTestId('dz-boxes');
+  await expect(boxes.getByRole('button', { name: 'Frozen Horror' })).toBeVisible();
+  await boxes.getByRole('button', { name: 'Frozen Horror' }).click();
+  await expect(items(page).getByRole('button', { name: /^Yeti/ })).toContainText('Frozen Horror');
+  await expect(items(page).getByRole('button', { name: /^Orc/ })).toHaveCount(0);
+  await boxes.getByRole('button', { name: 'Base game' }).click();
+  await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('Base game');
+  await expect(items(page).getByRole('button', { name: /^Yeti/ })).toHaveCount(0);
+});

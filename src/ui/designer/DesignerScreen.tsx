@@ -53,7 +53,7 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../shared/Frame';
 import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
-import { expansionNames, setExpansionHidden, useHiddenExpansions } from './expansions';
+import { expansionNames, expansionOf, setExpansionHidden, useHiddenExpansions } from './expansions';
 
 type Data = Record<string, unknown>;
 
@@ -550,6 +550,8 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const [kind, setKind] = useState<LibraryKind>('enemy');
   /** Which layer the list shows: Core, or My library (decision 76). */
   const [scope, setScope] = useState<'core' | 'mine'>('core');
+  // Which box the Core list shows: 'all', 'base' (the base game) or an expansion name.
+  const [box, setBox] = useState('all');
   const hiddenExpansions = useHiddenExpansions();
   /** The pack dialog: share My library as a file. */
   const [pack, setPack] = useState<{ name: string; author: string } | null>(null);
@@ -589,6 +591,13 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       ...(typeof i.data.image === 'string' ? { image: i.data.image } : {}),
     })),
   ];
+  // The box of an item: the expansion it belongs to, or the base game.
+  const boxKey = (r: Row) => expansionOf(kind, r.id, r.data) ?? 'base';
+  const boxName = (r: Row) => (boxKey(r) === 'base' ? 'Base game' : boxKey(r));
+  const boxes = [...new Set(rows.filter((r) => r.core && boxKey(r) !== 'base').map(boxKey))].sort(
+    (a, b) => a.localeCompare(b),
+  );
+  const activeBox = box === 'all' || box === 'base' || boxes.includes(box) ? box : 'all';
   const sel = rows.find((r) => r.id === selected);
   const isCore = sel?.core === true;
   const locked = isCore && !owner;
@@ -1243,17 +1252,32 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 My library {mine.length}
               </button>
             </div>
+            {scope === 'core' && boxes.length > 0 && (
+              <div className="fr-scope" role="group" aria-label="Box" data-testid="dz-boxes">
+                {['all', 'base', ...boxes].map((b) => (
+                  <button
+                    key={b}
+                    className="chip"
+                    aria-pressed={activeBox === b}
+                    data-testid={`dz-box-${b}`}
+                    onClick={() => setBox(b)}
+                  >
+                    {b === 'all' ? 'All boxes' : b === 'base' ? 'Base game' : b}
+                  </button>
+                ))}
+              </div>
+            )}
             <ul className="fr-list">
               {scope === 'core' &&
                 rows
-                  .filter((r) => r.core)
+                  .filter((r) => r.core && (activeBox === 'all' || boxKey(r) === activeBox))
                   .map((r) => (
                     <li key={r.id} className={r.id === selected ? 'on' : undefined}>
                       <button className="fr-pick" onClick={() => pick(r.id)}>
                         {r.name}
                         <span className="sub" data-origin={originOf(r)}>
                           {r.edited ? 'changed · ' : ''}
-                          {ORIGIN_LABEL[originOf(r)]}
+                          {ORIGIN_LABEL[originOf(r)]} · {boxName(r)}
                         </span>
                       </button>
                     </li>
