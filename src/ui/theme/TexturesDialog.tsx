@@ -88,6 +88,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
     <>
       <Dialog
         title="Texture packs"
+        onClose={onClose}
         foot={
           <>
             <button className="btn alt" onClick={() => input.current?.click()}>

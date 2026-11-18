@@ -24,6 +24,7 @@ import { DOOR_KINDS, Inspector } from './Inspector';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
+import { anyModalOpen } from '../shared/useModal';
 import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
@@ -98,6 +99,7 @@ export function EditorScreen({
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
       if (el.closest('input, textarea, select')) return;
+      if (anyModalOpen()) return; // a dialog is open: Esc, Delete and the letters belong to it
       const st = store.getState();
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key.toLowerCase() === 'z') {
@@ -119,7 +121,9 @@ export function EditorScreen({
         return;
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (st.selection) {
+        // only on the board (or with nothing focused): on a button Backspace must not delete the selection
+        const onBoard = el === document.body || Boolean(el.closest('#editor-board'));
+        if (st.selection && onBoard) {
           e.preventDefault();
           deleteSelection(store);
         }

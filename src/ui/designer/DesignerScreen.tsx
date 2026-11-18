@@ -493,6 +493,7 @@ function NewItemPopup({
   return (
     <Dialog
       title={TITLE[kind]}
+      onClose={onCancel}
       foot={
         <>
           <button className="btn alt" onClick={onCancel}>
@@ -1417,6 +1418,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       {del && (
         <Dialog
           title="Delete from Core"
+          onClose={() => setDel(null)}
           foot={
             <>
               <button className="btn alt" onClick={() => setDel(null)}>

@@ -221,6 +221,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       {popup === 'new' && (
         <Dialog
           title="New quest"
+          onClose={() => setPopup(null)}
           foot={
             <>
               <button className="btn alt" onClick={() => setPopup(null)}>
@@ -257,6 +258,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       {popup === 'open' && (
         <Dialog
           title="Open quest"
+          onClose={() => setPopup(null)}
           foot={
             <button className="btn alt" onClick={() => setPopup(null)}>
               Close

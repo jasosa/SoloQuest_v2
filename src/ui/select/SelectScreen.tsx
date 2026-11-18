@@ -246,6 +246,7 @@ export function SelectScreen({
       {choosing && level && (
         <Dialog
           title="Choose your heroes"
+          onClose={() => setChoosing(false)}
           foot={
             <>
               <button className="btn alt" autoFocus onClick={() => setChoosing(false)}>

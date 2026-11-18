@@ -520,6 +520,7 @@ export function PackPreview({
     <Dialog
       title={`Preview: ${pack.manifest.name}`}
       wide
+      onClose={changed ? undefined : onClose}
       foot={
         <>
           {changed && onSave && (

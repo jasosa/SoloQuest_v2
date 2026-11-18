@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useModal } from './useModal';
 import './frame.css';
 
 /**
@@ -138,17 +139,23 @@ export function Dialog({
   children,
   foot,
   wide = false,
+  onClose,
 }: {
   title: string;
   children: ReactNode;
   foot: ReactNode;
   /** A wider dialog, for content such as a picture preview. */
   wide?: boolean;
+  /** What Escape does. Left out: Escape does nothing. */
+  onClose?: (() => void) | undefined;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useModal(ref, { onEscape: onClose });
   return (
     <div className="fr-veil">
       <div
         className={wide ? 'fr-dlg wide' : 'fr-dlg'}
+        ref={ref}
         role="dialog"
         aria-modal="true"
         aria-label={title}

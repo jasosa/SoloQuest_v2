@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useModal } from '../shared/useModal';
 import type {
   JournalEntry,
   LogEntry,
@@ -39,30 +40,20 @@ const firstLine = (e: JournalEntry) => {
  * The board stays visible beside it. Esc or Close shuts it.
  */
 export function QuestSheet(p: QuestSheetProps) {
-  const head = useRef<HTMLHeadingElement>(null);
+  const sheet = useRef<HTMLDivElement>(null);
   const [all, setAll] = useState(false);
-  useEffect(() => {
-    head.current?.focus();
-  }, []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') p.onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [p.onClose]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the board stays usable beside the sheet, so Tab is not trapped; focus goes to its title and comes back
+  useModal(sheet, { onEscape: p.onClose, trap: false, focus: 'title' });
 
   const log = [...p.log].reverse();
   const shown = all ? log : log.slice(0, LOG_SHOWN);
 
   return (
-    <div className="qsheet" role="dialog" aria-label="Quest sheet" data-keep>
+    <div className="qsheet" ref={sheet} role="dialog" aria-label="Quest sheet" data-keep>
       <div className="qh">
         <div>
           <div className="kind">Quest {p.number}</div>
-          <h2 ref={head} tabIndex={-1}>
-            {p.title}
-          </h2>
+          <h2>{p.title}</h2>
         </div>
         <button className="x" aria-label="Close quest sheet" onClick={p.onClose}>
           ×

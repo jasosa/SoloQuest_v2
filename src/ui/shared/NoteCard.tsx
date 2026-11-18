@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useModal } from './useModal';
 
 export interface NoteCardProps {
   /** The big letter chip (a quest note letter, or a monster code). */
@@ -15,9 +16,6 @@ export interface NoteCardProps {
   children: ReactNode;
 }
 
-/** Cards that are open, oldest first. Esc closes only the top one. */
-const openCards: symbol[] = [];
-
 /**
  * The note sheet of the prototype: a card in the middle of a dim veil. Used for quest notes,
  * choices, Zargon's turn and the end of the quest. The first button gets focus so Enter goes on.
@@ -32,26 +30,7 @@ export function NoteCard({
   children,
 }: NoteCardProps) {
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const root = ref.current;
-    const target = focusTitle
-      ? root?.querySelector<HTMLElement>('h3')
-      : root?.querySelector<HTMLElement>('button');
-    target?.focus();
-  }, [focusTitle]);
-  useEffect(() => {
-    const me = Symbol('card');
-    openCards.push(me);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || openCards[openCards.length - 1] !== me) return;
-      onClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      openCards.splice(openCards.indexOf(me), 1);
-    };
-  }, [onClose]);
+  useModal(ref, { onEscape: onClose, focus: focusTitle ? 'title' : 'first' });
 
   return (
     <div className={light ? 'veil light' : 'veil'} data-keep>

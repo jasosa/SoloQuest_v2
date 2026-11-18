@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useModal } from './useModal';
 import { useZoom } from '../play/ZoomLayer';
 
 /** Size of the map area the note is placed in (the left grid cell of the play screen). */
@@ -21,13 +22,9 @@ export interface MarginNoteProps {
  * Closes with the x button or Esc (a tap outside is handled by the screen).
  */
 export function MarginNote({ anchor, kind, title, onClose, children }: MarginNoteProps) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // not modal: it only takes part in the Escape stack, so Esc closes the top dialog first
+  const ref = useRef<HTMLDivElement>(null);
+  useModal(ref, { onEscape: onClose, trap: false, focus: 'none', restore: false });
 
   // the thing it points at may have moved with the zoom
   const { project, area } = useZoom();
@@ -57,6 +54,7 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
     <div className={`note-slot ${above ? 'above' : 'beside'}`} style={style}>
       <div
         className="callout"
+        ref={ref}
         role="dialog"
         aria-label={title}
         data-keep

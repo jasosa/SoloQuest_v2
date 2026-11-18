@@ -302,3 +302,7 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Close-up.** While a picture is picked in the pack preview the sample zooms in on it (a view of 6 x 4 squares or a little more around it, kept inside the board), because the whole sample is too small to judge a picture. A chip over it, "Show the whole sample" / "Close-up", switches between the two.
 
+## Dialogs: focus and Escape (M8)
+
+Every dialog (the shared dialog, message cards, margin notes, the quest sheet, the editor dialogs and the import sheet) uses one hook, `useModal` (`src/ui/shared/useModal.ts`). **Escape** closes only the top dialog, and does nothing for a dialog that needs an answer or has unsaved work (a pack preview with changes). **Tab** stays inside a modal dialog (a margin note, the quest sheet and the alignment bar are not modal: the board stays usable). **Focus** goes into the dialog when it opens (the first control, or the title when the dialog asks for it) and comes back to the control that opened it when it closes, unless the person has moved it. While a dialog is open the quest editor's own shortcuts (Esc to deselect, Delete, R, tool letters) do nothing, and Delete and Backspace delete the selection only when the board has focus or nothing does.
+

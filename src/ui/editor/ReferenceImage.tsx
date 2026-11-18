@@ -4,6 +4,7 @@
  * of the quest, so it is never exported or uploaded.
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useModal } from '../shared/useModal';
 import type { ReferenceStore } from '../../persist/reference';
 import { BOARD_H, BOARD_W, U } from './geometry';
 import {
@@ -219,13 +220,13 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
   const imgRef = useRef<HTMLImageElement>(null);
   const shown = points;
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') api.setAligning(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [api]);
+  const alignRef = useRef<HTMLDivElement>(null);
+  useModal(alignRef, {
+    onEscape: () => api.setAligning(false),
+    trap: false,
+    focus: 'none',
+    restore: false,
+  });
 
   const tap = (e: React.MouseEvent<HTMLImageElement>) => {
     setProblem(null);
@@ -253,7 +254,7 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
 
   const step = shown.length;
   return (
-    <div className="ed-align" role="dialog" aria-label="Align the reference image">
+    <div className="ed-align" ref={alignRef} role="dialog" aria-label="Align the reference image">
       <div className="ed-align-bar">
         <p className="ed-align-hint" role="status" data-problem={problem ? 'true' : undefined}>
           {problem ? `${problem} ` : ''}

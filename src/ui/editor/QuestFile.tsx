@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import { emptyQuest, exportQuest, exportQuestChecked, importQuest } from '../../engine/editor';
 import type { Issue } from '../../engine/editor';
@@ -85,15 +86,7 @@ export function ImportButton({ store }: { store: EditorStore }) {
 
   const close = () => setPending(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (pending) sheetRef.current?.querySelector('button')?.focus();
-  }, [pending]);
-  useEffect(() => {
-    if (!pending) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setPending(null);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [pending]);
+  useModal(sheetRef, { active: pending !== null, onEscape: close, focus: 'first' });
 
   return (
     <>

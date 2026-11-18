@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import { removeSpell, updateSpell } from '../../engine/editor';
 import {
@@ -19,22 +20,12 @@ import type { EditorStore } from './editorStore';
 export function SpellDialog({ store }: { store: EditorStore }) {
   const { quest, spellId } = useStore(store);
   const st = store.getState();
-  const head = useRef<HTMLHeadingElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const [saved, setSaved] = useState('');
   const sp = spellId ? quest.spellDefs.find((x) => x.id === spellId) : undefined;
 
-  useEffect(() => {
-    if (sp) head.current?.focus();
-  }, [sp?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!sp) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') st.setSpellId(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [sp?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useModal(box, { active: Boolean(sp), onEscape: () => st.setSpellId(null), focus: 'title' });
 
   if (!sp) return null;
   const tags = sp.tags.filter(isSpellTag);
@@ -44,11 +35,9 @@ export function SpellDialog({ store }: { store: EditorStore }) {
 
   return (
     <div className="ed-veil">
-      <div className="ed-dialog" role="dialog" aria-modal="true" aria-label="Spell">
+      <div className="ed-dialog" ref={box} role="dialog" aria-modal="true" aria-label="Spell">
         <div className="ed-dialog-hd">
-          <h2 ref={head} tabIndex={-1}>
-            Spell
-          </h2>
+          <h2>Spell</h2>
           <button className="btn alt" onClick={() => st.setSpellId(null)}>
             Close
           </button>

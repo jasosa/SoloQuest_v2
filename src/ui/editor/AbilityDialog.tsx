@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import { removeAbility, updateAbility } from '../../engine/editor';
 import { useLibrary } from '../designer/LibraryContext';
@@ -17,33 +18,21 @@ const KINDS = [
 export function AbilityDialog({ store }: { store: EditorStore }) {
   const { quest, abilityId } = useStore(store);
   const st = store.getState();
-  const head = useRef<HTMLHeadingElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const [saved, setSaved] = useState('');
   const a = abilityId ? quest.abilityDefs.find((x) => x.id === abilityId) : undefined;
 
-  useEffect(() => {
-    if (a) head.current?.focus();
-  }, [a?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!a) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') st.setAbilityId(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [a?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useModal(box, { active: Boolean(a), onEscape: () => st.setAbilityId(null), focus: 'title' });
 
   if (!a) return null;
   const used = quest.monsters.filter((m) => (m.abilities ?? []).includes(a.id));
 
   return (
     <div className="ed-veil">
-      <div className="ed-dialog" role="dialog" aria-modal="true" aria-label="Ability">
+      <div className="ed-dialog" ref={box} role="dialog" aria-modal="true" aria-label="Ability">
         <div className="ed-dialog-hd">
-          <h2 ref={head} tabIndex={-1}>
-            Ability
-          </h2>
+          <h2>Ability</h2>
           <button className="btn alt" onClick={() => st.setAbilityId(null)}>
             Close
           </button>

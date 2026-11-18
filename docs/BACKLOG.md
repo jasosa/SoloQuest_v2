@@ -156,13 +156,14 @@ Per quest
 
 ## M8 · Polish
 
-- [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board; show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable
+- [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board (done: only on the board or with nothing focused, and never while a dialog is open); show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable
 
-- [ ] Polish from the M5b review: NoteCard Esc stack should use a ref for `onClose` and a stable id, and margin notes should join the stack (Esc can close both a margin note and a card today); check that the all-heroes-fallen card does not reappear after every new event
+- [x] Polish from the M5b review (done): one `useModal` hook for every dialog (Esc stack with the latest `onClose`, margin notes and the quest sheet join it). Still open: check that the all-heroes-fallen card does not reappear after every new event
 
-- [ ] Polish from the M5 review: the Zargon dialog should move focus to its heading when it opens; check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
+- [x] Polish from the M5 review: the Zargon dialog moves focus into itself when it opens (`useModal`, title when asked). Still open: check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
 
-- [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
+- [x] Tab is trapped inside dialogs and focus goes back to the opener when they close (`useModal`, tests in `modal.spec.ts`)
+- [ ] Polish from the M4 review: cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 
 - [x] Polish from the UI review (decision 77): contrast tokens (done: `--green` darkened to 4.83:1 on paper-2; fallen heroes use `--muted`, 5.25:1; the selected quest card uses ink for small text; `--sel` was fine as a background, 6.5:1; the Start button now says why it is off). Original note:  Lighten `--sel`; dead-hero text (`--off`) is 1.77:1; `--green` on paper-2 is 4.49:1 (needs 4.5:1); the disabled Start button needs a hint saying why
 - [ ] Polish from the UI review: board squares are 34 px at the default fit on tablet. Add a larger invisible hit area (44 px) or an easier select, without changing the drawing

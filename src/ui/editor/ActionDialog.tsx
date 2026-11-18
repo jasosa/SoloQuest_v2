@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import type { EditorStore } from './editorStore';
 import { ActionForm } from './NotesPanel';
@@ -11,21 +12,14 @@ import { ActionForm } from './NotesPanel';
 export function ActionDialog({ store }: { store: EditorStore }) {
   const { quest, noteId, picking, tab } = useStore(store);
   const st = store.getState();
-  const head = useRef<HTMLHeadingElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
 
-  useEffect(() => {
-    if (note && !picking) head.current?.focus();
-  }, [note?.id, picking]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!note || picking) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') st.setNoteId(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [note, picking]); // eslint-disable-line react-hooks/exhaustive-deps
+  useModal(box, {
+    active: Boolean(note && !picking && tab !== 'Actions'),
+    onEscape: () => st.setNoteId(null),
+    focus: 'title',
+  });
 
   if (picking)
     return (
@@ -41,11 +35,9 @@ export function ActionDialog({ store }: { store: EditorStore }) {
 
   return (
     <div className="ed-veil">
-      <div className="ed-dialog" role="dialog" aria-modal="true" aria-label="Action">
+      <div className="ed-dialog" ref={box} role="dialog" aria-modal="true" aria-label="Action">
         <div className="ed-dialog-hd">
-          <h2 ref={head} tabIndex={-1}>
-            Action
-          </h2>
+          <h2>Action</h2>
           <button className="btn alt" onClick={() => st.setNoteId(null)}>
             Close
           </button>
