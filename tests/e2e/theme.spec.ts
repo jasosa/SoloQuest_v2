@@ -21,6 +21,16 @@ test.describe('themes (decision 78)', () => {
     await page.screenshot({ path: 'test-results/theme-play.png' });
   });
 
+  test('without a theme a monster token shows its letter, not a picture', async ({ page }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Open it', exact: true }).click();
+    await expect(page.locator('[data-monster]').first()).toBeVisible();
+    await expect(page.locator('[data-token-image]')).toHaveCount(0);
+  });
+
   test('editor: floor and furniture use the theme pictures, rock too', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1&theme=test');
     await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
@@ -31,6 +41,8 @@ test.describe('themes (decision 78)', () => {
     // Quest 1 has chests and tables
     expect(await page.locator('[data-themed="furniture"]').count()).toBeGreaterThan(2);
     await expect(page.locator('[data-themed="wall"]').first()).toBeAttached();
+    // monsters of Quest 1 get the picture of their type, on the map
+    expect(await page.locator('[data-token-image]').count()).toBeGreaterThan(10);
     await page.screenshot({ path: 'test-results/theme-editor.png' });
   });
 });

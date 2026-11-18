@@ -27,6 +27,7 @@ import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { useTheme } from '../theme/activeTheme';
+import { monsterPicture } from '../theme/theme';
 import { floorCell, RockPattern, wallSegment } from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
@@ -632,13 +633,13 @@ export function EditorBoard({
           strokeWidth={2}
           opacity={m.state === 'dormant' ? 0.55 : 1}
         />
-        {shownImage(quest, m) ? (
+        {monsterPicture(theme, shownImage(quest, m), m.type) ? (
           <>
             <clipPath id={`eclip-${m.id}`}>
               <circle cx={cx} cy={cy} r={12.5} />
             </clipPath>
             <image
-              href={shownImage(quest, m)}
+              href={monsterPicture(theme, shownImage(quest, m), m.type)}
               x={cx - 12.5}
               y={cy - 12.5}
               width={25}

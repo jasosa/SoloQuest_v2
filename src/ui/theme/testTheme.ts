@@ -17,6 +17,7 @@ export const TEST_THEME: Theme = {
     closed: svg('#8a5a2b', '<rect x="30" width="8" height="34" fill="#d8b36a"/>'),
     open: svg('#4a3a2a'),
   },
+  monster: { goblin: svg('#2e7d32'), orc: svg('#6a1b9a'), skeleton: svg('#eeeeee') },
   block: svg('#2b2b2b'),
   trap: { armed: svg('#c9a227'), sprung: svg('#101010') },
   furniture: {

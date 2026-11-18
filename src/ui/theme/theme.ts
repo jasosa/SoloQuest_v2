@@ -1,4 +1,4 @@
-import type { FurnitureDef } from '../../engine/quest/schema';
+import type { FurnitureDef, MonsterType } from '../../engine/quest/schema';
 
 /**
  * Themes (decision 78). A theme says how board elements are drawn. It never changes rules, data or
@@ -34,6 +34,8 @@ export interface Theme {
   readonly wall?: string;
   /** A door, one square wide, drawn across the opening (turned for a door in a vertical wall). */
   readonly door?: { readonly closed?: string; readonly open?: string };
+  /** The default picture of each monster type on its token and roster coin. An enemy's own image wins. */
+  readonly monster?: Readonly<Partial<Record<MonsterType, string>>>;
   /** A blocked square (rubble, a fallen block). */
   readonly block?: string;
   /** A trap: armed (what the heroes see before it springs) and sprung (the pit tile). */
@@ -55,4 +57,13 @@ export function needsTurn(slot: FurnitureSlot, w: number, h: number): boolean {
   const [a, b] = slot.cells;
   if (a === b || w === h) return false;
   return a > b !== w > h;
+}
+
+/** The picture of a monster: its own (an enemy's image) first, then the theme's for its type. */
+export function monsterPicture(
+  theme: Theme,
+  own: string | undefined,
+  type: MonsterType,
+): string | undefined {
+  return own ?? theme.monster?.[type];
 }

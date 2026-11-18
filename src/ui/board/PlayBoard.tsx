@@ -20,6 +20,7 @@ import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
+import { monsterPicture } from '../theme/theme';
 import { doorPiece, floorCell, RockPattern, squarePiece, wallSegment } from '../theme/draw';
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
@@ -502,6 +503,7 @@ export function PlayBoard({
     const selected = selection?.kind === 'monster' && selection.id === m.id;
     const stampIndex = freshOrder.indexOf(m.id);
     const hurt = m.maxBody > 1 && m.body < m.maxBody;
+    const pic = monsterPicture(theme, m.image, m.type);
     tokens.push(
       <g key={`m${m.id}`}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -517,13 +519,13 @@ export function PlayBoard({
             stroke={color.tokenText}
             strokeWidth={2}
           />
-          {m.image ? (
+          {pic ? (
             <>
               <clipPath id={`clip-${m.id}`}>
                 <circle cx={cx} cy={cy} r={12.5} />
               </clipPath>
               <image
-                href={m.image}
+                href={pic}
                 x={cx - 12.5}
                 y={cy - 12.5}
                 width={25}
