@@ -26,6 +26,10 @@ interface Row extends UserQuestSummary {
   draft: boolean;
 }
 
+/** What the person is told when this device refuses to store a quest. */
+const STORE_ERROR =
+  'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.';
+
 export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
   useFitMode('width');
   const [rows, setRows] = useState<Row[]>([]);
@@ -33,6 +37,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
   const [number, setNumber] = useState('1');
   const [confirm, setConfirm] = useState<string | null>(null);
   const [problems, setProblems] = useState<readonly string[]>([]);
+  /** Set when this device could not store or delete a quest (storage full or blocked). */
+  const [storeError, setStoreError] = useState<string | null>(null);
   const [notes, setNotes] = useState<readonly Issue[]>([]);
   const [imported, setImported] = useState<Quest | null>(null);
   const [copyOf, setCopyOf] = useState('');
@@ -64,12 +70,24 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
     const name = title.trim() === '' ? 'New quest' : title.trim();
     const taken = rows.map((r) => r.id);
     const quest = emptyQuest({ id: newUserQuestId(name, taken), number: n, title: name });
-    await store.save(quest, Date.now());
+    try {
+      await store.save(quest, Date.now());
+    } catch {
+      setPopup(null);
+      setStoreError(STORE_ERROR);
+      return;
+    }
+    setStoreError(null);
     onOpen(quest, quest);
   };
 
   const remove = async (id: string) => {
-    await store.remove(id);
+    try {
+      await store.remove(id);
+      setStoreError(null);
+    } catch {
+      setStoreError(STORE_ERROR);
+    }
     setConfirm(null);
     await refresh();
   };
@@ -83,7 +101,16 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       setImported(null);
       return undefined;
     }
-    await store.save(r.quest, Date.now());
+    try {
+      await store.save(r.quest, Date.now());
+    } catch {
+      setProblems([]);
+      setNotes([]);
+      setImported(null);
+      setStoreError(STORE_ERROR);
+      return undefined;
+    }
+    setStoreError(null);
     setProblems([]);
     setNotes(r.warnings);
     setImported(r.quest);
@@ -158,6 +185,12 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
             onChange={(e) => void onFile(e.target.files?.[0])}
           />
 
+          {storeError && (
+            <section role="alert" className="es-problems" data-testid="store-error">
+              <h2>The quest could not be stored</h2>
+              <p>{storeError}</p>
+            </section>
+          )}
           {problems.length > 0 && (
             <section role="alert" className="es-problems">
               <h2>The file could not be used</h2>

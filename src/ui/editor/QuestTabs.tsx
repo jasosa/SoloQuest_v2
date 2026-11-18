@@ -32,8 +32,10 @@ export function QuestTab({ store }: { store: EditorStore }) {
                 defaultValue={quest.title}
                 maxLength={80}
                 onBlur={(e) => {
-                  if (e.target.value !== quest.title)
-                    st.apply((q) => renameQuest(q, e.target.value));
+                  if (e.target.value === quest.title) return;
+                  // an empty title is refused: the field goes back to the title the quest has
+                  if (!st.apply((q) => renameQuest(q, e.target.value)))
+                    e.target.value = quest.title;
                 }}
               />
             </Fld>

@@ -34,6 +34,8 @@
   --green: #3b6636;
   --sel: #d9c49a;
   --off: #b9ae98;
+  /* the dim veil behind dialogs: the text color at 28% */
+  --veil: rgba(43, 29, 23, 0.28);
   --on-ink: #f4ecdd;
   --on-ink-2: #e6cfc0;
   --token-text: #f2ebdd;

@@ -387,7 +387,7 @@
 .fr-veil {
   position: absolute;
   inset: 64px 0 0 0;
-  background: rgba(43, 29, 23, 0.28);
+  background: var(--veil);
   display: grid;
   place-items: center;
   z-index: 10;

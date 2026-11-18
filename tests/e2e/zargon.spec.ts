@@ -245,6 +245,33 @@ test.describe('heroes who fell (decision 32)', () => {
     await expect(dlg(page)).toContainText('Quest over, goal not reached');
   });
 
+  test('the "All heroes have fallen" card shows once, not after every new event', async ({
+    page,
+  }) => {
+    await quest1(page, 'd1,d2', 'dwarf');
+    const fallen = page.getByRole('dialog', { name: 'All heroes have fallen' });
+    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await btn(page, 'Yes, fell').click();
+    await expect(fallen).toBeVisible();
+    await btn(page, 'Back to the map').click();
+    await expect(fallen).toHaveCount(0);
+    // something else happens (a door is opened, with the room it shows): the card stays away
+    await page.locator('[data-door="d3"]').click();
+    await btn(page, 'Open the door').click();
+    for (let i = 0; i < 4; i++) {
+      const next = page.getByRole('dialog').getByRole('button', { name: 'Continue' });
+      if (await next.count()) await next.first().click();
+    }
+    await expect(fallen).toHaveCount(0);
+    // an Undo that brings the dwarf back, and a new fall, show it again
+    await page.getByRole('button', { name: 'Undo', exact: true }).first().click(); // takes the door back
+    await page.getByRole('button', { name: 'Undo', exact: true }).first().click(); // takes the fall back
+    await expect(fallen).toHaveCount(0);
+    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await btn(page, 'Yes, fell').click();
+    await expect(fallen).toBeVisible();
+  });
+
   test("Zargon's turn with every hero fallen offers End quest", async ({ page }) => {
     await quest1(page, 'd1,d2', 'dwarf');
     await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();

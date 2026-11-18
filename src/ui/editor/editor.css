@@ -245,6 +245,11 @@
   position: relative;
   cursor: pointer;
 }
+/* the real file input is invisible: the button around it shows where keyboard focus is */
+.es-file:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
 .es-file input {
   position: absolute;
   inset: 0;
@@ -590,7 +595,7 @@
 .ed-veil {
   position: fixed;
   inset: 64px 0 0 0;
-  background: rgba(43, 29, 23, 0.28);
+  background: var(--veil);
   z-index: 40;
   display: grid;
   place-items: center;

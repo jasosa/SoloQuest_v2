@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
@@ -25,6 +25,7 @@ import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
 import { anyModalOpen } from '../shared/useModal';
+import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
@@ -77,6 +78,8 @@ export function EditorScreen({
   const { quest, tool, toast, warnings, saveErrors, tab } = s;
   // The map uses the texture pack in use unless the person turned that off (View > Textures).
   const mapTextures = useEditorTextures();
+  /** A message too long for its toast, shown whole. */
+  const [fullMessage, setFullMessage] = useState<string | null>(null);
   const ref = useReference(quest.id, reference);
   const dropFile = async (file: File | undefined) => {
     if (!file) return;
@@ -90,7 +93,7 @@ export function EditorScreen({
   // Toasts go away on their own.
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => store.getState().dismissToast(), 4000);
+    const t = setTimeout(() => store.getState().dismissToast(), toastMs(toast.text, 4000));
     return () => clearTimeout(t);
   }, [toast, store]);
 
@@ -150,6 +153,11 @@ export function EditorScreen({
       >
         <h1 className="fr-title">{quest.title}</h1>
         <span className="ed-status">{dirty ? 'Unsaved changes' : 'Saved'}</span>
+        {!s.stored && (
+          <span className="ed-status ed-nostore" role="alert">
+            This device cannot keep a draft. Save the quest, or Export it, before you leave.
+          </span>
+        )}
       </TopBar>
       <div className="fr-bar" role="toolbar" aria-label="Quest">
         <button
@@ -256,10 +264,16 @@ export function EditorScreen({
       {ref.aligning && ref.state && <AlignDialog api={ref} say={s.say} />}
 
       {toast && (
-        <div className="toast" role="status" key={toast.id}>
-          {toast.text}
-        </div>
+        <ToastBox
+          key={toast.id}
+          text={toast.text}
+          onMore={(text) => {
+            setFullMessage(text);
+            s.dismissToast();
+          }}
+        />
       )}
+      {fullMessage && <FullMessage text={fullMessage} onClose={() => setFullMessage(null)} />}
     </div>
   );
 }

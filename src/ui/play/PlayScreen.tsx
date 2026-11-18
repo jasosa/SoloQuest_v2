@@ -61,6 +61,8 @@ import {
 import { parseSelection, type Selection } from './selection';
 import { progressLabel } from './zargonView';
 import { useTheme } from '../theme/activeTheme';
+import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
+import { useWakeLock } from '../shared/useWakeLock';
 import { isThemeToken, monsterPicture } from '../theme/theme';
 import { ZargonDialog } from './ZargonDialog';
 import { turnSequence } from './zargonView';
@@ -111,6 +113,7 @@ export interface PlayScreenProps {
 
 export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
   useFitMode('fill');
+  useWakeLock(true); // the tablet must not go dark between turns
   const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
@@ -127,6 +130,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
   const [slayAsk, setSlayAsk] = useState<string | null>(null);
+  /** A message too long for its toast, shown whole. */
+  const [fullMessage, setFullMessage] = useState<string | null>(null);
   const [res, setRes] = useState<Result | null>(null);
   const [sheetPos, setSheetPos] = useState({ seq: -1, i: 0 });
   const [reread, setReread] = useState<string | null>(null);
@@ -148,7 +153,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const seq = useMemo(() => turnSequence(orders, readIds), [orders, readIds]);
   // Every hero fell (decision 32).
   const allFallen = team.length > 0 && livingHeroes(team, state).length === 0;
-  const [fallenSeenAt, setFallenSeenAt] = useState(-1);
+  // The "All heroes have fallen" card shows once when it happens. After it is dismissed it stays away,
+  // whatever else the players do, until an Undo brings a hero back and they fall again.
+  const [fallenDismissed, setFallenDismissed] = useState(false);
+  if (!allFallen && fallenDismissed) setFallenDismissed(false);
 
   // Sheets from the last event (notes, monsters to place), shown one after the other.
   const sheets = useMemo(() => sheetsOf(prompts), [prompts]);
@@ -162,6 +170,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen;
   const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
+  // A note that is read again can disappear (an Undo takes its event back): there is nothing to show then,
+  // and it must not go on blocking the cards after it. (Setting state while rendering is the way to
+  // adjust state to what changed.)
+  if (reread && !journalEntries.some((e) => e.id === reread)) {
+    setReread(null);
+    setBackToSheet(false);
+  }
   const npcs = useMemo(() => npcsInPlay(level, state), [level, state]);
   const manual = useMemo(() => manualTriggers(level, state), [level, state]);
   const confirms = useMemo(() => objectiveConfirms(level, state), [level, state]);
@@ -192,7 +207,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   // Toasts go away on their own.
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(dismissToast, 3200);
+    const t = setTimeout(dismissToast, toastMs(toast.text));
     return () => clearTimeout(t);
   }, [toast, dismissToast]);
 
@@ -1060,17 +1075,17 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             Keep playing
           </button>
         </NoteCard>
-      ) : allFallen && !endOpen && fallenSeenAt !== events.length ? (
+      ) : allFallen && !endOpen && !fallenDismissed ? (
         <NoteCard
           kind="The heroes"
           title="All heroes have fallen"
-          onClose={() => setFallenSeenAt(events.length)}
+          onClose={() => setFallenDismissed(true)}
         >
           <p>There is nobody left to play. End the quest, or undo the last fall.</p>
           <button className="btn" onClick={() => setEndOpen(true)}>
             End quest
           </button>
-          <button className="btn alt" onClick={() => setFallenSeenAt(events.length)}>
+          <button className="btn alt" onClick={() => setFallenDismissed(true)}>
             Back to the map
           </button>
         </NoteCard>
@@ -1098,11 +1113,18 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       ) : null}
 
       {toast && (
-        <div className="toast" role="status" key={toast.id}>
-          {toast.text}
+        <ToastBox
+          key={toast.id}
+          text={toast.text}
+          onMore={(text) => {
+            setFullMessage(text);
+            dismissToast();
+          }}
+        >
           {toast.undo && <button onClick={() => undo()}>Undo</button>}
-        </div>
+        </ToastBox>
       )}
+      {fullMessage && <FullMessage text={fullMessage} onClose={() => setFullMessage(null)} />}
     </div>
   );
 }

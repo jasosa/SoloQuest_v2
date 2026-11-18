@@ -156,21 +156,16 @@ Per quest
 
 ## M8 · Polish
 
-- [ ] Polish from the M6 slice 1 review: show a note when the draft cannot be stored (`stored` is false); reset the title field when an empty rename is refused; limit Backspace-delete to the board (done: only on the board or with nothing focused, and never while a dialog is open); show store errors on the editor start screen (create, copy); editor chip text 14 px; visible focus on the import file button; a `setNumber` edit operation if the owner wants the quest number editable
-
-- [x] Polish from the M5b review (done): one `useModal` hook for every dialog (Esc stack with the latest `onClose`, margin notes and the quest sheet join it). Still open: check that the all-heroes-fallen card does not reappear after every new event
-
-- [x] Polish from the M5 review: the Zargon dialog moves focus into itself when it opens (`useModal`, title when asked). Still open: check the `rgba(110, 31, 42, 0.08)` tint in play.css against a token
-
-- [x] Tab is trapped inside dialogs and focus goes back to the opener when they close (`useModal`, tests in `modal.spec.ts`)
-- [ ] Polish from the M4 review: cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
-
-- [x] Polish from the UI review (decision 77): contrast tokens (done: `--green` darkened to 4.83:1 on paper-2; fallen heroes use `--muted`, 5.25:1; the selected quest card uses ink for small text; `--sel` was fine as a background, 6.5:1; the Start button now says why it is off). Original note:  Lighten `--sel`; dead-hero text (`--off`) is 1.77:1; `--green` on paper-2 is 4.49:1 (needs 4.5:1); the disabled Start button needs a hint saying why
-- [ ] Polish from the UI review: board squares are 34 px at the default fit on tablet. Add a larger invisible hit area (44 px) or an easier select, without changing the drawing
-- [ ] Prettier flags `promptToasts.ts` (`SelectScreen.tsx` is formatted now) (not touched by the review pass): format them
-- [ ] Wake lock, settings (sound off, reduced motion), resume screen
-- [x] Accessibility pass (done): axe (WCAG 2.1 A and AA) runs in `tests/e2e/a11y.spec.ts` on quest select and its popups, play (start card, board, margin note, quest sheet, Zargon, end card), the quest editor (every tab and dialog), the Library popups and the texture pack preview; fixed: accessible names that did not contain their visible text (Problems chip and tab, Library kinds), a group without a role, a list with a status role, and low contrast of the small text on a selected row. Focus and Escape are in `modal.spec.ts`. Still to do by hand: a screen reader pass on a real tablet
-- [ ] Full session test on a real tablet
+- [x] Polish from the M6 slice 1 review (done): a note when the draft cannot be stored ("This device cannot keep a draft..."), the title field goes back when an empty rename is refused, Backspace-delete only on the board and never while a dialog is open, store errors on the editor start screen (create, import, delete), a visible focus ring on the file chooser. Not done on purpose: "editor chip text 14 px" (the owner asked for smaller type, see DESIGN.md), and a `setNumber` operation (the quest number stays fixed unless the owner asks)
+- [x] Polish from the M5b review (done): one `useModal` hook for every dialog (Esc stack with the latest `onClose`, margin notes and the quest sheet join it); the "All heroes have fallen" card shows once and stays away after it is dismissed, until an Undo and a new fall
+- [x] Polish from the M5 review (done): the Zargon dialog moves focus into itself when it opens; the old `rgba(110, 31, 42, 0.08)` tint no longer exists
+- [x] Polish from the M4 review (done): Tab is trapped inside dialogs and focus goes back to the opener (`modal.spec.ts`); long toasts are cut with a "More" button that opens the whole message, and stay longer; the dialog veil is the token `--veil`; the re-read sheet is reset when an Undo takes its note away. The unit test for a pending choice after note sheets is covered by the e2e test "a choice must be answered" in `notes.spec.ts`
+- [x] Polish from the UI review (decision 77): contrast tokens (done: `--green` darkened to 4.83:1 on paper-2; fallen heroes use `--muted`, 5.25:1; the selected quest card uses ink for small text; `--sel` was fine as a background, 6.5:1; the Start button says why it is off)
+- [x] Board squares are 34 px at the default fit on tablet: left as it is on purpose. Squares touch each other, so a square cannot have a bigger tap area; the things that need a finger have 44 px areas already (doors, monsters, traps, markers, zoom and move buttons), and the zoom makes squares bigger when needed
+- [x] Prettier on `promptToasts.ts`: clean
+- [x] Wake lock (done): the screen stays awake while a quest is played and is let go when leaving it (`useWakeLock`, `wakelock.spec.ts`). Settings are not needed now: the app has no sound, reduced motion already follows the system setting, and the resume screen is the Resume button on quest select
+- [x] Accessibility pass (done): axe (WCAG 2.1 A and AA) runs in `tests/e2e/a11y.spec.ts` on quest select and its popups, play (start card, board, margin note, quest sheet, Zargon, end card), the quest editor (every tab and dialog), the Library popups and the texture pack preview; fixed: accessible names that did not contain their visible text (Problems chip and tab, Library kinds), a group without a role, a list with a status role, and low contrast of the small text on a selected row. Focus and Escape are in `modal.spec.ts`
+- [ ] Full session test on a real tablet (the owner): a whole quest, the wake lock, the texture pack, a screen reader pass (VoiceOver or TalkBack)
 
 ## Zargon spell tags (core, can land before M9)
 

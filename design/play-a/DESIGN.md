@@ -35,7 +35,7 @@ Margin notes sit beside the object in the upper half of the map and above it in 
 3. First entry: none beyond the margin note (the board is the content; no splash).
 Reduced motion: everything lands at once.
 
-**Tokens.** paper #EFE6D2 · floor #F7F2E8 · corridor #E4D8C2 · rock #B98A8F hatch · ink #6E1F2A · text #2B1D17 · muted #6D5A4E · monster green #3B6636 (darkened from #3F6B3A so it is 4.5:1 on paper-2) · selection #D9C49A (`--sel`), text on ink #F4ECDD (`--on-ink`), secondary text on ink #E6CFC0 (`--on-ink-2`), token text #F2EBDD (`--token-text`), furniture and door paper #FFFFFF (`--white`), sprung pit tile #3B2A25 and #1E1411 (`--pit`, `--pit-deep`). Fonts: TeX Gyre Bonum Bold (titles, buttons), TeX Gyre Pagella (text). Controls: square corners, 2 px ink outline, offset shadow on notes, press = 2 px shift.
+**Tokens.** paper #EFE6D2 · floor #F7F2E8 · corridor #E4D8C2 · rock #B98A8F hatch · ink #6E1F2A · text #2B1D17 · muted #6D5A4E · monster green #3B6636 (darkened from #3F6B3A so it is 4.5:1 on paper-2) · selection #D9C49A (`--sel`), dialog veil rgba(43, 29, 23, 0.28) (`--veil`), text on ink #F4ECDD (`--on-ink`), secondary text on ink #E6CFC0 (`--on-ink-2`), token text #F2EBDD (`--token-text`), furniture and door paper #FFFFFF (`--white`), sprung pit tile #3B2A25 and #1E1411 (`--pit`, `--pit-deep`). Fonts: TeX Gyre Bonum Bold (titles, buttons), TeX Gyre Pagella (text). Controls: square corners, 2 px ink outline, offset shadow on notes, press = 2 px shift.
 
 **Removed in the subtraction pass.** Hero Body list (not tracked anymore), explanatory line on the monster note, repeated orders for monsters of the same kind (grouped).
 
@@ -309,4 +309,8 @@ Every dialog (the shared dialog, message cards, margin notes, the quest sheet, t
 ## Accessibility checks (M8)
 
 `tests/e2e/a11y.spec.ts` runs axe (WCAG 2.1 A and AA: contrast, names, roles, ARIA) on every main screen and dialog, and must stay clean. Rules it enforced: a control's accessible name must contain its visible text (do not put an `aria-label` that differs from it; leave a space before a count or badge), a list keeps its list role (put `role="status"` on a wrapper), a group with an `aria-label` needs a role, and small text on the selection color uses ink, not muted (3.8:1).
+
+## Toasts, wake lock, small rules (M8)
+
+**Toasts** show up to 110 characters. A longer message is cut at a word with an ellipsis and a **More** button, which opens the whole message in a card ("Message", with Close). A toast stays 3.2 s (the editor 4 s), longer for long messages (about 45 ms a letter, at most 9 s). **Wake lock.** While a quest is played the screen is kept awake (Screen Wake Lock API, asked for again when the page comes back, let go when leaving the quest); a browser that lacks it or refuses it just lets the screen sleep. **The "All heroes have fallen" card** shows once; after it is dismissed it stays away until an Undo brings a hero back and they fall again. **The quest editor** says when the draft cannot be stored and when a quest cannot be stored on the start screen; an empty title is refused and the field goes back; the file chooser shows keyboard focus.
 
