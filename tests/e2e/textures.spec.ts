@@ -180,10 +180,18 @@ test.describe('texture packs (decision 78)', () => {
     // tapping the picture in the sample chooses it
     await prev.locator('[data-slot="monster.orc"]').click();
     await expect(prev.getByLabel('Picture to adjust')).toHaveValue('monster.orc');
-    // five steps of 5% bigger: 125%, drawn 40 px wide, and nothing is saved yet
+    // a tap on + is 1%: five taps, 105%, drawn 33.6 px wide
     for (let i = 0; i < 5; i++) await prev.getByRole('button', { name: 'Size: more' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('105%');
+    await expect(orc).toHaveAttribute('width', '33.6');
+    // the slider moves in 1% steps too, for bigger changes: 125%, drawn 40 px wide
+    await prev.getByLabel('Size', { exact: true }).fill('1.25');
     await expect(prev.getByTestId('pack-adjust')).toContainText('125%');
     await expect(orc).toHaveAttribute('width', '40');
+    await prev.getByRole('button', { name: 'Size: more' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('126%');
+    await prev.getByRole('button', { name: 'Size: less' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('125%');
     await expect(prev.getByText('Unsaved changes')).toBeVisible();
     // the buttons are big enough for a finger
     for (const name of ['Size: less', 'Size: more', 'Right: more', 'Down: less']) {
@@ -191,9 +199,22 @@ test.describe('texture packs (decision 78)', () => {
         (await prev.getByRole('button', { name }).boundingBox())!.height,
       ).toBeGreaterThanOrEqual(44);
     }
-    // a position too: half a square to the right
-    for (let i = 0; i < 10; i++) await prev.getByRole('button', { name: 'Right: more' }).click();
+    // a position too: half a square to the right, then a hundredth back
+    await prev.getByLabel('Right', { exact: true }).fill('0.5');
+    await prev.getByRole('button', { name: 'Right: less' }).click();
+    await expect(prev.getByTestId('pack-adjust')).toContainText('+0.49 square');
+    await prev.getByRole('button', { name: 'Right: more' }).click();
     await expect(prev.getByTestId('pack-adjust')).toContainText('+0.50 square');
+    // held down, a button keeps going (and gets faster): the size passes 140% within a few seconds
+    const more = prev.getByRole('button', { name: 'Size: more' });
+    const box = (await more.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    const sizeNow = async () =>
+      Number(((await prev.getByTestId('pack-adjust').innerText()).match(/(\d+)%/) ?? [])[1] ?? 0);
+    await expect.poll(sizeNow, { timeout: 4000 }).toBeGreaterThan(140);
+    await page.mouse.up();
+    await prev.getByLabel('Size', { exact: true }).fill('1.25');
     await prev.getByRole('button', { name: 'Save changes' }).click();
     await expect(dlg.getByRole('status')).toContainText('Saved the changes to Tune me');
     await expect(prev.getByText('Unsaved changes')).toHaveCount(0);

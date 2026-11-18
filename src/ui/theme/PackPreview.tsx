@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { board } from '../../engine/board/board';
 import type { FurnitureDef, MonsterType } from '../../engine/quest/schema';
 import { MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
@@ -288,7 +288,10 @@ function Sample({
   );
 }
 
-/** One knob: a slider with - and + buttons (44 px, so a finger can make small steps) and its value. */
+/**
+ * One knob: a slider with - and + buttons (44 px, so a finger can make small steps) and its value. A tap
+ * on a button moves it one step (1%); held down it repeats, and after a second it moves in steps of five.
+ */
 function Knob({
   label,
   value,
@@ -307,6 +310,29 @@ function Knob({
   onChange(v: number): void;
 }) {
   const set = (v: number) => onChange(Math.min(max, Math.max(min, Math.round(v * 100) / 100)));
+  // the repeat reads the value as it is now, not as it was when the button was pressed
+  const now = useRef(value);
+  useLayoutEffect(() => {
+    now.current = value;
+  });
+  const timer = useRef(0);
+  const stop = () => {
+    window.clearTimeout(timer.current);
+    window.clearInterval(timer.current);
+    timer.current = 0;
+  };
+  useEffect(() => stop, []);
+  const hold = (dir: 1 | -1) => {
+    stop();
+    set(now.current + dir * step);
+    let ticks = 0;
+    timer.current = window.setTimeout(() => {
+      timer.current = window.setInterval(() => {
+        ticks += 1;
+        set(now.current + dir * step * (ticks > 12 ? 5 : 1));
+      }, 70);
+    }, 450);
+  };
   return (
     <div className="pv-knob">
       <div className="pv-kh">
@@ -314,7 +340,21 @@ function Knob({
         <output className="pv-kv">{format(value)}</output>
       </div>
       <div className="pv-kr">
-        <button className="chip" aria-label={`${label}: less`} onClick={() => set(value - step)}>
+        <button
+          className="chip"
+          aria-label={`${label}: less`}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            hold(-1);
+          }}
+          onPointerUp={stop}
+          onPointerLeave={stop}
+          onPointerCancel={stop}
+          onClick={(e) => {
+            // a click from the keyboard has no pointer press before it
+            if (e.detail === 0) set(now.current - step);
+          }}
+        >
           {'\u2212'}
         </button>
         <input
@@ -326,7 +366,20 @@ function Knob({
           value={value}
           onChange={(e) => set(Number(e.target.value))}
         />
-        <button className="chip" aria-label={`${label}: more`} onClick={() => set(value + step)}>
+        <button
+          className="chip"
+          aria-label={`${label}: more`}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            hold(1);
+          }}
+          onPointerUp={stop}
+          onPointerLeave={stop}
+          onPointerCancel={stop}
+          onClick={(e) => {
+            if (e.detail === 0) set(now.current + step);
+          }}
+        >
           +
         </button>
       </div>
@@ -491,7 +544,7 @@ export function PackPreview({
                       value={tune.scale}
                       min={SCALE_MIN}
                       max={SCALE_MAX}
-                      step={0.05}
+                      step={0.01}
                       format={pct}
                       onChange={(v) => change({ scale: v })}
                     />
@@ -500,7 +553,7 @@ export function PackPreview({
                       value={tune.offset[0]}
                       min={-OFFSET_MAX}
                       max={OFFSET_MAX}
-                      step={0.05}
+                      step={0.01}
                       format={sq}
                       onChange={(v) => change({ offset: [v, tune.offset[1]] })}
                     />
@@ -509,7 +562,7 @@ export function PackPreview({
                       value={tune.offset[1]}
                       min={-OFFSET_MAX}
                       max={OFFSET_MAX}
-                      step={0.05}
+                      step={0.01}
                       format={sq}
                       onChange={(v) => change({ offset: [tune.offset[0], v] })}
                     />
