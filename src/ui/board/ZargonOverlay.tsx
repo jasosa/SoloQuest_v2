@@ -10,7 +10,7 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell } from '../theme/draw';
+import { floorCell, wallSegment } from '../theme/draw';
 import { Furniture } from './Furniture';
 import { hiddenView, type HiddenTrap } from './hiddenView';
 
@@ -42,16 +42,14 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
       const ny = y + dy;
       if (!isWallBetween(board, [x, y], [nx, ny]) && !level.rock.has(cellKey(nx, ny))) continue;
       walls.push(
-        <line
-          key={`zw${x},${y},${dx},${dy}`}
-          x1={(x + ax) * S}
-          y1={(y + ay) * S}
-          x2={(x + bx) * S}
-          y2={(y + by) * S}
-          stroke={color.ink}
-          strokeWidth={3.2}
-          strokeLinecap="square"
-        />,
+        wallSegment(
+          theme,
+          `zw${x},${y},${dx},${dy}`,
+          (x + ax) * S,
+          (y + ay) * S,
+          (x + bx) * S,
+          (y + by) * S,
+        ),
       );
     }
   }

@@ -30,6 +30,14 @@ export interface Theme {
   /** One tile that fills the rock. */
   readonly rock?: string;
   readonly furniture?: Readonly<Partial<Record<FurnitureType, FurnitureSlot>>>;
+  /** A wall piece, one square long, drawn along every wall edge (turned for vertical walls). */
+  readonly wall?: string;
+  /** A door, one square wide, drawn across the opening (turned for a door in a vertical wall). */
+  readonly door?: { readonly closed?: string; readonly open?: string };
+  /** A blocked square (rubble, a fallen block). */
+  readonly block?: string;
+  /** A trap: armed (what the heroes see before it springs) and sprung (the pit tile). */
+  readonly trap?: { readonly armed?: string; readonly sprung?: string };
 }
 
 export const CLASSIC_THEME: Theme = { id: 'classic', name: 'Classic' };

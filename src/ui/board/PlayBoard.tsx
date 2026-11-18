@@ -20,7 +20,7 @@ import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell, RockPattern } from '../theme/draw';
+import { doorPiece, floorCell, RockPattern, squarePiece, wallSegment } from '../theme/draw';
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
@@ -167,16 +167,14 @@ export function PlayBoard({
         const ny = y + dy;
         if (!isWallBetween(board, [x, y], [nx, ny]) && !level.rock.has(cellKey(nx, ny))) continue;
         (f ? walls.neu : walls.old).push(
-          <line
-            key={`w${k},${dx},${dy}`}
-            x1={(x + ax) * S}
-            y1={(y + ay) * S}
-            x2={(x + bx) * S}
-            y2={(y + by) * S}
-            stroke={color.ink}
-            strokeWidth={3.2}
-            strokeLinecap="square"
-          />,
+          wallSegment(
+            theme,
+            `w${k},${dx},${dy}`,
+            (x + ax) * S,
+            (y + ay) * S,
+            (x + bx) * S,
+            (y + by) * S,
+          ),
         );
       }
     }
@@ -193,42 +191,46 @@ export function PlayBoard({
       const q = (S - 4) / 4;
       into(f).push(
         <g key={`b${x},${y}`} data-block={`${x},${y}`}>
-          <rect
-            x={px + 2}
-            y={py + 2}
-            width={S - 4}
-            height={S - 4}
-            fill={color.white}
-            stroke={color.ink}
-            strokeWidth={1.5}
-          />
-          {[1, 2, 3].map((i) => (
-            <line
-              key={i}
-              x1={px + 2}
-              y1={py + 2 + i * q}
-              x2={px + S - 2}
-              y2={py + 2 + i * q}
-              stroke={color.ink}
-              strokeWidth={1}
-            />
-          ))}
-          <line
-            x1={px + S / 2}
-            y1={py + 2}
-            x2={px + S / 2}
-            y2={py + 2 + q}
-            stroke={color.ink}
-            strokeWidth={1}
-          />
-          <line
-            x1={px + S / 3}
-            y1={py + 2 + q}
-            x2={px + S / 3}
-            y2={py + 2 + 2 * q}
-            stroke={color.ink}
-            strokeWidth={1}
-          />
+          {squarePiece(theme.block, x, y, S, 'block') ?? (
+            <>
+              <rect
+                x={px + 2}
+                y={py + 2}
+                width={S - 4}
+                height={S - 4}
+                fill={color.white}
+                stroke={color.ink}
+                strokeWidth={1.5}
+              />
+              {[1, 2, 3].map((i) => (
+                <line
+                  key={i}
+                  x1={px + 2}
+                  y1={py + 2 + i * q}
+                  x2={px + S - 2}
+                  y2={py + 2 + i * q}
+                  stroke={color.ink}
+                  strokeWidth={1}
+                />
+              ))}
+              <line
+                x1={px + S / 2}
+                y1={py + 2}
+                x2={px + S / 2}
+                y2={py + 2 + q}
+                stroke={color.ink}
+                strokeWidth={1}
+              />
+              <line
+                x1={px + S / 3}
+                y1={py + 2 + q}
+                x2={px + S / 3}
+                y2={py + 2 + 2 * q}
+                stroke={color.ink}
+                strokeWidth={1}
+              />
+            </>
+          )}
         </g>,
       );
     }
@@ -259,34 +261,38 @@ export function PlayBoard({
     into(isFresh).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        <rect
-          x={cx - w / 2}
-          y={cy - h / 2}
-          width={w}
-          height={h}
-          fill={open ? color.floor : color.white}
-          stroke={color.ink}
-          strokeWidth={1.6}
-        />
-        {open ? (
-          <line
-            x1={cx - (vertical ? 0 : 7)}
-            y1={cy - (vertical ? 7 : 0)}
-            x2={cx + (vertical ? 0 : 7)}
-            y2={cy + (vertical ? 7 : 0)}
-            stroke={color.ink}
-            strokeWidth={1}
-            strokeDasharray="2 2"
-          />
-        ) : (
-          <line
-            x1={cx - (vertical ? 0 : 6)}
-            y1={cy - (vertical ? 6 : 0)}
-            x2={cx + (vertical ? 0 : 6)}
-            y2={cy + (vertical ? 6 : 0)}
-            stroke={color.ink}
-            strokeWidth={2.2}
-          />
+        {doorPiece(theme, open, cx, cy, vertical, S) ?? (
+          <>
+            <rect
+              x={cx - w / 2}
+              y={cy - h / 2}
+              width={w}
+              height={h}
+              fill={open ? color.floor : color.white}
+              stroke={color.ink}
+              strokeWidth={1.6}
+            />
+            {open ? (
+              <line
+                x1={cx - (vertical ? 0 : 7)}
+                y1={cy - (vertical ? 7 : 0)}
+                x2={cx + (vertical ? 0 : 7)}
+                y2={cy + (vertical ? 7 : 0)}
+                stroke={color.ink}
+                strokeWidth={1}
+                strokeDasharray="2 2"
+              />
+            ) : (
+              <line
+                x1={cx - (vertical ? 0 : 6)}
+                y1={cy - (vertical ? 6 : 0)}
+                x2={cx + (vertical ? 0 : 6)}
+                y2={cy + (vertical ? 6 : 0)}
+                stroke={color.ink}
+                strokeWidth={2.2}
+              />
+            )}
+          </>
         )}
       </g>,
     );
@@ -415,47 +421,54 @@ export function PlayBoard({
     into(fresh(keyOf(t.cell))).push(
       <g key={`t${t.id}`} data-trap-mark={t.id}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        {t.state === 'sprung' ? (
-          <>
-            <rect
-              x={tx * S + 3}
-              y={ty * S + 3}
-              width={S - 6}
-              height={S - 6}
-              fill={color.pit}
-              stroke={color.ink}
-              strokeWidth={1.5}
-            />
-            <rect
-              x={tx * S + 8}
-              y={ty * S + 8}
-              width={S - 16}
-              height={S - 16}
-              fill={color.pitDeep}
-            />
-          </>
-        ) : (
-          <>
-            <polygon
-              points={`${cx},${cy - 13} ${cx + 13},${cy + 10} ${cx - 13},${cy + 10}`}
-              fill={color.white}
-              stroke={color.ink}
-              strokeWidth={1.8}
-              strokeLinejoin="round"
-            />
-            <text
-              x={cx}
-              y={cy + 7}
-              textAnchor="middle"
-              fill={color.ink}
-              fontFamily="Bonum"
-              fontWeight={700}
-              fontSize={14}
-            >
-              ?
-            </text>
-          </>
-        )}
+        {squarePiece(
+          t.state === 'sprung' ? theme.trap?.sprung : theme.trap?.armed,
+          tx,
+          ty,
+          S,
+          'trap',
+        ) ??
+          (t.state === 'sprung' ? (
+            <>
+              <rect
+                x={tx * S + 3}
+                y={ty * S + 3}
+                width={S - 6}
+                height={S - 6}
+                fill={color.pit}
+                stroke={color.ink}
+                strokeWidth={1.5}
+              />
+              <rect
+                x={tx * S + 8}
+                y={ty * S + 8}
+                width={S - 16}
+                height={S - 16}
+                fill={color.pitDeep}
+              />
+            </>
+          ) : (
+            <>
+              <polygon
+                points={`${cx},${cy - 13} ${cx + 13},${cy + 10} ${cx - 13},${cy + 10}`}
+                fill={color.white}
+                stroke={color.ink}
+                strokeWidth={1.8}
+                strokeLinejoin="round"
+              />
+              <text
+                x={cx}
+                y={cy + 7}
+                textAnchor="middle"
+                fill={color.ink}
+                fontFamily="Bonum"
+                fontWeight={700}
+                fontSize={14}
+              >
+                ?
+              </text>
+            </>
+          ))}
       </g>,
     );
     trapHits.push(

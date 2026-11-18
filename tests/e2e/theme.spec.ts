@@ -13,6 +13,11 @@ test.describe('themes (decision 78)', () => {
     await page.goto(`${PLAY}&theme=test`);
     await expect(page.locator('[data-themed="floor"]').first()).toBeVisible();
     expect(await page.locator('[data-themed="floor"]').count()).toBeGreaterThan(10);
+    // walls and the opened door use pictures too
+    expect(await page.locator('[data-themed="wall"]').count()).toBeGreaterThan(5);
+    await expect(page.locator('[data-themed="door"]').first()).toBeAttached();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.waitForTimeout(600);
     await page.screenshot({ path: 'test-results/theme-play.png' });
   });
 
@@ -25,6 +30,7 @@ test.describe('themes (decision 78)', () => {
     await expect(page.locator('[data-themed="floor"]').first()).toBeAttached();
     // Quest 1 has chests and tables
     expect(await page.locator('[data-themed="furniture"]').count()).toBeGreaterThan(2);
+    await expect(page.locator('[data-themed="wall"]').first()).toBeAttached();
     await page.screenshot({ path: 'test-results/theme-editor.png' });
   });
 });

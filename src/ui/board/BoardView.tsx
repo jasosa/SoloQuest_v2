@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { areaAt, cellsOf, isWallBetween, roomIds, type Board } from '../../engine/board/board';
 import { color } from '../shared/tokens';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell, RockPattern } from '../theme/draw';
+import { floorCell, RockPattern, wallSegment } from '../theme/draw';
 
 export const CELL = 34;
 
@@ -48,16 +48,14 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
       for (const [dx, dy, ax, ay, bx, by] of EDGES) {
         if (!isWallBetween(board, [x, y], [x + dx, y + dy])) continue;
         walls.push(
-          <line
-            key={`w${x},${y},${dx},${dy}`}
-            x1={(x + ax) * CELL}
-            y1={(y + ay) * CELL}
-            x2={(x + bx) * CELL}
-            y2={(y + by) * CELL}
-            stroke={color.ink}
-            strokeWidth={3.2}
-            strokeLinecap="square"
-          />,
+          wallSegment(
+            theme,
+            `w${x},${y},${dx},${dy}`,
+            (x + ax) * CELL,
+            (y + ay) * CELL,
+            (x + bx) * CELL,
+            (y + by) * CELL,
+          ),
         );
       }
     }

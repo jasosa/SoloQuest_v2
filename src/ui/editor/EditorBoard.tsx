@@ -27,7 +27,7 @@ import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { useTheme } from '../theme/activeTheme';
-import { floorCell, RockPattern } from '../theme/draw';
+import { floorCell, RockPattern, wallSegment } from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
@@ -415,16 +415,14 @@ export function EditorBoard({
         )
           continue;
         walls.push(
-          <line
-            key={`w${k},${dx},${dy}`}
-            x1={(x + ax) * U}
-            y1={(y + ay) * U}
-            x2={(x + bx) * U}
-            y2={(y + by) * U}
-            stroke={color.ink}
-            strokeWidth={3.2}
-            strokeLinecap="square"
-          />,
+          wallSegment(
+            theme,
+            `w${k},${dx},${dy}`,
+            (x + ax) * U,
+            (y + ay) * U,
+            (x + bx) * U,
+            (y + by) * U,
+          ),
         );
       }
     }

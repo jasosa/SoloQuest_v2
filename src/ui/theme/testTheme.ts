@@ -12,6 +12,13 @@ export const TEST_THEME: Theme = {
   floor: [svg('#7d7a74'), svg('#74716b')],
   corridor: [svg('#5f5d58')],
   rock: svg('#1c1a18'),
+  wall: svg('#3a2a20'),
+  door: {
+    closed: svg('#8a5a2b', '<rect x="30" width="8" height="34" fill="#d8b36a"/>'),
+    open: svg('#4a3a2a'),
+  },
+  block: svg('#2b2b2b'),
+  trap: { armed: svg('#c9a227'), sprung: svg('#101010') },
   furniture: {
     chest: { href: svg('#8a5a2b') },
     table: { href: svg('#a9743a', '<circle cx="8" cy="17" r="6" fill="#fff"/>'), cells: [2, 1] },
