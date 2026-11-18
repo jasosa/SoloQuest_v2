@@ -286,6 +286,9 @@ function openDoor(level: Level, state: GameState, doorId: string): Reduced {
   if (door.kind === 'false') return { state, prompts: [{ kind: 'doorStuck', door: doorId }] };
   if (state.openDoors.has(doorId))
     throw new EventError('ALREADY_OPEN', `Door ${doorId} is already open`);
+  // A locked door answers "stuck" until its flag is set (like a false door, but it can open later).
+  if (door.lockedUntil !== undefined && state.flags[door.lockedUntil] !== true)
+    return { state, prompts: [{ kind: 'doorStuck', door: doorId }] };
 
   const d = draftOf(state);
   const origin: [number, number] = [

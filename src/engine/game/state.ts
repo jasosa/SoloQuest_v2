@@ -90,6 +90,8 @@ export interface GameState {
   readonly seenTraps: ReadonlySet<string>;
   /** Traps that sprung or were disarmed. Armed traps are not listed. */
   readonly trapStates: Readonly<Record<string, TrapState>>;
+  /** Doors a note removed: they are walls now, never drawn, never opened. */
+  readonly removedDoors: readonly string[];
   /** Ice slides whose whole path is visible (a spring or a good jump, decision 42). */
   readonly slidesShown: readonly string[];
   /** Squares where a falling block trap or a note left a permanent block (stops sight and movement). */
@@ -158,6 +160,7 @@ export function emptyState(seed: number): GameState {
     seenTraps: new Set(),
     trapStates: {},
     slidesShown: [],
+    removedDoors: [],
     placedBlocks: new Set(),
     treasureSearched: {},
     trapSearched: [],

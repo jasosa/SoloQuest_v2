@@ -1053,6 +1053,24 @@ function EffectFields({
           />
         </>
       );
+    case 'removeDoor':
+      return (
+        <>
+          <Choose
+            label="Door"
+            value={e.door}
+            options={quest.doors.map((d) => ({ value: d.id, label: d.id }))}
+            onChange={(door) => onChange({ ...e, door })}
+          />
+          <Pick
+            store={store}
+            kind="door"
+            hint="Click a door on the board."
+            label="Click it on the board"
+            onPick={(v) => onChange({ ...e, door: v as string })}
+          />
+        </>
+      );
     case 'placeBlock':
       return (
         <>

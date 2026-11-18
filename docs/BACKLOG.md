@@ -192,7 +192,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
 - [x] Slice 3: trap kinds as data (`src/engine/data/trapKinds.ts`, decision 44) and the hazards: stalactite, swinging axe, wandering monster trap (brings the quest's wandering monsters, `count` on `wandering`), slippery ice, ice slide with its path and the reveal on a good jump or a spring. Left for later: the slide's end effects are text only (no hero positions), the editor cannot draw slide paths yet (slice 7), slippery ice shows as a "?" until slice 4 has terrain, optional decoys go with the settings (M9 slice 6), and a wandering monster CARD placing several monsters is slice 4 (wandering list)
 - [ ] Slice 4: the board, in sub-slices:
   - [x] 4a: edge doors (iron entry, wooden exit), the start kinds (stairway, tile, iron door), the door start state, end labels, validator, dev fixture `?quest=frozen`. The editor cannot place edge doors yet (slice 7)
-  - [ ] 4b: locked and hidden doors (`hiddenUntil` a flag, a key), `removeDoor` and `showDoor` effects, a question on a note
+  - [x] 4b: door `hiddenUntil` and `lockedUntil` flags, the `removeDoor` effect (editor effect list too), openAllDoors skips them. A note question needs no new feature: it is a `manual` note with a `promptChoice` (see QUEST_FORMAT.md). The editor cannot set the door flags yet (slice 7)
   - [ ] 4c: room tiles (look and rule text), area merge (Gremlin treasure room)
   - [ ] 4d: terrain (ice ledge, icy river, chasm) with rule hints on tap and on first reveal when Rule hints is on
   - [ ] 4e: sight blockers until a flag (the Q0 cage), `replaceFurnitureWithDoor`

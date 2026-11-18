@@ -21,7 +21,7 @@ import { EventError } from './errors';
 import { liveMonstersInRoom } from './monstersIn';
 import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
-import { revealEverything, revealRoom, revealThroughDoor } from './reveal';
+import { doorMayShow, revealEverything, revealRoom, revealThroughDoor } from './reveal';
 import { seeMonster, type Draft, type GameState } from './state';
 
 /** What happened, as the notes engine sees it. */
@@ -404,6 +404,8 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
       const cells: CellKey[] = [];
       for (const door of level.doors.values()) {
         if (door.kind !== 'normal' || d.openDoors.has(door.id)) continue;
+        // a door that was removed, or still waits for its flag, is not on the map
+        if (!doorMayShow(door, d)) continue;
         d.openDoors.add(door.id);
         d.seenDoors.add(door.id);
         opened.push(door.id);
@@ -464,7 +466,25 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
     }
     case 'setFlag':
       d.flags[e.flag] = e.value;
+      // A door that waited for this flag shows now, if the heroes can see one of its squares.
+      for (const door of level.doors.values())
+        if (
+          door.hiddenUntil === e.flag &&
+          e.value &&
+          doorMayShow(door, d) &&
+          [door.a, door.b].some((c) => d.seenCells.has(keyOf(c)))
+        )
+          d.seenDoors.add(door.id);
       return;
+    case 'removeDoor': {
+      const door = level.doors.get(e.door);
+      if (!door || d.removedDoors.includes(door.id)) return;
+      // The door closes and disappears: the edge is a wall for sight, never drawn again.
+      d.removedDoors = [...d.removedDoors, door.id];
+      d.openDoors.delete(door.id);
+      d.seenDoors.delete(door.id);
+      return;
+    }
     case 'addCounter': {
       const value = (d.counters[e.counter] ?? 0) + e.by;
       d.counters[e.counter] = value;

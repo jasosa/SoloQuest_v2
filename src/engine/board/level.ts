@@ -38,6 +38,10 @@ export interface DoorInfo {
   readonly b: Cell;
   /** A door in the outer wall of the board: the iron entry or the wooden exit (Frozen Horror). */
   readonly edge?: 'ironEntry' | 'woodenExit';
+  /** Not on the map until this flag is set. */
+  readonly hiddenUntil?: string;
+  /** Will not open until this flag is set. */
+  readonly lockedUntil?: string;
 }
 
 /** The square outside the board next to `cell`, on `side`. */
@@ -92,7 +96,14 @@ export function buildLevel(source: Quest, board: Board = defaultBoard): Level {
   const doorsAt = new Map<CellKey, DoorInfo[]>();
   const add = (list: Quest['doors'], kind: DoorKind) => {
     for (const d of list) {
-      const info: DoorInfo = { id: d.id, kind, a: d.a, b: d.b };
+      const info: DoorInfo = {
+        id: d.id,
+        kind,
+        a: d.a,
+        b: d.b,
+        ...(d.hiddenUntil ? { hiddenUntil: d.hiddenUntil } : {}),
+        ...(d.lockedUntil ? { lockedUntil: d.lockedUntil } : {}),
+      };
       doors.set(d.id, info);
       doorAtEdge.set(edgeKey(d.a, d.b), info);
       for (const c of [d.a, d.b]) {

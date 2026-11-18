@@ -43,6 +43,12 @@ function sizeOf(d: Draft): number {
 /** True when the draft learned anything since `before` (a value from `progress`). */
 export const progress = sizeOf;
 
+/** A door that a note removed, or that waits for a flag, is not drawn. */
+export function doorMayShow(door: DoorInfo, d: Pick<Draft, 'removedDoors' | 'flags'>): boolean {
+  if (d.removedDoors.includes(door.id)) return false;
+  return door.hiddenUntil === undefined || d.flags[door.hiddenUntil] === true;
+}
+
 function markBlock(level: Level, d: Draft, x: number, y: number): void {
   const b = level.blockAt.get(cellKey(x, y));
   if (b) d.seenBlocks.add(b.id);
@@ -66,7 +72,7 @@ function markCell(level: Level, d: Draft, x: number, y: number): boolean {
     if (!m.hidden && m.cell && m.cell[0] === x && m.cell[1] === y) seeMonster(d, m);
   for (const t of q.traps) if (t.cell && t.cell[0] === x && t.cell[1] === y) d.seenTraps.add(t.id);
   for (const door of level.doorsAt.get(k) ?? [])
-    if (door.kind !== 'secret') d.seenDoors.add(door.id);
+    if (door.kind !== 'secret' && doorMayShow(door, d)) d.seenDoors.add(door.id);
   return isNew;
 }
 

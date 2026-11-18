@@ -520,6 +520,19 @@ export function validateQuestIssues(
     else if (e.type === 'completeObjective') completed.add(e.objective);
     else if (e.type === 'placeMonster') placed.add(e.monster);
   });
+  // A door that waits for a flag, or is locked by one, needs a note that sets it.
+  for (const door of [...quest.doors, ...quest.secretDoors, ...quest.falseDoors]) {
+    for (const [what, flag] of [
+      ['hiddenUntil', door.hiddenUntil],
+      ['lockedUntil', door.lockedUntil],
+    ] as const)
+      if (flag !== undefined && !flagsSet.has(flag))
+        err(`door ${door.id}: ${what} flag ${flag} is never set`, {
+          kind: 'door',
+          id: door.id,
+          cell: cellOf(door.a),
+        });
+  }
   // Ref of the note being checked, so every message points at the note.
   let noteRef: IssueRef = { kind: 'note' };
   const needArea = (where: string, a: string) => {
@@ -568,6 +581,9 @@ export function validateQuestIssues(
         break;
       case 'addSecretDoor':
         if (!secretIds.has(e.door)) err(`${where}: unknown secret door ${e.door}`, noteRef);
+        break;
+      case 'removeDoor':
+        if (!doorIds.has(e.door)) err(`${where}: unknown door ${e.door}`, noteRef);
         break;
       case 'placeBlock':
         e.cells.forEach((c) => {

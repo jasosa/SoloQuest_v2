@@ -144,6 +144,7 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 | `placeMonster` | `monster` (an id with `hidden: true`), `cell?` |
 | `setMonsterState` | `monster`, `state`: `active`/`dormant`/`stone`/`away`, `turns?` (`away` is like dormant but nothing is drawn: a monster that escaped) |
 | `addSecretDoor` | `door` (reveal a secret door from `secretDoors`) |
+| `removeDoor` | `door` (the door closes and disappears, see Hidden, locked and removed doors) |
 | `placeBlock` | `cells` |
 | `giveItem` | `text` (shown only, not tracked) |
 | `setFlag` / `addCounter` | `flag`, `value` / `counter`, `by` |
@@ -168,6 +169,14 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 "npcs": [ { "id": "ragnar", "name": "Sir Ragnar", "cell": [x, y], "defend": 2, "body": 2,
             "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
 ```
+
+## Hidden, locked and removed doors (Frozen Horror)
+
+A door (also a secret or false one) can have `"hiddenUntil": "flag"`: it is not on the map until that quest flag is set, even when its squares are seen (Q5 door C). It shows the moment the flag is set if one of its squares is already seen, or with its square later. `"lockedUntil": "flag"`: a try to open it answers "stuck" and changes nothing until the flag is set (the Q9 key door; a note sets the flag when the key is found). Both flags must be set by some `setFlag` effect, or the validator reports it.
+
+The effect `{ "type": "removeDoor", "door": "d3" }` makes a door close and disappear for the rest of the quest (Q5 door B): it is a wall again for sight, never drawn and never opened. Rooms the heroes already saw stay seen.
+
+A question the players answer (Q1 B "did the Barbarian attack the Crossbowman from next to it?") is a `manual` note whose effect is a `promptChoice` with a Yes and a No option; the hidden text and effects are in the options.
 
 ## Edge doors and the start (Frozen Horror)
 

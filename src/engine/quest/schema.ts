@@ -59,7 +59,15 @@ const MonsterState = z.enum(['active', 'dormant', 'stone', 'away', 'passive']);
 
 // ---- geometry
 
-const DoorSchema = z.strictObject({ id, a: cell, b: cell });
+const DoorSchema = z.strictObject({
+  id,
+  a: cell,
+  b: cell,
+  /** The door is not on the map until this quest flag is set, even if its squares are seen (Frozen Horror Q5 C). */
+  hiddenUntil: nonEmpty.optional(),
+  /** The door will not open until this quest flag is set: a try answers "stuck" (Frozen Horror Q9 key door). */
+  lockedUntil: nonEmpty.optional(),
+});
 
 /**
  * A door in the outer wall of the board (Frozen Horror). `cell` is the board square inside the door,
@@ -354,6 +362,7 @@ export type Effect =
       turns?: number | undefined;
     }
   | { type: 'addSecretDoor'; door: string }
+  | { type: 'removeDoor'; door: string }
   | { type: 'placeBlock'; cells: [number, number][] }
   | { type: 'giveItem'; text: string }
   | { type: 'setFlag'; flag: string; value: boolean }
@@ -376,6 +385,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
       turns: z.number().int().min(1).optional(),
     }),
     z.strictObject({ type: z.literal('addSecretDoor'), door: id }),
+    z.strictObject({ type: z.literal('removeDoor'), door: id }),
     z.strictObject({ type: z.literal('placeBlock'), cells }),
     z.strictObject({ type: z.literal('giveItem'), text: nonEmpty }),
     z.strictObject({ type: z.literal('setFlag'), flag: nonEmpty, value: z.boolean() }),
