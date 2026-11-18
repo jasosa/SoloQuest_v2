@@ -56,10 +56,12 @@ test.describe('adding a monster in play (decision 66)', () => {
 });
 
 test.describe('quest and team select', () => {
-  test('all 14 quests are encoded; start needs a hero', async ({ page }) => {
+  test('all 14 quests are encoded (plus the Frozen Horror prelude); start needs a hero', async ({
+    page,
+  }) => {
     await page.goto('/?nosave=1');
     await shot(page, 'select-start');
-    await expect(page.locator('.qcard')).toHaveCount(14);
+    await expect(page.locator('.qcard')).toHaveCount(15);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);
     // the heroes are chosen in a popup: Start needs at least one
     await page.getByTestId('new-game').click();

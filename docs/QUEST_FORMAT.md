@@ -145,6 +145,7 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 | `setMonsterState` | `monster`, `state`: `active`/`dormant`/`stone`/`away`, `turns?` (`away` is like dormant but nothing is drawn: a monster that escaped) |
 | `addSecretDoor` | `door` (reveal a secret door from `secretDoors`) |
 | `removeDoor` | `door` (the door closes and disappears, see Hidden, locked and removed doors) |
+| `lookFrom` | `cell` (what can be seen from that square shows, as if a hero stood there and looked: the exit of an ice tunnel) |
 | `placeBlock` | `cells` |
 | `giveItem` | `text` (shown only, not tracked) |
 | `setFlag` / `addCounter` | `flag`, `value` / `counter`, `by` |

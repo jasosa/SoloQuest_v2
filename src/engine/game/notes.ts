@@ -21,7 +21,7 @@ import { EventError } from './errors';
 import { liveMonstersInRoom } from './monstersIn';
 import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
-import { doorMayShow, revealEverything, revealRoom, revealThroughDoor } from './reveal';
+import { doorMayShow, revealEverything, revealFrom, revealRoom, revealThroughDoor } from './reveal';
 import { seeMonster, type Draft, type GameState } from './state';
 
 /** What happened, as the notes engine sees it. */
@@ -391,6 +391,13 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
       if (e.area === 'C' || d.revealedRooms.has(e.area)) return;
       const { cells } = revealRoom(level, d, e.area);
       if (cells.length > 0) prompts.push(revealedPrompt(cells));
+      return;
+    }
+    case 'lookFrom': {
+      // What can be seen from a square, as if a hero stood there and looked (an ice tunnel exit).
+      const { cells } = revealFrom(level, d, e.cell);
+      d.looked.add(keyOf(e.cell));
+      if (cells.length > 0) prompts.push(revealedPrompt(cells, [e.cell[0] + 0.5, e.cell[1] + 0.5]));
       return;
     }
     case 'revealAll': {

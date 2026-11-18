@@ -11,10 +11,11 @@ describe('the installed packs', () => {
     expect(packOfQuest('q07-the-lost-wizard')).toBe('core');
     expect(packOfQuest('user-my-quest')).toBeUndefined();
   });
-  it('Frozen Horror depends on core, and has no quest until they are encoded', () => {
+  it('Frozen Horror depends on core, and so far has only the prelude, quest 0', () => {
     const fh = packs.byId.get('frozen-horror')!;
     expect(fh.requires).toEqual([CORE_PACK]);
-    expect(fh.manifest.quests).toEqual([]);
+    expect(fh.manifest.quests).toEqual(['fh00-into-the-northlands']);
+    expect(packOfQuest('fh00-into-the-northlands')).toBe('frozen-horror');
     expect(fh.manifest.campaignSettings[0]?.default).toBe(false);
     expect(packs.packs.map((p) => p.manifest.id)).toEqual([CORE_PACK, 'frozen-horror']);
   });

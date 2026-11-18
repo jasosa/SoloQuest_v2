@@ -24,10 +24,13 @@ export function loadQuestEntries(data: Record<string, unknown> = files): QuestEn
     const quest = parseQuest(raw);
     byNumber.set(quest.number, buildLevel(quest));
   }
-  return Array.from({ length: QUEST_COUNT }, (_, i) => ({
+  const core = Array.from({ length: QUEST_COUNT }, (_, i) => ({
     number: i + 1,
     level: byNumber.get(i + 1),
   }));
+  // A quest 0 (the Frozen Horror prelude) is listed after the 14, until the pack picker (M9 slice 2).
+  const prelude = byNumber.get(0);
+  return prelude ? [...core, { number: 0, level: prelude }] : core;
 }
 
 export const questEntries: readonly QuestEntry[] = loadQuestEntries();

@@ -1,0 +1,1599 @@
+{
+  "schemaVersion": 1,
+  "id": "fh00-into-the-northlands",
+  "number": 0,
+  "pack": "frozen-horror",
+  "title": "Into the Northlands",
+  "intro": {
+    "summary": "Mentor warns that the journey north is already full of danger and a hard trial lies ahead. A frozen labyrinth of ice guards an artifact of power, there for a hero bold enough to take it from the servants of Zargon. The wolf Snowdasher, who has shared the hero's food and warmth, will fight at their side."
+  },
+  "start": {
+    "door": "in"
+  },
+  "edgeDoors": [
+    {
+      "id": "in",
+      "cell": [
+        6,
+        9
+      ],
+      "side": "w",
+      "kind": "ironEntry"
+    }
+  ],
+  "rock": {
+    "rooms": [
+      "R01",
+      "R06",
+      "R07",
+      "R10",
+      "R12",
+      "R13",
+      "R16",
+      "R17",
+      "R20",
+      "R22"
+    ],
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        0
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        11,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        13,
+        0
+      ],
+      [
+        14,
+        0
+      ],
+      [
+        15,
+        0
+      ],
+      [
+        16,
+        0
+      ],
+      [
+        17,
+        0
+      ],
+      [
+        18,
+        0
+      ],
+      [
+        19,
+        0
+      ],
+      [
+        20,
+        0
+      ],
+      [
+        21,
+        0
+      ],
+      [
+        22,
+        0
+      ],
+      [
+        23,
+        0
+      ],
+      [
+        24,
+        0
+      ],
+      [
+        25,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        25,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        25,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        25,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        25,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        7,
+        5
+      ],
+      [
+        8,
+        5
+      ],
+      [
+        25,
+        5
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        6
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        8,
+        6
+      ],
+      [
+        25,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ],
+      [
+        8,
+        7
+      ],
+      [
+        25,
+        7
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        8
+      ],
+      [
+        25,
+        8
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        18,
+        9
+      ],
+      [
+        19,
+        9
+      ],
+      [
+        20,
+        9
+      ],
+      [
+        21,
+        9
+      ],
+      [
+        22,
+        9
+      ],
+      [
+        23,
+        9
+      ],
+      [
+        24,
+        9
+      ],
+      [
+        25,
+        9
+      ],
+      [
+        0,
+        10
+      ],
+      [
+        25,
+        10
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        25,
+        11
+      ],
+      [
+        0,
+        12
+      ],
+      [
+        25,
+        12
+      ],
+      [
+        0,
+        13
+      ],
+      [
+        25,
+        13
+      ],
+      [
+        0,
+        14
+      ],
+      [
+        25,
+        14
+      ],
+      [
+        0,
+        15
+      ],
+      [
+        25,
+        15
+      ],
+      [
+        0,
+        16
+      ],
+      [
+        25,
+        16
+      ],
+      [
+        0,
+        17
+      ],
+      [
+        25,
+        17
+      ],
+      [
+        0,
+        18
+      ],
+      [
+        1,
+        18
+      ],
+      [
+        2,
+        18
+      ],
+      [
+        3,
+        18
+      ],
+      [
+        4,
+        18
+      ],
+      [
+        5,
+        18
+      ],
+      [
+        6,
+        18
+      ],
+      [
+        7,
+        18
+      ],
+      [
+        8,
+        18
+      ],
+      [
+        9,
+        18
+      ],
+      [
+        10,
+        18
+      ],
+      [
+        11,
+        18
+      ],
+      [
+        12,
+        18
+      ],
+      [
+        13,
+        18
+      ],
+      [
+        14,
+        18
+      ],
+      [
+        15,
+        18
+      ],
+      [
+        16,
+        18
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        18
+      ],
+      [
+        19,
+        18
+      ],
+      [
+        20,
+        18
+      ],
+      [
+        21,
+        18
+      ],
+      [
+        22,
+        18
+      ],
+      [
+        23,
+        18
+      ],
+      [
+        24,
+        18
+      ],
+      [
+        25,
+        18
+      ]
+    ]
+  },
+  "areaOverrides": [
+    {
+      "merge": [
+        "R02",
+        "R08"
+      ]
+    }
+  ],
+  "roomTiles": [
+    {
+      "type": "cageRoom",
+      "area": "R02"
+    },
+    {
+      "type": "gremlinTreasure",
+      "area": "R21"
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        8,
+        9
+      ],
+      "b": [
+        8,
+        10
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        9,
+        5
+      ],
+      "b": [
+        9,
+        6
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        8,
+        2
+      ],
+      "b": [
+        9,
+        2
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        11,
+        2
+      ],
+      "b": [
+        12,
+        2
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        13,
+        5
+      ],
+      "b": [
+        14,
+        5
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        16,
+        1
+      ],
+      "b": [
+        17,
+        1
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        18,
+        4
+      ],
+      "b": [
+        18,
+        5
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        15,
+        9
+      ],
+      "b": [
+        16,
+        9
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        9,
+        12
+      ],
+      "b": [
+        9,
+        13
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        11,
+        13
+      ],
+      "b": [
+        12,
+        13
+      ]
+    },
+    {
+      "id": "d11",
+      "a": [
+        13,
+        16
+      ],
+      "b": [
+        14,
+        16
+      ]
+    },
+    {
+      "id": "d12",
+      "a": [
+        19,
+        13
+      ],
+      "b": [
+        19,
+        14
+      ]
+    },
+    {
+      "id": "d13",
+      "a": [
+        17,
+        17
+      ],
+      "b": [
+        18,
+        17
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [
+        [
+          15,
+          1
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          11,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          14,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          11,
+          12
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          14,
+          12
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          17,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          19,
+          6
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          16,
+          14
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          12,
+          17
+        ],
+        [
+          13,
+          17
+        ]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-throne",
+      "type": "throne",
+      "cells": [
+        [
+          10,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [
+          10,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "f-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [
+          10,
+          11
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          11
+        ]
+      ]
+    },
+    {
+      "id": "f-tomb",
+      "type": "tomb",
+      "cells": [
+        [
+          19,
+          2
+        ],
+        [
+          20,
+          2
+        ],
+        [
+          19,
+          3
+        ],
+        [
+          20,
+          3
+        ],
+        [
+          19,
+          4
+        ],
+        [
+          20,
+          4
+        ]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m-bear",
+      "type": "goblin",
+      "cell": [
+        6,
+        2
+      ],
+      "enemy": "polarWarbear",
+      "state": "passive"
+    },
+    {
+      "id": "m-gremlin-a",
+      "type": "goblin",
+      "cell": [
+        7,
+        12
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-1",
+      "type": "goblin",
+      "cell": [
+        14,
+        1
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-2",
+      "type": "goblin",
+      "cell": [
+        16,
+        5
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-3",
+      "type": "goblin",
+      "cell": [
+        15,
+        13
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-4",
+      "type": "goblin",
+      "cell": [
+        16,
+        17
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-mummy",
+      "type": "mummy",
+      "cell": [
+        12,
+        16
+      ],
+      "name": "Wolf mummy"
+    },
+    {
+      "id": "m-yeti-1",
+      "type": "goblin",
+      "cell": [
+        11,
+        8
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-yeti-2",
+      "type": "goblin",
+      "cell": [
+        18,
+        8
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-yeti-3",
+      "type": "goblin",
+      "cell": [
+        19,
+        11
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-skel-1",
+      "type": "skeleton",
+      "cell": [
+        20,
+        1
+      ]
+    },
+    {
+      "id": "m-skel-2",
+      "type": "skeleton",
+      "cell": [
+        18,
+        2
+      ]
+    },
+    {
+      "id": "m-jrack",
+      "type": "dreadSorcerer",
+      "cell": [
+        11,
+        9
+      ],
+      "name": "Jracksfot Rimebreath",
+      "letter": "JR",
+      "special": true,
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 4,
+        "mind": 4
+      },
+      "spells": [
+        "tempest"
+      ]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-stal-1",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        2
+      ]
+    },
+    {
+      "id": "t-stal-2",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        4
+      ]
+    },
+    {
+      "id": "t-stal-3",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        5
+      ]
+    },
+    {
+      "id": "t-stal-4",
+      "kind": "stalactite",
+      "cell": [
+        18,
+        3
+      ]
+    },
+    {
+      "id": "t-stal-5",
+      "kind": "stalactite",
+      "cell": [
+        18,
+        11
+      ]
+    },
+    {
+      "id": "t-stal-6",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        13
+      ]
+    },
+    {
+      "id": "t-stal-7",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        14
+      ]
+    },
+    {
+      "id": "t-stal-8",
+      "kind": "stalactite",
+      "cell": [
+        10,
+        15
+      ]
+    },
+    {
+      "id": "t-ice-1",
+      "kind": "slipperyIce",
+      "cell": [
+        9,
+        9
+      ]
+    },
+    {
+      "id": "t-ice-2",
+      "kind": "slipperyIce",
+      "cell": [
+        16,
+        16
+      ]
+    },
+    {
+      "id": "t-block",
+      "kind": "fallingBlock",
+      "cell": [
+        19,
+        7
+      ]
+    }
+  ],
+  "markers": [
+    {
+      "id": "tun1a",
+      "label": "Ice tunnel 1",
+      "cell": [
+        15,
+        12
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "tun1b",
+      "label": "Ice tunnel 1",
+      "cell": [
+        18,
+        10
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "tun2a",
+      "label": "Ice tunnel 2",
+      "cell": [
+        10,
+        6
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "tun2b",
+      "label": "Ice tunnel 2",
+      "cell": [
+        8,
+        12
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "tun3a",
+      "label": "Ice tunnel 3",
+      "cell": [
+        15,
+        6
+      ],
+      "visible": "players"
+    },
+    {
+      "id": "tun3b",
+      "label": "Ice tunnel 3",
+      "cell": [
+        20,
+        8
+      ],
+      "visible": "players"
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
+      "overrides": {
+        "move": 10,
+        "att": 2,
+        "def": 3,
+        "body": 3,
+        "mind": 3
+      },
+      "profile": "thief",
+      "weights": {
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
+      },
+      "abilities": [
+        "fhSteal"
+      ]
+    },
+    {
+      "id": "polarWarbear",
+      "name": "Polar Warbear",
+      "letter": "PW",
+      "overrides": {
+        "move": 6,
+        "att": 4,
+        "def": 3,
+        "body": 6,
+        "mind": 2
+      },
+      "profile": "relentless",
+      "weights": {
+        "closest": 3,
+        "highestAtt": 2,
+        "lastAttacker": 2,
+        "grudge": 1
+      },
+      "attacks": 2,
+      "abilities": [
+        "fhTwoAttacks"
+      ]
+    },
+    {
+      "id": "yeti",
+      "name": "Yeti",
+      "letter": "Y",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 5,
+        "mind": 2
+      },
+      "profile": "fighter",
+      "weights": {
+        "lowestDef": 3,
+        "lowestBody": 2,
+        "closest": 2
+      },
+      "traits": [
+        "In this solo quest it does not hug: it only punches"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero has a wolf ally for this solo quest. Use the eye token or a spare figure for Snowdasher. She moves 10, attacks with 3 dice (she may attack diagonally), defends with 2 and has 5 Body Points and 1 Mind Point. She moves and attacks right after the hero, and she cannot carry items or open doors.",
+          "title": "Snowdasher"
+        },
+        {
+          "type": "showText",
+          "text": "Ice tunnels come in pairs with the same picture (1, 2 or 3). A hero or monster that lands on one moves at once to the other square of the pair, and that ends its move. If that square is taken, move the figure there to a free square next to it.",
+          "title": "Ice tunnels"
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        7,
+        11
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R14"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "An Ice Gremlin is picking through the scraps of a long dead explorer."
+        }
+      ]
+    },
+    {
+      "id": "n-A-search",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R14",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Among the remains lies a backpack. Inside are a usable tool kit (see the armory) and 2 potions of healing, each restoring up to 4 lost Body Points."
+        },
+        {
+          "type": "giveItem",
+          "text": "A tool kit and 2 potions of healing (4 Body Points each)"
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [
+        13,
+        14
+      ],
+      "trigger": {
+        "type": "monsterSeen",
+        "monster": "m-mummy"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A large white wolf lifts its head and opens its jaws, but no sound comes out. Its body is more bone than fur, and its hollow eyes glow dull purple. It is a wolf mummy. If Snowdasher is with the hero, she howls with mourning and rage."
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [
+        8,
+        1
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R02"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and blocks line of sight until a lever on the wall is pulled. The lever is at the square marked C, and pulling it takes no action."
+        }
+      ]
+    },
+    {
+      "id": "n-C-lever",
+      "target": {
+        "kind": "square",
+        "id": "8,1"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "The lever was pulled"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The cage opens, and the line of sight is clear. The Warbear will leave if the hero lets it pass unharmed: tap It left on the monster. If the hero attacks it, tap A hero attacked it."
+        },
+        {
+          "type": "setFlag",
+          "flag": "cageOpen",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "n-C-search",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R02",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A longsword lies here (see the armory)."
+        },
+        {
+          "type": "giveItem",
+          "text": "A longsword"
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [
+        18,
+        1
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R05",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "In the tomb the hero finds a set of bracers with a wolf embossing (see the armory) and a potion of healing that restores up to 4 lost Body Points."
+        },
+        {
+          "type": "giveItem",
+          "text": "Bracers with a wolf embossing and a potion of healing (4 Body Points)"
+        }
+      ]
+    },
+    {
+      "id": "n-E",
+      "letter": "E",
+      "at": [
+        19,
+        15
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R21"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This room is littered with junk! Ice Gremlins steal anything they can, and their loot is all kept here. A hero who enters gets back any item an Ice Gremlin stole from them earlier in this quest."
+        }
+      ]
+    },
+    {
+      "id": "n-E-search",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R21",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero finds a well kept, polished shell helmet (see the armory), a potion of healing (up to 4 Body Points) and 50 gold coins."
+        },
+        {
+          "type": "giveItem",
+          "text": "A polished shell helmet, a potion of healing (4 Body Points) and 50 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-F",
+      "letter": "F",
+      "at": [
+        16,
+        9
+      ],
+      "trigger": {
+        "type": "doorOpened",
+        "door": "d8"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "An intense cold pours out of this door."
+        }
+      ]
+    },
+    {
+      "id": "n-G",
+      "letter": "G",
+      "at": [
+        12,
+        8
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R11"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A massive gremlin sits on a frozen throne. It raises a battle axe made entirely of ice over its head and signals the Yeti to attack. This is Jracksfot Rimebreath. He knows the Dread spell Tempest."
+        }
+      ]
+    },
+    {
+      "id": "n-G-search",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R11",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero finds 200 gold coins and the long-lost artifact called the Armband of Ice. Read its card in the Frozen Horror pack."
+        },
+        {
+          "type": "giveItem",
+          "text": "200 gold coins and the Armband of Ice (artifact, see its card)"
+        }
+      ]
+    },
+    {
+      "id": "n-throne",
+      "trigger": {
+        "type": "monsterKilled",
+        "monster": "m-jrack"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "With Jracksfot gone, the cold magic that made the throne fades. It melts into water and shows an exit to the entrance of the cave where this quest began. Replace the throne with an open door.",
+          "title": "The throne melts"
+        },
+        {
+          "type": "setFlag",
+          "flag": "throneMelted",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "n-tun1a",
+      "target": {
+        "kind": "marker",
+        "id": "tun1a"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 1, the square at 18,10. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            18,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tun1b",
+      "target": {
+        "kind": "marker",
+        "id": "tun1b"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 1, the square at 15,12. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            15,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tun2a",
+      "target": {
+        "kind": "marker",
+        "id": "tun2a"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 2, the square at 8,12. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            8,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tun2b",
+      "target": {
+        "kind": "marker",
+        "id": "tun2b"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 2, the square at 10,6. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            10,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tun3a",
+      "target": {
+        "kind": "marker",
+        "id": "tun3a"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 3, the square at 20,8. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            20,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-tun3b",
+      "target": {
+        "kind": "marker",
+        "id": "tun3b"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "A hero used this tunnel"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The hero comes out at the other end of ice tunnel 3, the square at 15,6. If a figure is already there, move it to a free square next to it. Using the tunnel ends the move."
+        },
+        {
+          "type": "lookFrom",
+          "cell": [
+            15,
+            6
+          ]
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "text": "An Ice Gremlin appears next to the hero and attacks at once."
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Defeat Jracksfot Rimebreath and take the Armband of Ice",
+      "done": {
+        "monsterKilled": "m-jrack"
+      }
+    },
+    {
+      "id": "o2",
+      "text": "Leave through the cave",
+      "confirm": "The hero left through the cave",
+      "confirmWhen": [
+        {
+          "flag": "throneMelted",
+          "is": true
+        }
+      ]
+    }
+  ],
+  "endText": "As the quest ends, if Snowdasher is still with the hero, she gives them a nod of gratitude before bounding off to another adventure."
+}

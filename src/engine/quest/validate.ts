@@ -385,7 +385,8 @@ export function validateQuestIssues(
       continue;
     }
     const outside = outsideOf(e.cell, e.side);
-    if (inBoard(board, outside[0], outside[1]))
+    // The square outside is off the board, or rock (a tile such as the ice cave entrance covers it).
+    if (inBoard(board, outside[0], outside[1]) && !isRock(outside))
       err(`edge door ${e.id}: ${key(e.cell)} is not on the ${e.side} edge of the board`, ref);
     if (isRock(e.cell)) err(`edge door ${e.id}: touches rock`, ref);
     const ek = `${key(e.cell)}${e.side}`;
@@ -629,6 +630,9 @@ export function validateQuestIssues(
         break;
       case 'addSecretDoor':
         if (!secretIds.has(e.door)) err(`${where}: unknown secret door ${e.door}`, noteRef);
+        break;
+      case 'lookFrom':
+        inside(where, e.cell, noteRef);
         break;
       case 'removeDoor':
         if (!doorIds.has(e.door)) err(`${where}: unknown door ${e.door}`, noteRef);

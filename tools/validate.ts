@@ -30,7 +30,7 @@ if (existsSync(coreDir))
 const dir = resolve('src', 'content', 'quests');
 const files = existsSync(dir)
   ? readdirSync(dir)
-      .filter((f) => /^q\d\d-.*\.json$/.test(f))
+      .filter((f) => /^(q|fh)\d\d-.*\.json$/.test(f))
       .sort()
   : [];
 

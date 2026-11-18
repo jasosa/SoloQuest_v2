@@ -29,6 +29,14 @@ Goal: each quest of the core Quest Book becomes `src/content/quests/qNN-<slug>.j
 
 Green circles with faces on the quest maps (see the "Design Your Own Quest Adventures" legend, PDF page 17): goblin (big pointed ears), orc (tusks), skeleton, zombie, mummy, abomination (fish-like face), dread warrior (horned helmet), gargoyle (wings). Gold trap symbols: pit (square with cracks), falling block (stones), spear (diagonal lines). When unsure, compare with the legend at the same zoom.
 
+## Frozen Horror quests
+
+File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rendering: the Frozen Horror book's PDF pages are print spreads and the prelude is 4 scanned letter pages, so there is no `npm run render:maps` for them yet. Quest 0 was done by hand: `pdftoppm -r 300` of page 1, the board frame at (349, 482) to (2210, 1847) pixels (about 71.7 px a square), a labeled grid and a JSON overlay drawn with a small script. The symbols are in the "Design Your Own" legend of each book.
+
+| # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
+|---|---|---|---|---|---|---|---|
+| 0 | Into the Northlands | done | start, A to G, tunnels, throne | ok | ok (by script) | ok (src/content/quests/fh00.test.ts) | |
+
 ## Status
 
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |

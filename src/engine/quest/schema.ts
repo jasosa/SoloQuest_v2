@@ -364,6 +364,7 @@ export type Effect =
     }
   | { type: 'addSecretDoor'; door: string }
   | { type: 'removeDoor'; door: string }
+  | { type: 'lookFrom'; cell: [number, number] }
   | { type: 'placeBlock'; cells: [number, number][] }
   | { type: 'giveItem'; text: string }
   | { type: 'setFlag'; flag: string; value: boolean }
@@ -387,6 +388,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
     }),
     z.strictObject({ type: z.literal('addSecretDoor'), door: id }),
     z.strictObject({ type: z.literal('removeDoor'), door: id }),
+    z.strictObject({ type: z.literal('lookFrom'), cell }),
     z.strictObject({ type: z.literal('placeBlock'), cells }),
     z.strictObject({ type: z.literal('giveItem'), text: nonEmpty }),
     z.strictObject({ type: z.literal('setFlag'), flag: nonEmpty, value: z.boolean() }),

@@ -161,7 +161,7 @@ Free online quest (Online Quest 2), solo for any hero. The hero gets the wolf Sn
 
 **Team.** Warning "solo, any hero" (#38). The quest adds the wolf ally to the team list under the hero.
 
-**Map.** Start on the ice cave entrance tile (left side). 3 ice tunnel pairs, each with its own design (#58). Several stalactites, 2 slippery ice squares, a pit-like square near F (to confirm in the import pass).
+**Map.** Start on the ice cave entrance tile (left side). 3 ice tunnel pairs, each with its own design (#58). Several stalactites, 2 slippery ice squares, a falling block trap at (19,7). The dark squares east of door F are rock.
 
 | Note | Trigger / question | Effects |
 |---|---|---|
@@ -189,4 +189,4 @@ Free online quest (Online Quest 2), solo for any hero. The hero gets the wolf Sn
 ## 9. Open items
 
 - Check each spell's card wording against its tags and warnings before release.
-- Q0 map: confirm the dark square near F (pit or other) during the import pass.
+- Q0 map: encoded 2026-11-18 (`fh00-into-the-northlands.json`). The dark squares near F are rock, and the odd square at (19,7) is a falling block trap. Still to confirm with the owner: the slatted piece at (10,8) (encoded as a rack) and that the two skull tokens in the tomb room are skeletons.

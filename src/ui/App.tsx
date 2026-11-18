@@ -56,8 +56,9 @@ function openGame(
 
 /** `?quest=1` (a bundled quest). `?quest=test` (development only) loads asynchronously. */
 function levelFromParams(params: URLSearchParams): Level | undefined {
-  const n = Number(params.get('quest'));
-  return n ? levelOfNumber(n) : undefined;
+  const raw = params.get('quest');
+  const n = raw === null || raw === '' ? NaN : Number(raw);
+  return Number.isInteger(n) ? levelOfNumber(n) : undefined;
 }
 
 /**

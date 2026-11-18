@@ -1053,6 +1053,19 @@ function EffectFields({
           />
         </>
       );
+    case 'lookFrom':
+      return (
+        <>
+          <p className="ed-note">Square {cellText(e.cell)}: what can be seen from there shows.</p>
+          <Pick
+            store={store}
+            kind="cell"
+            hint="Click a square on the board."
+            label="Click it on the board"
+            onPick={(v) => onChange({ ...e, cell: v as [number, number] })}
+          />
+        </>
+      );
     case 'removeDoor':
       return (
         <>
