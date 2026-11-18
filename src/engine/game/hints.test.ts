@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildLevel } from '../board/level';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
-import { lookHintCells } from './hints';
+import { isCrossing, lookEyeCells, lookHintCells } from './hints';
 import { replay } from './reducer';
 
 const level = buildLevel(testQuest());
@@ -61,5 +61,35 @@ describe('look hint', () => {
       }),
     );
     expect(keys(lookHintCells(other, s))).toEqual(hint);
+  });
+});
+
+describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', () => {
+  const s = run(open('d2'), open('d3'), open('d4'));
+  const can = keys(lookHintCells(level, s));
+
+  it('are a quiet subset of the squares where looking can show more: crossroads only', () => {
+    const eyes = lookEyeCells(level, s, new Set());
+    expect(eyes.length).toBeGreaterThan(0);
+    expect(eyes.length).toBeLessThan(can.length);
+    for (const c of eyes) {
+      expect(can).toContain(c.join(','));
+      expect(isCrossing(level, c)).toBe(true);
+    }
+    expect(isCrossing(level, [12, 12])).toBe(true);
+    expect(isCrossing(level, [9, 12])).toBe(false);
+  });
+
+  it('an occupied crossroads gives its glyph up: not on it, and beside it when that shows more', () => {
+    const eyes = lookEyeCells(level, s, new Set());
+    const first = eyes[0]!;
+    const occupied = new Set([first.join(',')]);
+    const after = lookEyeCells(level, s, occupied);
+    expect(keys(after)).not.toContain(first.join(','));
+    for (const c of after) {
+      expect(can).toContain(c.join(','));
+      const near = Math.abs(c[0] - first[0]) + Math.abs(c[1] - first[1]) === 1;
+      expect(isCrossing(level, c) || near).toBe(true);
+    }
   });
 });

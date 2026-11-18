@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { areaAt, isWallBetween, type Cell } from '../../engine/board/board';
 import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
-import { lookHintCells } from '../../engine/game/hints';
+import { lookEyeCells } from '../../engine/game/hints';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
@@ -208,7 +208,6 @@ export function PlayBoard({
   for (const t of traps) if (t.onMap && !t.block) trapAt.set(keyOf(t.cell), t.id);
 
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
-  const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const monsterAt = new Map<string, string>();
   for (const m of monsters) if (m.cell && !m.dead) monsterAt.set(keyOf(m.cell), m.id);
   for (const m of level.quest.monsters)
@@ -1141,37 +1140,31 @@ export function PlayBoard({
   // The eye glyph on squares where "Look from here" can show more.
   // A square with a marker of its own shows the ring only: "Look from here" is in its note.
   const ringCells = new Set(squareMarkers(level, state).map((m) => cellKey(m.cell[0], m.cell[1])));
-  // Only crossings get the eye (3 or more corridor neighbors), so the board stays calm.
-  const isCrossing = (x: number, y: number) =>
-    [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ].filter(([dx = 0, dy = 0]) => areaAt(board, x + dx, y + dy) === 'C').length >= 3;
-  const eyes = hints
-    .filter(
-      ([x, y]) =>
-        isCrossing(x, y) &&
-        !monsterAt.has(cellKey(x, y)) &&
-        !trapAt.has(cellKey(x, y)) &&
-        !ringCells.has(cellKey(x, y)),
-    )
-    .map(([x, y]) => {
-      const cx = (x + 0.5) * S;
-      const cy = (y + 0.5) * S;
-      return (
-        <g key={`e${x},${y}`} opacity={0.7} pointerEvents="none" data-eye={`${x},${y}`}>
-          <path
-            d={`M ${cx - 9} ${cy} Q ${cx} ${cy - 8} ${cx + 9} ${cy} Q ${cx} ${cy + 8} ${cx - 9} ${cy} Z`}
-            fill="none"
-            stroke={color.ink}
-            strokeWidth={1.4}
-          />
-          <circle cx={cx} cy={cy} r={2.6} fill={color.ink} />
-        </g>
-      );
-    });
+  // Only crossings get the eye, and the squares beside an occupied crossing, so the board stays calm.
+  const occupiedCells = new Set<string>([
+    ...monsterAt.keys(),
+    ...trapAt.keys(),
+    ...ringCells,
+    ...blockCells,
+    ...state.placedBlocks,
+    ...state.sightBlockers,
+    ...tunnelsInView(level, state).map((e) => cellKey(e.cell[0], e.cell[1])),
+  ]);
+  const eyes = lookEyeCells(level, state, occupiedCells).map(([x, y]) => {
+    const cx = (x + 0.5) * S;
+    const cy = (y + 0.5) * S;
+    return (
+      <g key={`e${x},${y}`} opacity={0.7} pointerEvents="none" data-eye={`${x},${y}`}>
+        <path
+          d={`M ${cx - 9} ${cy} Q ${cx} ${cy - 8} ${cx + 9} ${cy} Q ${cx} ${cy + 8} ${cx - 9} ${cy} Z`}
+          fill="none"
+          stroke={color.ink}
+          strokeWidth={1.4}
+        />
+        <circle cx={cx} cy={cy} r={2.6} fill={color.ink} />
+      </g>
+    );
+  });
 
   // Adding a monster: every known floor square takes the tap (it sits above everything else).
   const pickLayer: ReactNode[] = [];
