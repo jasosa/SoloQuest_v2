@@ -168,3 +168,8 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 "npcs": [ { "id": "ragnar", "name": "Sir Ragnar", "cell": [x, y], "defend": 2, "body": 2,
             "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
 ```
+
+## Pack
+
+A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose manifest lists it (`PACKS.md`); a quest made in the editor is in no pack. `number` is 1 to 14 in the core book and may be 0 (a prelude).
+

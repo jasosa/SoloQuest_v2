@@ -6,6 +6,7 @@ import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { board, roomIds } from '../src/engine/board/board';
 import { applyCoreFile, parseCoreFile } from '../src/engine/data/coreFile';
+import { PackError, buildRegistry, parsePackManifest } from '../src/engine/pack/registry';
 import { parseQuest } from '../src/engine/quest/loader';
 import { validateQuest } from '../src/engine/quest/validate';
 
@@ -49,4 +50,25 @@ for (const f of files) {
   }
 }
 if (files.length === 0) console.log('quests: none yet');
+
+// The packs: manifests, dependencies, and that every quest file is in exactly one pack (decision 36).
+const packDir = resolve('src', 'content', 'packs');
+try {
+  const manifests = existsSync(packDir)
+    ? readdirSync(packDir)
+        .filter((x) => x.endsWith('.json'))
+        .sort()
+        .map((x) => parsePackManifest(JSON.parse(readFileSync(resolve(packDir, x), 'utf8'))))
+    : [];
+  const refs = files.map((f) => {
+    const q = parseQuest(JSON.parse(readFileSync(resolve(dir, f), 'utf8')));
+    return { id: q.id, pack: q.pack };
+  });
+  const registry = buildRegistry(manifests, refs);
+  for (const p of registry.packs)
+    console.log(`pack ${p.manifest.id}: ${p.manifest.quests.length} quest(s): ok`);
+} catch (e) {
+  failed++;
+  console.error(e instanceof PackError ? e.message : `packs: ${(e as Error).message}`);
+}
 if (failed) process.exit(1);

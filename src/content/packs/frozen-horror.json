@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "frozen-horror",
+  "name": "Frozen Horror",
+  "description": "The Frozen Horror quest pack and its free prelude, Into the Northlands. The quests are added as they are encoded.",
+  "dependsOn": ["core"],
+  "quests": [],
+  "campaignSettings": [
+    {
+      "id": "raiment-of-the-frozen-champion",
+      "name": "Raiment of the Frozen Champion",
+      "text": "Four artifacts are hidden with the strongest monster of four quests, drawn when the campaign starts. The Gremlin and Yeti cards then show the matching warnings.",
+      "default": false
+    }
+  ]
+}

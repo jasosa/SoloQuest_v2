@@ -172,24 +172,28 @@ Per quest
 - [x] Casters: 25% of turns no spell (seeded), the question of each situation tag, at most 3 "no" answers, Escape only with an escape point (decisions 47, 48, 70). Not built: app-checked hurt tags when monster BP are tracked
 - [x] Core Dread spell tag table with warnings (`src/engine/data/spells.ts`)
 
-## M9 · Pack layer
+## M9 · Pack layer (decisions 36 to 40, 59 to 61; `PACKS.md`)
 
-- [ ] Core as a pack: `pack.json`, loader, `dependsOn`
-- [ ] Campaign / one-shot, campaign flags with one-shot defaults, campaign settings and campaign seed
-- [ ] Team as a free list (heroes, mercenaries, animal allies with owner); quest team rules as warnings; `HERO_DIED` for any entry
-- [ ] Targets: mercenaries, allies and NPCs in tie lists; `excludeTargets`; `caster`, `grudge`, theft heroes only
-- [ ] Settings: Rule hints (free movement hint, first-reveal reminders)
+Order of work. Each slice ends green with tests and a commit.
 
-## M10 · Frozen Horror (`FROZEN_HORROR.md`)
+- [x] Slice 1: core as a pack: `pack.json` manifests (`src/content/packs/`), the registry with `dependsOn` checks (`src/engine/pack/`, `npm run validate`), a `pack` field on quests, quest number 0 allowed, the `frozen-horror` pack with no quests yet
+- [ ] Slice 2: the pack in the app: the quest select screen picks the pack (hidden while there is one pack with quests), user quests are in none; the saved game remembers the pack and quest id (quest numbers overlap between packs)
+- [ ] Slice 3: team as a free list (decision 38): entries with a kind (hero, mercenary, animal ally) and an owner hero; `HERO_DIED` for any entry; the New game popup gets the groups; the quest's team rule shows as a warning, never a block
+- [ ] Slice 4: targets (decision 39): mercenaries, allies and NPCs in tie lists and target names; `excludeTargets` on a quest; `caster`, `grudge` and theft pick heroes only
+- [ ] Slice 5: campaign / one-shot (decision 37): finished quests, carried flags with one-shot defaults, the team, campaign settings and the campaign seed, kept per pack on this device
+- [ ] Slice 6: settings: Rule hints (decision 60: the free movement hint and the first-reveal reminders), "No Yeti hug in solo quests" (decision 59)
 
-- [ ] Schema: `maps` + links, start kinds, edge doors, locked and `hiddenUntil` doors, room tiles, terrain, area merge, sight blockers, monster size, passive state, trap kinds as data, tunnels with design, wandering monster list, quest team rule
-- [ ] Hazards and optional decoys; ice slide reveal on a good jump
-- [ ] Note questions and new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, sight blocker clear, `crossMap`)
-- [ ] Multi-map crossing (Q9-10)
-- [ ] Profiles: thief, grappler (solo setting), shooter, passive, multi-attack, large; Raiment warnings
-- [ ] Frozen Horror spell tags and random extra spells
-- [ ] Editor: pack tools, map tabs, spell builder
-- [ ] Encode Q0 and Q1..Q10, overlays, walk-through tests; confirm the dark square near F in Q0
+## M10 · Frozen Horror (`FROZEN_HORROR.md`, decisions 41 to 63)
+
+Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs in `C:/Users/Juanan/Documents/Games/Heroquest/01_Rules/Official/`.
+
+- [ ] Slice 1: the monsters as data: new profiles (thief, grappler, shooter, passive, multi-attack, large) in the Zargon AI with their weights, `size` 2 x 2 and `passive` state on a monster; the Frozen Horror monsters, named monsters and mercenaries as a Core file (`src/content/library/frozen-horror.json`, expansion "Frozen Horror") from the stats in `FROZEN_HORROR.md` section 5
+- [ ] Slice 2: the Frozen Horror spells (Chill, Ice Storm, Ice Wall, Mind Freeze, Skate, Soothe) with their tags and warnings, and the six random extra spells; animal allies (the wolf) and the alternate Barbarian as Core items
+- [ ] Slice 3: trap kinds as data (decision 44) and the hazards: stalactite, swinging axe, wandering monster trap, slippery ice, ice slide, optional decoys, ice slide reveal on a good jump
+- [ ] Slice 4: the board: board-edge doors (iron entry, wooden exit, locked, `hiddenUntil`), start kinds (stairway, iron door, tile), room tiles, terrain, area merge, sight blockers until a flag, ice tunnels with design ids, wandering monster list
+- [ ] Slice 5: notes: a question on a letter and a hidden part (decision 53) and the new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, clear a sight blocker, `crossMap`)
+- [ ] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event, one entry in the quest list
+- [ ] Slice 7: editor: pack tools, a tab per map, the link tool, the spell builder; then encode Q0 and Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
 
 ## Editor changes asked in the quests review (not now)
 

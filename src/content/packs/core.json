@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "core",
+  "name": "HeroQuest",
+  "description": "The base game: the 14 quests of the core Quest Book.",
+  "dependsOn": [],
+  "quests": [
+    "q01-the-trial",
+    "q02-the-rescue-of-sir-ragnar",
+    "q03-lair-of-the-orc-warlord",
+    "q04-prince-magnus-gold",
+    "q05-melars-maze",
+    "q06-legacy-of-the-orc-warlord",
+    "q07-the-lost-wizard",
+    "q08-the-fire-mage",
+    "q09-race-against-time",
+    "q10-castle-of-mystery",
+    "q11-bastion-of-dread",
+    "q12-barak-tor",
+    "q13-quest-for-the-spirit-blade",
+    "q14-return-to-barak-tor"
+  ],
+  "campaignSettings": []
+}

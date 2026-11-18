@@ -433,7 +433,13 @@ const NpcSchema = z.strictObject({
 export const QuestSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
   id: nonEmpty,
-  number: z.number().int().min(1),
+  /** 1 to 14 in the core book; a pack may have a quest 0 (an online prelude). */
+  number: z.number().int().min(0),
+  /** The pack this quest belongs to. Left out: the pack that lists it (quests of this device are in none). */
+  pack: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9-]*$/)
+    .optional(),
   title: nonEmpty,
   intro: z.strictObject({ summary: nonEmpty, userText: z.string().optional() }),
   start: z.strictObject({ area: roomId }),
