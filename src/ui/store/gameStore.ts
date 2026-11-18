@@ -26,6 +26,8 @@ import type { Prompt } from '../../engine/game/prompts';
 import type { EventErrorCode } from '../../engine/game/errors';
 import { monsterCodes } from '../play/monsterCodes';
 import { promptToasts } from '../play/promptToasts';
+import { newRuleHints } from '../../engine/game/ruleHints';
+import { getRuleHints } from '../settings';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
 export interface Fx {
@@ -168,6 +170,13 @@ export function createGameStore(init: GameStoreInit): GameStore {
         // ends the turn; notes that fire on a turn come back as prompts and show as sheets.
         if (event.type === 'ZARGON_TURN_END')
           toast = toastOf([`Heroes' turn ${state.turn}.`, ...lines].join(' '), true);
+
+        // Rule hints (decision 60): a reminder the first time a terrain or a room tile comes into view.
+        if (getRuleHints()) {
+          const hints = newRuleHints(level, before, state);
+          if (hints.length > 0)
+            toast = toastOf(hints.map((h) => `${h.name}: ${h.lines[0]}`).join(' '));
+        }
 
         set({ events, state, fx, toast, prompts, promptsSeq: get().promptsSeq + 1, error: null });
         persist(events);

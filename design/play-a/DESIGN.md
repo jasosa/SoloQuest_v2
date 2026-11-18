@@ -314,6 +314,10 @@ A slide whose path is known (a spring, or a good jump over it) is drawn on the b
 
 **Board tiles.** The ice cave entrance is a dashed `--ice` outline filled at 30% over its squares (rock too), with its name in capitals, drawn from the start. A cage is an ink outline with vertical bars at 55% and the name "CAGE" below it; it goes when its flag is set (the lever). **Slippery ice** that sprang is an `--ice` square with three wavy lines; hidden slippery ice is still the "?".
 
+**Terrain.** `icyRiver`, `iceLedge` and `chasm` board tiles are drawn square by square: a river square is `--ice` at 40% with two waves, a ledge square a dashed `--ice` outline at 18%, a chasm square `--pit` at 85% with a crack. They change no sight and take no taps of their own: their rule shows as a tile-rule block (name, then the lines) in the note of the corridor square or the room that holds them.
+
+**Rule hints** (a switch "Rule hints: on/off" in the quest list header, kept on this device, on by default). When on: the first time a terrain or a room tile comes into view a toast gives its name and first rule line, and in a quest of an expansion pack the sidebar says "No monster is awake: you may move without rolling, counting each red die as 4" while no seen monster is awake. Off: none of these show; the rules stay on tap.
+
 **Zargon card.** Order: Target, Plan, Else, Special, Tie. Special never repeats the stats (they are on the card header) or what a plan says.
 
 ## Room tiles (M10, slice 4c)

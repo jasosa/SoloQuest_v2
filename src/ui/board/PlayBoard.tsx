@@ -645,13 +645,61 @@ export function PlayBoard({
   }
 
   // Board tiles (Frozen Horror): the ice cave entrance under the start, a cage. A labeled outline.
-  for (const [ti, t] of boardTilesInView(level, state).entries()) {
+  for (const t of boardTilesInView(level, state)) {
     const xs = t.cells.map((c) => c[0]);
     const ys = t.cells.map((c) => c[1]);
     const x0 = Math.min(...xs) * S;
     const y0 = Math.min(...ys) * S;
     const w = (Math.max(...xs) + 1) * S - x0;
     const h = (Math.max(...ys) + 1) * S - y0;
+    // Terrain is drawn square by square: an icy river with waves, an ice ledge with a dashed edge,
+    // a chasm dark with a crack.
+    if (t.type === 'icyRiver' || t.type === 'iceLedge' || t.type === 'chasm') {
+      into(false).push(
+        <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
+          {t.cells.map(([cx0, cy0]) => {
+            const px = cx0 * S;
+            const py = cy0 * S;
+            return (
+              <g key={`${cx0},${cy0}`}>
+                <rect
+                  x={px + 2}
+                  y={py + 2}
+                  width={S - 4}
+                  height={S - 4}
+                  fill={t.type === 'chasm' ? 'var(--pit)' : 'var(--ice)'}
+                  fillOpacity={t.type === 'chasm' ? 0.85 : t.type === 'icyRiver' ? 0.4 : 0.18}
+                  stroke={t.type === 'chasm' ? color.ink : 'var(--ice)'}
+                  strokeWidth={t.type === 'iceLedge' ? 2 : 1}
+                  strokeDasharray={t.type === 'iceLedge' ? '5 3' : undefined}
+                />
+                {t.type === 'icyRiver' &&
+                  [-5, 5].map((dy) => (
+                    <path
+                      key={dy}
+                      d={`M${px + 6} ${py + S / 2 + dy} q4 -4 6 0 t6 0 t6 0`}
+                      fill="none"
+                      stroke="var(--ice)"
+                      strokeWidth={1.6}
+                      strokeLinecap="round"
+                    />
+                  ))}
+                {t.type === 'chasm' && (
+                  <path
+                    d={`M${px + 6} ${py + 9} l7 6 l-4 5 l9 5 l-3 4`}
+                    fill="none"
+                    stroke={color.tokenText}
+                    strokeWidth={1.4}
+                    opacity={0.7}
+                  />
+                )}
+              </g>
+            );
+          })}
+        </g>,
+      );
+      continue;
+    }
     const bars: ReactNode[] = [];
     if (t.type === 'cage')
       for (let bx = x0 + 7; bx < x0 + w - 3; bx += 9)
@@ -668,7 +716,7 @@ export function PlayBoard({
           />,
         );
     into(false).push(
-      <g key={`bt${ti}`} data-board-tile={t.type} pointerEvents="none">
+      <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
         <rect
           x={x0 + 2}
           y={y0 + 2}

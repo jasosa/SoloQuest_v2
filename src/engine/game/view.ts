@@ -141,6 +141,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
 }
 
 export interface BoardTileView {
+  /** Position in `quest.boardTiles`, a stable id for the tile. */
+  readonly index: number;
   readonly type: BoardTileType;
   readonly name: string;
   readonly cells: readonly Cell[];
@@ -152,12 +154,32 @@ export interface BoardTileView {
  */
 export function boardTilesInView(level: Level, state: GameState): BoardTileView[] {
   return level.quest.boardTiles
+    .map((t, index) => ({ t, index }))
     .filter(
-      (t) =>
+      ({ t }) =>
         !(t.hiddenWhen !== undefined && state.flags[t.hiddenWhen] === true) &&
         (BOARD_TILES[t.type].always || t.cells.some((c) => state.seenCells.has(`${c[0]},${c[1]}`))),
     )
-    .map((t) => ({ type: t.type, name: BOARD_TILES[t.type].name, cells: t.cells }));
+    .map(({ t, index }) => ({
+      index,
+      type: t.type,
+      name: BOARD_TILES[t.type].name,
+      cells: t.cells,
+    }));
+}
+
+/** The visible board tiles that cover a square (a terrain under a hero's square, say). */
+export function boardTilesAt(level: Level, state: GameState, cell: Cell): BoardTileView[] {
+  return boardTilesInView(level, state).filter((t) =>
+    t.cells.some((c) => c[0] === cell[0] && c[1] === cell[1]),
+  );
+}
+
+/** The visible board tiles that have a square in a room. */
+export function boardTilesInArea(level: Level, state: GameState, area: string): BoardTileView[] {
+  return boardTilesInView(level, state).filter((t) =>
+    t.cells.some((c) => areaAt(level.board, c[0], c[1]) === area),
+  );
 }
 
 export interface TunnelEndView {

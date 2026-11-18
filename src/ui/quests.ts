@@ -76,6 +76,23 @@ export async function devTestLevel(which: string = 'test'): Promise<Level | unde
         ],
         // R17 is an Ice Vault (its rule shows in the room note)
         roomTiles: [{ type: 'iceVault', area: 'R17' }],
+        // an icy river on the corridor and an ice ledge in R17 (their rules show on tap and when first seen)
+        boardTiles: [
+          {
+            type: 'icyRiver',
+            cells: [
+              [14, 18],
+              [15, 18],
+            ],
+          },
+          {
+            type: 'iceLedge',
+            cells: [
+              [5, 16],
+              [5, 17],
+            ],
+          },
+        ],
         wandering: { monster: 'goblin', count: 2 },
       }),
     );

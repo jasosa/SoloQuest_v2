@@ -195,7 +195,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
   - [x] 4b: door `hiddenUntil` and `lockedUntil` flags, the `removeDoor` effect (editor effect list too), openAllDoors skips them. A note question needs no new feature: it is a `manual` note with a `promptChoice` (see QUEST_FORMAT.md). The editor cannot set the door flags yet (slice 7)
   - [x] 4c: room tiles as a table with a rule text (shown in the room note) and `areaOverrides` that merge two touching rooms (the board of the level is relabeled). Tile pictures and the first-reveal reminder come with textures and Rule hints (4d)
   - [x] Quest 0 (Into the Northlands) encoded for the owner to check, with the `lookFrom` effect, see decision 80
-  - [ ] 4d: terrain (ice ledge, icy river, chasm) with rule hints on tap and on first reveal when Rule hints is on
+  - [x] 4d: terrain tiles (ice ledge, icy river, chasm) with their rule in the note of the square or room, the Rule hints setting (reminder on first reveal of terrain and room tiles, and the free-movement hint). Rule hints can only be switched on the quest list for now
   - [x] 4e: sight-blocking tiles until a flag (`blocks` on a board tile, the Q0 cage) and the `replaceFurnitureWithDoor` effect (the Q0 throne). Quest 0 uses both
   - [x] 4f: ice tunnels as a quest field with design numbers, drawn on the board, `TUNNEL_USE` (decision 81). The editor cannot place tunnels, tiles or edge doors yet (slice 7)
   - [ ] 4g: the wandering monster list with counts for a wandering monster CARD

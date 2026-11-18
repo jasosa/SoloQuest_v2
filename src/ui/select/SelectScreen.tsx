@@ -9,6 +9,7 @@ import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { Dialog } from '../shared/Frame';
+import { setRuleHints, useRuleHints } from '../settings';
 
 export type StartChoice =
   | { kind: 'new'; level: Level; team: readonly Hero[] }
@@ -94,6 +95,7 @@ export function SelectScreen({
   const [number, setNumber] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.number,
   );
+  const hints = useRuleHints();
   const [team, setTeam] = useState<readonly Hero[]>([]);
   const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
   /** The Heroes popup of "New game". */
@@ -128,6 +130,16 @@ export function SelectScreen({
         <span className="qn">SoloQuest</span>
         <h1>Choose a quest</h1>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button
+            className="link"
+            role="switch"
+            aria-checked={hints}
+            data-testid="rule-hints"
+            title="Short reminders of rules the app does not enforce, the first time terrain or a special room is seen"
+            onClick={() => setRuleHints(!hints)}
+          >
+            Rule hints: <b>{hints ? 'on' : 'off'}</b>
+          </button>
           {onTextures && (
             <button
               className="link"

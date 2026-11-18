@@ -29,6 +29,8 @@ import {
   pendingChoice,
   searchState,
   trapsInView,
+  boardTilesAt,
+  boardTilesInArea,
   type MonsterView,
 } from '../../engine/game/view';
 import { CELL } from '../board/BoardView';
@@ -41,7 +43,9 @@ import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
-import { roomTileOf } from '../../engine/data/roomTiles';
+import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
+import { unthreatenedMovement } from '../../engine/game/ruleHints';
+import { useRuleHints } from '../settings';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
@@ -130,6 +134,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   /** Slain monsters leave the roster; the journal keeps the kill. */
   const alive = useMemo(() => monsters.filter((m) => !m.dead), [monsters]);
   const traps = useMemo(() => trapsInView(level, state), [level, state]);
+  const ruleHintsOn = useRuleHints();
   const living = useMemo(() => livingHeroes(team, state), [team, state]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
@@ -437,6 +442,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           title={canLook ? 'A hero stands here' : 'Corridor square'}
           onClose={closeNote}
         >
+          {boardTilesAt(level, state, sel.at).map((t) => (
+            <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
+          ))}
           {canLook ? (
             <>
               <p>Show everything a hero can see along the corridors from here.</p>
@@ -523,6 +531,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       // A furniture note has three scopes: the element, the room, this quest. A furniture piece
       // with no action of its own says so, and the room actions sit under their own heading.
       const tile = roomTileOf(level.quest, sel.room);
+      const terrain = boardTilesInArea(level, state, sel.room).filter(
+        (t) => BOARD_TILES[t.type].terrain,
+      );
       const fv = sel.furnitureId ? elementQuest(level, state, 'furniture', sel.furnitureId) : null;
       note = sel.furniture ? (
         <MarginNote
@@ -537,6 +548,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             </p>
           )}
           {tile && <TileRule tile={tile} />}
+          {terrain.map((t) => (
+            <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
+          ))}
           <RoomScope>{menu}</RoomScope>
           {forQuestMany([
             ...(sel.furnitureId ? [['furniture', sel.furnitureId] as const] : []),
@@ -551,6 +565,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           onClose={closeNote}
         >
           {tile && <TileRule tile={tile} />}
+          {terrain.map((t) => (
+            <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
+          ))}
           {menu}
           {forQuest('area', sel.room)}
         </MarginNote>
@@ -976,6 +993,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           </section>
         </div>
         <div className="aside-foot">
+          {ruleHintsOn && unthreatenedMovement(level, state) && (
+            <p className="hint" data-testid="free-move">
+              No monster is awake: you may move without rolling, counting each red die as 4.
+            </p>
+          )}
           {wandering && (
             <p className="wander">
               Wandering monster:{' '}

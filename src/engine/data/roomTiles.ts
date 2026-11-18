@@ -103,7 +103,13 @@ export function roomTileOf(
  * (the heroes start on it, and it lies over rock) and the cage of a cage room. The built-in look is
  * a labeled outline; a texture pack can give them a picture later.
  */
-export const BOARD_TILE_TYPES = ['iceCaveEntrance', 'cage'] as const;
+export const BOARD_TILE_TYPES = [
+  'iceCaveEntrance',
+  'cage',
+  'icyRiver',
+  'iceLedge',
+  'chasm',
+] as const;
 export type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
 
 export interface BoardTileDef {
@@ -111,6 +117,8 @@ export interface BoardTileDef {
   readonly name: string;
   /** Drawn from the start, even on squares the heroes have not seen (the cave under the start). */
   readonly always: boolean;
+  /** Terrain: it changes no sight, but its rule is a reminder the players may want (decision 57). */
+  readonly terrain?: boolean;
   readonly rule: readonly string[];
 }
 
@@ -120,6 +128,35 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     name: 'Ice cave entrance',
     always: true,
     rule: ['The heroes start here, outside the iron door, and leave here when the quest says so.'],
+  },
+  icyRiver: {
+    id: 'icyRiver',
+    name: 'Icy river',
+    always: false,
+    terrain: true,
+    rule: [
+      'Each square of the river counts as 2 squares for movement.',
+      'Each time a hero enters an icy river square, roll 1 combat die: a white shield costs 1 Body Point to the cold.',
+      'Monsters feel neither the extra cost nor the cold.',
+    ],
+  },
+  iceLedge: {
+    id: 'iceLedge',
+    name: 'Ice ledge',
+    always: false,
+    terrain: true,
+    rule: [
+      'The ledge around the crevasse is very slippery. When a hero steps through a door onto their first square here, roll 1 combat die: a skull or a white shield is safe, so keep moving.',
+      'A black shield: the hero starts to slip and loses 1 Body Point, then rolls another die at once. A second black shield: the hero falls into the crevasse and is lost for good. Any other roll: back to the square they came in on, and the turn ends.',
+      'At the start of any turn in which a hero is on the ledge, they must make this roll first.',
+    ],
+  },
+  chasm: {
+    id: 'chasm',
+    name: 'Chasm',
+    always: false,
+    terrain: true,
+    rule: ['A crevasse. It can be jumped over like a pit. A hero who falls in is lost for good.'],
   },
   cage: {
     id: 'cage',
