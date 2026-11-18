@@ -25,19 +25,19 @@
   transform: translate(2px, 2px);
 }
 .qcard .qnum {
-  font: 700 13px 'Bonum';
+  font: 700 12px 'Bonum';
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-2);
 }
 .qcard .qtitle {
-  font: 700 17px/1.2 'Bonum';
+  font: 700 15px/1.2 'Bonum';
   color: var(--ink);
   margin-top: 4px;
 }
 .qcard .qnote {
   margin-top: auto;
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
   color: var(--muted);
 }
@@ -65,12 +65,12 @@
   min-height: 0;
 }
 .side h2 {
-  font: 700 26px/1.15 'Bonum';
+  font: 700 22px/1.15 'Bonum';
   color: var(--ink);
   margin-bottom: 8px;
 }
 .side .summary {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
 }
 .side .saved {
@@ -79,12 +79,12 @@
   padding: 12px 14px;
 }
 .side .saved p {
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--muted);
   margin-bottom: 10px;
 }
 .side .hint {
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
   color: var(--muted);
   margin-top: -4px;
@@ -99,4 +99,18 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Smaller type on the quest select screen (owner, UI review). */
+.app.select {
+  font-size: 14px;
+}
+.app.select header h1 {
+  font-size: 24px;
+}
+.app.select .btn {
+  font-size: 14px;
+}
+.app.select .chip {
+  font-size: 13px;
 }

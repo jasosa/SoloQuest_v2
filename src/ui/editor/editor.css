@@ -10,7 +10,7 @@
 }
 .editor header .ed-status {
   margin-left: auto;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
 }
 .editor header .ed-issues[data-errors]:not([data-errors='0']) {
@@ -42,7 +42,7 @@
 }
 .ed-chips .chip {
   min-height: 44px;
-  font-size: 14px;
+  font-size: 13px;
   padding: 0 4px;
 }
 .ed-small .chip {
@@ -62,7 +62,7 @@
   margin-top: 8px;
 }
 .ed-note {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   font-style: italic;
 }
@@ -143,7 +143,7 @@
 }
 .ed-hint {
   min-height: 24px;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-style: italic;
   color: var(--ink);
 }
@@ -151,7 +151,7 @@
   border: 1.5px solid var(--ink);
   background: var(--paper-3);
   padding: 4px 12px 8px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .ed-warnings .link {
   float: right;
@@ -167,7 +167,7 @@
 }
 .ed-save-errors {
   color: var(--ink);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .ed-issues-list {
@@ -182,7 +182,7 @@
   border: 0;
   border-bottom: 1px solid var(--paper-2);
   padding: 6px 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text);
 }
 .ed-issues-list b {
@@ -214,7 +214,7 @@
   margin-bottom: 10px;
 }
 .es-meta {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
 }
 .es-tag {
@@ -253,7 +253,7 @@
 }
 .es-problems li,
 .es-imported li {
-  font-size: 14px;
+  font-size: 13px;
   margin-left: 16px;
 }
 
@@ -277,7 +277,7 @@
   margin-bottom: 8px;
 }
 .ed-inspector select.es-select {
-  font-size: 15px;
+  font-size: 14px;
 }
 .ed-inspector .ed-chips {
   margin-bottom: 8px;
@@ -322,12 +322,12 @@
   border: 0;
   border-bottom: 1px solid var(--paper-2);
   padding: 6px 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text);
 }
 .ed-notelist b {
   grid-row: 1 / span 2;
-  font: 700 20px 'Bonum';
+  font: 700 18px 'Bonum';
   color: var(--ink);
 }
 .ed-notelist i {
@@ -556,10 +556,10 @@
 .ed-sheet h2 {
   font-family: 'Bonum', serif;
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: 19px;
 }
 .ed-sheet li {
-  font-size: 15px;
+  font-size: 14px;
   margin-left: 18px;
 }
 .ed-sheet-actions {
@@ -583,7 +583,7 @@
   padding-top: 12px;
 }
 .ed-quest .ed-row-head span {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 /* ---------- action popup and Actions tab (decision 68) ---------- */
@@ -613,7 +613,7 @@
 }
 .ed-dialog-hd h2 {
   font:
-    700 22px 'Bonum',
+    700 19px 'Bonum',
     serif;
   color: var(--ink);
   margin-right: auto;
@@ -673,13 +673,13 @@
 }
 .ed-items li b {
   font:
-    700 16px 'Bonum',
+    700 15px 'Bonum',
     serif;
   color: var(--ink);
 }
 .ed-items li p {
   grid-column: 1;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
 }
 .ed-items li .chip {

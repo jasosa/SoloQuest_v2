@@ -16,7 +16,7 @@
 }
 .fr h1 {
   font:
-    700 26px/1 'Bonum',
+    700 22px/1 'Bonum',
     serif;
   color: var(--ink);
 }
@@ -59,7 +59,7 @@
   border: 2px solid var(--ink);
   border-bottom: 0;
   background: var(--paper-2);
-  font: 700 15px 'Bonum';
+  font: 700 14px 'Bonum';
   color: var(--ink-2);
 }
 .fr-tab[aria-selected='true'] {
@@ -71,7 +71,7 @@
 .fr-sp {
   margin-left: auto;
   align-self: center;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
   display: flex;
   gap: 14px;
@@ -128,7 +128,7 @@
   min-height: 44px;
   padding: 4px 8px;
   border-bottom: 1px solid var(--paper-2);
-  font-size: 16px;
+  font-size: 15px;
 }
 .fr-list li.on {
   background: var(--sel);
@@ -144,7 +144,7 @@
 }
 .fr-list .sub {
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: 12.5px;
   margin-left: auto;
 }
 .fr-list li.fr-grp {
@@ -173,14 +173,14 @@
   min-height: 44px;
   padding: 0 8px;
   white-space: nowrap; /* "New enemy" stays on one line */
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* ---- fields ---- */
 .fr-fld {
   display: block;
   margin-bottom: 10px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
 }
 .fr-fld > span {
@@ -268,12 +268,12 @@
   margin-bottom: 6px;
 }
 .fr-items li b {
-  font: 700 16px 'Bonum';
+  font: 700 15px 'Bonum';
   color: var(--ink);
 }
 .fr-items li p {
   grid-column: 1;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   margin: 0;
 }
@@ -307,7 +307,7 @@
   background: none;
   min-height: 44px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
 }
 .fr-tag {
   display: inline-block;
@@ -355,7 +355,7 @@
   background: var(--on-ink);
 }
 .fr-help {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   font-style: italic;
   margin: 2px 0 8px;
@@ -363,7 +363,7 @@
 .fr-q {
   font-style: italic;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: 13px;
 }
 .fr-pic {
   display: flex;
@@ -405,7 +405,7 @@
   border-bottom: 2px solid var(--ink);
 }
 .fr-dh h2 {
-  font: 700 22px 'Bonum';
+  font: 700 19px 'Bonum';
   color: var(--ink);
   margin: 0 auto 0 0;
 }
@@ -479,21 +479,21 @@
   outline-offset: 2px;
 }
 .fr-recent .fr-qnum {
-  font: 700 13px 'Bonum';
+  font: 700 12px 'Bonum';
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-2);
   margin-left: 0;
 }
 .fr-recent .fr-qtitle {
-  font: 700 17px/1.2 'Bonum';
+  font: 700 15px/1.2 'Bonum';
   color: var(--ink);
   margin-left: 0;
   margin-top: 2px;
 }
 .fr-recent li > .fr-qnote {
   margin-left: auto;
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
   color: var(--muted);
 }
@@ -515,12 +515,12 @@
   font: inherit;
 }
 .fr-card b {
-  font: 700 17px 'Bonum';
+  font: 700 15px 'Bonum';
   color: var(--ink);
   display: block;
 }
 .fr-card span {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
 }
 .fr-card.off {
@@ -536,7 +536,7 @@
   gap: 30px;
   padding: 10px 40px 16px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   border-top: 1px solid var(--paper-2);
   flex: none;
 }
@@ -586,7 +586,7 @@
 }
 .fr .fr-title {
   font:
-    400 15px 'Pagella',
+    400 14px 'Pagella',
     Georgia,
     serif;
   color: var(--muted);
@@ -622,4 +622,16 @@
 .app.editor .fr-veil,
 .app.editor .ed-veil {
   inset: 128px 0 0 0;
+}
+
+/* Smaller type on the Library, Quest editor start and Quest editor (owner, UI review). Inputs stay at
+   16 px: a smaller input makes iPad Safari zoom the page when it is focused. */
+.fr {
+  font-size: 14px;
+}
+.fr .btn {
+  font-size: 14px;
+}
+.fr .chip {
+  font-size: 13px;
 }
