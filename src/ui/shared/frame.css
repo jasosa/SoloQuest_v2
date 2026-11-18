@@ -757,3 +757,14 @@
   min-height: 44px;
   padding: 0 12px;
 }
+
+/* The layer switch of the Library list: Core | My library. */
+.fr-scope {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px 4px;
+}
+.fr-scope .chip {
+  flex: 1 1 0;
+  min-height: 44px;
+}

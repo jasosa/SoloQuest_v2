@@ -26,9 +26,9 @@ The Designer works on three layers, each on top of the one below:
 - **Delete a Core item** (owner mode): a warning lists your quests that use it (an ability or spell is copied into them first, so they keep working) and the bundled quests that use it (they stop validating until fixed). The deletion stays on this device until exported. The monsters and heroes of the game itself (the nine monster types, the four heroes) cannot be deleted: the rules need them (owner decision). Everything else in Core can.
 - **Export Core** (owner mode): one `core.json` with the deletions, the changed core items and the official items of the library (with their expansion). Put it in `src/content/library/`.
 
-## Still to build (backlog, M9)
+## Layers, expansions and sharing (built)
 
-1. **Scope switch** in the Designer: Core | My library, with the "Used in" panel showing quests.
-2. **Expansions on and off**: a user can hide an expansion's items from the add menus; quests keep working.
-3. **Copy on edit** for normal users: Core is read only, "Copy" makes the item in My library.
-4. **My library as a pack file**: export and import to share (reuses the library export that exists).
+1. **Scope switch.** The Library list shows one layer at a time: **Core** or **My library** (a switch with the number of items in each). A new item and "Edit a copy" go to My library and switch to it. "Used in" shows the quests that use the selected item, for both layers.
+2. **Expansions on and off.** The Details column lists the expansions that exist (those of Core items and of official items in My library) with a switch each. Off: the items of that expansion leave the quest editor's add menus (abilities, spells and enemies). A quest that already holds a copy keeps working and keeps the item in its own lists; the Library screen still lists everything. The choice is kept on this device. The quest editor's enemy pickers now also list the enemies that Core files add, with My library over Core on the same id.
+3. **Copy on edit.** A Core item is read only for a normal person: a "Core item" panel says so and "Edit a copy" makes the copy in My library, selects it and switches to that layer. (Core heroes can still be renamed.)
+4. **My library as a pack file.** "Export" asks for a name and an author and saves `<name>.sqlibrary.json` with only what the person made (no Core item). "Import" says what came in (`"Name" by Author: 3 added, 1 replaced`). A pack from someone else is imported as fan-made, whatever its items say: only owner mode keeps `official`.

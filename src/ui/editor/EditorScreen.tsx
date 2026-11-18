@@ -284,7 +284,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
   const library = useLibrary();
   const lib = { abilities: library.abilities, spells: library.spells };
   const mine = new Set(quest.enemyDefs.map((e) => e.id));
-  const libEnemies = library.enemies.filter((e) => !mine.has(e.id));
+  const libEnemies = library.addable.enemies.filter((e) => !mine.has(e.id));
   // the switch only means something when a texture pack is in use
   const packInUse = useActiveTheme().id !== CLASSIC_THEME.id;
   const mapTextures = useEditorTextures();

@@ -70,6 +70,48 @@ function suite(name: string, make: () => LibraryStore) {
       expect((await b.list()).length).toBe(2);
     });
 
+    it('exports a pack with a name and an author, and only the items that are asked for', async () => {
+      const a = make();
+      await a.save('ability', ability, 1);
+      await a.save('enemy', enemy, 2);
+      const text = await a.exportPack(
+        { name: '  Marsh monsters ', author: ' Someone ' },
+        (kind) => kind === 'enemy',
+      );
+      const file = JSON.parse(text);
+      expect(file.format).toBe(LIBRARY_FORMAT);
+      expect(file.name).toBe('Marsh monsters');
+      expect(file.author).toBe('Someone');
+      expect(file.items.map((i: { kind: string }) => i.kind)).toEqual(['enemy']);
+      // an empty author is left out
+      expect(JSON.parse(await a.exportPack({ name: 'X', author: '  ' })).author).toBeUndefined();
+      // the name and author come back when it is imported
+      const b = make();
+      expect(await b.importAll(text, 5)).toEqual({
+        added: 1,
+        replaced: 0,
+        skipped: 0,
+        name: 'Marsh monsters',
+        author: 'Someone',
+      });
+    });
+
+    it('marks everything fan-made on import when it is asked to, whatever the file says', async () => {
+      const text = JSON.stringify({
+        format: LIBRARY_FORMAT,
+        version: 1,
+        items: [
+          { kind: 'ability', data: { ...ability, origin: 'official', expansion: 'Frozen Horror' } },
+        ],
+      });
+      const owner = make();
+      await owner.importAll(text, 1);
+      expect((await owner.list('ability'))[0]?.data.origin).toBe('official');
+      const person = make();
+      await person.importAll(text, 1, { fanMade: true });
+      expect((await person.list('ability'))[0]?.data.origin).toBe('fan-made');
+    });
+
     it('imports the valid items of a file and counts the rest as skipped', async () => {
       const s = make();
       const text = JSON.stringify({

@@ -53,6 +53,7 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../shared/Frame';
 import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
+import { expansionNames, setExpansionHidden, useHiddenExpansions } from './expansions';
 
 type Data = Record<string, unknown>;
 
@@ -543,6 +544,11 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
     bundled: readonly UsageRow[];
   } | null>(null);
   const [kind, setKind] = useState<LibraryKind>('enemy');
+  /** Which layer the list shows: Core, or My library (decision 76). */
+  const [scope, setScope] = useState<'core' | 'mine'>('core');
+  const hiddenExpansions = useHiddenExpansions();
+  /** The pack dialog: share My library as a file. */
+  const [pack, setPack] = useState<{ name: string; author: string } | null>(null);
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState<Data | null>(null);
@@ -644,6 +650,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const make = async (d: Data) => {
     await store.save(kind, d, stamp());
     await refresh();
+    setScope('mine');
     setSelected(String(d.id));
     setDraft(structuredClone(d));
     setMessage('');
@@ -735,21 +742,38 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
     URL.revokeObjectURL(url);
     setMessage('core.json is saved. Put it in src/content/library/ and rebuild.');
   };
+  /** Everything of My library as a pack file: a name, an author, and no Core items. */
   const exportFile = async () => {
-    const text = await store.exportAll();
+    if (!pack) return;
+    const name = pack.name.trim();
+    if (name === '') return;
+    const coreIds = (k: LibraryKind) => new Set(coreRows(k).map((r) => r.id));
+    const cache = new Map<LibraryKind, Set<string>>();
+    const isCoreItem = (k: LibraryKind, id: string) => {
+      if (!cache.has(k)) cache.set(k, coreIds(k));
+      return cache.get(k)!.has(id);
+    };
+    const text = await store.exportPack(
+      { name, author: pack.author },
+      (k, id) => !isCoreItem(k, id),
+    );
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'soloquest-library.json';
+    a.download = `${slug(name)}.sqlibrary.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setPack(null);
+    setMessage(`${slug(name)}.sqlibrary.json is saved. Send it to someone: they import it here.`);
   };
   const importFile = async (f: File | undefined) => {
     if (!f) return;
     try {
-      const r = await store.importAll(await f.text(), stamp());
+      // a pack from someone else is fan-made, whatever it says: only the owner brings in official items
+      const r = await store.importAll(await f.text(), stamp(), { fanMade: !owner });
+      const from = r.name ? `"${r.name}"${r.author ? ` by ${r.author}` : ''}: ` : '';
       setMessage(
-        `Imported: ${r.added} added, ${r.replaced} replaced${r.skipped ? `, ${r.skipped} skipped` : ''}.`,
+        `Imported ${from}${r.added} added, ${r.replaced} replaced${r.skipped ? `, ${r.skipped} skipped` : ''}.`,
       );
       await refresh();
     } catch (e) {
@@ -757,6 +781,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
     }
   };
 
+  const expansionList = expansionNames(
+    items.map((i) => ({ kind: i.kind, id: i.id, data: i.data })),
+  );
   const count = (k: LibraryKind) => {
     const ids = new Set(coreRows(k).map((x) => x.id));
     const c = ids.size;
@@ -1188,36 +1215,60 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             />
           </ListPanel>
           <ListPanel title={LIBRARY_KIND_NAMES[kind]} testId="dz-items" grow>
+            <div className="fr-scope" role="group" aria-label="Layer">
+              <button
+                className="chip"
+                aria-pressed={scope === 'core'}
+                data-testid="dz-scope-core"
+                onClick={() => {
+                  setScope('core');
+                  if (sel && !sel.core) pick(null);
+                }}
+              >
+                Core {cores.length}
+              </button>
+              <button
+                className="chip"
+                aria-pressed={scope === 'mine'}
+                data-testid="dz-scope-mine"
+                onClick={() => {
+                  setScope('mine');
+                  if (sel?.core) pick(null);
+                }}
+              >
+                My library {mine.length}
+              </button>
+            </div>
             <ul className="fr-list">
-              {cores.length > 0 && <li className="fr-grp">Core</li>}
-              {rows
-                .filter((r) => r.core)
-                .map((r) => (
-                  <li key={r.id} className={r.id === selected ? 'on' : undefined}>
-                    <button className="fr-pick" onClick={() => pick(r.id)}>
-                      {r.name}
-                      <span className="sub" data-origin={originOf(r)}>
-                        {r.edited ? 'changed · ' : ''}
-                        {ORIGIN_LABEL[originOf(r)]}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              {cores.length > 0 && <li className="fr-grp">My library</li>}
-              {rows
-                .filter((r) => !r.core)
-                .map((r) => (
-                  <li key={r.id} className={r.id === selected ? 'on' : undefined}>
-                    <button className="fr-pick" onClick={() => pick(r.id)}>
-                      {r.image && <img src={r.image} alt="" className="fr-thumb" />}
-                      {r.name}
-                      <span className="sub" data-origin={originOf(r)}>
-                        {ORIGIN_LABEL[originOf(r)]}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              {mine.length === 0 && (
+              {scope === 'core' &&
+                rows
+                  .filter((r) => r.core)
+                  .map((r) => (
+                    <li key={r.id} className={r.id === selected ? 'on' : undefined}>
+                      <button className="fr-pick" onClick={() => pick(r.id)}>
+                        {r.name}
+                        <span className="sub" data-origin={originOf(r)}>
+                          {r.edited ? 'changed · ' : ''}
+                          {ORIGIN_LABEL[originOf(r)]}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+              {scope === 'mine' &&
+                rows
+                  .filter((r) => !r.core)
+                  .map((r) => (
+                    <li key={r.id} className={r.id === selected ? 'on' : undefined}>
+                      <button className="fr-pick" onClick={() => pick(r.id)}>
+                        {r.image && <img src={r.image} alt="" className="fr-thumb" />}
+                        {r.name}
+                        <span className="sub" data-origin={originOf(r)}>
+                          {ORIGIN_LABEL[originOf(r)]}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+              {scope === 'mine' && mine.length === 0 && (
                 <li>
                   <span className="fr-help">Nothing of your own yet.</span>
                 </li>
@@ -1237,6 +1288,17 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
         <Col label="Card">
           {data && sel ? (
             <>
+              {locked && kind !== 'hero' && (
+                <Panel title="Core item" testId="dz-readonly">
+                  <p className="fr-help">
+                    Core items come with the game and are read only. Make a copy in My library to
+                    change it.
+                  </p>
+                  <button className="btn" data-testid="dz-edit-copy" onClick={copy}>
+                    Edit a copy
+                  </button>
+                </Panel>
+              )}
               {centre(data)}
               {isCore && owner && !builtIn(kind, sel.id) && (
                 <button
@@ -1389,9 +1451,37 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               </div>
             </Panel>
           )}
-          <Panel title="Library file">
+          <Panel title="Expansions" testId="dz-expansions">
+            {expansionList.length === 0 ? (
+              <p className="fr-help">No expansion in the library yet.</p>
+            ) : (
+              <>
+                {expansionList.map((name) => (
+                  <Toggle
+                    key={name}
+                    label={`${name} in the add menus`}
+                    on={!hiddenExpansions.has(name)}
+                    onChange={(on) => setExpansionHidden(name, !on)}
+                  />
+                ))}
+                <p className="fr-help">
+                  Switching one off hides its items from the quest editor's add menus. Quests that
+                  already use them keep working.
+                </p>
+              </>
+            )}
+          </Panel>
+          <Panel title="My library file">
+            <p className="fr-help">
+              Share what you made as a pack file. Core items are not in it. A pack you import is
+              fan-made.
+            </p>
             <div className="fr-lbtns" style={{ padding: 0 }}>
-              <button className="btn alt" onClick={() => void exportFile()}>
+              <button
+                className="btn alt"
+                data-testid="dz-export-pack"
+                onClick={() => setPack({ name: 'My library', author: '' })}
+              >
                 Export
               </button>
               <button className="btn alt" onClick={() => file.current?.click()}>
@@ -1413,6 +1503,50 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           </Panel>
         </Col>
       </Frame>
+      {pack && (
+        <Dialog
+          title="Share my library as a pack"
+          onClose={() => setPack(null)}
+          foot={
+            <>
+              <button className="btn alt" onClick={() => setPack(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn"
+                data-testid="dz-pack-save"
+                disabled={pack.name.trim() === ''}
+                onClick={() => void exportFile()}
+              >
+                Save the pack file
+              </button>
+            </>
+          }
+        >
+          <Fld label="Name of the pack">
+            <input
+              className="fr-in"
+              aria-label="Name of the pack"
+              value={pack.name}
+              maxLength={80}
+              onChange={(e) => setPack({ ...pack, name: e.target.value })}
+            />
+          </Fld>
+          <Fld label="Author (optional)">
+            <input
+              className="fr-in"
+              aria-label="Author"
+              value={pack.author}
+              maxLength={80}
+              onChange={(e) => setPack({ ...pack, author: e.target.value })}
+            />
+          </Fld>
+          <p className="fr-help">
+            The file has what you made: abilities, spells, enemies, heroes and companions. It has no
+            Core items. Whoever imports it sees its name and author.
+          </p>
+        </Dialog>
+      )}
       {del && (
         <Dialog
           title="Delete from Core"

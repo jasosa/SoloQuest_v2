@@ -48,6 +48,15 @@ export interface ImportResult {
   readonly added: number;
   readonly replaced: number;
   readonly skipped: number;
+  /** The name and author the pack file gives itself, if it does. */
+  readonly name?: string;
+  readonly author?: string;
+}
+
+/** Who made a pack file and what it is called (shown when it is imported). */
+export interface PackMeta {
+  readonly name: string;
+  readonly author?: string | undefined;
 }
 
 export interface LibraryStore {
@@ -58,8 +67,17 @@ export interface LibraryStore {
   remove(kind: LibraryKind, id: string): Promise<void>;
   /** All items as the text of a file. */
   exportAll(): Promise<string>;
-  /** Items of a file: valid ones are added or replace the item with the same kind and id. */
-  importAll(text: string, now: number): Promise<ImportResult>;
+  /**
+   * My library as a pack file to share: a name, an author, and the items that `include` accepts (the
+   * Designer leaves Core items out, so only what the person made is shared).
+   */
+  exportPack(meta: PackMeta, include?: (kind: LibraryKind, id: string) => boolean): Promise<string>;
+  /**
+   * Items of a file: valid ones are added or replace the item with the same kind and id.
+   * `fanMade`: every item that comes in is marked fan-made, whatever the file says (only the owner
+   * may bring in official items).
+   */
+  importAll(text: string, now: number, opts?: { fanMade?: boolean }): Promise<ImportResult>;
 }
 
 export const LIBRARY_FORMAT = 'soloquest-library';
@@ -78,6 +96,8 @@ export function checkedItem(
 const FileSchema = z.object({
   format: z.literal(LIBRARY_FORMAT),
   version: z.literal(1),
+  name: z.string().trim().min(1).max(80).optional(),
+  author: z.string().trim().max(80).optional(),
   items: z.array(z.object({ kind: z.enum(LIBRARY_KINDS), data: z.unknown() })),
 });
 
@@ -119,7 +139,29 @@ abstract class BaseLibraryStore implements LibraryStore {
     return `${JSON.stringify({ format: LIBRARY_FORMAT, version: 1, items }, null, 2)}\n`;
   }
 
-  async importAll(text: string, now: number): Promise<ImportResult> {
+  async exportPack(
+    meta: PackMeta,
+    include: (kind: LibraryKind, id: string) => boolean = () => true,
+  ): Promise<string> {
+    const items = (await this.list())
+      .filter((i) => include(i.kind, i.id))
+      .map((i) => ({ kind: i.kind, data: i.data }));
+    const author = meta.author?.trim();
+    const file = {
+      format: LIBRARY_FORMAT,
+      version: 1,
+      name: meta.name.trim(),
+      ...(author ? { author } : {}),
+      items,
+    };
+    return `${JSON.stringify(file, null, 2)}\n`;
+  }
+
+  async importAll(
+    text: string,
+    now: number,
+    opts: { fanMade?: boolean } = {},
+  ): Promise<ImportResult> {
     let raw: unknown;
     try {
       raw = JSON.parse(text);
@@ -132,7 +174,12 @@ abstract class BaseLibraryStore implements LibraryStore {
     let replaced = 0;
     let skipped = 0;
     for (const item of f.data.items) {
-      const c = checkedItem(item.kind, item.data);
+      // a pack from someone else may call its items official: only the owner keeps that
+      const given =
+        opts.fanMade && item.data && typeof item.data === 'object'
+          ? { ...(item.data as Record<string, unknown>), origin: 'fan-made' }
+          : item.data;
+      const c = checkedItem(item.kind, given);
       if (!c) {
         skipped++;
         continue;
@@ -141,7 +188,13 @@ abstract class BaseLibraryStore implements LibraryStore {
       else added++;
       await this.put(item.kind, c.id, c.name, c.data, now);
     }
-    return { added, replaced, skipped };
+    return {
+      added,
+      replaced,
+      skipped,
+      ...(f.data.name ? { name: f.data.name } : {}),
+      ...(f.data.author ? { author: f.data.author } : {}),
+    };
   }
 }
 

@@ -314,3 +314,7 @@ Every dialog (the shared dialog, message cards, margin notes, the quest sheet, t
 
 **Toasts** show up to 110 characters. A longer message is cut at a word with an ellipsis and a **More** button, which opens the whole message in a card ("Message", with Close). A toast stays 3.2 s (the editor 4 s), longer for long messages (about 45 ms a letter, at most 9 s). **Wake lock.** While a quest is played the screen is kept awake (Screen Wake Lock API, asked for again when the page comes back, let go when leaving the quest); a browser that lacks it or refuses it just lets the screen sleep. **The "All heroes have fallen" card** shows once; after it is dismissed it stays away until an Undo brings a hero back and they fall again. **The quest editor** says when the draft cannot be stored and when a quest cannot be stored on the start screen; an empty title is refused and the field goes back; the file chooser shows keyboard focus.
 
+## Library layers (decision 76, built)
+
+The Library list has a two-button **layer switch** at the top, "Core n" and "My library n" (44 px), and lists one layer. A read-only Core item shows a "Core item" panel above its card with **Edit a copy**. The Details column has an **Expansions** panel (one switch per expansion: "<name> in the add menus") above **My library file**, whose **Export** opens "Share my library as a pack" (name, author) and whose **Import** says what came in. Details in `docs/LIBRARY_LAYERS.md`.
+

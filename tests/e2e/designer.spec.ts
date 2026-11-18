@@ -300,6 +300,7 @@ test.describe('designer: the library', () => {
     // change the enemy in the Designer tab: the quest now holds an older copy
     await page.getByRole('tab', { name: 'Library' }).click();
     await kind(page, /^Enemies/);
+    await page.getByTestId('dz-scope-mine').click();
     await items(page).getByRole('button', { name: 'Slime' }).click();
     await page.getByLabel('att', { exact: true }).fill('5');
     await expect(page.getByTestId('dz-outdated')).toContainText('1 quest has an older copy');
@@ -348,7 +349,7 @@ test.describe('designer: the library', () => {
     await open(page);
     await kind(page, /^Enemies/);
     await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('official');
-    await make(page, 'enemy');
+    await make(page, 'enemy'); // a new item is in My library: the list shows that layer
     await name(page, 'Slime');
     await expect(items(page).getByRole('button', { name: /^Slime/ })).toContainText('fan-made');
     // the owner can call an item of the library official
@@ -357,14 +358,17 @@ test.describe('designer: the library', () => {
 
     // without owner mode Core is read only and nothing can be called official
     await page.getByRole('switch', { name: /Owner mode/ }).click();
+    await page.getByTestId('dz-scope-core').click();
     await items(page).getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByLabel('att', { exact: true })).toBeDisabled();
     await expect(page.getByLabel('Origin', { exact: true })).toBeDisabled();
+    await page.getByTestId('dz-scope-mine').click();
     await items(page)
       .getByRole('button', { name: /^Slime/ })
       .click();
     await expect(page.getByLabel('Origin', { exact: true })).toBeDisabled();
     await page.getByRole('switch', { name: /Owner mode/ }).click();
+    await page.getByTestId('dz-scope-core').click();
     await items(page).getByRole('button', { name: /^Orc/ }).click();
     await expect(page.getByLabel('att', { exact: true })).toBeEnabled();
   });

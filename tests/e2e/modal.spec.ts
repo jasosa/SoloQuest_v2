@@ -124,11 +124,7 @@ test.describe('quest editor keys', () => {
     page,
   }) => {
     await openQuest1(page);
-    await page.getByRole('tab', { name: 'Library', exact: true }).click();
-    await page.getByTestId('dz-items').getByRole('button').first().click();
-    await page.getByRole('button', { name: /^Copy/ }).first().click();
-    // go back to the map and select a piece, then open the import sheet with a bad file
-    await page.getByRole('tab', { name: 'Map', exact: true }).click();
+    // select a piece, then open the import sheet with a bad file
     const piece = page.locator('[data-furniture="f-table-c"]');
     await piece.click({ position: { x: 5, y: 5 } });
     await page.getByLabel('Import file').setInputFiles({

@@ -51,9 +51,13 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
   const lookup = abilityLookup(quest);
   const mine = monster.abilities ?? [];
   const patch = (p: Patch) => st.apply((q) => updateMonster(q, monster.id, p));
-  const free = [...lookup.values()].filter((a) => !mine.includes(a.id));
+  // an ability of an expansion that is switched off is not offered, unless the quest has it already
+  const ownIds = new Set(quest.abilityDefs.map((a) => a.id));
+  const free = [...lookup.values()].filter(
+    (a) => !mine.includes(a.id) && (ownIds.has(a.id) || lib.isShown('ability', a.id)),
+  );
   // library abilities the quest does not have yet (a copy is made when one is added)
-  const fromLib = lib.abilities.filter((a) => !lookup.has(a.id) || abilityChanged(a));
+  const fromLib = lib.addable.abilities.filter((a) => !lookup.has(a.id) || abilityChanged(a));
 
   return (
     <section data-testid="monster-abilities">
@@ -165,8 +169,11 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
     // a spell limit without spells is refused: drop it with the last spell
     patch(next.length === 0 ? { spells: null, spellLimit: null } : { spells: next });
   };
-  const free = [...lookup.values()].filter((s) => !ids.includes(s.id));
-  const fromLib = lib.spells.filter((s) => !lookup.has(s.id) || spellChanged(s));
+  const ownSpells = new Set(quest.spellDefs.map((s) => s.id));
+  const free = [...lookup.values()].filter(
+    (s) => !ids.includes(s.id) && (ownSpells.has(s.id) || lib.isShown('spell', s.id)),
+  );
+  const fromLib = lib.addable.spells.filter((s) => !lookup.has(s.id) || spellChanged(s));
 
   return (
     <section data-testid="monster-spells">
@@ -302,7 +309,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
   const st = store.getState();
   const lib = useLibrary();
   const mine = new Set(quest.enemyDefs.map((e) => e.id));
-  const fromLib = lib.enemies.filter((e) => !mine.has(e.id));
+  const fromLib = lib.addable.enemies.filter((e) => !mine.has(e.id));
   const current = quest.enemyDefs.find((e) => e.id === monster.enemy);
   const libraryVersion = lib.enemies.find((e) => e.id === monster.enemy);
 

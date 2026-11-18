@@ -33,7 +33,9 @@ export function MonstersTab({ store }: { store: EditorStore }) {
   const lookup = abilityLookup(quest);
   const library = useLibrary();
   const [toAdd, setToAdd] = useState('core:goblin');
-  const libEnemies = library.enemies.filter((e) => !quest.enemyDefs.some((q) => q.id === e.id));
+  const libEnemies = library.addable.enemies.filter(
+    (e) => !quest.enemyDefs.some((q) => q.id === e.id),
+  );
   const monster =
     selection?.kind === 'monster' ? quest.monsters.find((m) => m.id === selection.id) : undefined;
   const patch = (p: Parameters<typeof updateMonster>[2]) =>
