@@ -71,6 +71,8 @@ export async function devTestLevel(which: string = 'test'): Promise<Level | unde
             ],
           },
         ],
+        // R17 is an Ice Vault (its rule shows in the room note)
+        roomTiles: [{ type: 'iceVault', area: 'R17' }],
         wandering: { monster: 'goblin', count: 2 },
       }),
     );

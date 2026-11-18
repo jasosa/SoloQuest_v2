@@ -306,6 +306,10 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 A slide whose path is known (a spring, or a good jump over it) is drawn on the board as a dashed line in the ink color from its first square to its last, with an arrowhead on the last square. It sits under the trap mark and takes no taps. Other sprung hazards that stay (axe, slippery ice) keep the "?" mark; only a pit shows the pit square. The trap menu names a trap that sprang ("The swinging axe trap is still here") and offers Disarm only when the kind allows it after a spring.
 
+## Room tiles (M10, slice 4c)
+
+A room that holds a tile (Ice Vault, Living Fog Room, Cage Room...) shows its name as the kind line of the room note, and its rule under it: the name in the special-note style, then the rule lines as hints. Nothing is drawn on the board for it yet; a texture pack can give the room its own picture later.
+
 ## Edge doors (M10, slice 4a)
 
 A door in the outer wall of the board (the Frozen Horror iron entry and wooden exit) is drawn on the wall line, moved 6 px into the board so it stays inside the picture. The iron entry is an ink slab with a white arrow pointing into the board; the wooden exit is a white slab with an ink arrow pointing out. An opened door is drawn at 45% opacity. Tap targets are the usual 44 px. Texture packs do not change these two pictures yet. The heroes at an iron entry door see only that door until it is opened; the first tap opens it and looks in from the square inside it.

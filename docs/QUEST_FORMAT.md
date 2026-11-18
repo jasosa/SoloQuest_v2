@@ -170,6 +170,12 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
             "text": "Moved by the hero who opened his cell: 1 red die after that hero's turn. He cannot attack." } ]
 ```
 
+## Room tiles and merged rooms (Frozen Horror)
+
+`roomTiles: [{ "type": "iceVault", "area": "R17" }]` gives a room a tile with its own name and rule, shown in the room note (types in `src/engine/data/roomTiles.ts`: `iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`). One tile per room. The rule is a reminder: rolls and hits stay with the players.
+
+`areaOverrides: [{ "merge": ["R09", "R10"] }]` makes two rooms that touch one room (Q10 K: a tile laid over two small rooms). The second room becomes part of the first: the wall between them is gone for sight and reveal, and the second id is no longer a room of the quest (notes, tiles and the start must use the first). The rooms must touch.
+
 ## Hidden, locked and removed doors (Frozen Horror)
 
 A door (also a secret or false one) can have `"hiddenUntil": "flag"`: it is not on the map until that quest flag is set, even when its squares are seen (Q5 door C). It shows the moment the flag is set if one of its squares is already seen, or with its square later. `"lockedUntil": "flag"`: a try to open it answers "stuck" and changes nothing until the flag is set (the Q9 key door; a note sets the flag when the key is found). Both flags must be set by some `setFlag` effect, or the validator reports it.

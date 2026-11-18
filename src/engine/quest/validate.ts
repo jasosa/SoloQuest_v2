@@ -3,13 +3,14 @@
  * `validateQuestIssues` returns structured issues the editor can jump to; `validateQuest`
  * returns the plain error messages of the game checks (empty means ok).
  */
-import { areaAt, inBoard, roomIds, type Board } from '../board/board';
+import { areaAt, cellsOf, inBoard, roomIds, type Board } from '../board/board';
 import {
   buildLevel,
   blocksMove,
   edgeKey,
   isWall,
   keyOf,
+  mergedBoard,
   outsideOf,
   parseKey,
   type Level,
@@ -92,7 +93,54 @@ export function validateQuestIssues(
   const warn = (message: string, ref?: IssueRef) =>
     issues.push(ref ? { message, severity: 'warning', ref } : { message, severity: 'warning' });
   const rooms = new Set(roomIds(board));
+  // Merged rooms: the second room of a merge is part of the first and no longer a room of its own.
+  const absorbed = new Set<string>();
+  {
+    let cur = board;
+    for (const m of quest.areaOverrides) {
+      const [a, b] = m.merge;
+      const ref: IssueRef = { kind: 'area', area: b };
+      const where = `areaOverrides ${a} + ${b}`;
+      if (a === b) err(`${where}: a room cannot merge with itself`, ref);
+      else if (!rooms.has(a) || !rooms.has(b)) err(`${where}: unknown room`, ref);
+      else if (absorbed.has(a) || absorbed.has(b))
+        err(`${where}: a room that was merged into another cannot be merged again`, ref);
+      else {
+        // the two rooms must touch, or the merged room would be in two pieces
+        const touch = cellsOf(cur, b).some(([x, y]) =>
+          (
+            [
+              [1, 0],
+              [-1, 0],
+              [0, 1],
+              [0, -1],
+            ] as const
+          ).some(([dx, dy]) => areaAt(cur, x + dx, y + dy) === a),
+        );
+        if (!touch) err(`${where}: the rooms do not touch`, ref);
+        absorbed.add(b);
+        cur = mergedBoard(cur, [m]);
+      }
+    }
+  }
+  for (const r of absorbed) rooms.delete(r);
   const areas = new Set<string>([...rooms, 'C']);
+  // Room tiles: one per room, in a room of this quest.
+  {
+    const tiled = new Set<string>();
+    for (const t of quest.roomTiles) {
+      const ref: IssueRef = { kind: 'area', area: t.area };
+      if (!rooms.has(t.area))
+        err(
+          absorbed.has(t.area)
+            ? `room tile ${t.type}: ${t.area} was merged into another room, use that one`
+            : `room tile ${t.type}: unknown room ${t.area}`,
+          ref,
+        );
+      else if (tiled.has(t.area)) err(`room tile ${t.type}: ${t.area} already has a tile`, ref);
+      tiled.add(t.area);
+    }
+  }
   const isBoardSquare = (id: string) => squareOk(id, board);
 
   /**

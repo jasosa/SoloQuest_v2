@@ -108,6 +108,20 @@ export function PickHero(props: {
   );
 }
 
+/** The name and rule of a room tile, for the room note. */
+export function TileRule({ tile }: { tile: { name: string; rule: readonly string[] } }) {
+  return (
+    <div className="tile-rule" data-testid="tile-rule">
+      <p className="special-note">{tile.name}</p>
+      {tile.rule.map((line) => (
+        <p key={line} className="hint">
+          {line}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export function TrapMenu(props: {
   /** The name of a trap that sprang and is still there. */
   kindName?: string | undefined;

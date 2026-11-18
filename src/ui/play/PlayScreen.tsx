@@ -41,6 +41,7 @@ import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
+import { roomTileOf } from '../../engine/data/roomTiles';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
@@ -57,6 +58,7 @@ import {
   resultStages,
   RoomMenu,
   RoomScope,
+  TileRule,
   TrapMenu,
   trapStepBody,
 } from './notes';
@@ -519,6 +521,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       );
       // A furniture note has three scopes: the element, the room, this quest. A furniture piece
       // with no action of its own says so, and the room actions sit under their own heading.
+      const tile = roomTileOf(level.quest, sel.room);
       const fv = sel.furnitureId ? elementQuest(level, state, 'furniture', sel.furnitureId) : null;
       note = sel.furniture ? (
         <MarginNote
@@ -532,6 +535,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               This {furnitureName(sel.furniture).toLowerCase()} has no special action.
             </p>
           )}
+          {tile && <TileRule tile={tile} />}
           <RoomScope>{menu}</RoomScope>
           {forQuestMany([
             ...(sel.furnitureId ? [['furniture', sel.furnitureId] as const] : []),
@@ -539,7 +543,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           ])}
         </MarginNote>
       ) : (
-        <MarginNote anchor={anchor} kind="Room" title="Search this room" onClose={closeNote}>
+        <MarginNote
+          anchor={anchor}
+          kind={tile ? tile.name : 'Room'}
+          title="Search this room"
+          onClose={closeNote}
+        >
+          {tile && <TileRule tile={tile} />}
           {menu}
           {forQuest('area', sel.room)}
         </MarginNote>

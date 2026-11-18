@@ -44,3 +44,12 @@ test.describe('Frozen Horror board features (dev fixture)', () => {
     await expect(page.locator('[data-slide]')).toHaveCount(1);
   });
 });
+
+test('a room with a tile shows its name and rule in the room note', async ({ page }) => {
+  await gotoQuest(page, URL + '&open=in,d1,d2');
+  // a square of R17 (the ice vault) that has nothing on it
+  await page.locator('[data-room-cell="8,16"]').click();
+  const note = page.getByTestId('tile-rule');
+  await expect(note).toContainText('Ice Vault');
+  await expect(note).toContainText('roll 1 combat die');
+});

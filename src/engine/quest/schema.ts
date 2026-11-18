@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
 import { SPELL_TAG_IDS, SPELL_TIMINGS } from '../data/spells';
+import { ROOM_TILE_TYPES } from '../data/roomTiles';
 import { TRAP_KIND_NAMES } from '../data/trapKinds';
 import { PROFILES, RULE_KEYS } from '../zargon/weights';
 
@@ -508,6 +509,13 @@ export const QuestSchema = z.strictObject({
     .default({ rooms: [], cells: [] }),
   doors: z.array(DoorSchema).default([]),
   edgeDoors: z.array(EdgeDoorSchema).default([]),
+  /** Rooms that hold a tile with its own look and rule (Frozen Horror). One tile per room. */
+  roomTiles: z.array(z.strictObject({ type: z.enum(ROOM_TILE_TYPES), area: roomId })).default([]),
+  /**
+   * Two rooms that are one room in this quest (a tile laid over both: Q10 K). The second room
+   * becomes part of the first: the wall between them is gone for sight and reveal.
+   */
+  areaOverrides: z.array(z.strictObject({ merge: z.tuple([roomId, roomId]) })).default([]),
   secretDoors: z.array(DoorSchema).default([]),
   falseDoors: z.array(DoorSchema).default([]),
   blocks: z.array(BlockSchema).default([]),

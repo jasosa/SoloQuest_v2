@@ -73,9 +73,23 @@ export interface Level {
   readonly doorsAt: ReadonlyMap<CellKey, readonly DoorInfo[]>;
 }
 
-export function buildLevel(source: Quest, board: Board = defaultBoard): Level {
+/**
+ * The board of a quest: its `areaOverrides` merge rooms by giving the cells of the second room the
+ * id of the first, so there is no wall between them any more. The same board when nothing merges.
+ */
+export function mergedBoard(base: Board, merges: Quest['areaOverrides']): Board {
+  if (merges.length === 0) return base;
+  const into = new Map<string, string>(merges.map((m) => [m.merge[1], m.merge[0]]));
+  return {
+    ...base,
+    cells: base.cells.map((row) => row.map((a) => into.get(a) ?? a)),
+  };
+}
+
+export function buildLevel(source: Quest, baseBoard: Board = defaultBoard): Level {
   // Monsters that point at an enemy get its defaults here, so the engine never sees the link.
   const quest = resolveEnemies(source);
+  const board = mergedBoard(baseBoard, quest.areaOverrides);
   const rockRooms = new Set(quest.rock.rooms);
   const rock = new Set<CellKey>(quest.rock.cells.map(keyOf));
   for (let y = 0; y < board.height; y++)

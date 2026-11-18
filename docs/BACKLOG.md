@@ -193,7 +193,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
 - [ ] Slice 4: the board, in sub-slices:
   - [x] 4a: edge doors (iron entry, wooden exit), the start kinds (stairway, tile, iron door), the door start state, end labels, validator, dev fixture `?quest=frozen`. The editor cannot place edge doors yet (slice 7)
   - [x] 4b: door `hiddenUntil` and `lockedUntil` flags, the `removeDoor` effect (editor effect list too), openAllDoors skips them. A note question needs no new feature: it is a `manual` note with a `promptChoice` (see QUEST_FORMAT.md). The editor cannot set the door flags yet (slice 7)
-  - [ ] 4c: room tiles (look and rule text), area merge (Gremlin treasure room)
+  - [x] 4c: room tiles as a table with a rule text (shown in the room note) and `areaOverrides` that merge two touching rooms (the board of the level is relabeled). Tile pictures and the first-reveal reminder come with textures and Rule hints (4d)
   - [ ] 4d: terrain (ice ledge, icy river, chasm) with rule hints on tap and on first reveal when Rule hints is on
   - [ ] 4e: sight blockers until a flag (the Q0 cage), `replaceFurnitureWithDoor`
   - [ ] 4f: ice tunnels with design ids and the "did someone use it" question
