@@ -1152,7 +1152,10 @@ export function PlayBoard({
   const eyes = hints
     .filter(
       ([x, y]) =>
-        isCrossing(x, y) && !monsterAt.has(cellKey(x, y)) && !ringCells.has(cellKey(x, y)),
+        isCrossing(x, y) &&
+        !monsterAt.has(cellKey(x, y)) &&
+        !trapAt.has(cellKey(x, y)) &&
+        !ringCells.has(cellKey(x, y)),
     )
     .map(([x, y]) => {
       const cx = (x + 0.5) * S;
