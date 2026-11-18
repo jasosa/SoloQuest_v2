@@ -296,3 +296,5 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Scale and offset of pack pictures.** Every picture slot of a pack except the board, floor, wall and rock can be scaled (0.4 to 2.5, around its center, proportions kept) and moved (`offset` in squares, -1 to 1), so a pack author can make monsters bigger on the board or a table smaller without editing the pictures. The box of every picture comes from one helper (`tuned` in `src/ui/theme/theme.ts`), used by play, Zargon view and the editor map.
 
+**Pack preview.** Each pack in the Textures dialog has a Preview button that opens a wide dialog: a Check (pictures much smaller than they are shown, board not 26 : 19), the slots the pack leaves empty, a sample board of 14 x 9 squares drawn at real scale with the game's own drawing code (furniture, monsters, blocks, traps, doors), and the board picture itself with its pixel size.
+

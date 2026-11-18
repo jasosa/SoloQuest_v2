@@ -114,4 +114,40 @@ test.describe('texture packs (decision 78)', () => {
     await dlg.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(link).toHaveText('Textures');
   });
+
+  test('Preview shows a sample board, checks the pictures and lists the empty slots', async ({
+    page,
+  }) => {
+    const manifest = {
+      format: 'sqtextures',
+      version: 1,
+      id: 'tiny',
+      name: 'Tiny pack',
+      monster: { orc: 'orc.png' },
+    };
+    const tiny = Buffer.from(
+      zipSync({
+        'theme.json': strToU8(JSON.stringify(manifest)),
+        'orc.png': new Uint8Array(PNG),
+      }),
+    );
+    await page.goto('/?nosave=1');
+    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    const dlg = page.getByRole('dialog', { name: 'Texture packs' });
+    await dlg.getByLabel('Texture pack file').setInputFiles(file('tiny.sqtextures', tiny));
+    await dlg.getByTestId('preview-tiny').click();
+    const prev = page.getByRole('dialog', { name: 'Preview: Tiny pack' });
+    await expect(prev.getByTestId('pack-sample')).toBeVisible();
+    // the orc picture is 1 x 1 px but shown about 32 px wide: it is reported
+    await expect(prev.getByRole('status').first()).toContainText('monster orc: 1 x 1 px');
+    // everything else is empty
+    await expect(prev.getByTestId('pack-missing')).toContainText('board picture');
+    await expect(prev.getByTestId('pack-missing')).toContainText('furniture table');
+    await expect(prev.getByTestId('pack-missing')).not.toContainText('monster orc');
+    // the sample draws the orc with the pack's picture and everything else with the built-in drawing
+    await expect(prev.locator('image')).toHaveCount(1);
+    await prev.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(prev).toHaveCount(0);
+    await expect(dlg).toBeVisible();
+  });
 });

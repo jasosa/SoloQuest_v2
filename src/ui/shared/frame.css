@@ -635,3 +635,26 @@
 .fr .chip {
   font-size: 13px;
 }
+
+/* A wider dialog (the texture pack preview). */
+.fr-dlg.wide {
+  width: min(760px, calc(100vw - 32px));
+}
+.pv-warnings {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.pv-warnings li {
+  margin-bottom: 4px;
+}
+.pv-gap {
+  margin-top: 14px;
+}
+.pv-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1.5px solid var(--ink);
+}

@@ -137,14 +137,22 @@ export function Dialog({
   title,
   children,
   foot,
+  wide = false,
 }: {
   title: string;
   children: ReactNode;
   foot: ReactNode;
+  /** A wider dialog, for content such as a picture preview. */
+  wide?: boolean;
 }) {
   return (
     <div className="fr-veil">
-      <div className="fr-dlg" role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className={wide ? 'fr-dlg wide' : 'fr-dlg'}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <div className="fr-dh">
           <h2>{title}</h2>
         </div>

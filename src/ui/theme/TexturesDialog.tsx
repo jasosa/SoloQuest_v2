@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PackSummary, ThemeStore } from '../../persist/themes';
 import { Dialog } from '../shared/Frame';
 import { applyPack } from './activate';
-import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack } from './pack';
+import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack, type StoredPack } from './pack';
+import { PackPreview } from './PackPreview';
 
 function download(name: string, bytes: Uint8Array): void {
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }));
@@ -26,6 +27,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   const [active, setActive] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<StoredPack | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -83,101 +85,111 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   };
 
   return (
-    <Dialog
-      title="Texture packs"
-      foot={
-        <>
-          <button className="btn alt" onClick={() => input.current?.click()}>
-            Import a pack
-          </button>
-          <button className="btn" onClick={onClose}>
-            Close
-          </button>
-        </>
-      }
-    >
-      <p className="fr-help">
-        A texture pack changes how the board looks: floor, walls, doors, furniture and monster
-        pictures. It never changes the rules or your saved games.
-      </p>
-      <input
-        ref={input}
-        type="file"
-        hidden
-        accept={`${PACK_EXTENSION},application/zip`}
-        aria-label="Texture pack file"
-        onChange={(e) => {
-          void onFile(e.target.files?.[0]);
-          e.target.value = '';
-        }}
-      />
-      {message && (
-        <p className="fr-help" role={message.bad ? 'alert' : 'status'}>
-          {message.text}
-        </p>
-      )}
-      <ul className="fr-recent" data-testid="pack-list">
-        <li>
-          <div className="fr-open-static">
-            <span className="fr-qnum">Built in</span>
-            <span className="fr-qtitle">Classic</span>
-          </div>
-          {active === null ? (
-            <span className="fr-qnote">In use</span>
-          ) : (
-            <button className="chip" onClick={() => void choose(null)}>
-              Use Classic
+    <>
+      <Dialog
+        title="Texture packs"
+        foot={
+          <>
+            <button className="btn alt" onClick={() => input.current?.click()}>
+              Import a pack
             </button>
-          )}
-        </li>
-        {packs.map((p) => (
-          <li key={p.id} data-pack={p.id}>
+            <button className="btn" onClick={onClose}>
+              Close
+            </button>
+          </>
+        }
+      >
+        <p className="fr-help">
+          A texture pack changes how the board looks: floor, walls, doors, furniture and monster
+          pictures. It never changes the rules or your saved games.
+        </p>
+        <input
+          ref={input}
+          type="file"
+          hidden
+          accept={`${PACK_EXTENSION},application/zip`}
+          aria-label="Texture pack file"
+          onChange={(e) => {
+            void onFile(e.target.files?.[0]);
+            e.target.value = '';
+          }}
+        />
+        {message && (
+          <p className="fr-help" role={message.bad ? 'alert' : 'status'}>
+            {message.text}
+          </p>
+        )}
+        <ul className="fr-recent" data-testid="pack-list">
+          <li>
             <div className="fr-open-static">
-              <span className="fr-qnum">
-                {p.origin === 'official' ? 'Official' : 'Fan-made'}
-                {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
-              </span>
-              <span className="fr-qtitle">{p.name}</span>
+              <span className="fr-qnum">Built in</span>
+              <span className="fr-qtitle">Classic</span>
             </div>
-            {active === p.id ? (
+            {active === null ? (
               <span className="fr-qnote">In use</span>
             ) : (
-              <button className="chip" onClick={() => void choose(p.id)}>
-                Use
-              </button>
-            )}
-            <button
-              className="chip"
-              onClick={async () => {
-                const pack = await store.load(p.id);
-                if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
-              }}
-            >
-              Export
-            </button>
-            {deleting === p.id ? (
-              <button
-                className="chip main"
-                onClick={async () => {
-                  if (active === p.id) await applyPack(store, null);
-                  await store.remove(p.id);
-                  setDeleting(null);
-                  await refresh();
-                }}
-              >
-                Really delete
-              </button>
-            ) : (
-              <button className="chip" onClick={() => setDeleting(p.id)}>
-                Delete
+              <button className="chip" onClick={() => void choose(null)}>
+                Use Classic
               </button>
             )}
           </li>
-        ))}
-      </ul>
-      {packs.length === 0 && (
-        <p className="fr-help">No texture pack yet. Import a {PACK_EXTENSION} file to add one.</p>
-      )}
-    </Dialog>
+          {packs.map((p) => (
+            <li key={p.id} data-pack={p.id}>
+              <div className="fr-open-static">
+                <span className="fr-qnum">
+                  {p.origin === 'official' ? 'Official' : 'Fan-made'}
+                  {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
+                </span>
+                <span className="fr-qtitle">{p.name}</span>
+              </div>
+              {active === p.id ? (
+                <span className="fr-qnote">In use</span>
+              ) : (
+                <button className="chip" onClick={() => void choose(p.id)}>
+                  Use
+                </button>
+              )}
+              <button
+                className="chip"
+                data-testid={`preview-${p.id}`}
+                onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
+              >
+                Preview
+              </button>
+              <button
+                className="chip"
+                onClick={async () => {
+                  const pack = await store.load(p.id);
+                  if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
+                }}
+              >
+                Export
+              </button>
+              {deleting === p.id ? (
+                <button
+                  className="chip main"
+                  onClick={async () => {
+                    if (active === p.id) await applyPack(store, null);
+                    await store.remove(p.id);
+                    setDeleting(null);
+                    await refresh();
+                  }}
+                >
+                  Really delete
+                </button>
+              ) : (
+                <button className="chip" onClick={() => setDeleting(p.id)}>
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+        {packs.length === 0 && (
+          <p className="fr-help">No texture pack yet. Import a {PACK_EXTENSION} file to add one.</p>
+        )}
+      </Dialog>
+      {previewing && <PackPreview pack={previewing} onClose={() => setPreviewing(null)} />}
+    </>
   );
 }

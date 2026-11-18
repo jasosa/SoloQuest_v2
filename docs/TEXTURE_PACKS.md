@@ -112,6 +112,16 @@ The board draws a square at 34 px, and tablets show it at up to 2x. Make picture
 | block, trap | 68 to 150 px square; a `double` block twice as wide |
 | furniture | its footprint times 68 px or more, for example 204 x 136 px for a 3 x 2 table |
 
+## Checking a pack: Preview
+
+In **Textures**, the **Preview** button of a pack opens a sample board that shows every slot with the same drawing
+code the game uses: the board picture, each furniture type, the monsters, a single and a double block, every trap,
+and the doors closed, open, secret and in a vertical wall. Above it:
+
+- **Check** lists pictures that are much smaller than they are shown (they would look soft on a tablet, which draws a
+  square up to 68 px wide) and a board picture that is not the shape of the board (26 x 19 squares).
+- **Not in this pack** lists the slots the pack leaves empty (the built-in drawing is used there).
+
 ## What a pack does not change
 
 The quest editor map can show the pack or not: View > Textures switches it. Markers keep their letters, a false door keeps its cross,
