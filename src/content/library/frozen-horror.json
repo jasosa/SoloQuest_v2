@@ -27,7 +27,7 @@
       "data": {
         "id": "fhTwoAttacks",
         "name": "Two attacks",
-        "text": "Attacks twice each turn. A hero defends once per turn against it, and may see the first attack before deciding whether to defend.",
+        "text": "Attacks twice each turn, once with its paw and once with its mace. Both can go at one hero, or one at each of two heroes. A hero defends only once per turn against it, however many of its attacks are aimed at them.",
         "kind": "ability"
       }
     },
@@ -57,7 +57,7 @@
       "data": {
         "id": "fhHug",
         "name": "Bear hug",
-        "text": "A hero it hugs loses 2 Body Points, cannot defend and cannot act, and the Yeti does nothing else. It starts hugging a hero when its attack makes that hero lose at least 1 Body Point.",
+        "text": "When its attack makes a hero lose at least 1 Body Point, it grabs that hero in a hug. At the start of each later Zargon turn the hero loses 2 Body Points, cannot defend and cannot act, and the Yeti makes no other attack. The hug lasts until the hero dies or the Yeti is killed.",
         "kind": "ability"
       }
     },
@@ -67,7 +67,7 @@
       "data": {
         "id": "fhRanged",
         "name": "Crossbow",
-        "text": "Shoots at a hero it can see, not only one next to it.",
+        "text": "Shoots a crossbow at a hero it can see. Next to a hero it fights with a broadsword instead.",
         "kind": "ability"
       }
     },
