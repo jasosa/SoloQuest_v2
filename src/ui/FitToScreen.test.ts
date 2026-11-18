@@ -11,6 +11,11 @@ describe('fitScale', () => {
     expect(fitScale(1600, 1100)).toBeCloseTo(1100 / 834);
     expect(fitScale(4000, 3000)).toBe(1.5);
   });
+  it('never grows the select, editor and Library screens (width mode): their text stays the size of play', () => {
+    expect(fitScale(1600, 1100, 'width')).toBe(1);
+    expect(fitScale(4000, 3000, 'width')).toBe(1);
+    expect(fitScale(800, 834, 'width')).toBeCloseTo(800 / 1194);
+  });
   it('is 1 for a window of no size', () => {
     expect(fitScale(0, 0)).toBe(1);
   });

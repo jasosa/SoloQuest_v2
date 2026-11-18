@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import { expect, test } from '@playwright/test';
+import { newGame } from './helpers';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -47,8 +48,7 @@ test.describe('texture packs (decision 78)', () => {
     await dlg.getByRole('button', { name: 'Close', exact: true }).click();
 
     // play a quest: the floor uses the pack's picture
-    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await page.getByRole('button', { name: 'Start the quest' }).click();
+    await newGame(page, ['Dwarf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('[data-themed="floor"]').first()).toBeAttached();
   });
@@ -91,5 +91,27 @@ test.describe('texture packs (decision 78)', () => {
       const b = dlg.getByRole('button', { name, exact: true }).first();
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
+  });
+
+  test('the quest select screen says which texture pack is in use', async ({ page }) => {
+    await page.goto('/?nosave=1');
+    const link = page.getByTestId('textures-link');
+    await expect(link).toHaveText('Textures');
+    await link.click();
+    const dlg = page.getByRole('dialog', { name: 'Texture packs' });
+    await dlg
+      .getByLabel('Texture pack file')
+      .setInputFiles(file('a.sqtextures', pack('mine', 'My stones')));
+    await dlg
+      .locator('[data-pack="mine"]')
+      .getByRole('button', { name: 'Use', exact: true })
+      .click();
+    await dlg.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(link).toHaveText('Textures: My stones');
+    // back to Classic: the name goes away
+    await link.click();
+    await dlg.getByRole('button', { name: 'Use Classic' }).click();
+    await dlg.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(link).toHaveText('Textures');
   });
 });

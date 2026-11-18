@@ -272,3 +272,11 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Sharp pictures while zoomed or still.** The zoom layer asks for `will-change: transform` only while the board moves or zooms, and drops it 200 ms after. Left on all the time, the browser kept the first, smaller drawing of the board and pictures (monster tokens from a texture pack) looked soft until something near them repainted, for example when a popup opened.
 
+## Quest select: starting a game, texture indicator, text size (owner)
+
+**Right column.** Quest number, title, then the story right under the title; then, if there is a saved game, "Saved game" with its turn and heroes and **Resume**; then **New game**. There are no hero buttons in the column. **New game** opens a "Choose your heroes" popup (pick 1 to 4, then "Start the quest"). When a saved game exists the popup says it replaces it and cannot be brought back, and the buttons are "Keep the saved game" and "Replace it and start".
+
+**Texture indicator.** The header link reads "Textures" with the built-in look and "Textures: <pack name>" when a pack is in use (the name is bold, cut with an ellipsis when long).
+
+**Text size.** The select, editor and Library screens (width mode) shrink on a window narrower than the tablet but are never scaled up (they used to grow to 1.5 times on a big window, which made their text much bigger than on the play screen, which is never scaled up). On a wide window they stay 1194 px wide and centered.
+

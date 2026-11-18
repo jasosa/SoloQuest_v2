@@ -49,9 +49,9 @@ export function fitScale(width: number, height: number, mode: FitMode = 'contain
   if (width <= 0 || height <= 0) return 1;
   if (mode === 'fill') return Math.min(1, width / FILL_MIN_W, height / FILL_MIN_H);
   const byWidth = width / DESIGN_W;
-  return mode === 'width'
-    ? Math.min(MAX_SCALE, byWidth)
-    : Math.min(MAX_SCALE, byWidth, height / DESIGN_H);
+  // Select, editor and Library shrink on a window narrower than the tablet but are never blown up: on a
+  // big window their text would be 1.5 times bigger than on the play screen, which is never scaled up.
+  return mode === 'width' ? Math.min(1, byWidth) : Math.min(MAX_SCALE, byWidth, height / DESIGN_H);
 }
 
 function windowSize(): { w: number; h: number } {

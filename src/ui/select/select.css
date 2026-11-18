@@ -90,15 +90,7 @@
   margin-top: -4px;
 }
 .side .actions {
-  margin-top: 0; /* right under the heroes, not at the bottom */
-}
-.side .heroes .chips {
-  margin-bottom: 6px;
-}
-.side .confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 4px;
 }
 
 /* Smaller type on the quest select screen (owner, UI review). */
@@ -113,4 +105,28 @@
 }
 .app.select .chip {
   font-size: 13px;
+}
+
+/* The story sits right under the quest title; the heroes are chosen in a popup (New game). */
+.app.select .side .summary {
+  margin: 6px 0 14px;
+}
+.app.select .pick-heroes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+.app.select .pick-heroes .chip {
+  min-height: 48px;
+}
+.app.select .tex-name {
+  font-weight: 700;
+  font-style: normal;
+}
+.app.select header .link {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

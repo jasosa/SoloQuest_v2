@@ -31,8 +31,9 @@ export function Furniture({ f, board }: { f: FurnitureDef; board?: Board | undef
           ? 90
           : 0;
     const sideways = degrees === 90 || degrees === 270;
-    const pw = sideways && !slot.corner ? h : w;
-    const ph = sideways && !slot.corner ? w : h;
+    const fit = slot.scale ?? 1;
+    const pw = (sideways && !slot.corner ? h : w) * fit;
+    const ph = (sideways && !slot.corner ? w : h) * fit;
     const mx = x + w / 2;
     const my = y + h / 2;
     return (

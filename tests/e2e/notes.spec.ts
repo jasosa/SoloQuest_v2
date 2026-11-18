@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { closeQuestSheet, dismissStart, gotoQuest, openQuestSheet } from './helpers';
+import { closeQuestSheet, dismissStart, gotoQuest, newGame, openQuestSheet } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(400); // let the animations finish
@@ -167,8 +167,7 @@ test.describe('quest 1 notes', () => {
       .getByRole('button', { name: /Quest 1/ })
       .first()
       .click();
-    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await page.getByRole('button', { name: 'Start the quest' }).click();
+    await newGame(page, ['Dwarf']);
     await dismissStart(page);
     for (const d of ['d1', 'd2', 'd3']) {
       await door(page, d).click();

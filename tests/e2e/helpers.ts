@@ -24,3 +24,11 @@ export async function closeQuestSheet(page: Page): Promise<void> {
   const sheet = page.getByRole('dialog', { name: 'Quest sheet' });
   if (await sheet.isVisible()) await page.keyboard.press('Escape');
 }
+
+/** On the quest select screen: New game, choose the heroes in the popup, and start. */
+export async function newGame(page: Page, heroes: string[]): Promise<void> {
+  await page.getByTestId('new-game').click();
+  const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+  for (const h of heroes) await dialog.getByRole('button', { name: h, exact: true }).click();
+  await dialog.getByRole('button', { name: /^(Start the quest|Replace it and start)$/ }).click();
+}

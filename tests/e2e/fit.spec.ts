@@ -6,14 +6,28 @@ test.describe('fit to the screen', () => {
   }) => {
     await page.setViewportSize({ width: 1194, height: 640 });
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     // quest select fills the width and does not shrink: it is readable on a short window
     expect(Number(await page.locator('[data-fit-scale]').getAttribute('data-fit-scale'))).toBe(1);
-    const start = page.getByRole('button', { name: 'Start the quest' });
-    await expect(start).toBeVisible();
-    const box = (await start.boundingBox())!;
+    const newGameButton = page.getByTestId('new-game');
+    await expect(newGameButton).toBeVisible();
+    const box = (await newGameButton.boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(640);
     expect(box.x + box.width).toBeLessThanOrEqual(1194);
+    // the Heroes popup fits too, with its Start button
+    await newGameButton.click();
+    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    const start = dialog.getByRole('button', { name: 'Start the quest' });
+    const sb = (await start.boundingBox())!;
+    expect(sb.y + sb.height).toBeLessThanOrEqual(640);
+  });
+
+  test('on a big window the select screen is not blown up: its text is as big as on the play screen', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1800, height: 1000 });
+    await page.goto('/?nosave=1');
+    expect(Number(await page.locator('[data-fit-scale]').getAttribute('data-fit-scale'))).toBe(1);
   });
 
   test('a tap still lands on the right square when the screen is scaled', async ({ page }) => {

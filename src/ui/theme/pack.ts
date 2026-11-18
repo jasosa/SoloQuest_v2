@@ -58,6 +58,7 @@ export const PackManifestSchema = z
         z.object({
           file: FileName,
           corner: z.enum(CORNERS).optional(),
+          scale: z.number().min(0.4).max(1).optional(),
           cells: z
             .tuple([z.number().int().min(1).max(6), z.number().int().min(1).max(6)])
             .optional(),
@@ -205,6 +206,7 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
           href: url(f.file),
           ...(f.cells ? { cells: f.cells } : {}),
           ...(f.corner ? { corner: f.corner } : {}),
+          ...(f.scale !== undefined ? { scale: f.scale } : {}),
         },
       ]),
     ),

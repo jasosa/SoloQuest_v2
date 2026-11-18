@@ -8,6 +8,7 @@ import type { UserQuestStore } from '../../persist/userQuests';
 import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
+import { Dialog } from '../shared/Frame';
 
 export type StartChoice =
   | { kind: 'new'; level: Level; team: readonly Hero[] }
@@ -22,6 +23,8 @@ export interface SelectScreenProps {
   onEditor?: (() => void) | undefined;
   /** Open the texture packs dialog. */
   onTextures?: (() => void) | undefined;
+  /** The name of the texture pack in use, or null/undefined for the built-in look. */
+  textureName?: string | null | undefined;
   /** Edited copies of bundled quests replace them in the list. */
   userStore?: UserQuestStore | undefined;
 }
@@ -47,6 +50,7 @@ export function SelectScreen({
   notice,
   onEditor,
   onTextures,
+  textureName,
   userStore,
 }: SelectScreenProps) {
   useFitMode('width');
@@ -92,7 +96,8 @@ export function SelectScreen({
   );
   const [team, setTeam] = useState<readonly Hero[]>([]);
   const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
-  const [confirming, setConfirming] = useState(false);
+  /** The Heroes popup of "New game". */
+  const [choosing, setChoosing] = useState(false);
 
   const entry = questEntries.find((q) => q.number === number);
   const level = entry?.level;
@@ -113,10 +118,8 @@ export function SelectScreen({
   const resumed = saved && saved.id === questId && saved.r.ok ? saved.r : undefined;
   const unusable = saved && saved.id === questId && !saved.r.ok && saved.r.reason !== 'none';
 
-  const toggle = (h: Hero) => {
-    setConfirming(false);
+  const toggle = (h: Hero) =>
     setTeam((t) => (t.includes(h) ? t.filter((x) => x !== h) : [...t, h]));
-  };
   const ready = team.length >= 1;
 
   return (
@@ -126,8 +129,19 @@ export function SelectScreen({
         <h1>Choose a quest</h1>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {onTextures && (
-            <button className="link" onClick={onTextures}>
-              Textures
+            <button
+              className="link"
+              onClick={onTextures}
+              data-testid="textures-link"
+              aria-label={textureName ? `Textures: ${textureName} in use` : 'Textures'}
+            >
+              {textureName ? (
+                <>
+                  Textures: <b className="tex-name">{textureName}</b>
+                </>
+              ) : (
+                'Textures'
+              )}
             </button>
           )}
           {onEditor && (
@@ -147,7 +161,6 @@ export function SelectScreen({
             disabled={!q.level}
             onClick={() => {
               setNumber(q.number);
-              setConfirming(false);
             }}
           >
             <span className="qnum">Quest {q.number}</span>
@@ -164,6 +177,8 @@ export function SelectScreen({
             <section>
               <div className="lbl">Quest {level.quest.number}</div>
               <h2>{level.quest.title}</h2>
+              {/* the story comes right under the title */}
+              <p className="summary">{level.quest.intro.summary}</p>
               {edited.has(level.quest.number) && (
                 <>
                   <p className="hint">This is your edited copy.</p>
@@ -215,60 +230,63 @@ export function SelectScreen({
               </p>
             )}
 
-            <section className="heroes">
-              <div className="lbl">Your heroes</div>
-              <div className="chips">
-                {HEROES.map((h) => (
-                  <button
-                    key={h}
-                    className="chip"
-                    aria-pressed={team.includes(h)}
-                    onClick={() => toggle(h)}
-                  >
-                    {HERO_NAMES[h]}
-                  </button>
-                ))}
-              </div>
-              <p className="hint" id="team-hint">
-                {ready ? 'Pick 1 to 4 heroes.' : 'Pick 1 to 4 heroes to start the quest.'}
-              </p>
-            </section>
-
             <div className="actions">
-              {confirming && resumed ? (
-                <div className="confirm" role="alertdialog" aria-label="Replace the saved game?">
-                  <p className="hint">
-                    Replace the saved game (turn {resumed.state.turn})? It cannot be brought back.
-                  </p>
-                  <button className="btn" onClick={() => onStart({ kind: 'new', level, team })}>
-                    Replace it
-                  </button>
-                  <button className="btn alt" autoFocus onClick={() => setConfirming(false)}>
-                    Keep the saved game
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className={resumed ? 'btn alt' : 'btn'}
-                  disabled={!ready}
-                  aria-describedby={ready ? undefined : 'team-hint'}
-                  onClick={() =>
-                    resumed ? setConfirming(true) : onStart({ kind: 'new', level, team })
-                  }
-                >
-                  {resumed ? 'New game (replaces the saved one)' : 'Start the quest'}
-                </button>
-              )}
+              <button
+                className={resumed ? 'btn alt' : 'btn'}
+                data-testid="new-game"
+                onClick={() => setChoosing(true)}
+              >
+                New game
+              </button>
             </div>
-
-            {/* the story comes after the buttons, so the Start button stays high on the screen */}
-            <section>
-              <div className="lbl">About this quest</div>
-              <p className="summary">{level.quest.intro.summary}</p>
-            </section>
           </>
         )}
       </aside>
+
+      {choosing && level && (
+        <Dialog
+          title="Choose your heroes"
+          foot={
+            <>
+              <button className="btn alt" autoFocus onClick={() => setChoosing(false)}>
+                {resumed ? 'Keep the saved game' : 'Cancel'}
+              </button>
+              <button
+                className="btn"
+                disabled={!ready}
+                aria-describedby={ready ? undefined : 'team-hint'}
+                onClick={() => {
+                  setChoosing(false);
+                  onStart({ kind: 'new', level, team });
+                }}
+              >
+                {resumed ? 'Replace it and start' : 'Start the quest'}
+              </button>
+            </>
+          }
+        >
+          {resumed && (
+            <p className="hint" role="alert">
+              This replaces the saved game (turn {resumed.state.turn}). It cannot be brought back.
+            </p>
+          )}
+          <div className="pick-heroes" role="group" aria-label="Heroes">
+            {HEROES.map((h) => (
+              <button
+                key={h}
+                className="chip"
+                aria-pressed={team.includes(h)}
+                onClick={() => toggle(h)}
+              >
+                {HERO_NAMES[h]}
+              </button>
+            ))}
+          </div>
+          <p className="hint" id="team-hint">
+            {ready ? 'Pick 1 to 4 heroes.' : 'Pick 1 to 4 heroes to start the quest.'}
+          </p>
+        </Dialog>
+      )}
     </div>
   );
 }

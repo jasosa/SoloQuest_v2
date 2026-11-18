@@ -19,7 +19,7 @@ const manifest = {
   trap: { armed: 'q.png', pit: 'pit.png', spear: 'spear.png' },
   monster: { orc: 'orc.png' },
   furniture: {
-    table: { file: 'table.png', cells: [2, 1] },
+    table: { file: 'table.png', cells: [2, 1], scale: 0.85 },
     stairs: { file: 'stairs.png', corner: 'topLeft' },
   },
 };
@@ -90,6 +90,9 @@ describe('readPack', () => {
   it('refuses an unknown monster or furniture type', () => {
     expect(readPack(zip({ ...manifest, monster: { dragon: 'orc.png' } })).ok).toBe(false);
     expect(readPack(zip({ ...manifest, trap: { lava: 'pit.png' } })).ok).toBe(false);
+    expect(
+      readPack(zip({ ...manifest, furniture: { table: { file: 'table.png', scale: 2 } } })).ok,
+    ).toBe(false);
     expect(readPack(zip({ ...manifest, furniture: { sofa: { file: 'table.png' } } })).ok).toBe(
       false,
     );
@@ -122,7 +125,11 @@ describe('writePack and themeFromPack', () => {
     expect(theme.floor).toEqual(['blob:f1.png', 'blob:f2.webp']);
     expect(theme.wall).toBe('blob:w.png');
     expect(theme.monster?.orc).toBe('blob:orc.png');
-    expect(theme.furniture?.table).toEqual({ href: 'blob:table.png', cells: [2, 1] });
+    expect(theme.furniture?.table).toEqual({
+      href: 'blob:table.png',
+      cells: [2, 1],
+      scale: 0.85,
+    });
     expect(theme.furniture?.stairs).toEqual({ href: 'blob:stairs.png', corner: 'topLeft' });
     expect(theme.board).toBe('blob:board.png');
     expect(theme.door).toEqual({ closed: 'blob:door.png', secret: 'blob:secret.png' });

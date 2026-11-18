@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, gotoQuest } from './helpers';
+import { dismissStart, gotoQuest, newGame } from './helpers';
 
 const shot = (page: Page, name: string) => page.screenshot({ path: `test-results/${name}.png` });
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
@@ -11,8 +11,7 @@ async function startQuest1(page: Page, heroes: string[]) {
     .getByRole('button', { name: /Quest 1/ })
     .first()
     .click();
-  for (const h of heroes) await page.getByRole('button', { name: h, exact: true }).click();
-  await page.getByRole('button', { name: 'Start the quest' }).click();
+  await newGame(page, heroes);
   await dismissStart(page);
 }
 
@@ -62,10 +61,13 @@ test.describe('quest and team select', () => {
     await shot(page, 'select-start');
     await expect(page.locator('.qcard')).toHaveCount(14);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);
-    const start = page.getByRole('button', { name: 'Start the quest' });
+    // the heroes are chosen in a popup: Start needs at least one
+    await page.getByTestId('new-game').click();
+    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+    const start = dialog.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeDisabled();
-    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await page.getByRole('button', { name: 'Elf', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Elf', exact: true }).click();
     await shot(page, 'select-team');
     await expect(start).toBeEnabled();
     await start.click();
@@ -228,14 +230,13 @@ test.describe('new game over a saved game', () => {
       .getByRole('button', { name: /Quest 1/ })
       .first()
       .click();
-    await page.getByRole('button', { name: 'Elf', exact: true }).click();
-    await page.getByRole('button', { name: /New game/ }).click();
-    await expect(page.getByRole('alertdialog')).toContainText('Replace the saved game');
-    await page.getByRole('button', { name: 'Keep the saved game' }).click();
-    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+    await page.getByTestId('new-game').click();
+    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+    await expect(dialog.getByRole('alert')).toContainText('replaces the saved game');
+    await dialog.getByRole('button', { name: 'Keep the saved game' }).click();
+    await expect(dialog).toHaveCount(0);
     await expect(page.getByText('Saved game')).toBeVisible();
-    await page.getByRole('button', { name: /New game/ }).click();
-    await page.getByRole('button', { name: 'Replace it' }).click();
+    await newGame(page, ['Elf']);
     await dismissStart(page);
     await expect(page.locator('header .turn')).toContainText('Turn 1');
     await expect(rosterRows(page)).toHaveCount(0);
@@ -248,8 +249,7 @@ async function startQuestWithSave(page: Page) {
     .getByRole('button', { name: /Quest 1/ })
     .first()
     .click();
-  await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
-  await page.getByRole('button', { name: 'Start the quest' }).click();
+  await newGame(page, ['Dwarf']);
   await dismissStart(page);
   for (const d of ['d1', 'd2']) {
     await door(page, d).click();

@@ -29,6 +29,11 @@ export interface FurnitureSlot {
    * one. The picture is turned so that corner points into the corner of the room the piece is in.
    */
   readonly corner?: Corner;
+  /**
+   * How much of its footprint the picture fills, from 0.4 to 1 (default 1), keeping its proportions.
+   * For a picture that looks too big next to the monsters. It stays centered on the footprint.
+   */
+  readonly scale?: number;
 }
 
 /** The traps that can have a picture: the hidden "armed" look, and one per kind of trap. */

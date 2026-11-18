@@ -71,6 +71,9 @@ A picture keeps its proportions inside the footprint of the piece, so a picture 
 works best. Add `cells: [w, h]` with the size in squares **as the picture is drawn**. When a quest stands the
 piece the other way (a 3 x 2 table placed 2 x 3), the picture is turned by 90 degrees.
 
+A picture that looks too big can be made smaller with `scale` (0.4 to 1, default 1): it keeps its proportions and stays
+centered on the footprint, for example `"table": { "file": "table.png", "cells": [3, 2], "scale": 0.85 }`.
+
 Stairs are different: the quests place them in a corner of a room, in four directions. Give the stairs picture a
 `corner`, which is the corner of the picture that is solid (`topLeft`, `topRight`, `bottomRight` or
 `bottomLeft`). The picture is turned so that corner points into the corner of the room the stairs are in.

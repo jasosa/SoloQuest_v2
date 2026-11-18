@@ -148,10 +148,25 @@ function Game({ params }: { params: URLSearchParams }) {
     [params],
   );
   const [textures, setTextures] = useState(false);
+  /** The name of the texture pack in use (null: the built-in look), shown on the quest select screen. */
+  const [textureName, setTextureName] = useState<string | null>(null);
+  const readTextureName = useCallback(async (): Promise<string | null> => {
+    const id = await themeStore.getActive();
+    if (!id) return null;
+    return (await themeStore.list()).find((p) => p.id === id)?.name ?? null;
+  }, [themeStore]);
   // The texture pack chosen last time is used from the start.
   useEffect(() => {
-    void restorePack(themeStore);
-  }, [themeStore]);
+    let live = true;
+    void (async () => {
+      await restorePack(themeStore);
+      const name = await readTextureName();
+      if (live) setTextureName(name);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [themeStore, readTextureName]);
   const referenceStore = useMemo<ReferenceStore>(
     () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
     [params],
@@ -326,9 +341,18 @@ function Game({ params }: { params: URLSearchParams }) {
         notice={notice}
         onEditor={() => setEditor('start')}
         onTextures={() => setTextures(true)}
+        textureName={textureName}
         userStore={userStore}
       />
-      {textures && <TexturesDialog store={themeStore} onClose={() => setTextures(false)} />}
+      {textures && (
+        <TexturesDialog
+          store={themeStore}
+          onClose={() => {
+            setTextures(false);
+            void readTextureName().then(setTextureName);
+          }}
+        />
+      )}
     </>
   );
 }
