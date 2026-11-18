@@ -152,7 +152,7 @@ Per quest
 - [x] Q11: trap disarmed message is addressed to the players, fix wording; objective also includes escaping by the stairs
 - [x] Q12: false door shows a result sheet like the already-searched chest, not a toast (a logged quest note with a `doorTried` trigger is still open, see the Quest 12 item above)
 - [x] Q13: start message with "the six marked falling-block squares" removed (each marker keeps its rule)
-- [ ] Q13: editor changes still show the old version in play
+- [x] Q13: editor changes still show the old version in play (the quest list now plays the editor draft when there is one; unsaved edits count)
 
 ## M8 · Polish
 
@@ -164,6 +164,9 @@ Per quest
 
 - [ ] Polish from the M4 review: trap Tab focus inside dialogs (or `inert` on the rest of the screen); cap or move long toasts to a sheet; add the dialog veil color to DESIGN.md tokens; reset the re-read sheet after an undo removes its note; unit test for a pending choice shown after the note sheets
 
+- [ ] Polish from the UI review (decision 77): contrast tokens. Lighten `--sel`; dead-hero text (`--off`) is 1.77:1; `--green` on paper-2 is 4.49:1 (needs 4.5:1); the disabled Start button needs a hint saying why
+- [ ] Polish from the UI review: board squares are 34 px at the default fit on tablet. Add a larger invisible hit area (44 px) or an easier select, without changing the drawing
+- [ ] Prettier flags `promptToasts.ts` and `SelectScreen.tsx` (not touched by the review pass): format them
 - [ ] Wake lock, settings (sound off, reduced motion), resume screen
 - [ ] Accessibility pass (labels, focus, contrast)
 - [ ] Full session test on a real tablet
@@ -207,6 +210,20 @@ Per quest
 - [ ] Expansions on and off for the add menus (quests keep working)
 - [ ] Copy on edit for normal users (Core read only)
 - [ ] My library exported and imported as a pack file to share
+
+## Texture packs (owner, wanted; plan the next feature with these in mind)
+
+Goal: a user changes the look of play mode by applying a texture pack, for an expansion or a quest. A pack gives images for the board, walls, doors, furniture, monsters, heroes and tokens. See the idea in the owner's reference picture (stone floor tiles, lit walls and torches, wooden doors, 3D-looking chests, round portrait tokens, parchment and wood panels).
+
+- [ ] Decision first: what a pack may change (drawing only, never rules), where it lives (pack file, IndexedDB, quest keeps a pack id), and whether a quest can name a default pack
+- [ ] Theme layer: every drawn element asks a `Theme` for its look (floor, rock, wall, door, each furniture type, trap, stairs, token, marker, fog). Today `BoardView.tsx` and `Furniture.tsx` draw them as SVG line art with token colors, so the default theme is the current drawing
+- [ ] Image slots for all elements, including every furniture type, with a rule for size, anchor, rotation and footprint (a 2x1 table is one image over 2 squares)
+- [ ] Board styles: floor tile images (with variants so it does not repeat), wall pieces (top face, side face, corners), rock fill, room lighting; the board stays a 26 x 19 grid, only the drawing changes
+- [ ] Walls with depth (as in the reference): decide between a flat top-down skin and a raised wall strip; the second needs extra space around rooms and a change of how sight, doors and tokens are laid out
+- [ ] Texture pack file format (`.hqtextures`, images + `theme.json`), import and export, a picker in Settings, preview in the Library
+- [ ] Monster, hero and companion pictures from the pack (the Library already has a per-enemy `image`; the pack gives the default per type)
+- [ ] UI chrome from the pack (parchment panels, wood buttons, gear icon) is a later, separate step: it needs the token colors and sizes to stay readable (contrast, 44 px targets)
+- [ ] Performance and offline: images in the PWA cache or IndexedDB, small formats (webp), lazy load, sprite sheets for large packs
 
 ## Ideas (owner, not scheduled)
 
