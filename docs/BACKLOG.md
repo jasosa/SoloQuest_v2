@@ -203,6 +203,14 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
 - [ ] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event, one entry in the quest list
 - [ ] Slice 7: editor: pack tools, a tab per map, the link tool, the spell builder; then encode Q0 and Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
 
+## Bugs from the quest 0 review (owner, 2026-11-18)
+
+- [ ] The cage of quest 0 (note C) is painted below the room (z-order) until a search happens in the room, and then it appears on top
+- [ ] No eye icon ("Look from here") on a square that has a trap, a marker or another piece; the Look from here action stays available in its note when it applies
+- [ ] Searching for secret doors from a corridor with an enemy in sight does not work; it should behave like Search for treasure in a room (the "monsters in the way" guard with an override)
+- [ ] Eye icons show on more squares than the crossroads and the squares beside them; and when a crossroad square is occupied the eye must move to the squares beside it
+- [ ] Popups are sometimes cut (a long margin note is clipped by the screen edge, see the Polar Warbear note)
+
 ## Editor changes asked in the quests review (not now)
 
 - [x] Zones: the zone effect disappears after the first interaction (find out what the effect is and why it goes)
