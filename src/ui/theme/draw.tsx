@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { color } from '../shared/tokens';
-import { tileFor, type Theme } from './theme';
+import { TOKEN_SIZE, tileFor, tuned, type Theme, type TrapSlot } from './theme';
+import type { MonsterType } from '../../engine/quest/schema';
 
 /**
  * Drawing helpers shared by every board (play, Zargon view, editor, debug): the floor square and
@@ -163,18 +164,17 @@ export function doorPiece(
 ): ReactNode {
   const href = theme.door?.[kind];
   if (!href) return null;
+  const tune = theme.tune?.door?.[kind];
+  const turn = vertical ? `rotate(90 ${cx} ${cy})` : undefined;
   if (kind === 'secret') {
     // A secret door picture is about square (a slab on the wall line with its leaf swung up): its
     // bottom edge sits on the wall, and it is turned for a door in a vertical wall.
     return (
       <image
         href={href}
-        x={cx - size / 2}
-        y={cy - size + 5}
-        width={size}
-        height={size}
+        {...tuned(cx, cy - size / 2 + 5, size, size, size, tune)}
         preserveAspectRatio="xMidYMid meet"
-        transform={vertical ? `rotate(90 ${cx} ${cy})` : undefined}
+        transform={turn}
         data-themed="door"
       />
     );
@@ -182,42 +182,48 @@ export function doorPiece(
   return (
     <image
       href={href}
-      x={cx - size / 2}
-      y={cy - DOOR_THICK / 2}
-      width={size}
-      height={DOOR_THICK}
+      {...tuned(cx, cy, size, DOOR_THICK, size, tune)}
       preserveAspectRatio="none"
-      transform={vertical ? `rotate(90 ${cx} ${cy})` : undefined}
+      transform={turn}
       data-themed="door"
     />
   );
 }
 
-/** One square filled with a picture (blocks, traps), or null for the built-in drawing. */
+/** The slot of a picture that fills one square. */
+export type SquareSlot = { group: 'block'; key: 'single' } | { group: 'trap'; key: TrapSlot };
+
+/** One square filled with a picture (a block, a trap), or null for the built-in drawing. */
 export function squarePiece(
-  href: string | undefined,
+  theme: Theme,
+  slot: SquareSlot,
   x: number,
   y: number,
   size: number,
   kind: string,
 ): ReactNode {
+  const href = slot.group === 'block' ? theme.block?.[slot.key] : theme.trap?.[slot.key];
   if (!href) return null;
+  const tune =
+    slot.group === 'block' ? theme.tune?.block?.[slot.key] : theme.tune?.trap?.[slot.key];
   return (
     <image
       href={href}
-      x={x * size}
-      y={y * size}
-      width={size}
-      height={size}
+      {...tuned((x + 0.5) * size, (y + 0.5) * size, size, size, size, tune)}
       preserveAspectRatio="xMidYMid meet"
       data-themed={kind}
     />
   );
 }
 
+/** The box of a monster token (one picture, about a square wide) with the pack's scale and shift. */
+export function tokenBox(theme: Theme, type: MonsterType, cx: number, cy: number, unit: number) {
+  return tuned(cx, cy, TOKEN_SIZE, TOKEN_SIZE, unit, theme.tune?.monster?.[type]);
+}
+
 /**
- * A block of one or two squares as one picture, or null for the built-in drawing. Two squares
- * side by side use the `double` picture (turned when they stand one above the other).
+ * A block of two squares side by side as one picture, or null for the built-in drawing (and for
+ * anything that is not two squares side by side). Turned when the two squares stand one above the other.
  */
 export function blockPiece(
   theme: Theme,
@@ -230,20 +236,13 @@ export function blockPiece(
   if (a && b && cells.length === 2 && Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) === 1) {
     if (!theme.block?.double) return null;
     const vertical = a[0] === b[0];
-    const x0 = Math.min(a[0], b[0]) * size;
-    const y0 = Math.min(a[1], b[1]) * size;
-    const w = (vertical ? 1 : 2) * size;
-    const h = (vertical ? 2 : 1) * size;
-    const mx = x0 + w / 2;
-    const my = y0 + h / 2;
+    const mx = (Math.min(a[0], b[0]) + (vertical ? 0.5 : 1)) * size;
+    const my = (Math.min(a[1], b[1]) + (vertical ? 1 : 0.5)) * size;
     return (
       <image
         key={key}
         href={theme.block.double}
-        x={mx - size}
-        y={my - size / 2}
-        width={2 * size}
-        height={size}
+        {...tuned(mx, my, 2 * size, size, size, theme.tune?.block?.double)}
         preserveAspectRatio="xMidYMid meet"
         transform={vertical ? `rotate(90 ${mx} ${my})` : undefined}
         data-themed="block2"

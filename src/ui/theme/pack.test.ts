@@ -17,7 +17,7 @@ const manifest = {
   door: { closed: 'door.png', secret: 'secret.png' },
   block: { single: 'b1.png', double: 'b2.png' },
   trap: { armed: 'q.png', pit: 'pit.png', spear: 'spear.png' },
-  monster: { orc: 'orc.png' },
+  monster: { orc: { file: 'orc.png', scale: 1.5, offset: [0, -0.2] }, goblin: 'orc.png' },
   furniture: {
     table: { file: 'table.png', cells: [2, 1], scale: 0.85 },
     stairs: { file: 'stairs.png', corner: 'topLeft' },
@@ -90,8 +90,18 @@ describe('readPack', () => {
   it('refuses an unknown monster or furniture type', () => {
     expect(readPack(zip({ ...manifest, monster: { dragon: 'orc.png' } })).ok).toBe(false);
     expect(readPack(zip({ ...manifest, trap: { lava: 'pit.png' } })).ok).toBe(false);
+    // scale and offset have limits, and a slot object takes nothing else
+    const slot = (extra: object) => ({
+      ...manifest,
+      monster: { orc: { file: 'orc.png', ...extra } },
+    });
+    expect(readPack(zip(slot({ scale: 2.5 }))).ok).toBe(true);
+    expect(readPack(zip(slot({ scale: 3 }))).ok).toBe(false);
+    expect(readPack(zip(slot({ scale: 0.2 }))).ok).toBe(false);
+    expect(readPack(zip(slot({ offset: [1.5, 0] }))).ok).toBe(false);
+    expect(readPack(zip(slot({ colour: 'red' }))).ok).toBe(false);
     expect(
-      readPack(zip({ ...manifest, furniture: { table: { file: 'table.png', scale: 2 } } })).ok,
+      readPack(zip({ ...manifest, furniture: { table: { file: 'table.png', scale: 5 } } })).ok,
     ).toBe(false);
     expect(readPack(zip({ ...manifest, furniture: { sofa: { file: 'table.png' } } })).ok).toBe(
       false,
@@ -125,6 +135,9 @@ describe('writePack and themeFromPack', () => {
     expect(theme.floor).toEqual(['blob:f1.png', 'blob:f2.webp']);
     expect(theme.wall).toBe('blob:w.png');
     expect(theme.monster?.orc).toBe('blob:orc.png');
+    expect(theme.monster?.goblin).toBe('blob:orc.png');
+    // only the slots that were adjusted have a tune
+    expect(theme.tune).toEqual({ monster: { orc: { scale: 1.5, offset: [0, -0.2] } } });
     expect(theme.furniture?.table).toEqual({
       href: 'blob:table.png',
       cells: [2, 1],

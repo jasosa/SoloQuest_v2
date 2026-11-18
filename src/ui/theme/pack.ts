@@ -1,7 +1,15 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { z } from 'zod';
 import { FURNITURE_TYPES, MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
-import { CORNERS, type Theme } from './theme';
+import {
+  CORNERS,
+  OFFSET_MAX,
+  SCALE_MAX,
+  SCALE_MIN,
+  type Theme,
+  type ThemeTune,
+  type Tune,
+} from './theme';
 
 /**
  * The texture pack file (decision 78): `.sqtextures`, a zip with `theme.json` and the pictures it
@@ -29,6 +37,22 @@ const FileName = z
 
 const Files = z.array(FileName).min(1).max(40);
 
+const ScaleSchema = z.number().min(SCALE_MIN).max(SCALE_MAX);
+const OffsetSchema = z.tuple([
+  z.number().min(-OFFSET_MAX).max(OFFSET_MAX),
+  z.number().min(-OFFSET_MAX).max(OFFSET_MAX),
+]);
+
+/** A picture slot: a file name, or the file with how it is scaled and moved. */
+const SlotSchema = z.union([
+  FileName,
+  z
+    .object({ file: FileName, scale: ScaleSchema.optional(), offset: OffsetSchema.optional() })
+    .strict(),
+]);
+type Slot = z.infer<typeof SlotSchema>;
+const fileOf = (s: Slot): string => (typeof s === 'string' ? s : s.file);
+
 export const PackManifestSchema = z
   .object({
     format: z.literal('sqtextures'),
@@ -44,21 +68,22 @@ export const PackManifestSchema = z
     wall: FileName.optional(),
     door: z
       .object({
-        closed: FileName.optional(),
-        open: FileName.optional(),
-        secret: FileName.optional(),
+        closed: SlotSchema.optional(),
+        open: SlotSchema.optional(),
+        secret: SlotSchema.optional(),
       })
       .optional(),
-    block: z.object({ single: FileName.optional(), double: FileName.optional() }).optional(),
-    trap: z.partialRecord(z.enum(['armed', ...TRAP_KINDS]), FileName).optional(),
-    monster: z.partialRecord(z.enum(MONSTER_TYPES), FileName).optional(),
+    block: z.object({ single: SlotSchema.optional(), double: SlotSchema.optional() }).optional(),
+    trap: z.partialRecord(z.enum(['armed', ...TRAP_KINDS]), SlotSchema).optional(),
+    monster: z.partialRecord(z.enum(MONSTER_TYPES), SlotSchema).optional(),
     furniture: z
       .partialRecord(
         z.enum(FURNITURE_TYPES),
         z.object({
           file: FileName,
           corner: z.enum(CORNERS).optional(),
-          scale: z.number().min(0.4).max(1).optional(),
+          scale: ScaleSchema.optional(),
+          offset: OffsetSchema.optional(),
           cells: z
             .tuple([z.number().int().min(1).max(6), z.number().int().min(1).max(6)])
             .optional(),
@@ -107,13 +132,11 @@ export function manifestFiles(m: PackManifest): string[] {
     ...(m.corridor ?? []),
     m.rock,
     m.wall,
-    m.door?.closed,
-    m.door?.open,
-    m.door?.secret,
-    m.block?.single,
-    m.block?.double,
-    ...Object.values(m.trap ?? {}),
-    ...Object.values(m.monster ?? {}),
+    ...[m.door?.closed, m.door?.open, m.door?.secret, m.block?.single, m.block?.double].map(
+      (s) => s && fileOf(s),
+    ),
+    ...Object.values(m.trap ?? {}).map((s) => s && fileOf(s)),
+    ...Object.values(m.monster ?? {}).map((s) => s && fileOf(s)),
     ...Object.values(m.furniture ?? {}).map((f) => f?.file),
   ];
   return [...new Set(out.filter((n): n is string => n !== undefined))];
@@ -186,18 +209,38 @@ export function writePack(pack: StoredPack): Uint8Array {
 export function themeFromPack(pack: StoredPack, url: (file: string) => string): Theme {
   const m = pack.manifest;
   const some = <T extends object>(o: T): T | undefined => (Object.keys(o).length ? o : undefined);
-  // each group keeps only the slots the pack fills, so an empty group is left out
-  const pick = <K extends string>(src: Partial<Record<K, string | undefined>> | undefined) =>
-    Object.fromEntries(
-      Object.entries(src ?? {}).flatMap(([k, f]) => (typeof f === 'string' ? [[k, url(f)]] : [])),
-    ) as Partial<Record<K, string>>;
+  const tuneOf = (s: Slot): Tune | undefined =>
+    typeof s === 'string' || (s.scale === undefined && s.offset === undefined)
+      ? undefined
+      : {
+          ...(s.scale !== undefined ? { scale: s.scale } : {}),
+          ...(s.offset ? { offset: s.offset } : {}),
+        };
+  /** The urls of a group of slots, and the tune of those that have one. Empty groups are left out. */
+  const group = <K extends string>(src: Partial<Record<K, Slot | undefined>> | undefined) => {
+    const hrefs: Partial<Record<K, string>> = {};
+    const tunes: Partial<Record<K, Tune>> = {};
+    for (const [k, slot] of Object.entries(src ?? {}) as [K, Slot | undefined][]) {
+      if (slot === undefined) continue;
+      hrefs[k] = url(fileOf(slot));
+      const t = tuneOf(slot);
+      if (t) tunes[k] = t;
+    }
+    return { hrefs: some(hrefs), tunes: some(tunes) };
+  };
   const board = m.board ? url(m.board) : undefined;
   const rock = m.rock ? url(m.rock) : undefined;
   const wall = m.wall ? url(m.wall) : undefined;
-  const door = some(pick(m.door));
-  const block = some(pick(m.block));
-  const trap = some(pick(m.trap));
-  const monster = some(pick(m.monster));
+  const door = group(m.door);
+  const block = group(m.block);
+  const trap = group(m.trap);
+  const monster = group(m.monster);
+  const tune: ThemeTune = {
+    ...(monster.tunes ? { monster: monster.tunes } : {}),
+    ...(door.tunes ? { door: door.tunes } : {}),
+    ...(block.tunes ? { block: block.tunes } : {}),
+    ...(trap.tunes ? { trap: trap.tunes } : {}),
+  };
   const furniture = some(
     Object.fromEntries(
       Object.entries(m.furniture ?? {}).map(([t, f]) => [
@@ -207,6 +250,7 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
           ...(f.cells ? { cells: f.cells } : {}),
           ...(f.corner ? { corner: f.corner } : {}),
           ...(f.scale !== undefined ? { scale: f.scale } : {}),
+          ...(f.offset ? { offset: f.offset } : {}),
         },
       ]),
     ),
@@ -219,10 +263,11 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
     ...(m.corridor ? { corridor: m.corridor.map(url) } : {}),
     ...(rock ? { rock } : {}),
     ...(wall ? { wall } : {}),
-    ...(door ? { door } : {}),
-    ...(block ? { block } : {}),
-    ...(trap ? { trap } : {}),
-    ...(monster ? { monster } : {}),
+    ...(door.hrefs ? { door: door.hrefs } : {}),
+    ...(block.hrefs ? { block: block.hrefs } : {}),
+    ...(trap.hrefs ? { trap: trap.hrefs } : {}),
+    ...(monster.hrefs ? { monster: monster.hrefs } : {}),
     ...(furniture ? { furniture } : {}),
+    ...(some(tune) ? { tune } : {}),
   };
 }

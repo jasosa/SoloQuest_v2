@@ -60,6 +60,15 @@ test.describe('themes (decision 78)', () => {
     await expect(page.locator('[data-themed="wall"]')).toHaveCount(0);
     // a theme token is a whole token: orcs and skeletons show their picture, the others keep the letter coin
     expect(await page.locator('[data-themed="token"]').count()).toBeGreaterThanOrEqual(5);
+    // a pack can scale a slot: the test theme draws orcs twice as big as the other tokens
+    await expect(page.locator('[data-monster="m9"] [data-themed="token"]')).toHaveAttribute(
+      'width',
+      '64',
+    );
+    await expect(page.locator('[data-monster="m1"] [data-themed="token"]')).toHaveAttribute(
+      'width',
+      '32',
+    );
     // stairs and the table use theme pictures
     expect(await page.locator('[data-themed="furniture"]').count()).toBeGreaterThanOrEqual(3);
     // Quest 1 has three blocks of one square and one of two squares: all use the theme pictures

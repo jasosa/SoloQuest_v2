@@ -44,6 +44,8 @@ export const TEST_BOARD_THEME: Theme = {
     secret: svg('#7a2a7a'),
   },
   monster: { orc: svg('#6a1b9a'), skeleton: svg('#eeeeee') },
+  // orcs are drawn twice as big, to check the pack's scale
+  tune: { monster: { orc: { scale: 2 } } },
   block: { single: svg('#2b2b2b'), double: svg('#3b3b3b') },
   trap: { pit: svg('#101010'), spear: svg('#cc2222'), fallingBlock: svg('#554433') },
   furniture: {

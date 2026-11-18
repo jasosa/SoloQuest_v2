@@ -35,6 +35,7 @@ import {
   floorCell,
   RockPattern,
   squarePiece,
+  tokenBox,
   wallSegment,
 } from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
@@ -555,7 +556,9 @@ export function EditorBoard({
     b.cells.forEach(([bx, by], i) => {
       const q = (U - 4) / 4;
       const sel = selection?.kind === 'block' && sameCell(selection.cell, [bx, by]);
-      const single = together ? null : squarePiece(theme.block?.single, bx, by, U, 'block');
+      const single = together
+        ? null
+        : squarePiece(theme, { group: 'block', key: 'single' }, bx, by, U, 'block');
       blockArt.push(
         <g key={`b${bx},${by}`} data-block={`${bx},${by}`}>
           {sel && (
@@ -623,7 +626,7 @@ export function EditorBoard({
     const cy = (c[1] + 0.5) * U;
     const sel = selection?.kind === 'trap' && selection.id === t.id;
     // the author sees the kind of every trap, so a pack's picture of that kind is used
-    const trapArt = squarePiece(theme.trap?.[t.kind], c[0], c[1], U, 'trap');
+    const trapArt = squarePiece(theme, { group: 'trap', key: t.kind }, c[0], c[1], U, 'trap');
     things.push(
       <g key={`t${t.id}`} data-trap={t.id} opacity={0.65}>
         {sel && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -674,10 +677,7 @@ export function EditorBoard({
         {isThemeToken(theme, shownImage(quest, m), m.type) ? (
           <image
             href={monsterPicture(theme, shownImage(quest, m), m.type)}
-            x={cx - 16}
-            y={cy - 16}
-            width={32}
-            height={32}
+            {...tokenBox(theme, m.type, cx, cy, U)}
             preserveAspectRatio="xMidYMid meet"
             opacity={m.state === 'dormant' ? 0.55 : 1}
             data-token-image={m.id}

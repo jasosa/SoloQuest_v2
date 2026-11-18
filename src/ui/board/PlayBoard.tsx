@@ -28,7 +28,9 @@ import {
   floorCell,
   RockPattern,
   squarePiece,
+  tokenBox,
   wallSegment,
+  type SquareSlot,
 } from '../theme/draw';
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
@@ -214,12 +216,14 @@ export function PlayBoard({
       const px = x * S;
       const py = y * S;
       const q = (S - 4) / 4;
-      const href = g.fallen
-        ? (theme.trap?.fallingBlock ?? theme.block?.single)
-        : theme.block?.single;
+      // a block a falling-block trap left has the trap's picture, if the pack has one
+      const slot: SquareSlot =
+        g.fallen && theme.trap?.fallingBlock
+          ? { group: 'trap', key: 'fallingBlock' }
+          : { group: 'block', key: 'single' };
       into(f).push(
         <g key={`b${x},${y}`} data-block={`${x},${y}`}>
-          {squarePiece(href, x, y, S, 'block') ?? (
+          {squarePiece(theme, slot, x, y, S, 'block') ?? (
             <>
               <rect
                 x={px + 2}
@@ -460,7 +464,8 @@ export function PlayBoard({
       <g key={`t${t.id}`} data-trap-mark={t.id}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
         {squarePiece(
-          t.state === 'sprung' ? (t.kind ? theme.trap?.[t.kind] : undefined) : theme.trap?.armed,
+          theme,
+          { group: 'trap', key: t.state === 'sprung' ? (t.kind ?? 'armed') : 'armed' },
           tx,
           ty,
           S,
@@ -564,10 +569,7 @@ export function PlayBoard({
               {whole ? (
                 <image
                   href={pic}
-                  x={cx - 16}
-                  y={cy - 16}
-                  width={32}
-                  height={32}
+                  {...tokenBox(theme, m.type, cx, cy, S)}
                   preserveAspectRatio="xMidYMid meet"
                   data-token-image={m.id}
                   data-themed="token"

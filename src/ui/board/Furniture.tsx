@@ -42,8 +42,9 @@ export function Furniture({ f, board }: { f: FurnitureDef; board?: Board | undef
     const fit = slot.scale ?? 1;
     const pw = (sideways && !slot.corner ? h : w) * fit;
     const ph = (sideways && !slot.corner ? w : h) * fit;
-    const mx = x + w / 2;
-    const my = y + h / 2;
+    // the pack may move the picture a little (offset, in squares, on the screen)
+    const mx = x + w / 2 + (slot.offset?.[0] ?? 0) * S;
+    const my = y + h / 2 + (slot.offset?.[1] ?? 0) * S;
     return (
       <image
         href={slot.href}

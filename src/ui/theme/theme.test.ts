@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { board } from '../../engine/board/board';
-import { cornerTurn, isThemeToken, needsTurn, tileFor } from './theme';
+import { cornerTurn, isThemeToken, needsTurn, tileFor, tuned } from './theme';
 
 describe('tileFor', () => {
   it('gives nothing when there are no tiles', () => {
@@ -64,5 +64,41 @@ describe('isThemeToken', () => {
     expect(isThemeToken(theme, undefined, 'orc')).toBe(true);
     expect(isThemeToken(theme, 'data:own', 'orc')).toBe(false);
     expect(isThemeToken(theme, undefined, 'goblin')).toBe(false);
+  });
+});
+
+describe('tuned (scale and offset of a picture)', () => {
+  it('is the normal box, centered, when there is no tune', () => {
+    expect(tuned(100, 50, 32, 32, 34)).toEqual({ x: 84, y: 34, width: 32, height: 32 });
+  });
+  it('scales around the center, also above 1', () => {
+    expect(tuned(100, 50, 32, 32, 34, { scale: 2 })).toEqual({
+      x: 68,
+      y: 18,
+      width: 64,
+      height: 64,
+    });
+    expect(tuned(100, 50, 32, 32, 34, { scale: 0.5 })).toEqual({
+      x: 92,
+      y: 42,
+      width: 16,
+      height: 16,
+    });
+  });
+  it('moves by an offset in squares', () => {
+    expect(tuned(100, 50, 32, 32, 34, { offset: [0.5, -1] })).toEqual({
+      x: 84 + 17,
+      y: 34 - 34,
+      width: 32,
+      height: 32,
+    });
+  });
+  it('scales first, then moves', () => {
+    expect(tuned(0, 0, 10, 10, 20, { scale: 3, offset: [1, 0] })).toEqual({
+      x: 20 - 15,
+      y: -15,
+      width: 30,
+      height: 30,
+    });
   });
 });

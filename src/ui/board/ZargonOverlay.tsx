@@ -10,7 +10,14 @@ import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { blockPiece, doorPiece, floorCell, squarePiece, wallSegment } from '../theme/draw';
+import {
+  blockPiece,
+  doorPiece,
+  floorCell,
+  squarePiece,
+  tokenBox,
+  wallSegment,
+} from '../theme/draw';
 import { isThemeToken, monsterPicture } from '../theme/theme';
 import { Furniture } from './Furniture';
 import { hiddenView, type HiddenTrap } from './hiddenView';
@@ -64,7 +71,7 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
       return;
     }
     for (const [x, y] of b.cells as readonly Cell[]) {
-      const pic = squarePiece(theme.block?.single, x, y, S, 'block');
+      const pic = squarePiece(theme, { group: 'block', key: 'single' }, x, y, S, 'block');
       blocks.push(
         pic ? (
           <g key={`zb${x},${y}`}>{pic}</g>
@@ -131,10 +138,7 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
         <g key={`zm${m.id}`} data-zmonster={m.id}>
           <image
             href={pic}
-            x={cx - 16}
-            y={cy - 16}
-            width={32}
-            height={32}
+            {...tokenBox(theme, m.type, cx, cy, S)}
             preserveAspectRatio="xMidYMid meet"
           />
         </g>
@@ -168,7 +172,14 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
   const traps = hv.traps.map((t) => {
     const cx = (t.cell[0] + 0.5) * S;
     const cy = (t.cell[1] + 0.5) * S;
-    const picture = squarePiece(theme.trap?.[t.kind], t.cell[0], t.cell[1], S, 'trap');
+    const picture = squarePiece(
+      theme,
+      { group: 'trap', key: t.kind },
+      t.cell[0],
+      t.cell[1],
+      S,
+      'trap',
+    );
     if (picture)
       return (
         <g key={`zt${t.id}`} data-ztrap={t.id}>

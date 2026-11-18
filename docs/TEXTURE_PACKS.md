@@ -59,6 +59,24 @@ the rooms, the corridors and the walls drawn on it: the app draws no wall lines 
 `board`. Rock and fog are still drawn over the squares that are not seen (and wall lines along rock edges, in the
 built-in ink).
 
+### Scale and offset (any picture)
+
+Any picture slot can be written as a file name, or as an object that also scales and moves it:
+
+```json
+"monster": { "orc": { "file": "orc.png", "scale": 1.3, "offset": [0, -0.1] }, "goblin": "goblin.png" },
+"furniture": { "table": { "file": "table.png", "cells": [3, 2], "scale": 0.75 } }
+```
+
+- `scale` is 1 for the normal size, from 0.4 (smaller) to 2.5 (bigger). The picture keeps its proportions and
+  stays centered on its square, footprint or opening. A picture bigger than its square may cover its neighbours.
+- `offset` is `[dx, dy]` in squares, from -1 to 1: `[0.5, 0]` moves it half a square to the right, `[0, -0.25]`
+  a quarter of a square up. For a door or a double block the offset follows the door or block when it is turned.
+  For furniture it is on the screen.
+
+This works for `monster`, `door`, `block`, `trap` and `furniture` slots. The board, floor, wall and rock pictures
+are not adjusted.
+
 ### Monsters
 
 A monster picture is the **whole token**, frame included (a round portrait is typical). The app draws no green
@@ -70,11 +88,6 @@ monster list. Transparent corners are fine.
 A picture keeps its proportions inside the footprint of the piece, so a picture with a transparent background
 works best. Add `cells: [w, h]` with the size in squares **as the picture is drawn**. When a quest stands the
 piece the other way (a 3 x 2 table placed 2 x 3), the picture is turned by 90 degrees.
-
-A picture that looks too big can be made smaller with `scale` (0.4 to 1, default 1): it keeps its proportions and stays
-centered on the footprint, for example `"table": { "file": "table.png", "cells": [3, 2], "scale": 0.85 }`.
-
-In the editor a piece can be turned with Rotate (also by half turns, which keep the same squares): the picture turns with it, so it faces the way the quest author chose.
 
 Stairs are different: the quests place them in a corner of a room, in four directions. Give the stairs picture a
 `corner`, which is the corner of the picture that is solid (`topLeft`, `topRight`, `bottomRight` or

@@ -29,11 +29,53 @@ export interface FurnitureSlot {
    * one. The picture is turned so that corner points into the corner of the room the piece is in.
    */
   readonly corner?: Corner;
-  /**
-   * How much of its footprint the picture fills, from 0.4 to 1 (default 1), keeping its proportions.
-   * For a picture that looks too big next to the monsters. It stays centered on the footprint.
-   */
+  /** Size and shift of the picture (see `Tune`). */
   readonly scale?: number;
+  readonly offset?: readonly [number, number];
+}
+
+/**
+ * How a pack adjusts one picture: `scale` (1 is the normal size, 0.4 to 2.5) makes it smaller or bigger
+ * around its center, keeping its proportions, and `offset` moves it by `[dx, dy]` squares.
+ */
+export interface Tune {
+  readonly scale?: number;
+  readonly offset?: readonly [number, number];
+}
+
+export const SCALE_MIN = 0.4;
+export const SCALE_MAX = 2.5;
+export const OFFSET_MAX = 1;
+
+/** The box of a picture: normal size `w` x `h` centered on (cx, cy), with its tune applied (`unit` px a square). */
+export function tuned(
+  cx: number,
+  cy: number,
+  w: number,
+  h: number,
+  unit: number,
+  tune?: Tune,
+): { x: number; y: number; width: number; height: number } {
+  const s = tune?.scale ?? 1;
+  const width = w * s;
+  const height = h * s;
+  return {
+    x: cx + (tune?.offset?.[0] ?? 0) * unit - width / 2,
+    y: cy + (tune?.offset?.[1] ?? 0) * unit - height / 2,
+    width,
+    height,
+  };
+}
+
+/** The size of a monster token, in px at 34 px a square: a little less than one square. */
+export const TOKEN_SIZE = 32;
+
+/** The adjustments of the pictures of a theme, by slot. Only slots that have one are listed. */
+export interface ThemeTune {
+  readonly monster?: Readonly<Partial<Record<MonsterType, Tune>>>;
+  readonly door?: Readonly<Partial<Record<'closed' | 'open' | 'secret', Tune>>>;
+  readonly block?: Readonly<Partial<Record<'single' | 'double', Tune>>>;
+  readonly trap?: Readonly<Partial<Record<TrapSlot, Tune>>>;
 }
 
 /** The traps that can have a picture: the hidden "armed" look, and one per kind of trap. */
@@ -76,6 +118,8 @@ export interface Theme {
    * kind is shown once it is known: a sprung pit, a fallen block, and, for Zargon, every trap.
    */
   readonly trap?: Readonly<Partial<Record<TrapSlot, string>>>;
+  /** Scale and shift of the pictures above, by slot (furniture carries its own). */
+  readonly tune?: ThemeTune;
 }
 
 export const CLASSIC_THEME: Theme = { id: 'classic', name: 'Classic' };
