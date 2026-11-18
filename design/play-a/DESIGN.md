@@ -292,3 +292,5 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Moving a zoomed map.** When the map is zoomed in, four move buttons (left, up, down, right; 44 px, an arrow each) appear beside the zoom chips, in the strip under the board, on the play screen and in the editor. A tap moves the map a quarter of the map area; held down it repeats until the edge, where the button is disabled. They go away at 100%.
 
+**Editor map and texture packs.** The editor map uses a pack's floor or board picture, walls, furniture, monster tokens and blocks (a block of two squares is one picture). It keeps its own symbols for doors, traps and markers so their kinds stay readable.
+

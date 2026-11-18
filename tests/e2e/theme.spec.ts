@@ -62,6 +62,11 @@ test.describe('themes (decision 78)', () => {
     expect(await page.locator('[data-themed="token"]').count()).toBeGreaterThanOrEqual(5);
     // stairs and the table use theme pictures
     expect(await page.locator('[data-themed="furniture"]').count()).toBeGreaterThanOrEqual(3);
+    // Quest 1 has three blocks of one square and one of two squares: all use the theme pictures
+    await expect(page.locator('[data-themed="block"]')).toHaveCount(3);
+    await expect(page.locator('[data-themed="block2"]')).toHaveCount(1);
+    // the editor can still select each square of the block
+    await expect(page.locator('[data-block]')).toHaveCount(5);
     await page.screenshot({ path: 'test-results/theme-board-editor.png' });
   });
 

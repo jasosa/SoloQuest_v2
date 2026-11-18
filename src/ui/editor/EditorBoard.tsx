@@ -28,7 +28,14 @@ import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
 import { useTheme } from '../theme/activeTheme';
 import { isThemeToken, monsterPicture } from '../theme/theme';
-import { BoardArt, floorCell, RockPattern, wallSegment } from '../theme/draw';
+import {
+  BoardArt,
+  blockPiece,
+  floorCell,
+  RockPattern,
+  squarePiece,
+  wallSegment,
+} from '../theme/draw';
 import { shownImage, shownLetter } from './monsterLabel';
 import { editorLetters } from './noteLetters';
 import { ReferenceLayer, type ReferenceApi } from './ReferenceImage';
@@ -532,38 +539,50 @@ export function EditorBoard({
   }
 
   const blockArt: ReactNode[] = [];
-  for (const b of level.blocks)
-    for (const [bx, by] of b.cells) {
+  for (const b of level.blocks) {
+    // a texture pack draws a block of two squares as one picture (in its first square's group)
+    const together = blockPiece(theme, b.cells, U, `bb${b.cells[0]?.join(',')}`);
+    b.cells.forEach(([bx, by], i) => {
       const q = (U - 4) / 4;
       const sel = selection?.kind === 'block' && sameCell(selection.cell, [bx, by]);
+      const single = together ? null : squarePiece(theme.block?.single, bx, by, U, 'block');
       blockArt.push(
         <g key={`b${bx},${by}`} data-block={`${bx},${by}`}>
           {sel && (
             <rect x={bx * U} y={by * U} width={U} height={U} fill={color.sel} className="selring" />
           )}
-          <rect
-            x={bx * U + 2}
-            y={by * U + 2}
-            width={U - 4}
-            height={U - 4}
-            fill={color.white}
-            stroke={color.ink}
-            strokeWidth={1.5}
-          />
-          {[1, 2, 3].map((i) => (
-            <line
-              key={i}
-              x1={bx * U + 2}
-              y1={by * U + 2 + i * q}
-              x2={bx * U + U - 2}
-              y2={by * U + 2 + i * q}
-              stroke={color.ink}
-              strokeWidth={1}
-            />
-          ))}
+          {together
+            ? i === 0
+              ? together
+              : null
+            : (single ?? (
+                <>
+                  <rect
+                    x={bx * U + 2}
+                    y={by * U + 2}
+                    width={U - 4}
+                    height={U - 4}
+                    fill={color.white}
+                    stroke={color.ink}
+                    strokeWidth={1.5}
+                  />
+                  {[1, 2, 3].map((n) => (
+                    <line
+                      key={n}
+                      x1={bx * U + 2}
+                      y1={by * U + 2 + n * q}
+                      x2={bx * U + U - 2}
+                      y2={by * U + 2 + n * q}
+                      stroke={color.ink}
+                      strokeWidth={1}
+                    />
+                  ))}
+                </>
+              ))}
         </g>,
       );
-    }
+    });
+  }
 
   const things: ReactNode[] = [];
   for (const f of quest.furniture) {
