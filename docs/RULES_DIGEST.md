@@ -40,7 +40,7 @@ Draw a straight line from the center of one square to the center of the other. I
 
 ## Traps (p. 16-19) and the house rule
 
-Official kinds: pit, falling block, spear, chest/furniture. Positions are on the quest map.
+Official kinds: pit, falling block, spear, chest/furniture. Frozen Horror adds stalactite (1 BP, first hero only), swinging axe (2 combat dice, no defend, hits every hero until disarmed), wandering monster trap (once, hero stops, the quest's wandering monsters attack at once), slippery ice (1 combat die per square, white shield = fall) and the ice slide (hero is moved to the last square, 1 combat die, white shield = 1 BP). The last three cannot be found or disarmed, so a disarm try always springs them (decision 41). Positions are on the quest map.
 
 **House rule (decided)**:
 - Traps on a square (pit, falling block, spear) are **visible** as a "?" as soon as their square is seen (room revealed or square in line of sight). The **kind** stays hidden.

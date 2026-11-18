@@ -42,6 +42,10 @@ const TRAP_KINDS_ALL: readonly { kind: TrapKind; label: string }[] = [
   { kind: 'pit', label: 'Pit' },
   { kind: 'fallingBlock', label: 'Falling block' },
   { kind: 'spear', label: 'Spear' },
+  { kind: 'stalactite', label: 'Stalactite' },
+  { kind: 'swingingAxe', label: 'Swinging axe' },
+  { kind: 'wanderingTrap', label: 'Wandering monsters' },
+  { kind: 'slipperyIce', label: 'Slippery ice' },
   { kind: 'chest', label: 'Chest' },
   { kind: 'scripted', label: 'Scripted' },
 ];
@@ -373,7 +377,7 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
         (f) => f.type === 'chest' && !quest.traps.some((t) => t.furniture === f.id),
       );
       patch(free ? { kind, target: { furniture: free.id } } : { kind });
-    } else if ((kind === 'pit' || kind === 'fallingBlock' || kind === 'spear') && !trap.cell) {
+    } else if (kind !== 'chest' && kind !== 'scripted' && !trap.cell) {
       const c = owner?.cells[0];
       patch(c ? { kind, target: { cell: [c[0], c[1]] } } : { kind });
     } else patch({ kind });

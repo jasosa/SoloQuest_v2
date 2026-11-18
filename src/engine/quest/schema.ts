@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { IMAGE_PATTERN, MAX_IMAGE_CHARS } from '../data/enemies';
 import { SPELL_TAG_IDS, SPELL_TIMINGS } from '../data/spells';
+import { TRAP_KIND_NAMES } from '../data/trapKinds';
 import { PROFILES, RULE_KEYS } from '../zargon/weights';
 
 export const SCHEMA_VERSION = 1;
@@ -51,7 +52,7 @@ export const MONSTER_TYPES = [
   'dreadSorcerer',
 ] as const;
 
-export const TRAP_KINDS = ['pit', 'fallingBlock', 'spear', 'chest', 'scripted'] as const;
+export const TRAP_KINDS = TRAP_KIND_NAMES;
 
 const MonsterType = z.enum(MONSTER_TYPES);
 const MonsterState = z.enum(['active', 'dormant', 'stone', 'away', 'passive']);
@@ -223,6 +224,8 @@ const TrapSchema = z
     cell: cell.optional(),
     furniture: id.optional(),
     effect: z.string().optional(),
+    /** An ice slide: its squares from the first (the trap square) to the last, along the arrow. */
+    path: z.array(cell).min(2).optional(),
   })
   .refine(
     (t) => {
@@ -230,7 +233,19 @@ const TrapSchema = z
       if (t.kind === 'chest') return t.furniture !== undefined && t.cell === undefined;
       return t.cell !== undefined && t.furniture === undefined;
     },
-    { message: 'chest traps use "furniture"; pit, fallingBlock and spear use "cell"' },
+    { message: 'chest traps use "furniture"; every other trap kind uses "cell"' },
+  )
+  .refine(
+    (t) =>
+      t.kind === 'iceSlide'
+        ? t.path !== undefined &&
+          t.cell !== undefined &&
+          t.path[0]![0] === t.cell[0] &&
+          t.path[0]![1] === t.cell[1]
+        : t.path === undefined,
+    {
+      message: 'an ice slide needs a path that starts on its square, and only an ice slide has one',
+    },
   );
 
 /** A set of squares (decision 68): a place where "a hero enters" can be an event of its own. */
@@ -386,7 +401,8 @@ const NoteSchema = z.strictObject({
 // ---- the rest
 
 const WanderingSchema = z.union([
-  z.strictObject({ monster: MonsterType }),
+  /** `count`: how many come at once from a wandering monster trap (1 when missing). */
+  z.strictObject({ monster: MonsterType, count: z.number().int().min(1).max(6).optional() }),
   z.strictObject({ text: nonEmpty }),
 ]);
 

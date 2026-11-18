@@ -302,6 +302,10 @@ A pack is made of whole pictures, not square tiles (owner). **`board`**: one pic
 
 **Close-up.** While a picture is picked in the pack preview the sample zooms in on it (a view of 6 x 4 squares or a little more around it, kept inside the board), because the whole sample is too small to judge a picture. A chip over it, "Show the whole sample" / "Close-up", switches between the two.
 
+## Ice slide path (M10)
+
+A slide whose path is known (a spring, or a good jump over it) is drawn on the board as a dashed line in the ink color from its first square to its last, with an arrowhead on the last square. It sits under the trap mark and takes no taps. Other sprung hazards that stay (axe, slippery ice) keep the "?" mark; only a pit shows the pit square. The trap menu names a trap that sprang ("The swinging axe trap is still here") and offers Disarm only when the kind allows it after a spring.
+
 ## Dialogs: focus and Escape (M8)
 
 Every dialog (the shared dialog, message cards, margin notes, the quest sheet, the editor dialogs and the import sheet) uses one hook, `useModal` (`src/ui/shared/useModal.ts`). **Escape** closes only the top dialog, and does nothing for a dialog that needs an answer or has unsaved work (a pack preview with changes). **Tab** stays inside a modal dialog (a margin note, the quest sheet and the alignment bar are not modal: the board stays usable). **Focus** goes into the dialog when it opens (the first control, or the title when the dialog asks for it) and comes back to the control that opened it when it closes, unless the person has moved it. While a dialog is open the quest editor's own shortcuts (Esc to deselect, Delete, R, tool letters) do nothing, and Delete and Backspace delete the selection only when the board has focus or nothing does.

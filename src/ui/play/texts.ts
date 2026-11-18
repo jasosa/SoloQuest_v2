@@ -1,58 +1,36 @@
 /** Plain-English texts for search and trap results. Our own words; the game effect is exact. */
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
+import { TRAP_KIND_NAMES, trapKind } from '../../engine/data/trapKinds';
 import type { Prompt, TrapKindName } from '../../engine/game/prompts';
 import type { MonsterType } from '../../engine/quest/schema';
 
-export const TRAP_NAMES: Readonly<Record<TrapKindName, string>> = {
-  pit: 'pit trap',
-  fallingBlock: 'falling block trap',
-  spear: 'spear trap',
-  chest: 'chest trap',
-  scripted: 'trap',
-};
+export const TRAP_NAMES: Readonly<Record<TrapKindName, string>> = Object.fromEntries(
+  TRAP_KIND_NAMES.map((k) => [k, trapKind(k).name]),
+) as Record<TrapKindName, string>;
 
 type Sprung = Extract<Prompt, { kind: 'trapSprung' }>;
 
 export function sprungTitle(kind: TrapKindName): string {
-  return {
-    pit: 'Pit trap!',
-    fallingBlock: 'Falling block!',
-    spear: 'Spear trap!',
-    chest: 'Chest trap!',
-    scripted: 'Trap!',
-  }[kind];
+  return trapKind(kind).title;
 }
 
-/** What happens when the trap springs. Paraphrased from the rules digest. */
+/** What happens when the trap springs. The text per kind is in `engine/data/trapKinds.ts`. */
 export function sprungLines(p: Sprung): string[] {
+  const kind = trapKind(p.trapKind);
   const lines: string[] = [];
   if (p.via === 'jump') lines.push('The jump failed. The hero stays on the trap square.');
   if (p.via === 'search') lines.push('The chest was trapped. This comes before the search result.');
-  switch (p.trapKind) {
-    case 'pit':
-      lines.push(
-        'The hero falls in and loses 1 Body Point. Put a pit tile on this square. The turn ends.',
-        'In the pit, roll 1 fewer combat die to attack and defend (at least 1). Climbing out takes the next turn.',
-      );
-      break;
-    case 'fallingBlock':
-      lines.push(
-        'Roll 3 combat dice. The hero loses 1 Body Point for each skull and cannot defend.',
-        'The block stays here as a wall for the rest of the quest. Move the hero to a free square ahead or back. The turn ends.',
-      );
-      break;
-    case 'spear':
-      lines.push(
-        'Roll 1 combat die. A skull costs 1 Body Point and the turn ends. A shield means the spear missed and the hero moves on.',
-        'The trap is gone either way.',
-      );
-      break;
-    case 'chest':
-    case 'scripted':
-      if (p.effect === undefined) lines.push('Read the trap effect in the quest notes.');
-      break;
-  }
+  lines.push(...kind.lines);
+  if ((kind.scripted || kind.onFurniture) && p.effect === undefined)
+    lines.push('Read the trap effect in the quest notes.');
+  if (p.spawned?.length) {
+    const counts = new Map<string, number>();
+    for (const m of p.spawned) counts.set(m.monsterType, (counts.get(m.monsterType) ?? 0) + 1);
+    const what = [...counts].map(([t, n]) => `${n} ${MONSTER_NAMES[t as MonsterType]}`).join(', ');
+    lines.push(`Put on the board: ${what}. They are on the roster now and attack at once.`);
+  } else if (kind.bringsWanderers && p.effect === undefined)
+    lines.push('The quest names no wandering monster for this trap.');
   if (p.effect !== undefined) lines.push(p.effect);
   return lines;
 }

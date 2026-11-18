@@ -35,6 +35,11 @@ const TRAP_LETTER: Record<HiddenTrap['kind'], string> = {
   spear: 'S',
   chest: 'C',
   scripted: '?',
+  stalactite: 'T',
+  swingingAxe: 'A',
+  wanderingTrap: 'W',
+  slipperyIce: 'I',
+  iceSlide: 'L',
 };
 
 export function ZargonOverlay({ level, state }: { level: Level; state: GameState }) {

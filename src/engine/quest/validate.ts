@@ -371,6 +371,17 @@ export function validateQuestIssues(
             cell: cellOf(c),
           });
       }
+  // An ice slide runs along straight, touching squares of floor (a path of single steps).
+  for (const t of quest.traps) {
+    if (!t.path) continue;
+    const ref: IssueRef = { kind: 'trap', id: t.id, cell: cellOf(t.path[0]!) };
+    t.path.forEach((c, i) => {
+      inside(`trap ${t.id} path square ${i + 1}`, c, ref);
+      const prev = t.path![i - 1];
+      if (prev && Math.abs(prev[0] - c[0]) + Math.abs(prev[1] - c[1]) !== 1)
+        err(`trap ${t.id}: slide square ${i + 1} is not next to the one before it`, ref);
+    });
+  }
   for (const t of quest.traps) {
     const ref: IssueRef = t.cell
       ? { kind: 'trap', id: t.id, cell: cellOf(t.cell) }

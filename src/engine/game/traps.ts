@@ -3,8 +3,11 @@
  * The state keeps only whether it sprung or was disarmed; the kind is read from the quest and is
  * told to the players by a prompt when the trap sprung or was disarmed.
  */
-import type { TrapDef } from '../quest/schema';
+import type { MonsterType, TrapDef } from '../quest/schema';
+import { areaAt } from '../board/board';
 import { keyOf, type Level } from '../board/level';
+import { trapKind } from '../data/trapKinds';
+import { joinRoster } from './roster';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
@@ -14,19 +17,41 @@ import { draftOf, type Draft, type GameState } from './state';
 type Use = 'jump' | 'disarm' | 'step' | 'search';
 type Reduced = { readonly state: GameState; readonly prompts: readonly Prompt[] };
 
-/** Make a trap spring. Returns the prompt. A falling block becomes a permanent block. */
+/**
+ * Make a trap spring (what it does comes from its kind, `data/trapKinds.ts`). Returns the prompt.
+ * A falling block becomes a permanent block, a wandering monster trap brings the quest's wandering
+ * monsters (no square: the players put them next to the hero), a slide shows its path.
+ */
 export function springTrap(level: Level, d: Draft, trap: TrapDef, via: Use): Prompt {
+  const kind = trapKind(trap.kind);
   d.trapStates[trap.id] = 'sprung';
-  if (trap.kind === 'fallingBlock' && trap.cell) d.placedBlocks.add(keyOf(trap.cell));
-  const effect =
+  if (kind.leavesBlock && trap.cell) d.placedBlocks.add(keyOf(trap.cell));
+  if (kind.slide) showSlide(d, trap);
+  let effect =
     trap.effect ?? (trap.kind === 'fallingBlock' ? level.quest.rules.fallingBlock : undefined);
+  const spawned: { monster: string; monsterType: MonsterType }[] = [];
+  if (kind.bringsWanderers && trap.cell) {
+    const w = level.quest.wandering;
+    if (w && 'monster' in w) {
+      const room = areaAt(level.board, trap.cell[0], trap.cell[1]) ?? 'C';
+      for (let i = 0; i < (w.count ?? 1); i++) {
+        const id = joinRoster(level, d, { type: w.monster, room, fresh: true });
+        spawned.push({ monster: id, monsterType: w.monster });
+      }
+    } else if (w) effect = effect ?? w.text;
+  }
   return {
     kind: 'trapSprung',
     trap: trap.id,
     trapKind: trap.kind,
     via,
     ...(effect !== undefined ? { effect } : {}),
+    ...(spawned.length ? { spawned } : {}),
   };
+}
+
+function showSlide(d: Draft, trap: TrapDef): void {
+  if (!d.slidesShown.includes(trap.id)) d.slidesShown = [...d.slidesShown, trap.id];
 }
 
 /** Throws unless this trap can be used this way right now. */
@@ -34,17 +59,19 @@ function checkUsable(level: Level, state: GameState, id: string, use: Use): Trap
   const trap = level.quest.traps.find((t) => t.id === id);
   if (!trap) throw new EventError('UNKNOWN_TRAP', `Unknown trap ${id}`);
   if (!state.seenTraps.has(id)) throw new EventError('TRAP_NOT_SEEN', `Trap ${id} is not seen yet`);
-  if (trap.kind === 'scripted')
+  const kind = trapKind(trap.kind);
+  if (kind.scripted)
     throw new EventError('TRAP_CANNOT', `Trap ${id} is scripted by the quest notes`);
   const st = state.trapStates[id];
   if (st === 'disarmed') throw new EventError('TRAP_GONE', `Trap ${id} was disarmed`);
   if (st === 'sprung') {
-    // Only a sprung pit is still there: it can be jumped or fallen into again, not disarmed.
-    if (trap.kind !== 'pit') throw new EventError('TRAP_GONE', `Trap ${id} is gone`);
-    if (use === 'disarm') throw new EventError('TRAP_CANNOT', 'A sprung pit cannot be disarmed');
+    // Only a trap that stays (a pit, an axe, ice) is still there: it springs for the next hero.
+    if (!kind.stays) throw new EventError('TRAP_GONE', `Trap ${id} is gone`);
+    if (use === 'disarm' && !kind.disarmAfterSpring)
+      throw new EventError('TRAP_CANNOT', `A sprung ${kind.name} cannot be disarmed`);
   }
   // A chest or furniture trap can only be disarmed (or sprung by searching), not jumped or stepped on.
-  if (trap.kind === 'chest' && use !== 'disarm')
+  if (kind.onFurniture && use !== 'disarm')
     throw new EventError('TRAP_CANNOT', `Trap ${id} is on furniture: it cannot be jumped`);
   return trap;
 }
@@ -81,7 +108,14 @@ export function trapEvent(
       if (event.result !== 'skull' && event.result !== 'ok')
         throw new EventError('BAD_RESULT', `Bad jump result ${String(event.result)}`);
       const trap = checkUsable(level, state, event.trap, 'jump');
-      if (event.result === 'ok') return { state, prompts: [{ kind: 'trapJumped', trap: trap.id }] };
+      if (event.result === 'ok') {
+        // A good jump over an ice slide shows the whole slide (decision 42).
+        if (!trapKind(trap.kind).slide)
+          return { state, prompts: [{ kind: 'trapJumped', trap: trap.id }] };
+        const shown = draftOf(state);
+        showSlide(shown, trap);
+        return { state: shown, prompts: [{ kind: 'trapJumped', trap: trap.id, slide: true }] };
+      }
       const d = draftOf(state);
       return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'jump'));
     }
@@ -99,8 +133,10 @@ export function trapEvent(
         throw new EventError('HERO_DEAD', 'The dwarf is dead and cannot disarm');
       const trap = checkUsable(level, state, event.trap, 'disarm');
       const d = draftOf(state);
+      // A trap the book says cannot be found or disarmed always springs on a try (decision 41).
       const fails =
-        event.by === 'dwarf' ? event.result === 'blackShield' : event.result === 'skull';
+        !trapKind(trap.kind).disarmable ||
+        (event.by === 'dwarf' ? event.result === 'blackShield' : event.result === 'skull');
       if (fails) return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'disarm'));
       d.trapStates[trap.id] = 'disarmed';
       return withNotes(level, state, d, trap.id, {

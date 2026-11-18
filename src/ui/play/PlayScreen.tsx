@@ -36,6 +36,7 @@ import { PlayBoard } from '../board/PlayBoard';
 import { MarginNote } from '../shared/MarginNote';
 import { NoteCard } from '../shared/NoteCard';
 import type { GameStore } from '../store/gameStore';
+import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
@@ -633,14 +634,15 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         note = (
           <MarginNote
             anchor={anchor}
-            kind={sprung ? 'Pit' : 'Trap'}
-            title={sprung ? 'Someone fell in here' : 'Something is wrong here'}
+            kind={sprung && tv.kind ? TRAP_NAMES[tv.kind] : 'Trap'}
+            title={sprung ? 'It sprang here before' : 'Something is wrong here'}
             onClose={closeNote}
           >
             <TrapMenu
               sprung={sprung}
               canJump={!onFurniture}
-              canDisarm={!sprung}
+              canDisarm={tv.canDisarm}
+              kindName={sprung && tv.kind ? TRAP_NAMES[tv.kind] : undefined}
               canStep={!onFurniture}
               onJump={() => setStep({ t: 'jump' })}
               onDisarm={() => setStep({ t: 'who' })}

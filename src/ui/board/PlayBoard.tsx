@@ -15,6 +15,7 @@ import {
   trapsInView,
 } from '../../engine/game/view';
 import { monsterTip } from '../play/monsterTip';
+import { TRAP_NAMES } from '../play/texts';
 import type { Selection } from '../play/selection';
 import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
@@ -462,6 +463,31 @@ export function PlayBoard({
     const selected = selection?.kind === 'trap' && selection.id === t.id;
     into(fresh(keyOf(t.cell))).push(
       <g key={`t${t.id}`} data-trap-mark={t.id}>
+        {t.path && (
+          <g data-slide={t.id} pointerEvents="none">
+            <polyline
+              points={t.path.map(([px, py]) => `${(px + 0.5) * S},${(py + 0.5) * S}`).join(' ')}
+              fill="none"
+              stroke={color.ink}
+              strokeWidth={3}
+              strokeDasharray="7 5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {(() => {
+              const [ex, ey] = t.path[t.path.length - 1]!;
+              const [bx, by] = t.path[t.path.length - 2]!;
+              const a = Math.atan2(ey - by, ex - bx);
+              const hx = (ex + 0.5) * S;
+              const hy = (ey + 0.5) * S;
+              const pt = (r: number, d: number) =>
+                `${hx + Math.cos(a + d) * r},${hy + Math.sin(a + d) * r}`;
+              return (
+                <polygon points={`${pt(12, 0)} ${pt(10, 2.5)} ${pt(10, -2.5)}`} fill={color.ink} />
+              );
+            })()}
+          </g>
+        )}
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
         {squarePiece(
           theme,
@@ -471,7 +497,7 @@ export function PlayBoard({
           S,
           'trap',
         ) ??
-          (t.state === 'sprung' ? (
+          (t.state === 'sprung' && t.kind === 'pit' ? (
             <>
               <rect
                 x={tx * S + 3}
@@ -524,7 +550,7 @@ export function PlayBoard({
         y={cy - 22}
         width={44}
         height={44}
-        {...press(t.state === 'sprung' ? 'Pit' : 'Trap', () =>
+        {...press(t.state === 'sprung' && t.kind ? TRAP_NAMES[t.kind] : 'Trap', () =>
           onSelect({ kind: 'trap', id: t.id }),
         )}
       />,

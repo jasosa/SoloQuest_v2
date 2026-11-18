@@ -47,6 +47,10 @@ const TRAP_KINDS = [
   { kind: 'pit', label: 'Pit' },
   { kind: 'fallingBlock', label: 'Falling block' },
   { kind: 'spear', label: 'Spear' },
+  { kind: 'stalactite', label: 'Stalactite' },
+  { kind: 'swingingAxe', label: 'Swinging axe' },
+  { kind: 'wanderingTrap', label: 'Wandering monsters' },
+  { kind: 'slipperyIce', label: 'Slippery ice' },
   { kind: 'chest', label: 'Chest' },
 ] as const;
 

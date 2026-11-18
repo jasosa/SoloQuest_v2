@@ -32,7 +32,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "zones": [ { "id": "z1", "cells": [[3, 16], [4, 16]] } ],   // a set of squares: "a hero enters" and buttons (decision 68)
   "markers": [ { "id": "k1", "label": "X", "cell": [4, 2], "visible": "editor" } ],
   "notes": [ /* see below */ ],
-  "wandering": { "monster": "orc" },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
+  "wandering": { "monster": "orc", "count": 2 },          // or { "text": "Ollar's ghost appears, laughs and vanishes." }
   "objectives": [ { "id": "o1", "text": "Destroy Verag", "done": { "monsterKilled": "m-verag" } } ],
   // objective `done` rules: { "monsterKilled": id } | { "allKilled": [ids] } | { "allSeenKilled": true } (every monster the players have seen is slain, at least one) | { "flag": name }
   "rewards": "",                              // text only (e.g. "240 gold coins, shared"), never tracked
@@ -70,7 +70,7 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 
 ### Trap kinds
 
-`pit`, `fallingBlock`, `spear`, `chest` (on furniture: `"furniture": "f3"` instead of `"cell"`), `scripted` (only by effects, e.g. Q12 C). Optional `"effect"` text for chest traps (paraphrased).
+`pit`, `fallingBlock`, `spear`, Frozen Horror `stalactite`, `swingingAxe`, `wanderingTrap`, `slipperyIce`, `iceSlide` (the kinds are a table in `src/engine/data/trapKinds.ts`, see `FROZEN_HORROR.md` section 4; an `iceSlide` also needs `"path": [[x,y], ...]`, its squares from the trap square to the last one, each next to the one before), `chest` (on furniture: `"furniture": "f3"` instead of `"cell"`), `scripted` (only by effects, e.g. Q12 C). Optional `"effect"` text for chest traps (paraphrased).
 
 ## Notes: trigger + conditions + effects
 

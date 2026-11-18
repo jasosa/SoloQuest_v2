@@ -7,6 +7,7 @@ import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
 import { profileOf, type Profile } from '../zargon/weights';
 import type { TrapKindName } from './prompts';
+import { trapKind } from '../data/trapKinds';
 import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
 import type { GameState } from './state';
 
@@ -158,6 +159,10 @@ export interface TrapView {
   readonly onMap: boolean;
   /** The sprung trap left a permanent block on its square. */
   readonly block: boolean;
+  /** A disarm can still be tried (an armed trap, or a sprung one that allows it). */
+  readonly canDisarm: boolean;
+  /** An ice slide whose path is visible. */
+  readonly path?: readonly Cell[];
 }
 
 /** Traps the players have seen. The kind of an armed trap is never included. */
@@ -171,8 +176,8 @@ export function trapsInView(level: Level, state: GameState): TrapView[] {
     const cell = t.cell ?? furniture?.cells[0];
     if (!cell) continue;
     const st = state.trapStates[t.id] ?? 'armed';
-    const stays =
-      st === 'armed' || (st === 'sprung' && (t.kind === 'pit' || t.kind === 'fallingBlock'));
+    const k = trapKind(t.kind);
+    const stays = st === 'armed' || (st === 'sprung' && (k.stays || k.leavesBlock === true));
     out.push({
       id: t.id,
       cell,
@@ -180,7 +185,9 @@ export function trapsInView(level: Level, state: GameState): TrapView[] {
       state: st,
       ...(st !== 'armed' ? { kind: t.kind } : {}),
       onMap: stays,
-      block: st === 'sprung' && t.kind === 'fallingBlock',
+      block: st === 'sprung' && k.leavesBlock === true,
+      canDisarm: st === 'armed' || (st === 'sprung' && k.disarmAfterSpring === true),
+      ...(t.path && state.slidesShown.includes(t.id) ? { path: t.path } : {}),
     });
   }
   return out;

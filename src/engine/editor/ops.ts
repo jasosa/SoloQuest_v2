@@ -653,6 +653,8 @@ export function addTrap(
   opts: TrapOpts = {},
 ): EditResult {
   let placed: { cell: Cell } | { furniture: string };
+  // An ice slide needs a path of squares; the editor cannot draw one yet.
+  if (kind === 'iceSlide') return fail('Ice slides are not in the editor yet.');
   if ('furniture' in target) {
     if (kind !== 'chest' && kind !== 'scripted')
       return fail(`A ${kind} trap goes on a square, not on furniture.`);
@@ -950,7 +952,7 @@ export function updateTrap(q: Quest, id: string, patch: TrapPatch): EditResult {
   if (!target) {
     if (kind === 'chest' && !t.furniture)
       return fail('A chest trap goes on a piece of furniture. Pick the furniture.');
-    if ((kind === 'pit' || kind === 'fallingBlock' || kind === 'spear') && !t.cell)
+    if (kind !== 'chest' && kind !== 'scripted' && !t.cell)
       return fail(`A ${kind} trap goes on a square. Pick the square.`);
     target = t.furniture ? { furniture: t.furniture } : t.cell ? { cell: t.cell } : undefined;
   }

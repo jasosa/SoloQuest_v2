@@ -3,7 +3,8 @@ import type { CellKey } from '../board/level';
 import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
 
-export type TrapKindName = 'pit' | 'fallingBlock' | 'spear' | 'chest' | 'scripted';
+export type { TrapKindName } from '../data/trapKinds';
+import type { TrapKindName } from '../data/trapKinds';
 
 /** Messages for the UI, produced by the reducer. */
 export type Prompt =
@@ -100,8 +101,11 @@ export type Prompt =
       readonly trapKind: TrapKindName;
       readonly via: 'jump' | 'disarm' | 'step' | 'search';
       readonly effect?: string | undefined;
+      /** A wandering monster trap: the monsters that joined the roster, with no square. */
+      readonly spawned?: readonly { readonly monster: string; readonly monsterType: MonsterType }[];
     }
-  | { readonly kind: 'trapJumped'; readonly trap: string }
+  /** A jump worked. A jumped ice slide shows its whole path (decision 42). */
+  | { readonly kind: 'trapJumped'; readonly trap: string; readonly slide?: boolean }
   | { readonly kind: 'trapDisarmed'; readonly trap: string; readonly trapKind: TrapKindName }
   /** A wandering monster joined the roster, with no square. The UI phrases the placement rule:
    *  next to `hero`, attacks that hero at once; if no square is free, the closest square in

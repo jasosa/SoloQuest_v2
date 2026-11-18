@@ -109,6 +109,8 @@ export function PickHero(props: {
 }
 
 export function TrapMenu(props: {
+  /** The name of a trap that sprang and is still there. */
+  kindName?: string | undefined;
   canJump: boolean;
   canDisarm: boolean;
   canStep: boolean;
@@ -121,7 +123,7 @@ export function TrapMenu(props: {
     <>
       <p>
         {props.sprung
-          ? 'The pit is still here.'
+          ? `The ${props.kindName ?? 'trap'} is still here.`
           : 'The kind of trap stays hidden until it springs or is disarmed.'}
       </p>
       <button className="btn" disabled={!props.canJump} onClick={props.onJump}>
@@ -296,7 +298,12 @@ function lines(p: Prompt): string[] {
     case 'trapSprung':
       return sprungLines(p);
     case 'trapJumped':
-      return ['The trap is still there for the next hero.'];
+      return p.slide
+        ? [
+            'The trap is still there for the next hero.',
+            'The hero saw the whole slide: put the ice slide tile on the board. It ends at the arrow.',
+          ]
+        : ['The trap is still there for the next hero.'];
     case 'trapDisarmed':
       return ['The square is safe now.'];
     case 'note':

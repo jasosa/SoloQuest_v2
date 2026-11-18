@@ -7,13 +7,13 @@ import { areaAt, cellsOf, inBoard, type AreaId, type Cell } from '../board/board
 import { keyOf, sightMap, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
 import { HEROES, type Hero } from '../data/heroes';
-import { statsOf } from '../data/monsters';
+import { joinRoster } from './roster';
 import type { GameEvent } from './events';
 import { EventError } from './errors';
 import type { Prompt } from './prompts';
 import { blockingSearchNotes, runTriggers, type TriggerEvent } from './notes';
 import { springTrap } from './traps';
-import { draftOf, type GameState, type WandererRecord } from './state';
+import { draftOf, type GameState } from './state';
 import { isDormant, liveMonstersInRoom } from './monstersIn';
 
 export { liveMonstersInRoom };
@@ -162,18 +162,6 @@ function floorCell(level: Level, cell: Cell): Cell {
   if (areaAt(level.board, x, y) === undefined || level.rock.has(`${x},${y}`))
     throw new EventError('BAD_CELL', `Cell ${x},${y} is not a floor square`);
   return [x, y];
-}
-
-/** Put a monster that joined in play on the roster (seen, with its Body Points) and give it an id. */
-function joinRoster(level: Level, d: ReturnType<typeof draftOf>, rec: WandererRecord): string {
-  let n = d.wanderCount + 1;
-  while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
-  const id = `w${n}`;
-  d.wanderCount = n;
-  d.wanderers[id] = rec;
-  d.seenMonsters.add(id);
-  d.monsters[id] = { body: statsOf({ type: rec.type }).body, dead: false };
-  return id;
 }
 
 /** The players add a monster in play (decision 66): it gets the square they enter, nothing else. */

@@ -53,7 +53,15 @@ export interface ToolOpts {
     readonly fromLibrary: boolean;
     readonly lib: LibraryContent;
   } | null;
-  readonly trapKind: 'pit' | 'fallingBlock' | 'spear' | 'chest';
+  readonly trapKind:
+    | 'pit'
+    | 'fallingBlock'
+    | 'spear'
+    | 'stalactite'
+    | 'swingingAxe'
+    | 'wanderingTrap'
+    | 'slipperyIce'
+    | 'chest';
   readonly markerLabel: string;
   readonly markerVisible: 'editor' | 'players';
   /** The zone the Zones tool is painting; null starts a new one on the next click. */

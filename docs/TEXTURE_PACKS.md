@@ -47,7 +47,7 @@ drawing, so a pack can be partial.
 | `board` | One picture of the whole board: 26 x 19 squares, the same shape as the grid. See below. |
 | `door` | `closed`, `open`, and `secret`. A secret door keeps its `secret` picture once the heroes find it, closed or open, and Zargon sees it before they do. A `secret` picture is about square (a slab on the wall line); it is drawn with its bottom edge on the wall. |
 | `block` | `single` (one blocked square) and `double` (two blocked squares side by side; turned when they stand one above the other). |
-| `trap` | A picture per kind of trap: `pit`, `spear`, `fallingBlock`, `chest` (a trapped chest), `scripted`. `armed` is what the heroes see before a trap springs. |
+| `trap` | A picture per kind of trap: `pit`, `spear`, `fallingBlock`, `chest` (a trapped chest), `scripted`, and the Frozen Horror kinds `stalactite`, `swingingAxe`, `wanderingTrap`, `slipperyIce`, `iceSlide`. `armed` is what the heroes see before a trap springs. |
 | `monster` | A picture per monster type: `skeleton`, `zombie`, `mummy`, `orc`, `goblin`, `abomination`, `gargoyle`, `dreadWarrior`, `dreadSorcerer`. An enemy with its own picture in the Library keeps it. |
 | `furniture` | A picture per furniture type: `stairs`, `table`, `sorcerersTable`, `alchemistsBench`, `bookcase`, `cupboard`, `chest`, `throne`, `tomb`, `rack`, `weaponsRack`, `fireplace`. |
 | `floor`, `corridor`, `rock`, `wall` | Optional small pieces, for a pack that has no board picture: lists of floor tiles (used in turn by square), one rock tile, and a wall strip one square long. |
