@@ -747,16 +747,6 @@
       "cell": [8, 15]
     },
     {
-      "id": "t-ice-1",
-      "kind": "slipperyIce",
-      "cell": [5, 11]
-    },
-    {
-      "id": "t-ice-2",
-      "kind": "slipperyIce",
-      "cell": [6, 11]
-    },
-    {
       "id": "t-hand-1",
       "kind": "wanderingTrap",
       "cell": [4, 0]
@@ -813,6 +803,13 @@
         [22, 13],
         [23, 13],
         [24, 13]
+      ]
+    },
+    {
+      "type": "slipperyIce",
+      "cells": [
+        [5, 11],
+        [6, 11]
       ]
     }
   ],
@@ -904,7 +901,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The heroes enter by the iron door and must find the wooden exit door. Vilor the Dread Warlock waits in the center room. This is a group quest: hire mercenaries for the quests after it if the party is small.",
+          "text": "The heroes enter by the iron door and must find the wooden exit door. A Dread Warlock named Vilor waits in the center room. This is a group quest: hire mercenaries for the quests after it if the party is small.",
           "title": "The Deadly Depths"
         }
       ]
@@ -940,22 +937,9 @@
       ]
     },
     {
-      "id": "n-B",
+      "id": "n-B-ask",
       "letter": "B",
       "at": [21, 1],
-      "trigger": {
-        "type": "areaRevealed",
-        "area": "R06"
-      },
-      "effects": [
-        {
-          "type": "showText",
-          "text": "Once every hero stands in this room, the two doors marked B will shut for good and vanish. Tap the room to tell the app when that has happened."
-        }
-      ]
-    },
-    {
-      "id": "n-B-ask",
       "target": {
         "kind": "area",
         "id": "R06"
@@ -968,7 +952,7 @@
       ],
       "trigger": {
         "type": "manual",
-        "label": "Check the B doors",
+        "label": "All the heroes are in this room",
         "repeat": true
       },
       "effects": [
@@ -1173,7 +1157,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Vilor, the Dread Warlock, guards this room and stands on the square marked VIL. He knows the Dread spells Chill, Ice Storm, Lightning Bolt, Sleep and Tempest."
+          "text": "A Dread Warlock named Vilor stands on the square marked VIL. He knows the Dread spells Chill, Ice Storm, Lightning Bolt, Sleep and Tempest."
         }
       ]
     }
