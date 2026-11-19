@@ -1,5 +1,5 @@
 // One gate for "is the project OK". Used by hand, by the git pre-commit hook and by the Stop hook.
-//   node scripts/verify.mjs            full: rules, typecheck, lint, unit tests, quest validation
+//   node scripts/verify.mjs            full: rules, typecheck, lint, format, unit tests, quest validation
 //   node scripts/verify.mjs --quick    rules only (no tools, a second or two)
 //   node scripts/verify.mjs --hook     Stop hook: rules + typecheck, only when code changed, silent when green
 //   node scripts/verify.mjs --staged   pre-commit: full when code is staged, rules only for docs
@@ -75,7 +75,11 @@ const textFiles = tracked.filter(
     /^(CLAUDE|README)\.md$/.test(f),
 );
 // 1. No em-dashes anywhere in docs, code or UI text.
-scan(textFiles, 'no em-dash (use a colon, comma or period)', new RegExp(String.fromCharCode(0x2014)));
+scan(
+  textFiles,
+  'no em-dash (use a colon, comma or period)',
+  new RegExp(String.fromCharCode(0x2014)),
+);
 
 // 2. The engine is pure: no clock, no Math.random, no React or DOM.
 const engine = tracked.filter((f) => /^src\/engine\/.+\.ts$/.test(f) && !/\.test\.ts$/.test(f));
@@ -109,6 +113,11 @@ if (mode === 'hook' ? codeChanged : mode !== 'quick') {
   const typeOk = step('typecheck', 'npx', ['tsc', '--noEmit']);
   if (full && typeOk) {
     step('lint', 'npx', ['eslint', '.']);
+    step('format (run prettier --write on the files it lists)', 'npx', [
+      'prettier',
+      '--check',
+      '.',
+    ]);
     step('unit tests', 'npx', ['vitest', 'run', '--reporter=dot']);
     step('quest validation', 'npx', ['tsx', 'tools/validate.ts']);
   }
