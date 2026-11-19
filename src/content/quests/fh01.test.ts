@@ -242,14 +242,10 @@ describe('quest 1: the Crossbowman of room R18', () => {
     expect(JSON.stringify(order)).toMatch(/does not move|stay/i);
   });
 
-  it('he is attacked or not: an attack makes him surrender, with the crossbow, and he leaves', () => {
+  it('an attack is an action of the quest: the note gives the text and the crossbow, and he leaves', () => {
     const view = monstersInPlay(level, inside).find((m) => m.id === 'm-xbow')!;
-    expect(view.surrenders).toBe(true);
-    const r = reduce(level, inside, {
-      type: 'MONSTER_LEAVE',
-      monster: 'm-xbow',
-      reason: 'surrendered',
-    });
+    expect(view.attackOnly).toBe(true);
+    const r = reduce(level, inside, { type: 'MANUAL_TRIGGER', note: 'n-B-attacked' });
     expect(JSON.stringify(r.prompts)).toContain('crossbow');
     expect(monstersInPlay(level, r.state).some((m) => m.id === 'm-xbow')).toBe(false);
     expect(r.state.monsters['m-xbow']?.dead).toBe(false);
@@ -261,7 +257,7 @@ describe('quest 1: the Crossbowman of room R18', () => {
       { type: 'MONSTER_HEAL', monster: 'm-xbow', amount: 1 },
       { type: 'MONSTER_KILL', monster: 'm-xbow' },
     ] as const)
-      expect(() => reduce(level, inside, e)).toThrow(/surrenders when attacked/);
+      expect(() => reduce(level, inside, e)).toThrow(/is only attacked/);
   });
 
   it('note B only says a Crossbowman guards the room', () => {
