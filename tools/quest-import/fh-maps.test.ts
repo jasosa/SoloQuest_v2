@@ -5,6 +5,7 @@ import {
   FH_QUESTS,
   fhCalibration,
   fhCrop,
+  fhFile,
   uprightSize,
   uprightTransform,
 } from './fh-maps';
@@ -17,10 +18,10 @@ const apply = (m: number[], x: number, y: number): [number, number] => [
 ];
 
 describe('fh-maps table', () => {
-  it('has quests 0 to 8, quest 0 from the prelude and the rest from the pack pages 8 to 15', () => {
-    expect([...FH_QUESTS]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  it('has quests 0 to 10, quest 0 from the prelude and the rest from the pack pages 8 to 17', () => {
+    expect([...FH_QUESTS]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(FH_MAPS[0]).toMatchObject({ source: 'prelude', page: 1, rotation: 0 });
-    for (let q = 1; q <= 8; q++)
+    for (let q = 1; q <= 10; q++)
       expect(FH_MAPS[q]).toMatchObject({ source: 'book', page: q + 7, rotation: 90 });
   });
 
@@ -91,6 +92,15 @@ describe('fh render helpers', () => {
   it('parses the fh argument of render:maps', () => {
     expect(parseFhArgs(['3', '5'])).toBeUndefined();
     expect(parseFhArgs(['fh', '2', '0'])).toEqual([2, 0]);
-    expect(parseFhArgs(['fh'])).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(parseFhArgs(['fh'])).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+
+  it('quests 9 and 10 are the two maps of one quest file, 10 is map 2 of file 9', () => {
+    expect(fhFile(3)).toEqual([3, 0]);
+    expect(fhFile(9)).toEqual([9, 0]);
+    expect(fhFile(10)).toEqual([9, 1]);
+    // the double quest sits on the two pages after quest 8, same turn as the others
+    expect(FH_MAPS[9]).toMatchObject({ page: 16, rotation: 90 });
+    expect(FH_MAPS[10]).toMatchObject({ page: 17, rotation: 90 });
   });
 });
