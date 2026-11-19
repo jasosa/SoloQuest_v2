@@ -63,8 +63,11 @@ test.describe('quest and team select', () => {
     await shot(page, 'select-start');
     await expect(page.locator('.qcard')).toHaveCount(14);
     await page.getByTestId('pack-frozen-horror').click();
-    expect(await page.locator('.qcard').count()).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('.qcard')).toHaveCount(9);
     await expect(page.locator('.qcard').first()).toContainText('Quest 0');
+    // Frozen Horror 3 shares its number with Core 3: both must be playable
+    await page.locator('.qcard', { hasText: 'Quest 3' }).click();
+    await expect(page.locator('.side h2')).toHaveText('The Rescue');
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);

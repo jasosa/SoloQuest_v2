@@ -57,7 +57,7 @@ export function SelectScreen({
   userStore,
 }: SelectScreenProps) {
   useFitMode('width');
-  // Edited copies by bundled quest number. Reload after "Use original".
+  // Edited copies by bundled quest slot. Reload after "Use original".
   const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
   useEffect(() => {
     if (!userStore) return;
@@ -90,15 +90,15 @@ export function SelectScreen({
     };
   }, [userStore]);
   const questEntries = bundledEntries.map((q) => {
-    const level = edited.get(q.number);
+    const level = edited.get(q.slot);
     return level ? { ...q, level } : q;
   });
 
   /** A quest of this device (made in the editor) is shown with the core game. */
   const inPack = (questId: string) => packOfQuest(questId) ?? CORE_PACK;
   const [packId, setPackId] = useState<string>(CORE_PACK);
-  const [number, setNumber] = useState<number | undefined>(
-    () => questEntries.find((q) => q.level)?.number,
+  const [slot, setSlot] = useState<number | undefined>(
+    () => questEntries.find((q) => q.level)?.slot,
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [team, setTeam] = useState<readonly Hero[]>([]);
@@ -109,7 +109,7 @@ export function SelectScreen({
   const shown = questEntries.filter((q) =>
     q.level ? inPack(q.level.quest.id) === packId : packId === CORE_PACK,
   );
-  const entry = questEntries.find((q) => q.number === number);
+  const entry = questEntries.find((q) => q.slot === slot);
   const level = entry?.level;
   const questId = level?.quest.id;
 
@@ -185,7 +185,7 @@ export function SelectScreen({
                 const first = questEntries.find(
                   (q) => q.level && inPack(q.level.quest.id) === p.manifest.id,
                 );
-                if (first) setNumber(first.number);
+                if (first) setSlot(first.slot);
               }}
             >
               {p.manifest.id === CORE_PACK ? 'Core game' : p.manifest.name}
@@ -196,17 +196,17 @@ export function SelectScreen({
         <div className="pick">
           {shown.map((q) => (
             <button
-              key={q.number}
+              key={q.slot}
               className="qcard"
-              aria-pressed={q.number === number}
+              aria-pressed={q.slot === slot}
               disabled={!q.level}
               onClick={() => {
-                setNumber(q.number);
+                setSlot(q.slot);
               }}
             >
               <span className="qnum">Quest {q.number}</span>
               {q.level && <span className="qtitle">{q.level.quest.title}</span>}
-              {edited.has(q.number) && <span className="qnote">Edited</span>}
+              {edited.has(q.slot) && <span className="qnote">Edited</span>}
               {!q.level && <span className="qnote">Not encoded yet</span>}
             </button>
           ))}
@@ -226,16 +226,16 @@ export function SelectScreen({
                   Looks best with the texture pack {level.quest.suggestedPack}.
                 </p>
               )}
-              {edited.has(level.quest.number) && (
+              {entry && edited.has(entry.slot) && (
                 <>
                   <p className="hint">This is your edited copy.</p>
                   <button
                     className="btn alt"
                     onClick={() => {
-                      clearOverride(level.quest.number);
+                      if (entry) clearOverride(entry.slot);
                       setEdited((m) => {
                         const next = new Map(m);
-                        next.delete(level.quest.number);
+                        if (entry) next.delete(entry.slot);
                         return next;
                       });
                     }}
@@ -245,7 +245,7 @@ export function SelectScreen({
                   <button
                     className="btn alt"
                     onClick={() => {
-                      const orig = bundledEntries.find((b) => b.number === level.quest.number);
+                      const orig = bundledEntries.find((b) => b.slot === entry?.slot);
                       if (orig?.level) downloadForPublishing(level, orig.level.quest.id);
                     }}
                   >

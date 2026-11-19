@@ -8,7 +8,14 @@ import { parseQuest } from '../engine/quest/loader';
 export const QUEST_COUNT = 14;
 
 export interface QuestEntry {
+  /** The number printed on the quest (the quests of two packs can share one: Core 1 and Frozen Horror 1). */
   readonly number: number;
+  /**
+   * The unique key of the entry in the lists, the URL (`?quest=`) and the edited copies. A core quest
+   * has its own number. A quest of a pack takes its number when that is free, else the pack's
+   * number of hundreds plus its number (Frozen Horror 3 is 103, because Core 3 exists).
+   */
+  readonly slot: number;
   /** Undefined while the quest is not encoded. */
   readonly level: Level | undefined;
 }
@@ -19,24 +26,42 @@ const files = import.meta.glob('../content/quests/*.json', {
 }) as Record<string, unknown>;
 
 export function loadQuestEntries(data: Record<string, unknown> = files): QuestEntry[] {
-  const byNumber = new Map<number, Level>();
+  const coreByNumber = new Map<number, Level>();
+  const others: { pack: string; level: Level }[] = [];
   for (const raw of Object.values(data)) {
     const quest = parseQuest(raw);
-    byNumber.set(quest.number, buildLevel(quest));
+    if (quest.pack === undefined) coreByNumber.set(quest.number, buildLevel(quest));
+    else others.push({ pack: quest.pack, level: buildLevel(quest) });
   }
-  const core = Array.from({ length: QUEST_COUNT }, (_, i) => ({
+  const core: QuestEntry[] = Array.from({ length: QUEST_COUNT }, (_, i) => ({
     number: i + 1,
-    level: byNumber.get(i + 1),
+    slot: i + 1,
+    level: coreByNumber.get(i + 1),
   }));
-  // A quest 0 (the Frozen Horror prelude) is listed after the 14, until the pack picker (M9 slice 2).
-  const prelude = byNumber.get(0);
-  return prelude ? [...core, { number: 0, level: prelude }] : core;
+  const used = new Set(core.map((e) => e.slot));
+  const packIds = [...new Set(others.map((o) => o.pack))].sort();
+  const rest = others
+    .sort((a, b) => a.pack.localeCompare(b.pack) || a.level.quest.number - b.level.quest.number)
+    .map(({ pack, level }): QuestEntry => {
+      const number = level.quest.number;
+      let slot = used.has(number) ? (packIds.indexOf(pack) + 1) * 100 + number : number;
+      while (used.has(slot)) slot += 1000;
+      used.add(slot);
+      return { number, slot, level };
+    });
+  return [...core, ...rest];
 }
 
 export const questEntries: readonly QuestEntry[] = loadQuestEntries();
 
-export function levelOfNumber(n: number): Level | undefined {
-  return questEntries.find((q) => q.number === n)?.level;
+/** A bundled quest by its slot (`?quest=3`, `?quest=103`). */
+export function levelOfSlot(slot: number): Level | undefined {
+  return questEntries.find((q) => q.slot === slot)?.level;
+}
+
+/** A bundled quest by its id (`?quest=fh03-the-rescue`). */
+export function levelOfId(id: string): Level | undefined {
+  return questEntries.find((q) => q.level?.quest.id === id)?.level;
 }
 
 /**

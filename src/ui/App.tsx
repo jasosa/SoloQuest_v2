@@ -18,7 +18,7 @@ import { DexieSaveStore, MemorySaveStore, type SaveStore } from '../persist/save
 import { BoardView } from './board/BoardView';
 import { knownFor, parseState } from './board/boardStates';
 import { PlayScreen } from './play/PlayScreen';
-import { devTestLevel, levelOfNumber } from './quests';
+import { devTestLevel, levelOfId, levelOfSlot } from './quests';
 import { SelectScreen, type StartChoice } from './select/SelectScreen';
 import { EditorScreen } from './editor/EditorScreen';
 import { EditorStart } from './editor/EditorStart';
@@ -54,11 +54,12 @@ function openGame(
   return createGameStore({ level, seed, team, events, saves, fresh });
 }
 
-/** `?quest=1` (a bundled quest). `?quest=test` (development only) loads asynchronously. */
+/** `?quest=1` or `?quest=103` (a bundled quest by slot) or `?quest=fh03-the-rescue` (by id). `?quest=test` (development only) loads asynchronously. */
 function levelFromParams(params: URLSearchParams): Level | undefined {
   const raw = params.get('quest');
   const n = raw === null || raw === '' ? NaN : Number(raw);
-  return Number.isInteger(n) ? levelOfNumber(n) : undefined;
+  if (Number.isInteger(n)) return levelOfSlot(n);
+  return raw ? levelOfId(raw) : undefined;
 }
 
 /**
