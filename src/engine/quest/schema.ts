@@ -176,13 +176,11 @@ const MonsterSchema = z
     /** Reusable abilities by id: the core ones (`stone`, `fireImmune`...) or the quest's `abilityDefs`. */
     abilities: z.array(id).optional(),
     /**
-     * This monster is not fought: it is attacked or not. It has no wounds and cannot be slain. The
-     * players tap "A hero attacked it" and it surrenders and leaves (not a kill). `text` is told to
-     * the players, `item` is what the hero gets (the Q1 Crossbowman).
+     * The monster is attacked, not fought: it has no wounds and cannot be slain, so its card has no
+     * Wound, Heal or Slain. What an attack does is the quest's own: a `manual` note on the monster
+     * ("A hero attacked it") with effects (a text, an item, `setMonsterState` away...).
      */
-    surrender: z
-      .strictObject({ text: nonEmpty, title: z.string().optional(), item: nonEmpty.optional() })
-      .optional(),
+    attackOnly: z.boolean().optional(),
     hidden: z.boolean().optional(),
   })
   .refine((m) => m.hidden === true || m.cell !== undefined, {
