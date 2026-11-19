@@ -1,0 +1,2147 @@
+{
+  "schemaVersion": 1,
+  "id": "fh09-the-heart-of-ice",
+  "number": 9,
+  "pack": "frozen-horror",
+  "title": "The Heart of Ice (double quest)",
+  "intro": {
+    "summary": "Mentor says the Scepter of Glacial Majesty is destroyed, so the Frozen Horror can be harmed at last, and now is the time to strike. The heroes enter by the iron door and look for the spiral stairway that leads down to the catacombs. The Crystal Key is hidden there. It opens the last door, the one into the Seat of Power Room where the Frozen Horror waits. Mentor advises taking mercenaries along."
+  },
+  "mapId": "halls",
+  "mapName": "The Frozen Halls",
+  "start": {
+    "door": "in"
+  },
+  "edgeDoors": [
+    {
+      "id": "in",
+      "cell": [0, 9],
+      "side": "w",
+      "kind": "ironEntry"
+    },
+    {
+      "id": "out",
+      "cell": [25, 2],
+      "side": "e",
+      "kind": "woodenExit"
+    }
+  ],
+  "rock": {
+    "rooms": ["R09", "R15", "R16", "R22"],
+    "cells": []
+  },
+  "roomTiles": [
+    {
+      "type": "livingFog",
+      "area": "R12"
+    },
+    {
+      "type": "seatOfPower",
+      "area": "R11"
+    },
+    {
+      "type": "iceVault",
+      "area": "R21"
+    }
+  ],
+  "doors": [
+    {
+      "id": "dh1",
+      "a": [1, 0],
+      "b": [1, 1]
+    },
+    {
+      "id": "dh2",
+      "a": [15, 0],
+      "b": [15, 1]
+    },
+    {
+      "id": "dh3",
+      "a": [16, 1],
+      "b": [17, 1]
+    },
+    {
+      "id": "dh4",
+      "a": [4, 2],
+      "b": [5, 2]
+    },
+    {
+      "id": "dh5",
+      "a": [8, 2],
+      "b": [9, 2]
+    },
+    {
+      "id": "dh6",
+      "a": [1, 3],
+      "b": [1, 4]
+    },
+    {
+      "id": "dh7",
+      "a": [8, 4],
+      "b": [9, 4]
+    },
+    {
+      "id": "dh8",
+      "a": [20, 4],
+      "b": [21, 4]
+    },
+    {
+      "id": "dh9",
+      "a": [0, 6],
+      "b": [1, 6]
+    },
+    {
+      "id": "dh10",
+      "a": [24, 8],
+      "b": [25, 8]
+    },
+    {
+      "id": "dh11",
+      "a": [4, 10],
+      "b": [5, 10]
+    },
+    {
+      "id": "dh12",
+      "a": [6, 10],
+      "b": [7, 10]
+    },
+    {
+      "id": "dh13",
+      "a": [8, 12],
+      "b": [8, 13]
+    },
+    {
+      "id": "dh14",
+      "a": [1, 13],
+      "b": [1, 14]
+    },
+    {
+      "id": "dh15",
+      "a": [1, 17],
+      "b": [1, 18]
+    },
+    {
+      "id": "dh16",
+      "a": [8, 17],
+      "b": [8, 18]
+    },
+    {
+      "id": "dF",
+      "a": [15, 9],
+      "b": [16, 9],
+      "lockedUntil": "keyTurned"
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "sh1",
+      "a": [8, 17],
+      "b": [9, 17]
+    },
+    {
+      "id": "sh2",
+      "a": [17, 17],
+      "b": [18, 17]
+    },
+    {
+      "id": "sh3",
+      "a": [21, 4],
+      "b": [21, 5]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [
+        [12, 1],
+        [13, 1]
+      ]
+    },
+    {
+      "cells": [[14, 6]]
+    },
+    {
+      "cells": [[14, 12]]
+    },
+    {
+      "cells": [
+        [12, 17],
+        [13, 17]
+      ]
+    },
+    {
+      "cells": [[25, 1]]
+    },
+    {
+      "cells": [[25, 17]]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-h-stairs",
+      "type": "stairs",
+      "cells": [
+        [7, 7],
+        [8, 7],
+        [7, 8],
+        [8, 8]
+      ]
+    },
+    {
+      "id": "f-h-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [11, 2],
+        [11, 3],
+        [11, 4]
+      ]
+    },
+    {
+      "id": "f-h-sorc",
+      "type": "sorcerersTable",
+      "cells": [
+        [3, 6],
+        [4, 6],
+        [3, 7],
+        [4, 7],
+        [3, 8],
+        [4, 8]
+      ]
+    },
+    {
+      "id": "f-h-bench",
+      "type": "alchemistsBench",
+      "cells": [
+        [14, 4],
+        [15, 4],
+        [16, 4],
+        [14, 5],
+        [15, 5],
+        [16, 5]
+      ]
+    },
+    {
+      "id": "f-h-chest-b",
+      "type": "chest",
+      "cells": [[21, 8]]
+    },
+    {
+      "id": "f-h-fireplace",
+      "type": "fireplace",
+      "cells": [
+        [4, 15],
+        [4, 16],
+        [4, 17]
+      ]
+    },
+    {
+      "id": "f-h-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [11, 15],
+        [11, 16],
+        [11, 17]
+      ]
+    },
+    {
+      "id": "f-h-tomb",
+      "type": "tomb",
+      "cells": [
+        [14, 16],
+        [15, 16],
+        [16, 16],
+        [14, 17],
+        [15, 17],
+        [16, 17]
+      ]
+    },
+    {
+      "id": "f-h-chest-d",
+      "type": "chest",
+      "cells": [[20, 14]]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "h-bear-1",
+      "type": "goblin",
+      "enemy": "polarWarbear",
+      "cell": [6, 1]
+    },
+    {
+      "id": "h-bear-2",
+      "type": "goblin",
+      "enemy": "polarWarbear",
+      "cell": [6, 3]
+    },
+    {
+      "id": "h-bear-3",
+      "type": "goblin",
+      "enemy": "polarWarbear",
+      "cell": [13, 8]
+    },
+    {
+      "id": "h-bear-4",
+      "type": "goblin",
+      "enemy": "polarWarbear",
+      "cell": [13, 10]
+    },
+    {
+      "id": "h-bear-5",
+      "type": "goblin",
+      "enemy": "polarWarbear",
+      "cell": [2, 12]
+    },
+    {
+      "id": "h-yeti-1",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [6, 2]
+    },
+    {
+      "id": "h-yeti-2",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [14, 8]
+    },
+    {
+      "id": "h-yeti-3",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [14, 10]
+    },
+    {
+      "id": "h-yeti-4",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [3, 11]
+    },
+    {
+      "id": "h-yeti-5",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [18, 15]
+    },
+    {
+      "id": "h-yeti-6",
+      "type": "goblin",
+      "enemy": "yeti",
+      "cell": [19, 16]
+    },
+    {
+      "id": "h-dw-1",
+      "type": "dreadWarrior",
+      "cell": [2, 2]
+    },
+    {
+      "id": "h-dw-2",
+      "type": "dreadWarrior",
+      "cell": [3, 2]
+    },
+    {
+      "id": "h-dw-3",
+      "type": "dreadWarrior",
+      "cell": [22, 2]
+    },
+    {
+      "id": "h-dw-4",
+      "type": "dreadWarrior",
+      "cell": [23, 2]
+    },
+    {
+      "id": "h-dw-5",
+      "type": "dreadWarrior",
+      "cell": [23, 3]
+    },
+    {
+      "id": "h-dw-6",
+      "type": "dreadWarrior",
+      "cell": [15, 8]
+    },
+    {
+      "id": "h-dw-7",
+      "type": "dreadWarrior",
+      "cell": [15, 10]
+    },
+    {
+      "id": "h-dw-8",
+      "type": "dreadWarrior",
+      "cell": [5, 11]
+    },
+    {
+      "id": "h-dw-9",
+      "type": "dreadWarrior",
+      "cell": [6, 11]
+    },
+    {
+      "id": "h-abom-1",
+      "type": "abomination",
+      "cell": [10, 2]
+    },
+    {
+      "id": "h-abom-2",
+      "type": "abomination",
+      "cell": [10, 3]
+    },
+    {
+      "id": "h-abom-3",
+      "type": "abomination",
+      "cell": [10, 4]
+    },
+    {
+      "id": "h-abom-4",
+      "type": "abomination",
+      "cell": [23, 6]
+    },
+    {
+      "id": "h-abom-5",
+      "type": "abomination",
+      "cell": [22, 7]
+    },
+    {
+      "id": "h-abom-6",
+      "type": "abomination",
+      "cell": [2, 11]
+    },
+    {
+      "id": "h-abom-7",
+      "type": "abomination",
+      "cell": [3, 12]
+    },
+    {
+      "id": "h-abom-8",
+      "type": "abomination",
+      "cell": [7, 13]
+    },
+    {
+      "id": "h-skel-1",
+      "type": "skeleton",
+      "cell": [2, 4]
+    },
+    {
+      "id": "h-skel-2",
+      "type": "skeleton",
+      "cell": [2, 6]
+    },
+    {
+      "id": "h-skel-3",
+      "type": "skeleton",
+      "cell": [1, 7]
+    },
+    {
+      "id": "h-skel-4",
+      "type": "skeleton",
+      "cell": [14, 14]
+    },
+    {
+      "id": "h-skel-5",
+      "type": "skeleton",
+      "cell": [15, 14]
+    },
+    {
+      "id": "h-skel-6",
+      "type": "skeleton",
+      "cell": [16, 15]
+    },
+    {
+      "id": "h-orc-1",
+      "type": "orc",
+      "cell": [2, 5]
+    },
+    {
+      "id": "h-orc-2",
+      "type": "orc",
+      "cell": [2, 7]
+    },
+    {
+      "id": "h-orc-3",
+      "type": "orc",
+      "cell": [15, 1]
+    },
+    {
+      "id": "h-orc-4",
+      "type": "orc",
+      "cell": [14, 2]
+    },
+    {
+      "id": "h-orc-5",
+      "type": "orc",
+      "cell": [15, 2]
+    },
+    {
+      "id": "h-orc-6",
+      "type": "orc",
+      "cell": [16, 2]
+    },
+    {
+      "id": "h-orc-7",
+      "type": "orc",
+      "cell": [23, 5]
+    },
+    {
+      "id": "h-orc-8",
+      "type": "orc",
+      "cell": [22, 6]
+    },
+    {
+      "id": "h-orc-9",
+      "type": "orc",
+      "cell": [21, 7]
+    },
+    {
+      "id": "h-orc-10",
+      "type": "orc",
+      "cell": [6, 13]
+    },
+    {
+      "id": "h-orc-11",
+      "type": "orc",
+      "cell": [8, 14]
+    },
+    {
+      "id": "h-orc-12",
+      "type": "orc",
+      "cell": [2, 15]
+    },
+    {
+      "id": "h-orc-13",
+      "type": "orc",
+      "cell": [3, 15]
+    },
+    {
+      "id": "h-orc-14",
+      "type": "orc",
+      "cell": [3, 16]
+    },
+    {
+      "id": "h-orc-15",
+      "type": "orc",
+      "cell": [3, 17]
+    },
+    {
+      "id": "h-goblin-1",
+      "type": "goblin",
+      "cell": [5, 14]
+    },
+    {
+      "id": "h-goblin-2",
+      "type": "goblin",
+      "cell": [2, 16]
+    },
+    {
+      "id": "h-goblin-3",
+      "type": "goblin",
+      "cell": [2, 17]
+    },
+    {
+      "id": "h-xbow-1",
+      "type": "goblin",
+      "enemy": "crossbowman",
+      "cell": [14, 3]
+    },
+    {
+      "id": "h-xbow-2",
+      "type": "goblin",
+      "enemy": "crossbowman",
+      "cell": [16, 3]
+    },
+    {
+      "id": "h-garg-1",
+      "type": "gargoyle",
+      "cell": [23, 7]
+    },
+    {
+      "id": "h-zomb-1",
+      "type": "zombie",
+      "cell": [16, 14]
+    },
+    {
+      "id": "h-zomb-2",
+      "type": "zombie",
+      "cell": [15, 15]
+    },
+    {
+      "id": "h-mummy-1",
+      "type": "mummy",
+      "cell": [14, 15]
+    },
+    {
+      "id": "h-gremlin-1",
+      "type": "goblin",
+      "enemy": "iceGremlin",
+      "cell": [6, 14]
+    },
+    {
+      "id": "h-gremlin-2",
+      "type": "goblin",
+      "enemy": "iceGremlin",
+      "cell": [7, 14]
+    },
+    {
+      "id": "m-fh",
+      "type": "goblin",
+      "enemy": "frozenHorror",
+      "cell": [10, 10],
+      "size": 2,
+      "special": true
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-h-swingingAxe-1",
+      "kind": "swingingAxe",
+      "cell": [7, 11]
+    },
+    {
+      "id": "t-h-swingingAxe-2",
+      "kind": "swingingAxe",
+      "cell": [8, 11]
+    },
+    {
+      "id": "t-h-swingingAxe-3",
+      "kind": "swingingAxe",
+      "cell": [19, 4]
+    },
+    {
+      "id": "t-h-swingingAxe-4",
+      "kind": "swingingAxe",
+      "cell": [20, 4]
+    },
+    {
+      "id": "t-h-spear-1",
+      "kind": "spear",
+      "cell": [21, 3]
+    },
+    {
+      "id": "t-h-spear-2",
+      "kind": "spear",
+      "cell": [22, 4]
+    },
+    {
+      "id": "t-h-pit-1",
+      "kind": "pit",
+      "cell": [22, 3]
+    },
+    {
+      "id": "t-h-pit-2",
+      "kind": "pit",
+      "cell": [21, 4]
+    },
+    {
+      "id": "t-h-wanderingTrap-1",
+      "kind": "wanderingTrap",
+      "cell": [10, 0]
+    },
+    {
+      "id": "t-h-wanderingTrap-2",
+      "kind": "wanderingTrap",
+      "cell": [9, 9]
+    },
+    {
+      "id": "t-h-wanderingTrap-3",
+      "kind": "wanderingTrap",
+      "cell": [4, 18]
+    },
+    {
+      "id": "t-h-chest-d",
+      "kind": "chest",
+      "furniture": "f-h-chest-d",
+      "effect": "The latch of the chest explodes. A hero who searches the chest before the trap is disarmed loses 1 Body Point."
+    }
+  ],
+  "tunnels": [
+    {
+      "id": "tunC",
+      "design": 3,
+      "a": [11, 13],
+      "b": [14, 13]
+    }
+  ],
+  "boardTiles": [
+    {
+      "type": "icyRiver",
+      "cells": [
+        [7, 1],
+        [7, 2],
+        [7, 3]
+      ]
+    },
+    {
+      "type": "icyRiver",
+      "cells": [
+        [17, 9],
+        [18, 9],
+        [19, 9],
+        [20, 9],
+        [21, 9],
+        [22, 9],
+        [23, 9],
+        [24, 9]
+      ]
+    },
+    {
+      "type": "slipperyIce",
+      "cells": [
+        [17, 3],
+        [18, 3]
+      ]
+    },
+    {
+      "type": "slipperyIce",
+      "cells": [
+        [19, 3],
+        [20, 3]
+      ]
+    },
+    {
+      "type": "slipperyIce",
+      "cells": [
+        [13, 9],
+        [14, 9],
+        [15, 9]
+      ]
+    }
+  ],
+  "maps": [
+    {
+      "id": "catacombs",
+      "name": "The Catacombs",
+      "start": {
+        "area": "R08",
+        "kind": "stairway"
+      },
+      "rock": {
+        "rooms": ["R09", "R17", "R18"],
+        "cells": []
+      },
+      "roomTiles": [
+        {
+          "type": "gremlinTreasure",
+          "area": "R13"
+        },
+        {
+          "type": "chasmRoom",
+          "area": "R20"
+        }
+      ],
+      "areaOverrides": [
+        {
+          "merge": ["R13", "R14"]
+        }
+      ],
+      "doors": [
+        {
+          "id": "dc1",
+          "a": [19, 0],
+          "b": [19, 1]
+        },
+        {
+          "id": "dc2",
+          "a": [4, 2],
+          "b": [5, 2]
+        },
+        {
+          "id": "dc3",
+          "a": [1, 3],
+          "b": [1, 4]
+        },
+        {
+          "id": "dc4",
+          "a": [20, 4],
+          "b": [21, 4]
+        },
+        {
+          "id": "dc5",
+          "a": [24, 4],
+          "b": [24, 5]
+        },
+        {
+          "id": "dc6",
+          "a": [15, 5],
+          "b": [15, 6]
+        },
+        {
+          "id": "dc7",
+          "a": [0, 6],
+          "b": [1, 6]
+        },
+        {
+          "id": "dc8",
+          "a": [4, 6],
+          "b": [5, 6]
+        },
+        {
+          "id": "dc9",
+          "a": [16, 12],
+          "b": [16, 13]
+        },
+        {
+          "id": "dc10",
+          "a": [20, 12],
+          "b": [21, 12]
+        },
+        {
+          "id": "dc11",
+          "a": [1, 13],
+          "b": [1, 14]
+        },
+        {
+          "id": "dc12",
+          "a": [17, 13],
+          "b": [18, 13]
+        },
+        {
+          "id": "dc13",
+          "a": [20, 16],
+          "b": [21, 16]
+        },
+        {
+          "id": "dc14",
+          "a": [4, 17],
+          "b": [4, 18]
+        }
+      ],
+      "secretDoors": [
+        {
+          "id": "sc1",
+          "a": [8, 4],
+          "b": [9, 4]
+        },
+        {
+          "id": "sc2",
+          "a": [4, 12],
+          "b": [5, 12]
+        },
+        {
+          "id": "sc3",
+          "a": [19, 13],
+          "b": [19, 14]
+        }
+      ],
+      "blocks": [
+        {
+          "cells": [[0, 8]]
+        }
+      ],
+      "furniture": [
+        {
+          "id": "f-c-stairs",
+          "type": "stairs",
+          "cells": [
+            [7, 7],
+            [8, 7],
+            [7, 8],
+            [8, 8]
+          ]
+        },
+        {
+          "id": "f-c-weapons",
+          "type": "weaponsRack",
+          "cells": [
+            [1, 1],
+            [2, 1],
+            [3, 1]
+          ]
+        },
+        {
+          "id": "f-c-table-1",
+          "type": "table",
+          "cells": [
+            [7, 1],
+            [8, 1],
+            [7, 2],
+            [8, 2],
+            [7, 3],
+            [8, 3]
+          ]
+        },
+        {
+          "id": "f-c-sorc",
+          "type": "sorcerersTable",
+          "cells": [
+            [22, 1],
+            [23, 1],
+            [24, 1],
+            [22, 2],
+            [23, 2],
+            [24, 2]
+          ]
+        },
+        {
+          "id": "f-c-bookcase-j",
+          "type": "bookcase",
+          "cells": [
+            [10, 8],
+            [10, 9],
+            [10, 10]
+          ]
+        },
+        {
+          "id": "f-c-rack",
+          "type": "rack",
+          "cells": [
+            [1, 10],
+            [2, 10],
+            [3, 10],
+            [1, 11],
+            [2, 11],
+            [3, 11]
+          ]
+        },
+        {
+          "id": "f-c-cupboard",
+          "type": "cupboard",
+          "cells": [
+            [17, 10],
+            [18, 10],
+            [19, 10]
+          ]
+        },
+        {
+          "id": "f-c-table-2",
+          "type": "table",
+          "cells": [
+            [14, 16],
+            [15, 16],
+            [16, 16],
+            [14, 17],
+            [15, 17],
+            [16, 17]
+          ]
+        },
+        {
+          "id": "f-c-chest-m",
+          "type": "chest",
+          "cells": [[18, 17]]
+        }
+      ],
+      "monsters": [
+        {
+          "id": "c-bear-1",
+          "type": "goblin",
+          "enemy": "polarWarbear",
+          "cell": [2, 3]
+        },
+        {
+          "id": "c-bear-2",
+          "type": "goblin",
+          "enemy": "polarWarbear",
+          "cell": [19, 16]
+        },
+        {
+          "id": "c-bear-3",
+          "type": "goblin",
+          "enemy": "polarWarbear",
+          "cell": [20, 17]
+        },
+        {
+          "id": "c-yeti-1",
+          "type": "goblin",
+          "enemy": "yeti",
+          "cell": [2, 2]
+        },
+        {
+          "id": "c-yeti-2",
+          "type": "goblin",
+          "enemy": "yeti",
+          "cell": [14, 3]
+        },
+        {
+          "id": "c-yeti-3",
+          "type": "goblin",
+          "enemy": "yeti",
+          "cell": [18, 14]
+        },
+        {
+          "id": "c-yeti-4",
+          "type": "goblin",
+          "enemy": "yeti",
+          "cell": [20, 14]
+        },
+        {
+          "id": "c-dw-1",
+          "type": "dreadWarrior",
+          "cell": [10, 3]
+        },
+        {
+          "id": "c-dw-2",
+          "type": "dreadWarrior",
+          "cell": [24, 8]
+        },
+        {
+          "id": "c-dw-3",
+          "type": "dreadWarrior",
+          "cell": [11, 8]
+        },
+        {
+          "id": "c-dw-4",
+          "type": "dreadWarrior",
+          "cell": [11, 10]
+        },
+        {
+          "id": "c-dw-5",
+          "type": "dreadWarrior",
+          "cell": [22, 11]
+        },
+        {
+          "id": "c-dw-6",
+          "type": "dreadWarrior",
+          "cell": [22, 13]
+        },
+        {
+          "id": "c-dw-7",
+          "type": "dreadWarrior",
+          "cell": [18, 15]
+        },
+        {
+          "id": "c-dw-8",
+          "type": "dreadWarrior",
+          "cell": [20, 15]
+        },
+        {
+          "id": "c-abom-1",
+          "type": "abomination",
+          "cell": [4, 5]
+        },
+        {
+          "id": "c-abom-2",
+          "type": "abomination",
+          "cell": [4, 7]
+        },
+        {
+          "id": "c-abom-3",
+          "type": "abomination",
+          "cell": [22, 5]
+        },
+        {
+          "id": "c-abom-4",
+          "type": "abomination",
+          "cell": [23, 6]
+        },
+        {
+          "id": "c-abom-5",
+          "type": "abomination",
+          "cell": [24, 6]
+        },
+        {
+          "id": "c-abom-6",
+          "type": "abomination",
+          "cell": [22, 12]
+        },
+        {
+          "id": "c-skel-1",
+          "type": "skeleton",
+          "cell": [6, 1]
+        },
+        {
+          "id": "c-skel-2",
+          "type": "skeleton",
+          "cell": [6, 2]
+        },
+        {
+          "id": "c-skel-3",
+          "type": "skeleton",
+          "cell": [6, 3]
+        },
+        {
+          "id": "c-skel-4",
+          "type": "skeleton",
+          "cell": [17, 1]
+        },
+        {
+          "id": "c-skel-5",
+          "type": "skeleton",
+          "cell": [20, 1]
+        },
+        {
+          "id": "c-skel-6",
+          "type": "skeleton",
+          "cell": [21, 11]
+        },
+        {
+          "id": "c-skel-7",
+          "type": "skeleton",
+          "cell": [21, 13]
+        },
+        {
+          "id": "c-orc-1",
+          "type": "orc",
+          "cell": [9, 1]
+        },
+        {
+          "id": "c-orc-2",
+          "type": "orc",
+          "cell": [9, 2]
+        },
+        {
+          "id": "c-orc-3",
+          "type": "orc",
+          "cell": [9, 3]
+        },
+        {
+          "id": "c-orc-4",
+          "type": "orc",
+          "cell": [3, 5]
+        },
+        {
+          "id": "c-orc-5",
+          "type": "orc",
+          "cell": [3, 6]
+        },
+        {
+          "id": "c-orc-6",
+          "type": "orc",
+          "cell": [3, 7]
+        },
+        {
+          "id": "c-orc-7",
+          "type": "orc",
+          "cell": [12, 7]
+        },
+        {
+          "id": "c-orc-8",
+          "type": "orc",
+          "cell": [13, 7]
+        },
+        {
+          "id": "c-orc-9",
+          "type": "orc",
+          "cell": [12, 11]
+        },
+        {
+          "id": "c-orc-10",
+          "type": "orc",
+          "cell": [13, 11]
+        },
+        {
+          "id": "c-orc-11",
+          "type": "orc",
+          "cell": [22, 16]
+        },
+        {
+          "id": "c-orc-12",
+          "type": "orc",
+          "cell": [23, 16]
+        },
+        {
+          "id": "c-orc-13",
+          "type": "orc",
+          "cell": [24, 16]
+        },
+        {
+          "id": "c-orc-14",
+          "type": "orc",
+          "cell": [22, 17]
+        },
+        {
+          "id": "c-orc-15",
+          "type": "orc",
+          "cell": [23, 17]
+        },
+        {
+          "id": "c-orc-16",
+          "type": "orc",
+          "cell": [24, 17]
+        },
+        {
+          "id": "c-goblin-1",
+          "type": "goblin",
+          "cell": [17, 2]
+        },
+        {
+          "id": "c-goblin-2",
+          "type": "goblin",
+          "cell": [20, 2]
+        },
+        {
+          "id": "c-goblin-3",
+          "type": "goblin",
+          "cell": [21, 14]
+        },
+        {
+          "id": "c-goblin-4",
+          "type": "goblin",
+          "cell": [22, 14]
+        },
+        {
+          "id": "c-goblin-5",
+          "type": "goblin",
+          "cell": [23, 14]
+        },
+        {
+          "id": "c-goblin-6",
+          "type": "goblin",
+          "cell": [21, 15]
+        },
+        {
+          "id": "c-goblin-7",
+          "type": "goblin",
+          "cell": [22, 15]
+        },
+        {
+          "id": "c-goblin-8",
+          "type": "goblin",
+          "cell": [23, 15]
+        },
+        {
+          "id": "c-zomb-1",
+          "type": "zombie",
+          "cell": [18, 2]
+        },
+        {
+          "id": "c-zomb-2",
+          "type": "zombie",
+          "cell": [19, 2]
+        },
+        {
+          "id": "c-mummy-1",
+          "type": "mummy",
+          "cell": [5, 1]
+        },
+        {
+          "id": "c-mummy-2",
+          "type": "mummy",
+          "cell": [5, 3]
+        },
+        {
+          "id": "c-mummy-3",
+          "type": "mummy",
+          "cell": [18, 3]
+        },
+        {
+          "id": "c-mummy-4",
+          "type": "mummy",
+          "cell": [19, 3]
+        },
+        {
+          "id": "c-garg-1",
+          "type": "gargoyle",
+          "cell": [11, 9]
+        },
+        {
+          "id": "c-sword-1",
+          "type": "goblin",
+          "enemy": "swordsman",
+          "cell": [15, 2]
+        },
+        {
+          "id": "c-sword-2",
+          "type": "goblin",
+          "enemy": "swordsman",
+          "cell": [17, 11]
+        },
+        {
+          "id": "c-sword-3",
+          "type": "goblin",
+          "enemy": "swordsman",
+          "cell": [17, 12]
+        },
+        {
+          "id": "c-xbow-1",
+          "type": "goblin",
+          "enemy": "crossbowman",
+          "cell": [3, 14]
+        },
+        {
+          "id": "c-xbow-2",
+          "type": "goblin",
+          "enemy": "crossbowman",
+          "cell": [4, 14]
+        },
+        {
+          "id": "c-halb-1",
+          "type": "goblin",
+          "enemy": "halberdier",
+          "cell": [16, 3]
+        },
+        {
+          "id": "c-halb-2",
+          "type": "goblin",
+          "enemy": "halberdier",
+          "cell": [18, 11]
+        },
+        {
+          "id": "c-gremlin-1",
+          "type": "goblin",
+          "enemy": "iceGremlin",
+          "cell": [1, 12]
+        },
+        {
+          "id": "c-gremlin-2",
+          "type": "goblin",
+          "enemy": "iceGremlin",
+          "cell": [2, 12]
+        },
+        {
+          "id": "c-gremlin-3",
+          "type": "goblin",
+          "enemy": "iceGremlin",
+          "cell": [3, 12]
+        }
+      ],
+      "traps": [
+        {
+          "id": "t-c-pit-1",
+          "kind": "pit",
+          "cell": [2, 5]
+        },
+        {
+          "id": "t-c-pit-2",
+          "kind": "pit",
+          "cell": [2, 6]
+        },
+        {
+          "id": "t-c-pit-3",
+          "kind": "pit",
+          "cell": [2, 7]
+        },
+        {
+          "id": "t-c-pit-4",
+          "kind": "pit",
+          "cell": [18, 13]
+        },
+        {
+          "id": "t-c-spear-1",
+          "kind": "spear",
+          "cell": [6, 5]
+        },
+        {
+          "id": "t-c-spear-2",
+          "kind": "spear",
+          "cell": [22, 7]
+        },
+        {
+          "id": "t-c-spear-3",
+          "kind": "spear",
+          "cell": [22, 8]
+        },
+        {
+          "id": "t-c-swingingAxe-1",
+          "kind": "swingingAxe",
+          "cell": [22, 3]
+        },
+        {
+          "id": "t-c-swingingAxe-2",
+          "kind": "swingingAxe",
+          "cell": [22, 4]
+        },
+        {
+          "id": "t-c-stalactite-1",
+          "kind": "stalactite",
+          "cell": [20, 11]
+        },
+        {
+          "id": "t-c-stalactite-2",
+          "kind": "stalactite",
+          "cell": [19, 12]
+        },
+        {
+          "id": "t-c-stalactite-3",
+          "kind": "stalactite",
+          "cell": [20, 13]
+        },
+        {
+          "id": "t-c-wanderingTrap-1",
+          "kind": "wanderingTrap",
+          "cell": [19, 0]
+        },
+        {
+          "id": "t-c-wanderingTrap-2",
+          "kind": "wanderingTrap",
+          "cell": [15, 6]
+        },
+        {
+          "id": "t-c-wanderingTrap-3",
+          "kind": "wanderingTrap",
+          "cell": [25, 18]
+        },
+        {
+          "id": "t-c-slide",
+          "kind": "iceSlide",
+          "cell": [1, 0],
+          "path": [
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+            [5, 0],
+            [6, 0],
+            [7, 0],
+            [8, 0]
+          ]
+        },
+        {
+          "id": "t-c-chest-m",
+          "kind": "chest",
+          "furniture": "f-c-chest-m",
+          "effect": "A poison needle springs out of the lock. A hero who searches the chest before the trap is disarmed loses 2 Body Points."
+        }
+      ],
+      "tunnels": [
+        {
+          "id": "tunH",
+          "design": 1,
+          "a": [11, 1],
+          "b": [14, 1]
+        },
+        {
+          "id": "tunI",
+          "design": 2,
+          "a": [21, 8],
+          "b": [15, 11]
+        },
+        {
+          "id": "tunL",
+          "design": 3,
+          "a": [24, 11],
+          "b": [24, 14]
+        }
+      ],
+      "boardTiles": [
+        {
+          "type": "slipperyIce",
+          "cells": [
+            [14, 4],
+            [15, 4],
+            [16, 4],
+            [14, 5],
+            [15, 5],
+            [16, 5]
+          ]
+        },
+        {
+          "type": "slipperyIce",
+          "cells": [
+            [16, 13],
+            [17, 13]
+          ]
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "l1",
+      "a": {
+        "map": "halls",
+        "cell": [7, 7]
+      },
+      "b": {
+        "map": "catacombs",
+        "cell": [8, 8]
+      }
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "frozenHorror",
+      "name": "Frozen Horror",
+      "letter": "FH",
+      "overrides": {
+        "move": 8,
+        "att": 5,
+        "def": 4,
+        "body": 6,
+        "mind": 4
+      },
+      "profile": "caster",
+      "weights": {
+        "highestAtt": 3,
+        "highestBody": 2,
+        "grudge": 2,
+        "lastAttacker": 1
+      },
+      "size": 2,
+      "abilities": ["fhLarge", "fhSqueeze"],
+      "spells": ["fhSoothe", "fhMindFreeze", "fhIceStorm", "fhSkate", "fhIceWall", "fhChill"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
+      "overrides": {
+        "move": 10,
+        "att": 2,
+        "def": 3,
+        "body": 3,
+        "mind": 3
+      },
+      "profile": "thief",
+      "weights": {
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
+      },
+      "abilities": ["fhSteal"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "polarWarbear",
+      "name": "Polar Warbear",
+      "letter": "PW",
+      "overrides": {
+        "move": 6,
+        "att": 4,
+        "def": 3,
+        "body": 6,
+        "mind": 2
+      },
+      "profile": "relentless",
+      "weights": {
+        "closest": 3,
+        "highestAtt": 2,
+        "lastAttacker": 2,
+        "grudge": 1
+      },
+      "attacks": 2,
+      "abilities": ["fhTwoAttacks"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "yeti",
+      "name": "Yeti",
+      "letter": "Y",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 5,
+        "mind": 2
+      },
+      "profile": "grappler",
+      "weights": {
+        "lowestDef": 3,
+        "lowestBody": 2,
+        "closest": 2
+      },
+      "abilities": ["fhHug"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "swordsman",
+      "name": "Swordsman",
+      "letter": "SW",
+      "overrides": {
+        "move": 5,
+        "att": 4,
+        "def": 5,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "fighter",
+      "weights": {
+        "highestAtt": 3,
+        "highestBody": 2,
+        "grudge": 2,
+        "lastAttacker": 1
+      },
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "crossbowman",
+      "name": "Crossbowman",
+      "letter": "CB",
+      "overrides": {
+        "move": 6,
+        "att": 3,
+        "def": 3,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "shooter",
+      "weights": {
+        "caster": 3,
+        "lowestDef": 2,
+        "lastAttacker": 2
+      },
+      "abilities": ["fhRanged"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "halberdier",
+      "name": "Halberdier",
+      "letter": "HB",
+      "overrides": {
+        "move": 6,
+        "att": 3,
+        "def": 3,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "fighter",
+      "weights": {
+        "closest": 3,
+        "lastAttacker": 3,
+        "lowestBody": 2,
+        "highestAtt": 1,
+        "grudge": 1
+      },
+      "abilities": ["fhDiagonal"],
+      "expansion": "Frozen Horror"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The heroes come in through the iron door on the west edge of the map. First they must find the spiral stairway that leads down to the catacombs. The Crystal Key is down there, and it opens the door of the Seat of Power Room, where the Frozen Horror waits. The quest is over when the Frozen Horror is destroyed. Mind and Body Points are not restored when the heroes go down or come back up.",
+          "title": "The Heart of Ice"
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "map": "halls",
+      "letter": "A",
+      "at": [7, 6],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R08"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A spiral stairway winds down in the corner of this room. A hero who steps onto it leaves the board: take that figure off. The heroes can only go down together, so nobody goes until every hero is on the stairway."
+        }
+      ]
+    },
+    {
+      "id": "n-A-down",
+      "map": "halls",
+      "target": {
+        "kind": "furniture",
+        "id": "f-h-stairs"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "Go down the stairway",
+        "hint": "Every hero has to be on the stairway first.",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "Are all heroes on the stairway?",
+          "options": [
+            {
+              "label": "Yes, all of them",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "Take every piece of this map off the board. Put out only the room that holds the stairway below, and add the rest as the heroes explore it. Monsters that were killed up here do not come back.",
+                  "title": "Clear the board"
+                },
+                {
+                  "type": "crossMap",
+                  "link": "l1"
+                }
+              ]
+            },
+            {
+              "label": "No, not yet",
+              "effects": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "map": "halls",
+      "letter": "B",
+      "at": [4, 11],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R12"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Fog swirls through this room and nothing in it is quite what it seems. Whenever a hero attacks a monster here, the hero rolls 1 combat die first. A skull or a black shield: the hero swings at a fog likeness and the attack is wasted. A white shield: the hero sees the real monster, rolls the normal attack dice, and the monster defends as usual. The monsters are never fooled and always see the heroes correctly.",
+          "title": "Living fog"
+        }
+      ]
+    },
+    {
+      "id": "n-C1",
+      "map": "halls",
+      "letter": "C",
+      "at": [10, 13],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R18"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked C. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-C2",
+      "map": "halls",
+      "letter": "C",
+      "at": [15, 13],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R19"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked C. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "map": "halls",
+      "letter": "D",
+      "at": [20, 16],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R21",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The first hero to search this ice vault finds 400 gold coins and 2 potions of healing in the chest. Each potion restores up to 4 lost Body Points."
+        },
+        {
+          "type": "giveItem",
+          "text": "400 gold coins and 2 potions of healing (up to 4 Body Points each)"
+        }
+      ]
+    },
+    {
+      "id": "n-E",
+      "map": "halls",
+      "letter": "E",
+      "at": [15, 3],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R04",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "On the alchemist's table the first hero to search finds a spell scroll and a potion of healing. The potion restores up to 4 lost Body Points. For the scroll, the hero draws one spell scroll card at random and writes it on their character sheet."
+        },
+        {
+          "type": "giveItem",
+          "text": "One random spell scroll and a potion of healing (up to 4 Body Points)"
+        }
+      ]
+    },
+    {
+      "id": "n-F",
+      "map": "halls",
+      "letter": "F",
+      "at": [12, 9],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R11"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The Frozen Horror holds court in this room, guarded by warbears, yetis and dread warriors. It fills a block of 2 x 2 squares and can squeeze through a corridor only 1 square wide. Its monster card lists its stats and its Dread spells.",
+          "title": "The Seat of Power"
+        }
+      ]
+    },
+    {
+      "id": "n-F-door",
+      "map": "halls",
+      "target": {
+        "kind": "door",
+        "id": "dF"
+      },
+      "when": [
+        {
+          "flag": "crystalKey",
+          "is": true
+        }
+      ],
+      "trigger": {
+        "type": "manual",
+        "label": "A hero with the Crystal Key tries the door",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "Is the hero who carries the Crystal Key standing next to this door?",
+          "options": [
+            {
+              "label": "Yes, next to it",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The key turns in the lock. The door can be opened now.",
+                  "title": "The door opens"
+                },
+                {
+                  "type": "setFlag",
+                  "flag": "keyTurned",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "label": "No, not yet",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "Bring the hero with the key next to the door first."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-G",
+      "map": "catacombs",
+      "letter": "G",
+      "at": [8, 6],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R08"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This spiral stairway leads back up. The heroes have to return here once they hold the Crystal Key. As on the way down, a hero on the stairway leaves the board, and nobody goes up until every hero is on it."
+        }
+      ]
+    },
+    {
+      "id": "n-G-up",
+      "map": "catacombs",
+      "target": {
+        "kind": "furniture",
+        "id": "f-c-stairs"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "Go up the stairway",
+        "hint": "Every hero has to be on the stairway first.",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "Are all heroes on the stairway?",
+          "options": [
+            {
+              "label": "Yes, all of them",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "Take every piece of this map off the board. Put out only the room that holds the stairway above, and add the rest as the heroes explore it. Monsters that were killed before do not come back.",
+                  "title": "Clear the board"
+                },
+                {
+                  "type": "crossMap",
+                  "link": "l1"
+                }
+              ]
+            },
+            {
+              "label": "No, not yet",
+              "effects": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-H1",
+      "map": "catacombs",
+      "letter": "H",
+      "at": [11, 2],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R03"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked H. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-H2",
+      "map": "catacombs",
+      "letter": "H",
+      "at": [15, 1],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R04"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked H. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-I1",
+      "map": "catacombs",
+      "letter": "I",
+      "at": [21, 7],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R10"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked I. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-I2",
+      "map": "catacombs",
+      "letter": "I",
+      "at": [15, 10],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R11"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked I. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-J",
+      "map": "catacombs",
+      "letter": "J",
+      "at": [10, 7],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R11",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Behind the bookcase the first hero to search finds a spell scroll and 2 potions of healing. Each potion restores up to 4 lost Body Points. For the scroll, the hero draws one spell scroll card at random and writes it on their character sheet."
+        },
+        {
+          "type": "giveItem",
+          "text": "One random spell scroll and 2 potions of healing (up to 4 Body Points each)"
+        }
+      ]
+    },
+    {
+      "id": "n-K",
+      "map": "catacombs",
+      "letter": "K",
+      "at": [6, 12],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R13"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Put the Ice Gremlin treasure room tile over both small rooms, so that they make one larger room.",
+          "title": "The Ice Gremlin hoard"
+        }
+      ]
+    },
+    {
+      "id": "n-K-key",
+      "map": "catacombs",
+      "target": {
+        "kind": "area",
+        "id": "R13"
+      },
+      "when": [
+        {
+          "flag": "keyStolen",
+          "is": true
+        }
+      ],
+      "trigger": {
+        "type": "manual",
+        "label": "A hero takes the Crystal Key back",
+        "hint": "An Ice Gremlin ran off with the key.",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The Crystal Key lies among the hoard. The hero who picks it up carries it again.",
+          "title": "The key is back"
+        },
+        {
+          "type": "giveItem",
+          "text": "The Crystal Key tile goes back to the hero who picked it up"
+        },
+        {
+          "type": "setFlag",
+          "flag": "crystalKey",
+          "value": true
+        },
+        {
+          "type": "setFlag",
+          "flag": "keyStolen",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "n-L1",
+      "map": "catacombs",
+      "letter": "L",
+      "at": [24, 12],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R16"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked L. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-L2",
+      "map": "catacombs",
+      "letter": "L",
+      "at": [24, 15],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R22"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked L. A hero or monster that lands on either square is moved at once to the other one."
+        }
+      ]
+    },
+    {
+      "id": "n-M",
+      "map": "catacombs",
+      "letter": "M",
+      "at": [19, 17],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R21",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest holds the Crystal Key and a potion of healing, which restores up to 4 lost Body Points. Hand the Crystal Key tile to the hero who found it."
+        },
+        {
+          "type": "giveItem",
+          "text": "The Crystal Key and a potion of healing (up to 4 Body Points)"
+        },
+        {
+          "type": "setFlag",
+          "flag": "crystalKey",
+          "value": true
+        },
+        {
+          "type": "setFlag",
+          "flag": "keyFound",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "n-key-stolen",
+      "when": [
+        {
+          "flag": "crystalKey",
+          "is": true
+        }
+      ],
+      "trigger": {
+        "type": "monsterLeft",
+        "reason": "escaped"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "Was the stolen item the Crystal Key?",
+          "options": [
+            {
+              "label": "Yes, the key",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The heroes no longer have the Crystal Key. It is in the Ice Gremlin treasure room in the catacombs, and the heroes can win it back there.",
+                  "title": "The key is gone"
+                },
+                {
+                  "type": "setFlag",
+                  "flag": "crystalKey",
+                  "value": false
+                },
+                {
+                  "type": "setFlag",
+                  "flag": "keyStolen",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "label": "No, something else",
+              "effects": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "goblin",
+    "enemy": "polarWarbear",
+    "count": 2
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find the Crystal Key in the catacombs",
+      "done": {
+        "flag": "keyFound"
+      }
+    },
+    {
+      "id": "o2",
+      "text": "Destroy the Frozen Horror",
+      "done": {
+        "monsterKilled": "m-fh"
+      }
+    }
+  ],
+  "rewards": "1,000 gold coins for each hero",
+  "endText": "The Frozen Horror is destroyed and the Realm is spared an ice-bound doom. Zargon's plans in the Northlands are broken. The tribal elders thank the heroes with 1,000 gold coins each. Zargon is still strong elsewhere, and the Frozen Horror came back once before, so the watch goes on. For tonight the heroes are guests of honor at a great feast."
+}

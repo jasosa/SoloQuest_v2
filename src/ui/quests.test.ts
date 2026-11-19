@@ -14,11 +14,13 @@ describe('the bundled quest entries', () => {
 
   it('list every Frozen Horror quest even when its number is a core number', () => {
     const fh = questEntries.filter((e) => e.level?.quest.pack === 'frozen-horror');
-    expect(fh.map((e) => e.number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(fh.map((e) => e.number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     // the prelude has no core twin, so it keeps slot 0; the others sit in the 100s
     expect(levelOfSlot(0)?.quest.id).toBe('fh00-into-the-northlands');
     expect(levelOfSlot(103)?.quest.id).toBe('fh03-the-rescue');
     expect(levelOfSlot(3)?.quest.id).toBe('q03-lair-of-the-orc-warlord');
+    // the double quest (maps 9 and 10) is one entry, number 9
+    expect(levelOfSlot(109)?.quest.id).toBe('fh09-the-heart-of-ice');
   });
 
   it('find a quest by id', () => {
