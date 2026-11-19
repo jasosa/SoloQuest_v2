@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseQuest } from '../quest/loader';
+import { exportQuest } from './io';
 import { testQuestData } from '../quest/testQuest';
 import {
   addBoardTile,
@@ -11,6 +12,7 @@ import {
   removeTunnel,
   setDoorFlags,
   setLeave,
+  setSuggestedPack,
   setRoomTile,
   setStart,
 } from './features';
@@ -31,6 +33,15 @@ describe('parseCells', () => {
     expect(parseCells('2,2-3,3')).toHaveLength(4);
     expect(parseCells('a,b')).toBeUndefined();
     expect(parseCells('')).toBeUndefined();
+  });
+});
+
+describe('suggested texture pack', () => {
+  it('sets, clears and survives export and import', () => {
+    const a = good(setSuggestedPack(q, ' pack-fh '));
+    expect(a.suggestedPack).toBe('pack-fh');
+    expect(JSON.parse(exportQuest(a)).suggestedPack).toBe('pack-fh');
+    expect(good(setSuggestedPack(a, '')).suggestedPack).toBeUndefined();
   });
 });
 

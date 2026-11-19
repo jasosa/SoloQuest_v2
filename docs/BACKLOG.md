@@ -237,7 +237,7 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [ ] Board styles: floor tile images (with variants so it does not repeat), wall pieces (top face, side face, corners), rock fill, room lighting; the board stays a 26 x 19 grid, only the drawing changes
 - [ ] Walls with depth (as in the reference): decide between a flat top-down skin and a raised wall strip; the second needs extra space around rooms and a change of how sight, doors and tokens are laid out
 - [x] Texture pack file format (`.sqtextures`), import, export, delete and a picker (the Textures link on the select screen). A Settings screen and a preview in the Library are not built
-- [ ] A quest can suggest a texture pack (decision 78, point 4): a `suggestedPack` id in the quest format, a line on the quest card, an offer to switch, never forced. Needs the quest schema, `QUEST_FORMAT.md` and the editor Quest tab
+- [x] A quest can suggest a texture pack (decision 78, point 4): a `suggestedPack` id in the quest format, set in the editor Quest tab, shown as a line on the quest card, never forced. Not built: the offer to switch to the pack (needs the pack to be installed and a button)
 - [x] Whole-picture packs (decision 79): `board`, whole monster tokens, furniture proportions and stairs corner, single and double blocks, trap kinds, secret door
 - [x] Pack authoring help: `docs/TEXTURE_PACKS.md` (format, slots, picture sizes). The owner's personal example pack, cut from the Quest Book, is built by `reference/texture-pack/build.py` and stays in the git-ignored `reference/` folder (never committed or shared)
 - [ ] Monster, hero and companion pictures from the pack (the Library already has a per-enemy `image`; the pack gives the default per type)

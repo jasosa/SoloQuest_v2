@@ -10,6 +10,7 @@ import {
   removeTunnel,
   setDoorFlags,
   setLeave,
+  setSuggestedPack,
   setRoomTile,
   setStart,
 } from '../../engine/editor';
@@ -69,6 +70,23 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
             onBlur={(e) => {
               if (e.target.value.trim() !== (quest.leave ?? ''))
                 st.apply((q) => setLeave(q, e.target.value));
+            }}
+          />
+        </label>
+      </section>
+
+      <section>
+        <div className="lbl">Texture pack</div>
+        <label className="ed-field">
+          Id of the texture pack this quest looks best with. Only a hint, never applied for the
+          player.
+          <input
+            aria-label="Suggested texture pack"
+            key={quest.suggestedPack ?? ''}
+            defaultValue={quest.suggestedPack ?? ''}
+            onBlur={(e) => {
+              if (e.target.value.trim() !== (quest.suggestedPack ?? ''))
+                st.apply((q) => setSuggestedPack(q, e.target.value));
             }}
           />
         </label>

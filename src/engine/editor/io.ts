@@ -46,6 +46,7 @@ const TOP_KEYS = [
   'rewards',
   'endText',
   'leave',
+  'suggestedPack',
   'rules',
   'npcs',
   'endings',
@@ -69,7 +70,8 @@ export function exportQuest(quest: Quest): string {
   const ordered: Record<string, unknown> = {};
   for (const k of TOP_KEYS) if (clean[k] !== undefined) ordered[k] = clean[k];
   // a field of the schema that is not in the list yet must never be lost on export
-  for (const k of Object.keys(clean)) if (!(k in ordered) && clean[k] !== undefined) ordered[k] = clean[k];
+  for (const k of Object.keys(clean))
+    if (!(k in ordered) && clean[k] !== undefined) ordered[k] = clean[k];
   const text = JSON.stringify(ordered, null, 2);
   // A cell pair printed over four lines becomes one line. Strings cannot hold raw newlines,
   // so this never touches text.

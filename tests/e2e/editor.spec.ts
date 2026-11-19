@@ -1308,6 +1308,14 @@ test.describe('editor: Frozen Horror features', () => {
     await page.getByRole('button', { name: 'Remove tunnel 1' }).click();
     await expect(page.getByTestId('tunnel-row')).toHaveCount(0);
   });
+
+  test('a quest can suggest a texture pack', async ({ page }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    await page.getByLabel('Suggested texture pack').fill('my-pack');
+    await page.getByLabel('Suggested texture pack').blur();
+    await expect(page.getByLabel('Suggested texture pack')).toHaveValue('my-pack');
+  });
 });
 
 test('a copy of Frozen Horror quest 0 opens in the editor and keeps its tunnels (bug)', async ({

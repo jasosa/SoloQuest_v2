@@ -221,6 +221,11 @@ export function SelectScreen({
               <h2>{level.quest.title}</h2>
               {/* the story comes right under the title */}
               <p className="summary">{level.quest.intro.summary}</p>
+              {level.quest.suggestedPack && (
+                <p className="hint" data-testid="suggested-pack">
+                  Looks best with the texture pack {level.quest.suggestedPack}.
+                </p>
+              )}
               {edited.has(level.quest.number) && (
                 <>
                   <p className="hint">This is your edited copy.</p>

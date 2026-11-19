@@ -76,11 +76,18 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
 
 ```jsonc
 {
-  "id": "n-A", "letter": "A", "at": [11, 14],          // where the letter is drawn once read
+  "id": "n-A",
+  "letter": "A",
+  "at": [11, 14], // where the letter is drawn once read
   "trigger": { "type": "treasureSearch", "area": "R18", "first": true },
-  "when": [ { "monstersAliveIn": "R18", "is": 0 } ],    // optional conditions, all must hold
-  "effects": [ { "type": "showText", "text": "The weapons on this rack are chipped, rusted and broken. Nothing is worth taking." } ],
-  "consumesTreasure": true                              // no treasure card is drawn when this fires
+  "when": [{ "monstersAliveIn": "R18", "is": 0 }], // optional conditions, all must hold
+  "effects": [
+    {
+      "type": "showText",
+      "text": "The weapons on this rack are chipped, rusted and broken. Nothing is worth taking.",
+    },
+  ],
+  "consumesTreasure": true, // no treasure card is drawn when this fires
   // or: "blocksSearch": true   (treasureSearch only, not together with consumesTreasure)
   // "keepMark": true   (square and zone notes: the mark stays on the map after the note fired)
 }
@@ -102,24 +109,26 @@ A note may name the quest element it belongs to: `"target": { "kind": "door" | "
 
 ### Triggers
 
-| `type` | Params | Fires when |
-|---|---|---|
-| `questStart` | | game starts |
-| `areaRevealed` | `area` | area first revealed |
-| `doorOpened` | `door` | that door is opened |
-| `areaEntered` | `area` | players tap "A hero enters" on the area (only shown for areas with this trigger) |
-| `zoneEntered` | `zone`, `repeat?` | every seen square of the zone has a ring; a tap asks "Press the button when a hero enters this square" and the button "A hero enters" fires the note. Once by default; `repeat: true` fires every time, from any square, with the same popup |
-| `squareEntered` | `cell`, `repeat?` | players tap the square marker ("A hero is here") |
-| `treasureSearch` | `area`, `first?` | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search. |
-| `secretDoorSearch` | `area` | a hero searches the area for secret doors |
-| `trapSprung` / `trapDisarmed` | `trap` | trap state changes |
-| `monsterSeen` | `monster` or `monsterType` | the first time a matching monster comes into view (any reveal, also at the start). Fires once. |
-| `monsterKilled` | `monster` or `monsterType` | a monster is marked slain |
-| `allKilled` | `monsters` (ids) | the last of them is slain |
-| `spellCast` | `monster?`, `spell?` | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him `away`, a door note places him again. |
-| `questEnds` | `outcome?`, `ending?` | when the quest ends (`stairs`, `fell` or a custom `ending`); the note texts show in the end dialog |
-| `zargonTurn` | `n?`, `every?` | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k) |
-| `manual` | `label`, `hint?`, `repeat?` | a button. With a `target` it is a button of that element (under **For this quest**); without one it is in the Quest sheet. `hint` is one plain line shown above the button. `repeat: true` keeps the button after it is pressed (a magic door that every hero goes through). |
+| `type`                        | Params                      | Fires when                                                                                                                                                                                                                                                                   |
+| ----------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `questStart`                  |                             | game starts                                                                                                                                                                                                                                                                  |
+| `areaRevealed`                | `area`                      | area first revealed                                                                                                                                                                                                                                                          |
+| `doorOpened`                  | `door`                      | that door is opened                                                                                                                                                                                                                                                          |
+| `areaEntered`                 | `area`                      | players tap "A hero enters" on the area (only shown for areas with this trigger)                                                                                                                                                                                             |
+| `zoneEntered`                 | `zone`, `repeat?`           | every seen square of the zone has a ring; a tap asks "Press the button when a hero enters this square" and the button "A hero enters" fires the note. Once by default; `repeat: true` fires every time, from any square, with the same popup                                 |
+| `squareEntered`               | `cell`, `repeat?`           | players tap the square marker ("A hero is here")                                                                                                                                                                                                                             |
+| `treasureSearch`              | `area`, `first?`            | a hero searches the area for treasure. `first` means the first search of the room by anyone. For "after X happens" notes use `when` (`firstTime` plus a flag or a monster alive), not `first`. Two lettered treasure notes in one room both fire on the same search.         |
+| `secretDoorSearch`            | `area`                      | a hero searches the area for secret doors                                                                                                                                                                                                                                    |
+| `trapSprung` / `trapDisarmed` | `trap`                      | trap state changes                                                                                                                                                                                                                                                           |
+| `monsterSeen`                 | `monster` or `monsterType`  | the first time a matching monster comes into view (any reveal, also at the start). Fires once.                                                                                                                                                                               |
+| `monsterKilled`               | `monster` or `monsterType`  | a monster is marked slain                                                                                                                                                                                                                                                    |
+| `allKilled`                   | `monsters` (ids)            | the last of them is slain                                                                                                                                                                                                                                                    |
+| `spellCast`                   | `monster?`, `spell?`        | a monster casts a Dread spell (after the `SPELL_CAST` event). With both `monster` and `spell` it fires once, otherwise on every matching cast. Example: Balur's escape sets him `away`, a door note places him again.                                                        |
+| `questEnds`                   | `outcome?`, `ending?`       | when the quest ends (`stairs`, `fell` or a custom `ending`); the note texts show in the end dialog                                                                                                                                                                           |
+| `zargonTurn`                  | `n?`, `every?`              | when Zargon's turn `n` ENDS (`n` = the turn that just ended; `every: k` when that number is divisible by k)                                                                                                                                                                  |
+| `manual`                      | `label`, `hint?`, `repeat?` | a button. With a `target` it is a button of that element (under **For this quest**); without one it is in the Quest sheet. `hint` is one plain line shown above the button. `repeat: true` keeps the button after it is pressed (a magic door that every hero goes through). |
+
+`suggestedPack` (optional) is the id of a texture pack the quest looks best with. The quest card shows it as a line. It is only a hint: the app never switches the pack by itself.
 
 Falling-block squares in the Q13 style (a block may fall each time a hero enters) are modeled with `squareEntered` notes with `repeat: true` and a `showText` effect, NOT with `fallingBlock` trap objects. The trap kind `fallingBlock` is the one-shot official trap that leaves a permanent block.
 
@@ -135,24 +144,24 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 
 ### Effects
 
-| `type` | Params |
-|---|---|
-| `showText` | `text`, `title?` |
-| `revealArea` | `area` (rooms only, never `C`) |
-| `revealAll` | | (Q2 alarm: all monsters, doors, furniture) |
-| `openAllDoors` | |
-| `placeMonster` | `monster` (an id with `hidden: true`), `cell?` |
-| `setMonsterState` | `monster`, `state`: `active`/`dormant`/`stone`/`away`, `turns?` (`away` is like dormant but nothing is drawn: a monster that escaped) |
-| `addSecretDoor` | `door` (reveal a secret door from `secretDoors`) |
-| `removeDoor` | `door` (the door closes and disappears, see Hidden, locked and removed doors) |
+| `type`                     | Params                                                                                                                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `showText`                 | `text`, `title?`                                                                                                                                                                             |
+| `revealArea`               | `area` (rooms only, never `C`)                                                                                                                                                               |
+| `revealAll`                |                                                                                                                                                                                              | (Q2 alarm: all monsters, doors, furniture) |
+| `openAllDoors`             |                                                                                                                                                                                              |
+| `placeMonster`             | `monster` (an id with `hidden: true`), `cell?`                                                                                                                                               |
+| `setMonsterState`          | `monster`, `state`: `active`/`dormant`/`stone`/`away`, `turns?` (`away` is like dormant but nothing is drawn: a monster that escaped)                                                        |
+| `addSecretDoor`            | `door` (reveal a secret door from `secretDoors`)                                                                                                                                             |
+| `removeDoor`               | `door` (the door closes and disappears, see Hidden, locked and removed doors)                                                                                                                |
 | `replaceFurnitureWithDoor` | `furniture`, `door`: the piece is gone for good and the door (declared in `doors`, usually with `hiddenUntil`) stands open where it was; the door may stand on the squares of that furniture |
-| `lookFrom` | `cell` (what can be seen from that square shows, as if a hero stood there and looked: the exit of an ice tunnel) |
-| `placeBlock` | `cells` |
-| `giveItem` | `text` (shown only, not tracked) |
-| `setFlag` / `addCounter` | `flag`, `value` / `counter`, `by` |
-| `completeObjective` | `objective` |
-| `spawnNpc` | `npc` |
-| `promptChoice` | `text`, `options: [{ label, effects }]` |
+| `lookFrom`                 | `cell` (what can be seen from that square shows, as if a hero stood there and looked: the exit of an ice tunnel)                                                                             |
+| `placeBlock`               | `cells`                                                                                                                                                                                      |
+| `giveItem`                 | `text` (shown only, not tracked)                                                                                                                                                             |
+| `setFlag` / `addCounter`   | `flag`, `value` / `counter`, `by`                                                                                                                                                            |
+| `completeObjective`        | `objective`                                                                                                                                                                                  |
+| `spawnNpc`                 | `npc`                                                                                                                                                                                        |
+| `promptChoice`             | `text`, `options: [{ label, effects }]`                                                                                                                                                      |
 
 ## Quest rule overrides (`rules`)
 
@@ -209,4 +218,3 @@ Leaving: heroes who go out through a wooden exit door end the quest as usual (En
 ## Pack
 
 A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose manifest lists it (`PACKS.md`); a quest made in the editor is in no pack. `number` is 1 to 14 in the core book and may be 0 (a prelude).
-
