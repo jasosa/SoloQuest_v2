@@ -17,9 +17,7 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
     await page.screenshot({ path: 'test-results/fh00-opened.png' });
   });
 
-  test('the quest select screen lists quest 0 under the Frozen Horror tab', async ({
-    page,
-  }) => {
+  test('the quest select screen lists quest 0 under the Frozen Horror tab', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.getByRole('button', { name: /Quest 0/ })).toBeVisible();
