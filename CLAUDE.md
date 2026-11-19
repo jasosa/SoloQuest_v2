@@ -102,6 +102,7 @@ Source PDFs (owner's copy, read-only, outside the repo):
 - **Windows edits:** working copies are CRLF. Change files with the Edit or Write tools. For a scripted edit use Python with `newline=''` and detect the line ending first. Do not use shell heredocs for content with quotes or `$`; write a script file instead. Never `sed -i` a CRLF file.
 - **Rules questions:** tag each as `[book]` (cite the page) or `[proposal]` (an edge case the book does not cover). Never present an invented rule as a game rule.
 - **Formatting:** Prettier covers code and data (`.prettierignore` skips `docs/`, `design/` and `*.md`). The edit hook formats each file you write, and `verify` fails on unformatted files, so run `npx prettier --write <file>` on what you touched, never on whole folders.
+- **Tests must not get weaker:** do not loosen an assertion to make a test pass (no `>= 1` for an exact count, no `.skip` or `.only`). `verify` flags these; a deliberate one needs `// verify-ok` with the reason.
 - **Review by size:** see `/ship`. Engine, schema or large changes get the `reviewer` agent; docs-only changes do not.
 
 ## Domain gotchas
