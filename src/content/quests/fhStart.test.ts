@@ -7,8 +7,8 @@ const dir = import.meta.dirname;
 const files = readdirSync(dir).filter((f) => /^fh\d\d-.*\.json$/.test(f));
 
 describe('the start message (when there is one) of every Frozen Horror quest', () => {
-  it('finds the nine quests', () => {
-    expect(files).toHaveLength(9);
+  it('finds the ten quest files (quests 0 to 8 and the double quest 9 and 10)', () => {
+    expect(files).toHaveLength(10);
   });
 
   for (const f of files)

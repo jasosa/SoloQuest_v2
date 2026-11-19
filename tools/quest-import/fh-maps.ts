@@ -1,6 +1,6 @@
 /**
  * Where each Frozen Horror quest map sits in its PDF (all at 300 dpi). Quest 0 is page 1 of the
- * online prelude (a letter page, upright). Quests 1 to 8 are on the pages 8 to 15 of the quest pack:
+ * online prelude (a letter page, upright). Quests 1 to 10 are on the pages 8 to 17 of the quest pack:
  * each page is a print spread of 3900 x 3000 pixels with the real page turned a quarter turn, so it
  * is rotated 90 degrees clockwise to read upright (3000 x 3900).
  *
@@ -23,7 +23,8 @@ export interface FhMap {
   grid: { x0: number; y0: number; cw: number; ch: number };
 }
 
-export const FH_QUESTS = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
+/** Quest 9 and 10 are the two maps of the double quest, one entry each (quest 10 is map 2 of the file fh09). */
+export const FH_QUESTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
 export const FH_MAPS: Record<number, FhMap> = {
   0: { source: 'prelude', page: 1, rotation: 0, grid: { x0: 349, y0: 482, cw: 71.58, ch: 71.84 } },
@@ -35,6 +36,13 @@ export const FH_MAPS: Record<number, FhMap> = {
   6: { source: 'book', page: 13, rotation: 90, grid: { x0: 406, y0: 251, cw: 83.1, ch: 83.55 } },
   7: { source: 'book', page: 14, rotation: 90, grid: { x0: 409, y0: 253, cw: 82.5, ch: 82.85 } },
   8: { source: 'book', page: 15, rotation: 90, grid: { x0: 408, y0: 254, cw: 83, ch: 83.35 } },
+  9: { source: 'book', page: 16, rotation: 90, grid: { x0: 410, y0: 257.5, cw: 83, ch: 83.15 } },
+  10: {
+    source: 'book',
+    page: 17,
+    rotation: 90,
+    grid: { x0: 408.5, y0: 258.5, cw: 82.9, ch: 83.1 },
+  },
 };
 
 /** Margin kept around the board in the crop, in pixels. */
@@ -98,3 +106,6 @@ export function uprightTransform(
 export function uprightSize(rotation: Rotation, rawW: number, rawH: number): [number, number] {
   return rotation === 90 || rotation === 270 ? [rawH, rawW] : [rawW, rawH];
 }
+
+/** Quest file number and map index (0 based) behind a scan number: scan 10 is map 2 of file 9. */
+export const fhFile = (n: number): [number, number] => (n === 10 ? [9, 1] : [n, 0]);
