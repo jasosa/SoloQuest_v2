@@ -154,6 +154,7 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 | `setMonsterState`          | `monster`, `state`: `active`/`dormant`/`stone`/`away`, `turns?` (`away` is like dormant but nothing is drawn: a monster that escaped)                                                        |
 | `addSecretDoor`            | `door` (reveal a secret door from `secretDoors`)                                                                                                                                             |
 | `removeDoor`               | `door` (the door closes and disappears, see Hidden, locked and removed doors)                                                                                                                |
+| `crossMap`                 | `link` (the heroes cross to the other end of a link, see Several maps in one quest; put it last in a note)                                                                                   |
 | `replaceFurnitureWithDoor` | `furniture`, `door`: the piece is gone for good and the door (declared in `doors`, usually with `hiddenUntil`) stands open where it was; the door may stand on the squares of that furniture |
 | `lookFrom`                 | `cell` (what can be seen from that square shows, as if a hero stood there and looked: the exit of an ice tunnel)                                                                             |
 | `placeBlock`               | `cells`                                                                                                                                                                                      |
@@ -214,6 +215,24 @@ A question the players answer (Q1 B "did the Barbarian attack the Crossbowman fr
 `start` is `{ "area": "R20" }` (the stairway room), `{ "area": "R20", "kind": "tile" }` (an ice cave entrance tile, drawn like any start room), or `{ "door": "in" }`: the heroes begin outside that iron entry door and see only it; the first tap opens it and looks in from the square inside. Exactly one of `area` and `door`.
 
 Leaving: heroes who go out through a wooden exit door end the quest as usual (End quest). The end buttons then say "through the exit door".
+
+## Several maps in one quest (Frozen Horror Q9 and Q10, decision 45)
+
+One quest can have more than one map. The board fields at the top of the quest (`rock`, `doors`, `edgeDoors`, `roomTiles`, `boardTiles`, `areaOverrides`, `secretDoors`, `falseDoors`, `blocks`, `furniture`, `monsters`, `traps`, `markers`, `tunnels`, `zones`, and `start`) are **map 1**. `mapId` (required when there are extra maps) and `mapName` name it. `maps` lists the extra maps, each `{ "id", "name?", "start", ...the same board fields }` (`start` is the room of the stairway where the heroes arrive).
+
+```jsonc
+"mapId": "upper", "mapName": "The Upper Hall",
+"maps": [ { "id": "lower", "name": "The Lower Hall", "start": { "area": "R01" }, "doors": [ ... ], "furniture": [ ... ] } ],
+"links": [ { "id": "l1", "a": { "map": "upper", "cell": [1, 15] }, "b": { "map": "lower", "cell": [1, 1] } } ]
+```
+
+- **Everything else is shared**: objectives, enemies, abilities, spells, rules, `wandering`, NPCs, endings. The quest ends by its own objective or ending, wherever the heroes are.
+- **Ids are unique across maps**: doors, furniture, monsters, traps, zones, markers, notes. Two notes on different maps cannot use the same `letter`. The validator reports a repeat.
+- **Rooms are per map**: `R05` on one map is another room on the next. A note with an `areaRevealed`, `areaEntered`, `treasureSearch`, `secretDoorSearch` or `squareEntered` trigger must say `"map": "<id>"`. Any note may. A note with no `map` is in force on every map (a kill note, the quest start, a spell note).
+- **Links** join two stairways on two different maps (both ways). Each end is a square of a `stairs` furniture of that map: the heroes arrive there. A link needs both ends.
+- **Crossing** is the effect `{ "type": "crossMap", "link": "l1" }` (put it last in a note), inside the answer "Yes" of a `promptChoice` "Are all heroes on the stairway?". Put one such `manual` note (with `repeat`) on each map. The engine also has a `CROSS_MAP` event with the same effect.
+- **On crossing**: the fog resets (seen squares, rooms, looks, doors, furniture, traps), opened doors close, found secret doors stay found, the squares of fallen blocks and the rooms searched wait with their map. Kills, monster damage, fired notes, flags, counters, dead heroes, sprung traps and the turn counter stay. Wandering monsters without a square disappear; one the players put on a square stays on the map where it was. The arrival room of the other stairway is revealed whole.
+- The Play screen shows the map name after the quest number. The editor does not draw the extra maps yet (a tab per map and a link tool come later), but it keeps all these fields on open and export.
 
 ## Pack
 
