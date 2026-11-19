@@ -96,6 +96,11 @@ export function SelectScreen({
 
   /** A quest of this device (made in the editor) is shown with the core game. */
   const inPack = (questId: string) => packOfQuest(questId) ?? CORE_PACK;
+  /** The pack of an entry: an edited copy has a new id, so it stays in the pack of the quest it copies. */
+  const packOfEntry = (q: { slot: number; level?: Level | undefined }) => {
+    const original = bundledEntries.find((b) => b.slot === q.slot)?.level ?? q.level;
+    return original ? inPack(original.quest.id) : CORE_PACK;
+  };
   const [packId, setPackId] = useState<string>(CORE_PACK);
   const [slot, setSlot] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.slot,
@@ -107,7 +112,7 @@ export function SelectScreen({
   const [choosing, setChoosing] = useState(false);
 
   const shown = questEntries.filter((q) =>
-    q.level ? inPack(q.level.quest.id) === packId : packId === CORE_PACK,
+    q.level ? packOfEntry(q) === packId : packId === CORE_PACK,
   );
   const entry = questEntries.find((q) => q.slot === slot);
   const level = entry?.level;
@@ -182,9 +187,7 @@ export function SelectScreen({
               data-testid={`pack-${p.manifest.id}`}
               onClick={() => {
                 setPackId(p.manifest.id);
-                const first = questEntries.find(
-                  (q) => q.level && inPack(q.level.quest.id) === p.manifest.id,
-                );
+                const first = questEntries.find((q) => q.level && packOfEntry(q) === p.manifest.id);
                 if (first) setSlot(first.slot);
               }}
             >

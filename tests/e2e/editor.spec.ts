@@ -286,6 +286,24 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('.qcard .qtitle').first()).toHaveText('The Trial, edited');
   });
 
+  test('an edited Frozen Horror quest stays in the Frozen Horror tab (bug)', async ({ page }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('102');
+    await btn(page, 'Edit it now').click();
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    const title = page.getByTestId('quest-general').getByLabel('Title');
+    await title.fill('Trial by Ice, edited');
+    await title.blur();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('pack-frozen-horror').click();
+    await expect(page.locator('.qcard', { hasText: 'Trial by Ice, edited' })).toHaveCount(1);
+    await expect(page.locator('.qcard')).toHaveCount(9);
+    await page.getByTestId('pack-core').click();
+    await expect(page.locator('.qcard')).toHaveCount(14);
+  });
+
   test('copy a bundled quest from the list', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
     await page.getByRole('button', { name: /^OPEN QUEST/ }).click();

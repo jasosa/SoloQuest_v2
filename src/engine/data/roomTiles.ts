@@ -109,6 +109,7 @@ export const BOARD_TILE_TYPES = [
   'icyRiver',
   'iceLedge',
   'chasm',
+  'slipperyIce',
 ] as const;
 export type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
 
@@ -157,6 +158,16 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     always: false,
     terrain: true,
     rule: ['A crevasse. It can be jumped over like a pit. A hero who falls in is lost for good.'],
+  },
+  slipperyIce: {
+    id: 'slipperyIce',
+    name: 'Slippery ice',
+    always: false,
+    terrain: true,
+    rule: [
+      'Put the slippery ice tile over these squares. It cannot be found or disarmed, and monsters are not affected by it.',
+      'Whenever a hero moves onto one of its squares, roll 1 combat die. On a white shield the hero falls and the turn ends. A fallen hero cannot act or defend until their next turn. Roll again for every ice square moved onto.',
+    ],
   },
   cage: {
     id: 'cage',

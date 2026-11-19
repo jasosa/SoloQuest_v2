@@ -93,6 +93,26 @@ describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', ()
     }
   });
 
+  it('no eye on a square of a terrain tile (an icy river)', () => {
+    const eyes = lookEyeCells(level, s, new Set());
+    expect(eyes.length).toBeGreaterThan(0);
+    const first = eyes[0]!;
+    const quest = testQuest();
+    const withRiver = buildLevel({
+      ...quest,
+      boardTiles: [{ type: 'icyRiver', cells: [[first[0], first[1]]] }],
+    });
+    const river = replay(withRiver, 1, [open('d2'), open('d3'), open('d4')]);
+    expect(keys(lookEyeCells(withRiver, river, new Set()))).not.toContain(first.join(','));
+    // the same square keeps its eye when the tile is not terrain (the ice cave entrance)
+    const cave = buildLevel({
+      ...quest,
+      boardTiles: [{ type: 'iceCaveEntrance', cells: [[first[0], first[1]]] }],
+    });
+    const caveS = replay(cave, 1, [open('d2'), open('d3'), open('d4')]);
+    expect(keys(lookEyeCells(cave, caveS, new Set()))).toContain(first.join(','));
+  });
+
   it('an occupied crossroads that cannot look gives no glyph to its neighbors', () => {
     // occupy every seen crossroads square that is not a look square: the glyphs do not change
     const dead = [...s.seenCells].filter(

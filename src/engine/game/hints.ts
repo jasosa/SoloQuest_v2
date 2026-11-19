@@ -11,7 +11,9 @@
 import { areaAt, type Cell } from '../board/board';
 import { cellKey, edgeOpen, parseKey, type Level } from '../board/level';
 import { lineOfSight, type SightMap } from '../board/los';
+import { BOARD_TILES } from '../data/roomTiles';
 import type { GameState } from './state';
+import { boardTilesInView } from './view';
 
 export function lookHintCells(level: Level, state: GameState): Cell[] {
   const { board } = level;
@@ -76,9 +78,13 @@ export function lookEyeCells(
   const canKeys = new Set(can.map((c) => cellKey(c[0], c[1])));
   const out: Cell[] = [];
   const seen = new Set<string>();
+  // No eye on a terrain tile (an icy river, a ledge): the tile is already a lot to read.
+  const onTile = new Set<string>();
+  for (const t of boardTilesInView(level, state))
+    if (BOARD_TILES[t.type].terrain) for (const c of t.cells) onTile.add(cellKey(c[0], c[1]));
   const add = (c: Cell) => {
     const k = cellKey(c[0], c[1]);
-    if (!seen.has(k) && canKeys.has(k) && !occupied.has(k)) {
+    if (!seen.has(k) && canKeys.has(k) && !occupied.has(k) && !onTile.has(k)) {
       seen.add(k);
       out.push(c);
     }

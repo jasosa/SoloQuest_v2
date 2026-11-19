@@ -171,19 +171,26 @@ describe('quest 2: the cast', () => {
     expect(bear.name).toBe('Polar Warbear');
     expect(bear.box).toBe('Frozen Horror');
     expect(bear.pictureType).toBeUndefined();
-    const yetis = monstersInPlay(level, run(...toR09)).filter((m) => m.id.startsWith('m-yeti'));
-    expect(yetis).toHaveLength(2);
-    for (const y of yetis) {
-      expect(y.box).toBe('Frozen Horror');
-      expect(y.pictureType).toBeUndefined();
+    const gremlins = monstersInPlay(level, run(...toR09)).filter((m) =>
+      m.id.startsWith('m-gremlin'),
+    );
+    expect(gremlins).toHaveLength(2);
+    for (const g of gremlins) {
+      expect(g.name).toBe('Ice Gremlin');
+      expect(g.box).toBe('Frozen Horror');
+      expect(g.pictureType).toBeUndefined();
     }
   });
 
-  it('the Yeti does not hug in a solo quest', () => {
+  it('the Ice Gremlins of R09 are thieves', () => {
     const s = run(...toR09);
-    const yeti = ordersFor(level, s, ['barbarian']).find((o) => o.monster === 'm-yeti-1')!;
-    expect(yeti.profile).toBe('fighter');
-    expect(JSON.stringify(yeti)).not.toMatch(/Bear hug/);
+    const g = ordersFor(level, s, ['barbarian']).find((o) => o.monster === 'm-gremlin-1')!;
+    expect(g.profile).toBe('thief');
+  });
+
+  it('the intro does not explain the ice tunnels', () => {
+    const start = quest.notes.find((n) => n.trigger.type === 'questStart')!;
+    expect(JSON.stringify(start.effects)).not.toMatch(/tunnel/i);
   });
 
   it('the wandering monsters are two goblins', () => {
@@ -246,9 +253,9 @@ describe('quest 2: the north-west rooms', () => {
 });
 
 describe('quest 2: the north-east rooms', () => {
-  it('R09 has two Yetis', () => {
+  it('R09 has two Ice Gremlins', () => {
     const s = run(...toR09);
-    expect(s.seenMonsters.has('m-yeti-1') && s.seenMonsters.has('m-yeti-2')).toBe(true);
+    expect(s.seenMonsters.has('m-gremlin-1') && s.seenMonsters.has('m-gremlin-2')).toBe(true);
   });
 
   it('R05 shows the two swinging axes, R04 two skeletons', () => {
