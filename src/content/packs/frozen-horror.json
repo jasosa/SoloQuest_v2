@@ -4,7 +4,13 @@
   "name": "Frozen Horror",
   "description": "The Frozen Horror quest pack and its free prelude, Into the Northlands. The quests are added as they are encoded.",
   "dependsOn": ["core"],
-  "quests": ["fh00-into-the-northlands", "fh01-xanon-pass", "fh02-trial-by-ice", "fh03-the-rescue"],
+  "quests": [
+    "fh00-into-the-northlands",
+    "fh01-xanon-pass",
+    "fh02-trial-by-ice",
+    "fh03-the-rescue",
+    "fh04-the-glacial-gate"
+  ],
   "campaignSettings": [
     {
       "id": "raiment-of-the-frozen-champion",
