@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { areaAt, isWallBetween, type Cell } from '../../engine/board/board';
 import { cellKey, keyOf, parseKey, type Level } from '../../engine/board/level';
 import { lookEyeCells } from '../../engine/game/hints';
+import { roomTilesInView } from '../../engine/game/tiles';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
@@ -750,6 +751,50 @@ export function PlayBoard({
     );
   }
 
+  // Room tiles (Frozen Horror): the built-in look of a tile the players put in a revealed room: a dashed
+  // outline round every square of the room and the tile's name, so it is clear a tile belongs here.
+  for (const rt of roomTilesInView(level, state)) {
+    const layer = into(rt.cells.some((c) => fresh(keyOf(c))));
+    const mx = rt.cells.reduce((a, c) => a + c[0], 0) / rt.cells.length;
+    const my = rt.cells.reduce((a, c) => a + c[1], 0) / rt.cells.length;
+    const mid = rt.cells.reduce((best, c) =>
+      Math.hypot(c[0] - mx, c[1] - my) < Math.hypot(best[0] - mx, best[1] - my) ? c : best,
+    );
+    layer.push(
+      <g key={`rt${rt.area}`} data-room-tile={rt.tile.id} pointerEvents="none">
+        {rt.cells.map(([cx0, cy0]) => (
+          <rect
+            key={`${cx0},${cy0}`}
+            x={cx0 * S + 2}
+            y={cy0 * S + 2}
+            width={S - 4}
+            height={S - 4}
+            fill="var(--ice)"
+            fillOpacity={0.12}
+            stroke="var(--ice)"
+            strokeWidth={1.5}
+            strokeDasharray="5 3"
+          />
+        ))}
+        <text
+          x={(mid[0] + 0.5) * S}
+          y={(mid[1] + 0.5) * S + 3}
+          textAnchor="middle"
+          fill={color.ink}
+          stroke={color.paper}
+          strokeWidth={3}
+          paintOrder="stroke"
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={9}
+          letterSpacing={0.5}
+        >
+          {rt.tile.name.toUpperCase()}
+        </text>
+      </g>,
+    );
+  }
+
   // Ice tunnels (Frozen Horror): a square with the number of its design, for every end that was seen.
   const tunnelHits: ReactNode[] = [];
   for (const e of tunnelsInView(level, state)) {
@@ -1133,6 +1178,7 @@ export function PlayBoard({
       stroke={color.ink}
       strokeWidth={3}
       className="selring"
+      data-highlight={`${hx},${hy}`}
       pointerEvents="none"
     />
   ));

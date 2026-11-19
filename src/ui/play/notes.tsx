@@ -113,6 +113,7 @@ export function TileRule({ tile }: { tile: { name: string; rule: readonly string
   return (
     <div className="tile-rule" data-testid="tile-rule">
       <p className="special-note">{tile.name}</p>
+      <p className="hint">Put the {tile.name} tile on the board here.</p>
       {tile.rule.map((line) => (
         <p key={line} className="hint">
           {line}

@@ -8,6 +8,9 @@ import { applyCoreFile, parseCoreFile } from '../../engine/data/coreFile';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { reduce, replay, startGame } from '../../engine/game/reducer';
+import type { GameState } from '../../engine/game/state';
+import { pictureTypeOf } from '../../engine/data/enemies';
+import { goalDoneText, leaveWay } from '../../engine/game/noteView';
 import {
   boardTilesInView,
   monstersInPlay,
@@ -77,7 +80,7 @@ describe('quest 0: data', () => {
     expect(quest.doors).toHaveLength(14); // 13 on the map and the throne door
     expect(quest.blocks).toHaveLength(10);
     expect(quest.furniture.map((f) => f.type).sort()).toEqual(
-      ['bookcase', 'rack', 'throne', 'tomb'].sort(),
+      ['bookcase', 'chest', 'throne', 'tomb'].sort(),
     );
     expect(quest.monsters).toHaveLength(13);
     const kinds = quest.traps.map((t) => t.kind);
@@ -154,6 +157,12 @@ describe('quest 0: the cast', () => {
   });
 });
 
+/** Press the lever button and answer its question: 0 is Yes, 1 is No. */
+function pull(s: GameState, option: number): GameState {
+  const asked = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' }).state;
+  return reduce(level, asked, { type: 'CHOOSE', note: 'n-C-lever', option }).state;
+}
+
 describe('quest 0: tunnels and tiles', () => {
   it('a tunnel end shows only after its square is seen, and the other end stays hidden', () => {
     const s = run(...toR05, open('d7'));
@@ -180,8 +189,20 @@ describe('quest 0: tunnels and tiles', () => {
         .map((t) => t.type)
         .sort(),
     ).toEqual(['cage', 'iceCaveEntrance']);
-    const open3 = reduce(level, cage, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' }).state;
+    const open3 = pull(cage, 0);
     expect(boardTilesInView(level, open3).map((t) => t.type)).toEqual(['iceCaveEntrance']);
+  });
+});
+
+describe('quest 0: feedback', () => {
+  it('the wolf mummy is a kind of its own: no core mummy picture', () => {
+    const wm = level.quest.monsters.find((m) => m.id === 'm-mummy')!;
+    expect(wm.enemy).toBe('wolfMummy');
+    expect(pictureTypeOf(wm, level.quest.enemyDefs)).toBeUndefined();
+  });
+  it('the leave line says the cave, not the stairs', () => {
+    expect(leaveWay(level)).toBe('through the cave');
+    expect(goalDoneText(level)).toMatch(/through the cave/);
   });
 });
 
@@ -202,8 +223,12 @@ describe('quest 0: rooms and notes', () => {
     expect(ordersFor(level, s, ['dwarf']).find((o) => o.monster === 'm-bear')?.status).toBe(
       'stone',
     );
-    const lever = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' });
-    expect(lever.state.flags['cageOpen']).toBe(true);
+    // the lever asks first; No leaves the cage shut and the button stays, Yes opens it
+    const asked = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' });
+    expect(asked.prompts.some((p) => p.kind === 'choice')).toBe(true);
+    expect(asked.state.flags['cageOpen']).toBeUndefined();
+    expect(pull(s, 1).flags['cageOpen']).toBeFalsy();
+    expect(pull(s, 0).flags['cageOpen']).toBe(true);
     // "It left" takes it off the roster, not as a kill
     const left = run(...toCage, { type: 'MONSTER_LEAVE', monster: 'm-bear', reason: 'freed' });
     expect(monstersInPlay(level, left).some((m) => m.id === 'm-bear')).toBe(false);
@@ -214,8 +239,7 @@ describe('quest 0: rooms and notes', () => {
   it('the cage blocks sight until the lever is pulled', () => {
     const s = run(...toCage);
     expect(s.sightBlockers.has('6,2') && s.sightBlockers.has('7,3')).toBe(true);
-    const open = reduce(level, s, { type: 'MANUAL_TRIGGER', note: 'n-C-lever' }).state;
-    expect(open.sightBlockers.size).toBe(0);
+    expect(pull(s, 0).sightBlockers.size).toBe(0);
   });
 
   it('the throne door is not on the map before the throne melts', () => {

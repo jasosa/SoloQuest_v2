@@ -271,7 +271,7 @@
     },
     {
       "id": "f-rack",
-      "type": "rack",
+      "type": "chest",
       "cells": [[10, 8]]
     },
     {
@@ -338,7 +338,7 @@
       "id": "m-mummy",
       "type": "mummy",
       "cell": [12, 16],
-      "name": "Wolf mummy"
+      "enemy": "wolfMummy"
     },
     {
       "id": "m-yeti-1",
@@ -590,6 +590,19 @@
         "mind": 4
       },
       "spells": ["tempest"]
+    },
+    {
+      "id": "wolfMummy",
+      "name": "Wolf Mummy",
+      "letter": "WM",
+      "expansion": "Frozen Horror",
+      "overrides": {
+        "move": 4,
+        "att": 3,
+        "def": 4,
+        "body": 2,
+        "mind": 0
+      }
     }
   ],
   "notes": [
@@ -675,7 +688,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and blocks line of sight until a lever on the wall is pulled. The lever is at the square marked C, and pulling it takes no action."
+          "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and blocks line of sight. A lever is fixed to the wall at the square marked C."
         }
       ]
     },
@@ -685,19 +698,42 @@
         "kind": "square",
         "id": "8,1"
       },
+      "when": [
+        {
+          "flag": "cageOpen",
+          "is": false
+        }
+      ],
       "trigger": {
         "type": "manual",
-        "label": "The lever was pulled"
+        "label": "Look at the lever",
+        "repeat": true
       },
       "effects": [
         {
-          "type": "showText",
-          "text": "The cage opens, and the line of sight is clear. The Warbear will leave if the hero lets it pass unharmed: tap It left on the monster. If the hero attacks it, tap A hero attacked it."
-        },
-        {
-          "type": "setFlag",
-          "flag": "cageOpen",
-          "value": true
+          "type": "promptChoice",
+          "text": "A heavy iron lever sticks out of the wall, rimed with frost. It moves a little under a hand. Pulling it takes no action. Does a hero pull the lever?",
+          "options": [
+            {
+              "label": "Yes, pull the lever",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The cage swings open and the line of sight is clear. The Polar Warbear will leave if the hero lets it pass unharmed: tap It left on the monster. If the hero attacks it, tap A hero attacked it.",
+                  "title": "The cage opens"
+                },
+                {
+                  "type": "setFlag",
+                  "flag": "cageOpen",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "label": "No, leave it",
+              "effects": []
+            }
+          ]
         }
       ]
     },
@@ -873,5 +909,6 @@
       ]
     }
   ],
+  "leave": "through the cave",
   "endText": "As the quest ends, if Snowdasher is still with the hero, she gives them a nod of gratitude before bounding off to another adventure."
 }

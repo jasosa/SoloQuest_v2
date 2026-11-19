@@ -17,6 +17,7 @@ export interface QuestSheetProps {
   intro: string;
   startTexts: readonly string[];
   objectives: ObjectivesView;
+  goalDoneText: string;
   confirms: readonly ObjectiveConfirm[];
   /** Buttons of notes that belong to no element. */
   actions: readonly ManualTrigger[];
@@ -101,9 +102,7 @@ export function QuestSheet(p: QuestSheetProps) {
             </li>
           ))}
         </ul>
-        {p.objectives.goalDone && (
-          <p className="goal-done">Goal done. Bring the heroes back to the stairs.</p>
-        )}
+        {p.objectives.goalDone && <p className="goal-done">{p.goalDoneText}</p>}
       </section>
 
       {p.actions.length > 0 && (

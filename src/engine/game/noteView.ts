@@ -320,7 +320,17 @@ export function objectivesStatus(level: Level, state: GameState): ObjectivesView
     text: o.text,
     done: isDone(level, o, state),
   }));
-  return { items, goalDone: items.length > 0 && items.every((i) => i.done) };
+  return {
+    items,
+    goalDone: items.length > 0 && items.every((i) => i.done),
+  };
+}
+
+/** What to tell the players once the goal is done: how the heroes leave. */
+export function goalDoneText(level: Level): string {
+  return level.quest.leave
+    ? `Goal done. The heroes leave ${level.quest.leave}.`
+    : 'Goal done. Bring the heroes back to the stairs.';
 }
 
 /** A way to end the quest that the quest itself names (paraphrased label and text). */
@@ -356,6 +366,7 @@ export interface EndSummary {
  * one (Frozen Horror). The outcome stays `stairs` either way (one way to leave, saved the same).
  */
 export function leaveWay(level: Level): string {
+  if (level.quest.leave) return level.quest.leave;
   return level.quest.edgeDoors.some((e) => e.kind === 'woodenExit')
     ? 'through the exit door'
     : 'by the stairs';

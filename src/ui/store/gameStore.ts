@@ -27,6 +27,7 @@ import type { EventErrorCode } from '../../engine/game/errors';
 import { monsterCodes } from '../play/monsterCodes';
 import { promptToasts } from '../play/promptToasts';
 import { newRuleHints } from '../../engine/game/ruleHints';
+import { newTiles, putTilesText } from '../../engine/game/tiles';
 import { getQuestSettings } from '../settings';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
@@ -172,11 +173,18 @@ export function createGameStore(init: GameStoreInit): GameStore {
           toast = toastOf([`Heroes' turn ${state.turn}.`, ...lines].join(' '), true);
 
         // Rule hints (decision 60): a reminder the first time a terrain or a room tile comes into view.
-        if (getQuestSettings(level.quest.id).ruleHints) {
-          const hints = newRuleHints(level, before, state);
-          if (hints.length > 0)
-            toast = toastOf(hints.map((h) => `${h.name}: ${h.lines[0]}`).join(' '));
-        }
+        const hints = getQuestSettings(level.quest.id).ruleHints
+          ? newRuleHints(level, before, state)
+          : [];
+        // A tile to put on the board is not a hint: it is always said, so the board matches the app.
+        const tiles = newTiles(level, before, state);
+        if (tiles.length > 0 || hints.length > 0)
+          toast = toastOf(
+            [
+              ...(tiles.length > 0 ? [putTilesText(tiles)] : []),
+              ...hints.map((h) => `${h.name}: ${h.lines[0]}`),
+            ].join(' '),
+          );
 
         set({ events, state, fx, toast, prompts, promptsSeq: get().promptsSeq + 1, error: null });
         persist(events);

@@ -2,7 +2,15 @@
 import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
 import type { JournalEntry, NpcView, ObjectivesView } from '../../engine/game/view';
 
-export function Objectives({ view, intro }: { view: ObjectivesView; intro: string }) {
+export function Objectives({
+  view,
+  intro,
+  goalDoneText = 'Goal done. Bring the heroes back to the stairs.',
+}: {
+  view: ObjectivesView;
+  intro: string;
+  goalDoneText?: string;
+}) {
   return (
     <section className="goal">
       <div className="lbl">Your goal</div>
@@ -23,9 +31,7 @@ export function Objectives({ view, intro }: { view: ObjectivesView; intro: strin
           ))}
         </ul>
       )}
-      {view.goalDone && (
-        <p className="goal-done">Goal done. Bring the heroes back to the stairs.</p>
-      )}
+      {view.goalDone && <p className="goal-done">{goalDoneText}</p>}
     </section>
   );
 }

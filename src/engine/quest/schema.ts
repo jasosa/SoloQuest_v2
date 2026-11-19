@@ -577,6 +577,8 @@ export const QuestSchema = z.strictObject({
   rewards: z.string().optional(),
   /** Shown on the end screen after every ending (a note the players should read at the end). */
   endText: nonEmpty.optional(),
+  /** How the heroes leave when the stairs are not the way ("through the cave"). Words only. */
+  leave: nonEmpty.optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */

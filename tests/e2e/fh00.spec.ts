@@ -36,6 +36,36 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
     await page.getByRole('button', { name: 'A hero used this tunnel' }).click();
     await expect(page.getByText('comes out at the other square of ice tunnel 3')).toBeVisible();
     await expect(page.locator('[data-tunnel="tun3:a"]')).toHaveCount(1);
+    // the other end is pointed out while the note is open
+    await expect(page.locator('[data-highlight="15,6"]')).toHaveCount(1);
+  });
+
+  test('the start sheet and the reveals say which tile to put on the board', async ({ page }) => {
+    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByTestId('quest-chip').click();
+    await expect(page.getByText('Put on the board: the Ice cave entrance tile.')).toBeVisible();
+  });
+
+  test('a room tile is drawn in its room', async ({ page }) => {
+    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
+  });
+
+  test('the lever asks first; No keeps the cage shut, Yes opens it (bug)', async ({ page }) => {
+    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Quest note C' }).click();
+    await page.getByRole('button', { name: 'Look at the lever' }).click();
+    await expect(page.getByText(/Does a hero pull the lever/)).toBeVisible();
+    await page.getByRole('button', { name: 'No, leave it' }).click();
+    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Quest note C' }).click();
+    await page.getByRole('button', { name: 'Look at the lever' }).click();
+    await page.getByRole('button', { name: 'Yes, pull the lever' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(0);
   });
 
   test('the cave entrance and the cage are drawn, Frozen Horror tokens are blue', async ({

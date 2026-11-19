@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
@@ -12,6 +12,7 @@ import {
   availableEndings,
   chestsInView,
   endSummary,
+  goalDoneText,
   leaveWay,
   enterableAreas,
   journal,
@@ -46,6 +47,7 @@ import type { NoteTarget } from '../../engine/quest/schema';
 import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
 import { liveMonstersInSight } from '../../engine/game/search';
+import { putTilesText, startTiles } from '../../engine/game/tiles';
 import { useQuestSettings } from '../settings';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { ForThisQuest } from './ForThisQuest';
@@ -206,7 +208,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
   const goalLine = objectives.goalDone
-    ? 'Done. Bring the heroes back to the stairs.'
+    ? goalDoneText(level)
     : (objectives.items.find((o) => !o.done)?.text ?? '');
   const enterable = useMemo(() => enterableAreas(level, state), [level, state]);
 
@@ -284,6 +286,19 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       onPress={(note) => act({ type: 'MANUAL_TRIGGER', note })}
     />
   );
+
+  /** The buttons of the square a re-read note's letter stands on (the letter covers the square's own tap). */
+  const rereadAt = reread ? level.quest.notes.find((n) => n.id === reread)?.at : undefined;
+  const rereadButtons = rereadAt ? (
+    <ForThisQuest
+      view={{ ...elementQuest(level, state, 'square', `${rereadAt[0]},${rereadAt[1]}`), read: [] }}
+      onRead={() => undefined}
+      onPress={(note) => {
+        setReread(null);
+        act({ type: 'MANUAL_TRIGGER', note });
+      }}
+    />
+  ) : null;
 
   const roomAnchor = (room: string): Anchor => {
     let x0 = 99;
@@ -974,7 +989,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           selection={zActive && zMonster ? { kind: 'monster', id: zMonster } : sel}
           onSelect={choose}
           onLetter={(id) => setReread(id)}
-          highlight={sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []}
+          highlight={[
+            ...(sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []),
+            // the other end of a tunnel that was just used
+            ...(res?.prompts.flatMap((p) => (p.kind === 'tunnelUsed' ? [p.to] : [])) ?? []),
+          ]}
           {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
           zargonView={zargonView}
         />
@@ -1079,10 +1098,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
 
       {questOpen && !end && (
         <QuestSheet
+          goalDoneText={goalDoneText(level)}
           number={playtest ? 'playtest' : quest.number}
           title={quest.title}
           intro={quest.intro.summary}
-          startTexts={startTexts(level)}
+          startTexts={[
+            ...startTexts(level),
+            ...(startTiles(level).length > 0 ? [putTilesText(startTiles(level))] : []),
+          ]}
           objectives={objectives}
           confirms={confirms}
           actions={manual}
@@ -1128,7 +1151,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <NoteCard kind="Objective done" title={sheet.p.text} onClose={nextSheet}>
           <p>
             {sheet.all
-              ? 'All objectives are done. Bring the heroes back to the stairs, then end the quest.'
+              ? `All objectives are done. ${level.quest.leave ? `The heroes leave ${level.quest.leave}` : 'Bring the heroes back to the stairs'}, then end the quest.`
               : 'This objective is done. The quest goes on.'}
           </p>
           <button className="btn" onClick={nextSheet}>
@@ -1156,7 +1179,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             if (backToSheet) setQuestOpen(true);
             setBackToSheet(false);
           }}
-        />
+        >
+          {rereadButtons}
+        </RereadSheet>
       ) : endOpen ? (
         <NoteCard kind="End quest" title="How did the quest end?" onClose={() => setEndOpen(false)}>
           <button
@@ -1365,9 +1390,12 @@ function NoteSheet({ p, onClose }: { p: Extract<Prompt, { kind: 'note' }>; onClo
 function RereadSheet({
   entry,
   onClose,
+  children,
 }: {
   entry: ReturnType<typeof journal>[number] | undefined;
   onClose(): void;
+  /** The buttons of the square the letter stands on (the letter covers the square's own tap). */
+  children?: ReactNode;
 }) {
   if (!entry) return null;
   return (
@@ -1385,6 +1413,7 @@ function RereadSheet({
           {c.text} You chose: {c.picked}.{c.texts.length > 0 ? ` ${c.texts.join(' ')}` : ''}
         </p>
       ))}
+      {children}
       <button className="btn" onClick={onClose}>
         Close
       </button>
