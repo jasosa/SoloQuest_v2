@@ -36,8 +36,13 @@ export const FH_MAPS: Record<number, FhMap> = {
   6: { source: 'book', page: 13, rotation: 90, grid: { x0: 406, y0: 251, cw: 83.1, ch: 83.55 } },
   7: { source: 'book', page: 14, rotation: 90, grid: { x0: 409, y0: 253, cw: 82.5, ch: 82.85 } },
   8: { source: 'book', page: 15, rotation: 90, grid: { x0: 408, y0: 254, cw: 83, ch: 83.35 } },
-  9: { source: 'book', page: 16, rotation: 90, grid: { x0: 408, y0: 254, cw: 83, ch: 83.35 } },
-  10: { source: 'book', page: 17, rotation: 90, grid: { x0: 408, y0: 254, cw: 83, ch: 83.35 } },
+  9: { source: 'book', page: 16, rotation: 90, grid: { x0: 410, y0: 257.5, cw: 83, ch: 83.15 } },
+  10: {
+    source: 'book',
+    page: 17,
+    rotation: 90,
+    grid: { x0: 408.5, y0: 258.5, cw: 82.9, ch: 83.1 },
+  },
 };
 
 /** Margin kept around the board in the crop, in pixels. */
