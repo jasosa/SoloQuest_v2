@@ -50,6 +50,12 @@ export type TriggerEvent =
   | { readonly type: 'trapSprung'; readonly trap: string }
   | { readonly type: 'trapDisarmed'; readonly trap: string }
   | { readonly type: 'monsterKilled'; readonly monster: string; readonly monsterType: MonsterType }
+  | {
+      readonly type: 'monsterLeft';
+      readonly monster: string;
+      readonly monsterType: MonsterType;
+      readonly reason: 'escaped' | 'freed';
+    }
   | { readonly type: 'spellCast'; readonly monster: string; readonly spell: string }
   | { readonly type: 'monsterSeen'; readonly monster: string; readonly monsterType: MonsterType }
   /** `turn` is the Zargon turn that just ended. */
@@ -105,6 +111,7 @@ export function repeats(note: Note): boolean {
     case 'manual':
       return t.repeat === true;
     case 'monsterKilled':
+    case 'monsterLeft':
       return t.monster === undefined;
     case 'spellCast':
       return t.monster === undefined || t.spell === undefined;
@@ -159,6 +166,14 @@ function matches(note: Note, t: TriggerEvent, d: GameState): boolean {
       return (
         (n.monster === undefined || n.monster === tt.monster) &&
         (n.monsterType === undefined || n.monsterType === tt.monsterType)
+      );
+    }
+    case 'monsterLeft': {
+      const tt = t as Extract<TriggerEvent, { type: 'monsterLeft' }>;
+      return (
+        (n.monster === undefined || n.monster === tt.monster) &&
+        (n.monsterType === undefined || n.monsterType === tt.monsterType) &&
+        (n.reason === undefined || n.reason === tt.reason)
       );
     }
     case 'spellCast': {

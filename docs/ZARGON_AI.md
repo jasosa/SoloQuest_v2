@@ -104,9 +104,9 @@ Rule from the rulebook: a monster may move then act, or act then move, but never
 
 **Passive (Frozen Horror Q0 caged Warbear).** No orders. "It left" makes it `freed`; "A hero attacked it" makes it `active` with its brute profile.
 
-**In the data**: `profile` is `thief`, `grappler`, `shooter` or `passive`; `attacks: 2` gives the multi-attack plan; `size: 2` marks a large monster. The events are `MONSTER_LEAVE` (reason `escaped`, `surrendered` or `freed`: off the roster, no kill notes) and `MONSTER_WAKE` (passive to active). The plan lines are in `src/engine/zargon/texts.ts`. Still open: the Yeti setting of decision 59 and the Raiment exceptions, with the campaign settings (M9 slice 6).
+**In the data**: `profile` is `thief`, `grappler`, `shooter` or `passive`; `attacks: 2` gives the multi-attack plan; `size: 2` marks a large monster. The events are `MONSTER_LEAVE` (reason `escaped` or `freed`: off the roster, no kill notes) and `MONSTER_WAKE` (passive to active). The plan lines are in `src/engine/zargon/texts.ts`. Still open: the Yeti setting of decision 59 and the Raiment exceptions, with the campaign settings (M9 slice 6).
 
-**Monster states**: `hidden`, `dormant`, `passive`, `active`, `dead`, plus `escaped`, `surrendered`, `freed`, which leave the roster without being kills (decision 51).
+**Monster states**: `hidden`, `dormant`, `passive`, `active`, `dead`, plus `escaped` and `freed`, which leave the roster without being kills (decision 51). A surrender is not a state: a quest action sets the monster `away`.
 
 **Defensive abilities** (future packs, decision 52): a toast on first reveal per monster type and a badge on the token.
 

@@ -310,6 +310,17 @@ const TriggerSchema = z.discriminatedUnion('type', [
     monsterType: MonsterType.optional(),
   }),
   z.strictObject({ type: z.literal('allKilled'), monsters: z.array(id).min(1) }),
+  /**
+   * A monster left the roster without being slain: it escaped (a thief) or was freed (a caged
+   * monster). `monster` or `monsterType` and `reason` limit it. An action that sets a monster
+   * `away` does not fire it (that action already knows what happened).
+   */
+  z.strictObject({
+    type: z.literal('monsterLeft'),
+    monster: id.optional(),
+    monsterType: MonsterType.optional(),
+    reason: z.enum(['escaped', 'freed']).optional(),
+  }),
   z.strictObject({
     type: z.literal('spellCast'),
     monster: id.optional(),

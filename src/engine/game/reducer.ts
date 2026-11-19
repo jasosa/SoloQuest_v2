@@ -469,7 +469,15 @@ function monsterStatus(
   }
   // a wandering monster has no quest def: its record is kept the same way, by id
   d.monsterStates[id] = { state: 'away', reason: event.reason };
-  return { state: d, prompts: [] };
+  // A monster that left is not a kill, but a quest can ask about it (`monsterLeft` notes).
+  const monsterType = def?.type ?? wanderer!.type;
+  const r = runTriggers(
+    level,
+    d,
+    [{ type: 'monsterLeft', monster: id, monsterType, reason: event.reason }],
+    { beforeRooms: new Set(state.revealedRooms) },
+  );
+  return { state: d, prompts: r.prompts };
 }
 
 /** A seen, living, active quest monster, or an error. Wanderers are returned without a def. */

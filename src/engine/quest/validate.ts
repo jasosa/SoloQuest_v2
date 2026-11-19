@@ -765,6 +765,7 @@ export function validateQuestIssues(
         break;
       case 'monsterSeen':
       case 'monsterKilled':
+      case 'monsterLeft':
         if (t.monster && !monsterIds.has(t.monster))
           err(`${where}: unknown monster ${t.monster}`, noteRef);
         if (t.monster && t.monsterType)

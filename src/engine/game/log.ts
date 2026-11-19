@@ -90,7 +90,7 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
     case 'MONSTER_KILL':
       return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} slain` };
     case 'MONSTER_LEAVE': {
-      const how = { escaped: 'escaped', surrendered: 'surrendered', freed: 'was freed' }[e.reason];
+      const how = { escaped: 'escaped', freed: 'was freed' }[e.reason];
       return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} ${how}` };
     }
     case 'MONSTER_WAKE':

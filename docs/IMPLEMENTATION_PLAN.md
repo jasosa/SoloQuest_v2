@@ -212,7 +212,7 @@ Named monsters from the quest book: Ulag 10/4/5/2/3, Grak 8/4/4/3/3 + fear, slee
 
 Pack monsters (Frozen Horror: Frozen Horror, Ice Gremlin, Polar Warbear, Yeti, enemy mercenaries, named monsters) come with stats, profile, weights, special rules, defensive abilities and spells in the pack data (`docs/FROZEN_HORROR.md`).
 
-Monster instance in game state: `{ id, type, name, stats, body, size?, map?, state: 'hidden'|'dormant'|'passive'|'active'|'dead'|'escaped'|'surrendered'|'freed', flags, spellsLeft, revealedAt }`.
+Monster instance in game state: `{ id, type, name, stats, body, size?, map?, state: 'hidden'|'dormant'|'passive'|'active'|'dead'|'escaped'|'freed', flags, spellsLeft, revealedAt }`.
 
 ### 4.5 Pack manifest (`pack.json`, M9)
 
