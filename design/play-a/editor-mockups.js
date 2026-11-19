@@ -85,7 +85,7 @@
         )}
       </div>
       <div class="col">
-        ${panel('Rules', `${fld('Falling block rule', input('—'))}${tog('Doors are teleporters', false)}`)}
+        ${panel('Rules', `${fld('Falling block rule', input('-'))}${tog('Doors are teleporters', false)}`)}
         ${panel('Ending', `${fld('Closing note', '<textarea class="ta">All the gold from the mine was fool’s gold.</textarea>')}<p class="help">Shown after every ending.</p>`)}
       </div>
     </div>

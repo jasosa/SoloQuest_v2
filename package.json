@@ -11,6 +11,8 @@
     "test:e2e": "playwright test",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "verify": "node scripts/verify.mjs",
+    "prepare": "git config core.hooksPath .githooks",
     "validate": "tsx tools/validate.ts",
     "render:maps": "tsx tools/quest-import/render-maps.ts",
     "overlay": "tsx tools/quest-import/overlay.ts"
