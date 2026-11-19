@@ -111,6 +111,7 @@ export function ZargonDialog(p: ZargonDialogProps) {
           }
         />
       )}
+      <Tie order={o} />
       <button
         className="btn"
         onClick={() => p.dispatch({ type: 'MONSTER_DONE', monster: o.monster })}
@@ -150,14 +151,21 @@ function Entry({ order: o }: { order: Order }) {
             </dd>
           </>
         )}
-        {/* the tie list is the last thing on the card (owner) */}
-        <dt>Tie</dt>
-        <dd>
-          <span className="tgt">{tieText(o.tie)}</span>
-        </dd>
       </dl>
       {o.spellNote && <p className="rule">{o.spellNote}</p>}
     </>
+  );
+}
+
+/** The tie list is the last thing on the card, after the spell of a caster too (owner). */
+function Tie({ order: o }: { order: Order }) {
+  return (
+    <dl className="zdl" data-testid="zargon-tie">
+      <dt>Tie</dt>
+      <dd>
+        <span className="tgt">{tieText(o.tie)}</span>
+      </dd>
+    </dl>
   );
 }
 
