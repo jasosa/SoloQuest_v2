@@ -36,6 +36,15 @@ File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rende
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
 |---|---|---|---|---|---|---|---|
 | 0 | Into the Northlands | done | start, A to G, tunnels, throne | ok | ok (by script) | ok (src/content/quests/fh00.test.ts) | |
+| 1 | Xanon Pass | done | start, A to D, Crossbowman question | ok | ok (by script) | ok (fh01.test.ts) | |
+| 2 | Trial by Ice | done | start, A to E | ok | ok (by script) | ok (fh02.test.ts) | |
+| 3 | The Rescue | done | start, A to E, Gothar | ok | ok (by script) | ok (fh03.test.ts) | |
+| 4 | The Glacial Gate | done | start, A to E, cage question | ok | ok (by script) | ok (fh04.test.ts) | |
+| 5 | The Deadly Depths | done | start, A to G, B doors question, crypt | ok | ok (by script) | ok (fh05.test.ts) | |
+| 6 | The Frosted Path | done | start, A to G | ok | ok (by script) | ok (fh06.test.ts) | |
+| 7 | The Halls of Kelvinos | done | start, A to D, living fog | ok | ok (by script) | ok (fh07.test.ts) | |
+| 8 | The Search for the Scepter | done | start, B, C, F, G, scepter question | ok | ok (by script) | ok (fh08.test.ts) | |
+| 9 and 10 | double quest | not started | needs multi-map quests (M10 slice 6) | | | | |
 
 ## Status
 
