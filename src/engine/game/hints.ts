@@ -84,9 +84,9 @@ export function lookEyeCells(
     }
   };
   for (const c of can) if (isCrossing(level, c)) add(c);
-  // an occupied crossroads that still shows more: its neighbors take the eye
+  // an occupied crossroads from which looking is possible: its neighbors take the eye, if they can look too
   for (const k of state.seenCells) {
-    if (!occupied.has(k)) continue;
+    if (!occupied.has(k) || !canKeys.has(k)) continue;
     const x = parseKey(k);
     if (areaAt(level.board, x[0], x[1]) !== 'C' || !isCrossing(level, x)) continue;
     for (const [dx, dy] of SIDES) {

@@ -92,4 +92,15 @@ describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', ()
       expect(isCrossing(level, c) || near).toBe(true);
     }
   });
+
+  it('an occupied crossroads that cannot look gives no glyph to its neighbors', () => {
+    // occupy every seen crossroads square that is not a look square: the glyphs do not change
+    const dead = [...s.seenCells].filter(
+      (k) => isCrossing(level, k.split(',').map(Number) as [number, number]) && !can.includes(k),
+    );
+    expect(dead.length).toBeGreaterThan(0);
+    expect(keys(lookEyeCells(level, s, new Set(dead)))).toEqual(
+      keys(lookEyeCells(level, s, new Set())),
+    );
+  });
 });
