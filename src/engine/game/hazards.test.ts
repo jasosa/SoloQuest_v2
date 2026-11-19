@@ -158,17 +158,20 @@ describe('slippery ice and the ice slide', () => {
     expect(code(() => replay(lv, SEED, [...open, step('si'), dwarfOk('si')]))).toBe('TRAP_CANNOT');
   });
 
-  it('a good jump over the slide shows the whole path (decision 42); the trap stays armed', () => {
+  it('a jump over the slide, good or bad, has the effect of a spring (decision 87)', () => {
     expect(trapsInView(lv, after()).find((t) => t.id === 'sl')?.path).toBeUndefined();
-    const jumped = after({ type: 'TRAP_JUMP', trap: 'sl', result: 'ok' });
-    const v = trapsInView(lv, jumped).find((t) => t.id === 'sl')!;
-    expect(v.path).toEqual([
-      [2, 18],
-      [1, 18],
-    ]);
-    expect(v.state).toBe('armed');
-    const p = reduce(lv, after(), { type: 'TRAP_JUMP', trap: 'sl', result: 'ok' }).prompts;
-    expect(p).toContainEqual({ kind: 'trapJumped', trap: 'sl', slide: true });
+    for (const result of ['ok', 'skull'] as const) {
+      const jumped = after({ type: 'TRAP_JUMP', trap: 'sl', result });
+      const v = trapsInView(lv, jumped).find((t) => t.id === 'sl')!;
+      expect(v.state).toBe('sprung');
+      expect(v.path).toEqual([
+        [2, 18],
+        [1, 18],
+      ]);
+      const p = reduce(lv, after(), { type: 'TRAP_JUMP', trap: 'sl', result }).prompts;
+      expect(p.some((x) => x.kind === 'trapSprung')).toBe(true);
+      expect(p.some((x) => x.kind === 'trapJumped')).toBe(false);
+    }
   });
 
   it('a spring also shows the path, and the slide stays for the next hero', () => {

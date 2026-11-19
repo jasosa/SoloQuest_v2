@@ -150,6 +150,10 @@ test.describe("Zargon's turn, one monster at a time", () => {
     // when it is cast, and that casting is its action (decision 72)
     await expect(spell).toContainText('Casting is its action, so it does not attack.');
     await expect(spell).toContainText('spell 1 of 2');
+    // the tie list is the last thing on the card, after the spell too
+    const spellBox = await spell.boundingBox();
+    const tieBox = await dlg(page).getByTestId('zargon-tie').boundingBox();
+    expect(tieBox!.y).toBeGreaterThan(spellBox!.y + spellBox!.height - 1);
     // the situation tags of Fear and Sleep give their concrete questions (decision 48)
     await expect(spell).toContainText('It casts this spell if any of these is true:');
     await expect(spell).toContainText(

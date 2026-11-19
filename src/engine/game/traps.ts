@@ -116,14 +116,9 @@ export function trapEvent(
       if (event.result !== 'skull' && event.result !== 'ok')
         throw new EventError('BAD_RESULT', `Bad jump result ${String(event.result)}`);
       const trap = checkUsable(level, state, event.trap, 'jump');
-      if (event.result === 'ok') {
-        // A good jump over an ice slide shows the whole slide (decision 42).
-        if (!trapKind(trap.kind).slide)
-          return { state, prompts: [{ kind: 'trapJumped', trap: trap.id }] };
-        const shown = draftOf(state);
-        showSlide(shown, trap);
-        return { state: shown, prompts: [{ kind: 'trapJumped', trap: trap.id, slide: true }] };
-      }
+      // An ice slide cannot be jumped: a jump, good or bad, has the effect of a spring (decision 87).
+      if (event.result === 'ok' && !trapKind(trap.kind).slide)
+        return { state, prompts: [{ kind: 'trapJumped', trap: trap.id }] };
       const d = draftOf(state);
       return withNotes(level, state, d, trap.id, springTrap(level, d, trap, 'jump'));
     }

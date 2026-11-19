@@ -83,10 +83,16 @@ describe('quest 5: data', () => {
     expect(kinds.filter((k) => k === 'pit')).toHaveLength(9);
     expect(kinds.filter((k) => k === 'stalactite')).toHaveLength(12);
     expect(kinds.filter((k) => k === 'swingingAxe')).toHaveLength(6);
-    expect(kinds.filter((k) => k === 'slipperyIce')).toHaveLength(2);
+    // the slippery ice of R13 is one 2 x 1 tile, not two traps
+    expect(kinds.filter((k) => k === 'slipperyIce')).toHaveLength(0);
     expect(kinds.filter((k) => k === 'wanderingTrap')).toHaveLength(3);
     expect(quest.tunnels).toHaveLength(1);
-    expect(quest.boardTiles.map((t) => t.type).sort()).toEqual(['iceLedge', 'icyRiver']);
+    expect(quest.boardTiles.map((t) => t.type).sort()).toEqual([
+      'iceLedge',
+      'icyRiver',
+      'slipperyIce',
+    ]);
+    expect(quest.boardTiles.find((t) => t.type === 'slipperyIce')!.cells).toHaveLength(2);
     expect(quest.roomTiles).toEqual([{ type: 'frozenCrypt', area: 'R04' }]);
     expect(quest.number).toBe(5);
     expect(quest.pack).toBe('frozen-horror');
@@ -156,9 +162,13 @@ describe('quest 5: the cast', () => {
 });
 
 describe('quest 5: the B doors and the vanishing', () => {
-  it('R06 is entered by door B: note B fires and asks about the heroes', () => {
+  it('R06 is entered by door B: nothing is told about the doors, the action waits for the players', () => {
     const s = run(...toR06);
-    expect(fired(s, 'n-B')).toBe(true);
+    // no spoiler on entering: the doors are only mentioned by the action the players press
+    expect(quest.notes.some((n) => n.id === 'n-B')).toBe(false);
+    const b = quest.notes.find((n) => n.id === 'n-B-ask')!;
+    expect(b.letter).toBe('B');
+    expect(b.trigger).toMatchObject({ type: 'manual', label: 'All the heroes are in this room' });
     expect(s.seenDoors.has('dB1')).toBe(true);
     expect(s.removedDoors).toEqual([]);
     expect(s.flags['doorsGone']).toBeUndefined();
@@ -250,11 +260,9 @@ describe('quest 5: rooms and treasure', () => {
     expect(found.seenDoors.has('s2')).toBe(true);
     const inside = run(...toR14, secret('R14'), open('s2'));
     expect(inside.seenMonsters.has('m-abom-2') && inside.seenMonsters.has('m-abom-3')).toBe(true);
-    const ice = trapsInView(level, inside).filter((t) => t.id.startsWith('t-ice'));
-    expect(ice).toHaveLength(2);
-    expect(ice.every((t) => t.kind === undefined)).toBe(true);
-    const r = reduce(level, inside, { type: 'TRAP_STEP', trap: 't-ice-1' });
-    expect(JSON.stringify(r.prompts)).toContain('slipperyIce');
+    const tile = boardTilesInView(level, inside).find((t) => t.type === 'slipperyIce');
+    expect(tile?.cells).toHaveLength(2);
+    expect(trapsInView(level, inside).filter((t) => t.id.startsWith('t-ice'))).toHaveLength(0);
   });
 
   it('D: R01 is the end of a chain of rooms and holds the 400 gold search', () => {
