@@ -111,7 +111,7 @@ describe('quest 5: the start', () => {
     expect([...state.seenDoors]).toEqual(['in']);
     expect(state.seenCells.size).toBe(0);
     expect(fired(state, 'n-start')).toBe(true);
-    expect(JSON.stringify(prompts)).toContain('Ice tunnels');
+    expect(JSON.stringify(prompts)).toContain('Vilor');
   });
 
   it('opening it shows the bottom corridor, with the exit door nowhere in sight yet', () => {

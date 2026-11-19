@@ -150,7 +150,7 @@ describe('quest 8: the start', () => {
     expect([...state.seenDoors]).toEqual(['in']);
     expect(state.seenCells.size).toBe(0);
     expect(fired(state, 'n-start')).toBe(true);
-    expect(JSON.stringify(prompts)).toContain('Ice tunnels');
+    expect(JSON.stringify(prompts)).toContain('Scepter of Glacial Majesty');
   });
 
   it('opening it shows the east corridor with the ice slide, which is the only way on', () => {

@@ -861,8 +861,8 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Ice tunnels come in pairs with the same letter: A, D and E. A hero or monster that lands on one comes out at the other, and that ends its move.",
-          "title": "Ice tunnels"
+          "title": "The Search for the Scepter",
+          "text": "The heroes come in through the iron door on the east edge of the map. They must find the Scepter of Glacial Majesty and destroy it, then find the wooden exit door and go through it."
         }
       ]
     },
