@@ -296,16 +296,16 @@
       "cell": [16, 2]
     },
     {
-      "id": "m-yeti-1",
+      "id": "m-gremlin-1",
       "type": "goblin",
       "cell": [19, 6],
-      "enemy": "yeti"
+      "enemy": "iceGremlin"
     },
     {
-      "id": "m-yeti-2",
+      "id": "m-gremlin-2",
       "type": "goblin",
       "cell": [18, 7],
-      "enemy": "yeti"
+      "enemy": "iceGremlin"
     },
     {
       "id": "m-zombie-1",
@@ -497,24 +497,24 @@
       "expansion": "Frozen Horror"
     },
     {
-      "id": "yeti",
-      "name": "Yeti",
-      "letter": "Y",
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
       "overrides": {
-        "move": 8,
-        "att": 3,
+        "move": 10,
+        "att": 2,
         "def": 3,
-        "body": 5,
-        "mind": 2
+        "body": 3,
+        "mind": 3
       },
-      "profile": "fighter",
+      "profile": "thief",
       "weights": {
-        "lowestDef": 3,
-        "lowestBody": 2,
-        "closest": 2
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
       },
-      "expansion": "Frozen Horror",
-      "traits": ["In this solo quest it does not hug: it only punches"]
+      "abilities": ["fhSteal"],
+      "expansion": "Frozen Horror"
     }
   ],
   "notes": [
@@ -528,11 +528,6 @@
           "type": "showText",
           "text": "A solo quest for the Barbarian. Deep in the Cyberian Range, an outpost of the Frozen Horror holds a Dread Warrior named Krag, one of its lieutenants. The only way in or out is the ice cave entrance, where the quest begins and ends.",
           "title": "Trial by Ice"
-        },
-        {
-          "type": "showText",
-          "text": "Ice tunnels come in pairs with the same picture. A hero or monster that lands on one comes out at the other, and that ends its move.",
-          "title": "Ice tunnels"
         }
       ]
     },
