@@ -13,7 +13,11 @@ import {
   removeEnemy,
   addSpell,
   addEnding,
+  addNpc,
   addObjective,
+  removeNpc,
+  setEndText,
+  updateNpc,
   removeEnding,
   removeObjective,
   setRules,
@@ -22,12 +26,21 @@ import {
   updateObjective,
 } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
-import { MONSTER_TYPES, type MonsterType } from '../../engine/quest/schema';
+import {
+  MONSTER_TYPES,
+  type MonsterType,
+  type ObjectiveDef,
+  type Quest,
+} from '../../engine/quest/schema';
 import type { EditorStore } from './editorStore';
+import { Choose, ConditionList, Num, Text } from './NotesPanel';
+import { shownName } from './monsterLabel';
+import { OBJECTIVE_RULES, objectiveRuleKey, ruleOf, type ObjectiveRuleKey } from './objectiveForms';
 
 type WanderMode = 'none' | 'monster' | 'text';
 
-export type QuestPart = 'objectives' | 'endings' | 'abilities' | 'wandering' | 'rules';
+export type QuestPart =
+  'objectives' | 'endings' | 'abilities' | 'wandering' | 'rules' | 'characters';
 
 /** `only` shows one part (a panel of the Quest tab); without it every part shows. */
 export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPart }) {
@@ -40,6 +53,16 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
   const mode: WanderMode = w ? ('monster' in w ? 'monster' : 'text') : pickedText ? 'text' : 'none';
   const wText = w && 'text' in w ? w.text : '';
   const wMonster: MonsterType = w && 'monster' in w ? w.monster : 'orc';
+  const wCount = w && 'monster' in w ? w.count : undefined;
+  const wEnemy = w && 'monster' in w ? w.enemy : undefined;
+  const setMonster = (patch: { monster?: MonsterType; count?: number; enemy?: string }) =>
+    st.apply((q) =>
+      setWandering(q, {
+        monster: patch.monster ?? wMonster,
+        count: 'count' in patch ? patch.count : wCount,
+        enemy: 'enemy' in patch ? patch.enemy : wEnemy,
+      }),
+    );
 
   return (
     <div className="ed-quest" data-testid="quest-panel">
@@ -78,7 +101,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                     }}
                   />
                 </label>
-                {o.done && <p className="ed-note">It also has a done rule, kept as it is.</p>}
+                <ObjectiveRule store={store} quest={quest} objective={o} />
               </div>
             ))
           )}
@@ -139,6 +162,19 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
               </label>
             </div>
           ))}
+          <label className="ed-field">
+            Text on the end screen after every ending
+            <textarea
+              key={quest.endText ?? ''}
+              defaultValue={quest.endText ?? ''}
+              rows={2}
+              aria-label="End text"
+              onBlur={(ev) => {
+                const v = ev.target.value.trim();
+                if (v !== (quest.endText ?? '')) st.apply((q) => setEndText(q, v));
+              }}
+            />
+          </label>
           <p className="ed-note">
             An ending shows in the End quest list, next to the stairs and "All heroes fell". It
             shows no reward.
@@ -148,6 +184,117 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
             onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
           >
             Add an ending
+          </button>
+        </section>
+      )}
+
+      {show('characters') && (
+        <section data-testid="characters-section">
+          <div className="lbl">Characters</div>
+          {quest.npcs.map((n) => (
+            <div className="ed-row" key={n.id} data-testid="npc-row" data-npc={n.id}>
+              <div className="ed-row-head">
+                <span>{n.id}</span>
+                <button
+                  className="chip"
+                  aria-label={`Remove character ${n.id}`}
+                  onClick={() => st.apply((q) => removeNpc(q, n.id))}
+                >
+                  Remove
+                </button>
+              </div>
+              <Text
+                label="Name"
+                value={n.name}
+                onSave={(name) => name && st.apply((q) => updateNpc(q, n.id, { name }))}
+              />
+              <div className="ed-stats ed-two">
+                <Num
+                  store={store}
+                  label="Defend dice"
+                  value={n.defend}
+                  min={0}
+                  onSave={(defend) =>
+                    defend !== undefined && st.apply((q) => updateNpc(q, n.id, { defend }))
+                  }
+                />
+                <Num
+                  store={store}
+                  label="Body points"
+                  value={n.body}
+                  min={0}
+                  onSave={(body) =>
+                    body !== undefined && st.apply((q) => updateNpc(q, n.id, { body }))
+                  }
+                />
+                <Num
+                  store={store}
+                  label="Move dice"
+                  value={n.move}
+                  optional
+                  min={0}
+                  onSave={(move) => st.apply((q) => updateNpc(q, n.id, { move: move ?? null }))}
+                />
+                <Num
+                  store={store}
+                  label="Attack dice"
+                  value={n.attack}
+                  optional
+                  min={0}
+                  onSave={(attack) =>
+                    st.apply((q) => updateNpc(q, n.id, { attack: attack ?? null }))
+                  }
+                />
+              </div>
+              <p className="ed-id">
+                Appears on square {n.cell[0]}, {n.cell[1]}
+              </p>
+              <button
+                className="btn alt ed-pick"
+                onClick={() =>
+                  st.setPicking({
+                    kind: 'cell',
+                    hint: 'Click the square where the character appears.',
+                    onPick: (v) => {
+                      const c = v as [number, number];
+                      st.apply((q) => updateNpc(q, n.id, { cell: c }));
+                    },
+                  })
+                }
+              >
+                Pick the square on the board
+              </button>
+              <Text
+                label="What the players need to know"
+                value={n.text}
+                multiline
+                onSave={(text) => st.apply((q) => updateNpc(q, n.id, { text }))}
+              />
+            </div>
+          ))}
+          <p className="ed-note">
+            A character joins the heroes when an action has the effect "Bring in a character". It is
+            shown as a chip, never tracked.
+          </p>
+          <button
+            className="btn"
+            onClick={() =>
+              st.setPicking({
+                kind: 'cell',
+                hint: 'Click the square where the character appears.',
+                onPick: (v) =>
+                  st.apply((q) =>
+                    addNpc(q, {
+                      name: 'New character',
+                      cell: v as [number, number],
+                      defend: 2,
+                      body: 2,
+                    }),
+                  ),
+              })
+            }
+          >
+            Add a character
           </button>
         </section>
       )}
@@ -306,9 +453,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
               <select
                 className="es-select"
                 value={wMonster}
-                onChange={(e) =>
-                  st.apply((q) => setWandering(q, { monster: e.target.value as MonsterType }))
-                }
+                onChange={(e) => setMonster({ monster: e.target.value as MonsterType })}
               >
                 {MONSTER_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -317,6 +462,28 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 ))}
               </select>
             </label>
+          )}
+          {mode === 'monster' && (
+            <>
+              <Num
+                store={store}
+                label="How many come from a wandering monster trap"
+                value={wCount ?? 1}
+                min={1}
+                onSave={(n) => n !== undefined && setMonster({ count: n })}
+              />
+              {quest.enemyDefs.length > 0 && (
+                <Choose
+                  label="It is this enemy of the quest"
+                  value={wEnemy ?? ''}
+                  options={[
+                    { value: '', label: 'A plain monster of that kind' },
+                    ...quest.enemyDefs.map((e) => ({ value: e.id, label: e.name })),
+                  ]}
+                  onChange={(enemy) => setMonster({ enemy: enemy === '' ? undefined : enemy })}
+                />
+              )}
+            </>
           )}
           {mode === 'text' && (
             <label className="ed-field">
@@ -381,5 +548,99 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
         </section>
       )}
     </div>
+  );
+}
+
+/** Done rule, confirm button and its conditions of one objective. */
+function ObjectiveRule({
+  store,
+  quest,
+  objective: o,
+}: {
+  store: EditorStore;
+  quest: Quest;
+  objective: ObjectiveDef;
+}) {
+  const st = store.getState();
+  const d = o.done;
+  const key = objectiveRuleKey(o);
+  const setDone = (done: ObjectiveDef['done'] | null) =>
+    st.apply((q) => updateObjective(q, o.id, { done }));
+  return (
+    <>
+      <Choose
+        label="Done when"
+        value={key}
+        options={OBJECTIVE_RULES.map((r) => ({ value: r.key, label: r.label }))}
+        onChange={(k) => {
+          if (k === key) return;
+          const r = ruleOf(quest, k as ObjectiveRuleKey);
+          if (r.ok) setDone(r.value);
+          else st.say(r.error);
+        }}
+      />
+      {d && 'monsterKilled' in d && (
+        <Choose
+          label="Monster"
+          value={d.monsterKilled}
+          options={quest.monsters.map((m) => ({
+            value: m.id,
+            label: `${m.id} · ${shownName(quest, m)}`,
+          }))}
+          onChange={(monsterKilled) => setDone({ monsterKilled })}
+        />
+      )}
+      {d && 'allKilled' in d && (
+        <div className="ed-chips ed-small">
+          {quest.monsters.map((m) => {
+            const on = d.allKilled.includes(m.id);
+            return (
+              <button
+                key={m.id}
+                className="chip"
+                aria-pressed={on}
+                onClick={() => {
+                  const next = on ? d.allKilled.filter((x) => x !== m.id) : [...d.allKilled, m.id];
+                  if (next.length === 0) st.say('Keep at least one monster.');
+                  else setDone({ allKilled: next });
+                }}
+              >
+                {m.id}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {d && 'flag' in d && (
+        <Text label="Flag" value={d.flag} onSave={(flag) => flag && setDone({ flag })} />
+      )}
+      {d && 'when' in d && (
+        <ConditionList
+          store={store}
+          quest={quest}
+          conditions={d.when}
+          onChange={(when) =>
+            when.length > 0 ? setDone({ when }) : st.say('Keep at least one condition.')
+          }
+        />
+      )}
+      <Text
+        label="Confirm button (optional)"
+        value={o.confirm ?? ''}
+        placeholder="For example: The heroes left through the exit"
+        onSave={(confirm) => st.apply((q) => updateObjective(q, o.id, { confirm }))}
+      />
+      {o.confirm && (
+        <>
+          <div className="lbl">The button shows only if</div>
+          <ConditionList
+            store={store}
+            quest={quest}
+            conditions={o.confirmWhen ?? []}
+            onChange={(confirmWhen) => st.apply((q) => updateObjective(q, o.id, { confirmWhen }))}
+          />
+        </>
+      )}
+    </>
   );
 }

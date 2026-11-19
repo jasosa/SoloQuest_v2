@@ -825,6 +825,10 @@ export interface MonsterPatch {
   enemy?: string | null;
   /** Waits for, goes toward (decision 71). `null` or `{}` clears it. */
   behavior?: MonsterBehavior | null;
+  /** Attacked, not fought: no wounds and no Slain; the quest's actions say what an attack does. `null` or `false` clears it. */
+  attackOnly?: boolean | null;
+  /** Attacks per turn (2 or 3; 1 or `null` clears it, the enemy's own number applies). */
+  attacks?: number | null;
 }
 
 /**
@@ -909,6 +913,13 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
   }
   if (patch.hidden !== undefined) set('hidden', patch.hidden === true ? true : null);
   if (patch.special !== undefined) set('special', patch.special === true ? true : null);
+  if (patch.attackOnly !== undefined) set('attackOnly', patch.attackOnly === true ? true : null);
+  if (patch.attacks !== undefined) {
+    const a = patch.attacks;
+    if (a !== null && (!Number.isInteger(a) || a < 1 || a > 3))
+      return fail('Attacks per turn is a whole number from 1 to 3.');
+    set('attacks', a === null || a === 1 ? null : a);
+  }
   if (patch.abilities !== undefined) {
     const known = abilityLookup(q);
     const bad = patch.abilities?.find((a) => !known.has(a));

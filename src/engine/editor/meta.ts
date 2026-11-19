@@ -12,7 +12,15 @@ import {
   type SpellTag,
   type SpellTiming,
 } from '../data/spells';
-import type { EndingDef, MonsterType, ObjectiveDef, Quest, QuestRules } from '../quest/schema';
+import type {
+  Condition,
+  EndingDef,
+  MonsterType,
+  NpcDef,
+  ObjectiveDef,
+  Quest,
+  QuestRules,
+} from '../quest/schema';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
 /** An ability of the quest (decision 69), next to the core library. */
@@ -147,8 +155,14 @@ export function removeSpell(q: Quest, id: string): EditResult {
   return ok(quest, newIssues(q, quest));
 }
 
-/** What a wandering monster is: a monster type, free text, or `null` for none. */
-export type WanderingInput = { monster: MonsterType } | { text: string } | null;
+/**
+ * What a wandering monster is: a monster type (with how many come at once from a wandering monster
+ * trap, and the enemy of the quest it is), free text, or `null` for none.
+ */
+export type WanderingInput =
+  | { monster: MonsterType; count?: number | undefined; enemy?: string | undefined }
+  | { text: string }
+  | null;
 
 export function setWandering(q: Quest, wandering: WanderingInput): EditResult {
   const { wandering: _old, ...rest } = q;
@@ -159,7 +173,14 @@ export function setWandering(q: Quest, wandering: WanderingInput): EditResult {
     if (t === '') return fail('The wandering monster text cannot be empty.');
     return ok({ ...rest, wandering: { text: t } });
   }
-  return ok({ ...rest, wandering: { monster: wandering.monster } });
+  const { count, enemy } = wandering;
+  if (count !== undefined && (!Number.isInteger(count) || count < 1 || count > 6))
+    return fail('How many wandering monsters come is a whole number from 1 to 6.');
+  if (enemy !== undefined && !q.enemyDefs.some((e) => e.id === enemy))
+    return fail(`Unknown enemy "${enemy}".`);
+  const next = clean({ monster: wandering.monster, count: count === 1 ? undefined : count, enemy });
+  const quest = { ...rest, wandering: next };
+  return ok(quest, newIssues(q, quest));
 }
 
 // ---- objectives
@@ -167,6 +188,10 @@ export function setWandering(q: Quest, wandering: WanderingInput): EditResult {
 export interface NewObjective {
   text: string;
   done?: ObjectiveDef['done'];
+  /** A button in the Quest sheet that completes it (for goals the app cannot see). */
+  confirm?: string;
+  /** The confirm button shows only while all of these hold. Needs `confirm`. */
+  confirmWhen?: Condition[];
   id?: string;
 }
 
@@ -184,7 +209,14 @@ export function addObjective(q: Quest, input: NewObjective): EditResult {
       'o',
       q.objectives.map((o) => o.id),
     );
-  const objective: ObjectiveDef = clean({ id, text, done: input.done });
+  const confirm = input.confirm?.trim();
+  const objective: ObjectiveDef = clean({
+    id,
+    text,
+    done: input.done,
+    confirm: confirm === '' ? undefined : confirm,
+    confirmWhen: input.confirmWhen?.length ? input.confirmWhen : undefined,
+  });
   const quest = { ...q, objectives: [...q.objectives, objective] };
   return ok(quest, newIssues(q, quest));
 }
@@ -193,6 +225,9 @@ export function addObjective(q: Quest, input: NewObjective): EditResult {
 export interface ObjectivePatch {
   text?: string;
   done?: ObjectiveDef['done'] | null;
+  /** `null` or empty text clears the confirm button (and its conditions). */
+  confirm?: string | null;
+  confirmWhen?: Condition[] | null;
 }
 
 export function updateObjective(q: Quest, id: string, patch: ObjectivePatch): EditResult {
@@ -206,6 +241,19 @@ export function updateObjective(q: Quest, id: string, patch: ObjectivePatch): Ed
   }
   if (patch.done === null) delete next.done;
   else if (patch.done !== undefined) next.done = patch.done;
+  if (patch.confirm !== undefined) {
+    const c = patch.confirm === null ? '' : patch.confirm.trim();
+    if (c === '') {
+      delete next.confirm;
+      delete next.confirmWhen;
+    } else next.confirm = c;
+  }
+  if (patch.confirmWhen !== undefined) {
+    if (patch.confirmWhen?.length) {
+      if (next.confirm === undefined) return fail('Write the confirm button text first.');
+      next.confirmWhen = patch.confirmWhen;
+    } else delete next.confirmWhen;
+  }
   const quest = { ...q, objectives: q.objectives.map((x) => (x.id === id ? next : x)) };
   return ok(quest, newIssues(q, quest));
 }
@@ -306,5 +354,108 @@ export function removeEnding(q: Quest, id: string): EditResult {
     q,
     list.filter((e) => e.id !== id),
   );
+  return ok(quest, newIssues(q, quest));
+}
+
+// ---- end text
+
+/** The note on the end screen after every ending. Empty or `null` clears it. */
+export function setEndText(q: Quest, text: string | null): EditResult {
+  const { endText: _old, ...rest } = q;
+  void _old;
+  const t = text?.trim() ?? '';
+  return ok(t === '' ? rest : { ...rest, endText: t });
+}
+
+// ---- characters (NPCs)
+
+export interface NewNpc {
+  name: string;
+  cell: [number, number];
+  defend: number;
+  body: number;
+  move?: number;
+  attack?: number;
+  text?: string;
+  id?: string;
+}
+
+const wholeOrNone = (v: number | undefined | null) =>
+  v === undefined || v === null || (Number.isInteger(v) && v >= 0);
+
+/** A character the quest brings in with the effect "Bring in a character" (Gothar of Q3). */
+export function addNpc(q: Quest, input: NewNpc): EditResult {
+  const name = input.name.trim();
+  if (name === '') return fail('A character needs a name.');
+  if (![input.defend, input.body].every((v) => Number.isInteger(v) && v >= 0))
+    return fail('Defend and Body are whole numbers, 0 or more.');
+  if (!wholeOrNone(input.move) || !wholeOrNone(input.attack))
+    return fail('Move and Attack are whole numbers, 0 or more.');
+  let id = input.id;
+  if (id !== undefined) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return fail(`The character id "${id}" is not valid.`);
+    if (q.npcs.some((n) => n.id === id)) return fail(`A character with id ${id} already exists.`);
+  } else
+    id = nextId(
+      'npc',
+      q.npcs.map((n) => n.id),
+    );
+  const npc: NpcDef = clean({
+    id,
+    name,
+    cell: [input.cell[0], input.cell[1]],
+    defend: input.defend,
+    body: input.body,
+    move: input.move,
+    attack: input.attack,
+    text: input.text?.trim() ?? '',
+  });
+  const quest = { ...q, npcs: [...q.npcs, npc] };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** `null` clears move, attack or text; a missing key leaves it as it is. */
+export interface NpcPatch {
+  name?: string;
+  cell?: [number, number];
+  defend?: number;
+  body?: number;
+  move?: number | null;
+  attack?: number | null;
+  text?: string | null;
+}
+
+export function updateNpc(q: Quest, id: string, patch: NpcPatch): EditResult {
+  const n = q.npcs.find((x) => x.id === id);
+  if (!n) return fail(`There is no character ${id}.`);
+  const next: Record<string, unknown> = { ...n };
+  if (patch.name !== undefined) {
+    if (patch.name.trim() === '') return fail('A character needs a name.');
+    next.name = patch.name.trim();
+  }
+  if (patch.cell !== undefined) next.cell = [patch.cell[0], patch.cell[1]];
+  for (const k of ['defend', 'body'] as const) {
+    const v = patch[k];
+    if (v === undefined) continue;
+    if (!Number.isInteger(v) || v < 0) return fail(`${k} is a whole number, 0 or more.`);
+    next[k] = v;
+  }
+  for (const k of ['move', 'attack'] as const) {
+    const v = patch[k];
+    if (v === undefined) continue;
+    if (!wholeOrNone(v)) return fail(`${k} is a whole number, 0 or more.`);
+    if (v === null) delete next[k];
+    else next[k] = v;
+  }
+  if (patch.text !== undefined) next.text = patch.text?.trim() ?? '';
+  const quest = { ...q, npcs: q.npcs.map((x) => (x.id === id ? (next as NpcDef) : x)) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** Remove a character. Actions that bring it in come back as warnings. */
+export function removeNpc(q: Quest, id: string): EditResult {
+  if (!q.npcs.some((n) => n.id === id)) return fail(`There is no character ${id}.`);
+  const quest = { ...q, npcs: q.npcs.filter((n) => n.id !== id) };
   return ok(quest, newIssues(q, quest));
 }

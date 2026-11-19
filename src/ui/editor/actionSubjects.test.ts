@@ -64,6 +64,7 @@ describe('triggerChoices', () => {
     expect(types({ kind: 'monster', id: 'm1' })).toEqual([
       'monsterSeen',
       'monsterKilled',
+      'monsterLeft',
       'spellCast',
       'manual',
     ]);
@@ -198,5 +199,29 @@ describe('subjects as a list', () => {
   it('a marker is its square', () => {
     const q = good(addNote(base(), { id: 'x', trigger: { type: 'squareEntered', cell: [3, 16] } }));
     expect(markerSubject(q, 'nope')).toBeUndefined();
+  });
+});
+
+describe('Frozen Horror subjects', () => {
+  it('a monster can have an action when it escapes or is freed', () => {
+    const types = triggerChoices({ kind: 'monster', id: 'm1' }).map((c) => c.type);
+    expect(types).toContain('monsterLeft');
+    const r = triggerFor(base(), { kind: 'monster', id: 'm1' }, 'monsterLeft');
+    expect(r.ok && r.value.trigger).toEqual({ type: 'monsterLeft', monster: 'm1' });
+  });
+
+  it('an edge door is a door subject with its own label', () => {
+    const q = {
+      ...base(),
+      edgeDoors: [
+        { id: 'in', cell: [0, 5], side: 'w', kind: 'ironEntry' },
+        { id: 'out', cell: [25, 5], side: 'e', kind: 'woodenExit' },
+      ],
+    } as Quest;
+    const keys = subjectChoices(q).map(subjectKey);
+    expect(keys).toContain('door:in');
+    expect(keys).toContain('door:out');
+    expect(subjectLabel(q, { kind: 'door', id: 'in' })).toBe('Entry door in');
+    expect(subjectLabel(q, { kind: 'door', id: 'out' })).toBe('Exit door out');
   });
 });
