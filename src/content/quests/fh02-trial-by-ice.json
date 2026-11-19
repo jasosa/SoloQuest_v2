@@ -1,0 +1,671 @@
+{
+  "schemaVersion": 1,
+  "id": "fh02-trial-by-ice",
+  "number": 2,
+  "pack": "frozen-horror",
+  "title": "Trial by Ice",
+  "intro": {
+    "summary": "Xanon Pass leads to an underground outpost on the slopes of the Cyberian Range. Minions of the Frozen Horror use it as a base, and from there they threaten several villages nearby. The Barbarian must go in, slay the Dread Warrior Krag, one of the Frozen Horror's lieutenants, and walk out again through the ice cave entrance."
+  },
+  "start": {
+    "door": "in"
+  },
+  "edgeDoors": [
+    {
+      "id": "in",
+      "cell": [3, 12],
+      "side": "s",
+      "kind": "ironEntry"
+    }
+  ],
+  "rock": {
+    "rooms": ["R11", "R15", "R19", "R20", "R21", "R22"],
+    "cells": [
+      [0, 11],
+      [0, 12],
+      [0, 13],
+      [1, 13],
+      [2, 13],
+      [3, 13],
+      [4, 13],
+      [0, 14],
+      [0, 15],
+      [0, 16],
+      [0, 17],
+      [0, 18],
+      [1, 18],
+      [2, 18],
+      [3, 18],
+      [4, 18]
+    ]
+  },
+  "roomTiles": [
+    {
+      "type": "iceVault",
+      "area": "R02"
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "a": [0, 2],
+      "b": [1, 2]
+    },
+    {
+      "id": "d2",
+      "a": [4, 2],
+      "b": [5, 2]
+    },
+    {
+      "id": "d3",
+      "a": [8, 2],
+      "b": [9, 2]
+    },
+    {
+      "id": "d4",
+      "a": [2, 3],
+      "b": [2, 4]
+    },
+    {
+      "id": "d5",
+      "a": [4, 6],
+      "b": [5, 6]
+    },
+    {
+      "id": "d6",
+      "a": [16, 1],
+      "b": [17, 1]
+    },
+    {
+      "id": "d7",
+      "a": [20, 1],
+      "b": [21, 1]
+    },
+    {
+      "id": "d8",
+      "a": [18, 4],
+      "b": [18, 5]
+    },
+    {
+      "id": "d9",
+      "a": [24, 4],
+      "b": [24, 5]
+    },
+    {
+      "id": "d10",
+      "a": [20, 6],
+      "b": [21, 6]
+    },
+    {
+      "id": "d11",
+      "a": [16, 7],
+      "b": [17, 7]
+    },
+    {
+      "id": "d12",
+      "a": [22, 9],
+      "b": [22, 10]
+    },
+    {
+      "id": "d13",
+      "a": [4, 11],
+      "b": [5, 11]
+    },
+    {
+      "id": "d14",
+      "a": [6, 10],
+      "b": [7, 10]
+    },
+    {
+      "id": "d15",
+      "a": [6, 12],
+      "b": [6, 13]
+    },
+    {
+      "id": "d16",
+      "a": [6, 17],
+      "b": [6, 18]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "sd1",
+      "a": [8, 4],
+      "b": [9, 4]
+    },
+    {
+      "id": "sd2",
+      "a": [8, 15],
+      "b": [9, 15]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [[14, 0]]
+    },
+    {
+      "cells": [[0, 10]]
+    },
+    {
+      "cells": [[24, 9]]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [1, 8],
+        [2, 8],
+        [3, 8]
+      ]
+    },
+    {
+      "id": "f-sorc",
+      "type": "sorcerersTable",
+      "cells": [
+        [6, 7],
+        [7, 7],
+        [8, 7],
+        [6, 8],
+        [7, 8],
+        [8, 8]
+      ]
+    },
+    {
+      "id": "f-fire",
+      "type": "fireplace",
+      "cells": [
+        [14, 5],
+        [15, 5],
+        [16, 5]
+      ]
+    },
+    {
+      "id": "f-chest-d",
+      "type": "chest",
+      "cells": [[24, 1]]
+    },
+    {
+      "id": "f-table",
+      "type": "table",
+      "cells": [
+        [22, 7],
+        [23, 7],
+        [24, 7],
+        [22, 8],
+        [23, 8],
+        [24, 8]
+      ]
+    },
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [21, 11],
+        [21, 12],
+        [21, 13]
+      ]
+    },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [[8, 12]]
+    },
+    {
+      "id": "f-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [5, 15],
+        [5, 16],
+        [5, 17]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [9, 16],
+        [10, 16],
+        [11, 16],
+        [9, 17],
+        [10, 17],
+        [11, 17]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m-mummy",
+      "type": "mummy",
+      "cell": [2, 2]
+    },
+    {
+      "id": "m-bear",
+      "type": "goblin",
+      "cell": [2, 6],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-skel-v1",
+      "type": "skeleton",
+      "cell": [5, 1]
+    },
+    {
+      "id": "m-skel-v2",
+      "type": "skeleton",
+      "cell": [5, 3]
+    },
+    {
+      "id": "m-garg",
+      "type": "gargoyle",
+      "cell": [10, 2]
+    },
+    {
+      "id": "m-krag",
+      "type": "dreadWarrior",
+      "cell": [10, 5],
+      "name": "Krag",
+      "overrides": {
+        "move": 7,
+        "att": 5,
+        "def": 5,
+        "body": 4,
+        "mind": 3
+      },
+      "special": true
+    },
+    {
+      "id": "m-orc-1",
+      "type": "orc",
+      "cell": [6, 5]
+    },
+    {
+      "id": "m-orc-2",
+      "type": "orc",
+      "cell": [7, 6]
+    },
+    {
+      "id": "m-skel-1",
+      "type": "skeleton",
+      "cell": [15, 1]
+    },
+    {
+      "id": "m-skel-2",
+      "type": "skeleton",
+      "cell": [16, 2]
+    },
+    {
+      "id": "m-yeti-1",
+      "type": "goblin",
+      "cell": [19, 6],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-yeti-2",
+      "type": "goblin",
+      "cell": [18, 7],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-zombie-1",
+      "type": "zombie",
+      "cell": [3, 10]
+    },
+    {
+      "id": "m-zombie-2",
+      "type": "zombie",
+      "cell": [3, 12]
+    },
+    {
+      "id": "m-orc-3",
+      "type": "orc",
+      "cell": [8, 11]
+    },
+    {
+      "id": "m-abom",
+      "type": "abomination",
+      "cell": [7, 12]
+    },
+    {
+      "id": "m-gob-1",
+      "type": "goblin",
+      "cell": [6, 14]
+    },
+    {
+      "id": "m-gob-2",
+      "type": "goblin",
+      "cell": [7, 14]
+    },
+    {
+      "id": "m-gob-3",
+      "type": "goblin",
+      "cell": [6, 15]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-spear-1",
+      "kind": "spear",
+      "cell": [22, 1]
+    },
+    {
+      "id": "t-spear-2",
+      "kind": "spear",
+      "cell": [22, 2]
+    },
+    {
+      "id": "t-spear-3",
+      "kind": "spear",
+      "cell": [22, 3]
+    },
+    {
+      "id": "t-spear-4",
+      "kind": "spear",
+      "cell": [23, 3]
+    },
+    {
+      "id": "t-spear-5",
+      "kind": "spear",
+      "cell": [24, 3]
+    },
+    {
+      "id": "t-stal-1",
+      "kind": "stalactite",
+      "cell": [6, 10]
+    },
+    {
+      "id": "t-stal-2",
+      "kind": "stalactite",
+      "cell": [5, 11]
+    },
+    {
+      "id": "t-axe-1",
+      "kind": "swingingAxe",
+      "cell": [17, 2]
+    },
+    {
+      "id": "t-axe-2",
+      "kind": "swingingAxe",
+      "cell": [18, 2]
+    },
+    {
+      "id": "t-ice-1",
+      "kind": "slipperyIce",
+      "cell": [9, 3]
+    },
+    {
+      "id": "t-ice-2",
+      "kind": "slipperyIce",
+      "cell": [10, 3]
+    },
+    {
+      "id": "t-ice-3",
+      "kind": "slipperyIce",
+      "cell": [11, 3]
+    },
+    {
+      "id": "t-wander-1",
+      "kind": "wanderingTrap",
+      "cell": [10, 0]
+    },
+    {
+      "id": "t-wander-2",
+      "kind": "wanderingTrap",
+      "cell": [24, 18]
+    }
+  ],
+  "tunnels": [
+    {
+      "id": "tun1",
+      "design": 1,
+      "a": [11, 13],
+      "b": [24, 13]
+    }
+  ],
+  "boardTiles": [
+    {
+      "type": "iceCaveEntrance",
+      "cells": [
+        [0, 13],
+        [1, 13],
+        [2, 13],
+        [3, 13],
+        [4, 13],
+        [0, 14],
+        [1, 14],
+        [2, 14],
+        [3, 14],
+        [4, 14],
+        [0, 15],
+        [1, 15],
+        [2, 15],
+        [3, 15],
+        [4, 15],
+        [0, 16],
+        [1, 16],
+        [2, 16],
+        [3, 16],
+        [4, 16],
+        [0, 17],
+        [1, 17],
+        [2, 17],
+        [3, 17],
+        [4, 17],
+        [0, 18],
+        [1, 18],
+        [2, 18],
+        [3, 18],
+        [4, 18]
+      ]
+    },
+    {
+      "type": "icyRiver",
+      "cells": [
+        [9, 12],
+        [10, 12],
+        [11, 12],
+        [12, 12],
+        [13, 12],
+        [14, 12],
+        [15, 12],
+        [16, 12]
+      ]
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "polarWarbear",
+      "name": "Polar Warbear",
+      "letter": "PW",
+      "overrides": {
+        "move": 6,
+        "att": 4,
+        "def": 3,
+        "body": 6,
+        "mind": 2
+      },
+      "profile": "relentless",
+      "weights": {
+        "closest": 3,
+        "highestAtt": 2,
+        "lastAttacker": 2,
+        "grudge": 1
+      },
+      "attacks": 2,
+      "abilities": ["fhTwoAttacks"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "yeti",
+      "name": "Yeti",
+      "letter": "Y",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 5,
+        "mind": 2
+      },
+      "profile": "fighter",
+      "weights": {
+        "lowestDef": 3,
+        "lowestBody": 2,
+        "closest": 2
+      },
+      "expansion": "Frozen Horror",
+      "traits": ["In this solo quest it does not hug: it only punches"]
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A solo quest for the Barbarian. Deep in the Cyberian Range, an outpost of the Frozen Horror holds a Dread Warrior named Krag, one of its lieutenants. The only way in or out is the ice cave entrance, where the quest begins and ends.",
+          "title": "Trial by Ice"
+        },
+        {
+          "type": "showText",
+          "text": "Ice tunnels come in pairs with the same picture. A hero or monster that lands on one comes out at the other, and that ends its move.",
+          "title": "Ice tunnels"
+        }
+      ]
+    },
+    {
+      "id": "n-A1",
+      "letter": "A",
+      "at": [11, 14],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R18"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked A. The hero, or any monster, that lands on this square comes out at the other one at once.",
+          "title": "Ice tunnel"
+        }
+      ]
+    },
+    {
+      "id": "n-A2",
+      "letter": "A",
+      "at": [24, 12],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R16"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This ice tunnel is linked to the ice tunnel in the other room marked A. The hero, or any monster, that lands on this square comes out at the other one at once.",
+          "title": "Ice tunnel"
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [7, 11],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R14",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The treasure chest in this room is empty."
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [5, 7],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R08",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "On top of the sorcerer's table the hero finds a Potion of Warmth (see its treasure card in this quest pack)."
+        },
+        {
+          "type": "giveItem",
+          "text": "A Potion of Warmth (treasure card of the Frozen Horror pack)"
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [24, 2],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R06",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest in this room holds 120 gold coins."
+        },
+        {
+          "type": "giveItem",
+          "text": "120 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-E",
+      "letter": "E",
+      "at": [9, 5],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R03"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "This is Krag, the Dread Warrior lieutenant of the Frozen Horror. His stats: Movement 7, Attack 5, Defend 5, Body 4, Mind 3.",
+          "title": "Krag"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "goblin",
+    "count": 2
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Slay the Dread Warrior Krag",
+      "done": {
+        "monsterKilled": "m-krag"
+      }
+    },
+    {
+      "id": "o2",
+      "text": "Leave through the ice cave entrance",
+      "confirm": "The Barbarian left through the cave",
+      "confirmWhen": [
+        {
+          "monster": "m-krag",
+          "alive": false
+        }
+      ]
+    }
+  ]
+}
