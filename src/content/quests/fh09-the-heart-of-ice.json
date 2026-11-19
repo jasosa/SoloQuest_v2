@@ -5,7 +5,7 @@
   "pack": "frozen-horror",
   "title": "The Heart of Ice (double quest)",
   "intro": {
-    "summary": "Mentor says the Scepter of Glacial Majesty is destroyed, so the Frozen Horror can be harmed at last, and now is the time to strike. The heroes enter by the iron door and look for the spiral stairway that leads down to the catacombs. The Crystal Key is hidden there. It opens the last door, the one into the Seat of Power Room where the Frozen Horror waits. Mentor advises taking mercenaries along."
+    "summary": "The Frozen Horror can be harmed now, and Mentor says this is the time to strike. The heroes enter by the iron door and look for the spiral stairway that leads down to the catacombs. The Crystal Key is hidden there. It opens the last door, the one into the Seat of Power Room where the Frozen Horror waits. Mentor advises taking mercenaries along."
   },
   "mapId": "halls",
   "mapName": "The Frozen Halls",
@@ -1966,7 +1966,7 @@
         {
           "type": "showText",
           "text": "Put the Ice Gremlin treasure room tile over both small rooms, so that they make one larger room.",
-          "title": "The Ice Gremlin hoard"
+          "title": "Treasure room"
         }
       ]
     },
@@ -2143,5 +2143,5 @@
     }
   ],
   "rewards": "1,000 gold coins for each hero",
-  "endText": "The Frozen Horror is destroyed and the Realm is spared an ice-bound doom. Zargon's plans in the Northlands are broken. The tribal elders thank the heroes with 1,000 gold coins each. Zargon is still strong elsewhere, and the Frozen Horror came back once before, so the watch goes on. For tonight the heroes are guests of honor at a great feast."
+  "endText": "The Frozen Horror is gone and the Northlands are safe. The elders reward each hero with 1,000 gold coins, and a feast is waiting for the heroes tonight."
 }
