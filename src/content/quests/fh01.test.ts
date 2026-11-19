@@ -8,7 +8,12 @@ import { applyCoreFile, parseCoreFile } from '../../engine/data/coreFile';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { reduce, replay, startGame } from '../../engine/game/reducer';
-import { monstersInPlay, objectivesStatus, trapsInView } from '../../engine/game/view';
+import {
+  boardTilesInView,
+  monstersInPlay,
+  objectivesStatus,
+  trapsInView,
+} from '../../engine/game/view';
 import { objectiveConfirms } from '../../engine/game/noteView';
 import { parseQuest } from '../../engine/quest/loader';
 import { validateQuest } from '../../engine/quest/validate';
@@ -79,10 +84,15 @@ describe('quest 1: data', () => {
     );
     expect(quest.monsters).toHaveLength(16);
     const kinds = quest.traps.map((t) => t.kind);
-    expect(kinds.filter((k) => k === 'wanderingTrap')).toHaveLength(1);
+    expect(kinds.filter((k) => k === 'wanderingTrap')).toHaveLength(2);
+    expect(kinds.filter((k) => k === 'pit')).toHaveLength(1);
     expect(kinds.filter((k) => k === 'swingingAxe')).toHaveLength(2);
     expect(kinds.filter((k) => k === 'stalactite')).toHaveLength(5);
-    expect(kinds.filter((k) => k === 'slipperyIce')).toHaveLength(8);
+    // the slippery ice is one 2 x 3 tile, not eight traps
+    expect(kinds.filter((k) => k === 'slipperyIce')).toHaveLength(0);
+    expect(quest.boardTiles).toHaveLength(1);
+    expect(quest.boardTiles[0]).toMatchObject({ type: 'slipperyIce' });
+    expect(quest.boardTiles[0]!.cells).toHaveLength(6);
     expect(quest.wandering).toEqual({ monster: 'skeleton', count: 2 });
   });
 
@@ -150,7 +160,8 @@ describe('quest 1: the north-west rooms', () => {
     expect(a.seenFurniture.size).toBe(0);
     const b = run(...toR01);
     expect(b.seenMonsters.has('m-mummy')).toBe(true);
-    expect(trapsInView(level, b).map((t) => t.id)).toContain('t-wander');
+    expect(trapsInView(level, b).map((t) => t.id)).toContain('t-wander-1');
+    expect(trapsInView(level, b).map((t) => t.id)).toContain('t-pit-1');
   });
 
   it('R02 shows the bookcase and the two swinging axe squares', () => {
@@ -217,9 +228,8 @@ describe('quest 1: the Crossbowman of room R18', () => {
     expect(inside.revealedRooms.has('R18')).toBe(true);
     expect(inside.seenMonsters.has('m-xbow')).toBe(true);
     expect(fired(inside, 'n-B')).toBe(true);
-    // the kind of an armed trap stays hidden: only six "?" squares show, the 2 x 3 tile
-    const marks = trapsInView(level, inside).map((t) => t.id);
-    for (let i = 3; i <= 8; i++) expect(marks).toContain(`t-ice-${i}`);
+    // the slippery ice is one tile over six squares, drawn with its rule, not six trap marks
+    expect(boardTilesInView(level, inside).map((t) => t.type)).toContain('slipperyIce');
   });
 
   it('he stays put, is a shooter, and carries the Frozen Horror box', () => {
@@ -292,7 +302,7 @@ describe('quest 1: wandering monsters and hazards', () => {
     });
     const one = monstersInPlay(level, card.state).filter((m) => m.id.startsWith('w'));
     expect(one.map((m) => m.type)).toEqual(['skeleton']);
-    const trap = reduce(level, run(...toR01), { type: 'TRAP_STEP', trap: 't-wander' });
+    const trap = reduce(level, run(...toR01), { type: 'TRAP_STEP', trap: 't-wander-1' });
     const pair = monstersInPlay(level, trap.state).filter((m) => m.id.startsWith('w'));
     expect(pair.map((m) => m.type)).toEqual(['skeleton', 'skeleton']);
   });

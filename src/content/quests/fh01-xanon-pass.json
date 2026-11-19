@@ -24,6 +24,19 @@
       "kind": "woodenExit"
     }
   ],
+  "boardTiles": [
+    {
+      "type": "slipperyIce",
+      "cells": [
+        [10, 13],
+        [11, 13],
+        [10, 14],
+        [11, 14],
+        [10, 15],
+        [11, 15]
+      ]
+    }
+  ],
   "rock": {
     "rooms": ["R05", "R06", "R11", "R15", "R16", "R19", "R21", "R22"],
     "cells": [
@@ -313,8 +326,8 @@
   ],
   "traps": [
     {
-      "id": "t-wander",
-      "kind": "wanderingTrap",
+      "id": "t-pit-1",
+      "kind": "pit",
       "cell": [3, 2]
     },
     {
@@ -353,44 +366,14 @@
       "cell": [8, 13]
     },
     {
-      "id": "t-ice-1",
-      "kind": "slipperyIce",
+      "id": "t-wander-1",
+      "kind": "wanderingTrap",
       "cell": [9, 7]
     },
     {
-      "id": "t-ice-2",
-      "kind": "slipperyIce",
+      "id": "t-wander-2",
+      "kind": "wanderingTrap",
       "cell": [25, 9]
-    },
-    {
-      "id": "t-ice-3",
-      "kind": "slipperyIce",
-      "cell": [10, 13]
-    },
-    {
-      "id": "t-ice-4",
-      "kind": "slipperyIce",
-      "cell": [11, 13]
-    },
-    {
-      "id": "t-ice-5",
-      "kind": "slipperyIce",
-      "cell": [10, 14]
-    },
-    {
-      "id": "t-ice-6",
-      "kind": "slipperyIce",
-      "cell": [11, 14]
-    },
-    {
-      "id": "t-ice-7",
-      "kind": "slipperyIce",
-      "cell": [10, 15]
-    },
-    {
-      "id": "t-ice-8",
-      "kind": "slipperyIce",
-      "cell": [11, 15]
     }
   ],
   "enemyDefs": [
@@ -509,33 +492,16 @@
       },
       "effects": [
         {
-          "type": "showText",
-          "text": "An evil Crossbowman guards this room. He never leaves his square, but he shoots his crossbow at the Barbarian once in each of Zargon's turns, until the Barbarian gets to him. If the Barbarian moves next to him and attacks, he gives in at once."
-        }
-      ]
-    },
-    {
-      "id": "n-B-attack",
-      "target": {
-        "kind": "monster",
-        "id": "m-xbow"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "Barbarian next to the Crossbowman"
-      },
-      "effects": [
-        {
           "type": "promptChoice",
-          "text": "The Barbarian stands next to the Crossbowman. Does the Barbarian attack him?",
+          "text": "Is the hero next to the Crossbowman?",
           "options": [
             {
-              "label": "Yes, attack him",
+              "label": "Yes, and the hero attacks him",
               "effects": [
                 {
                   "type": "showText",
-                  "text": "The Crossbowman gives up at once and offers his crossbow if the Barbarian will spare him. The Barbarian takes it, and the man runs away. Take him off the board. The Barbarian writes the crossbow on the character sheet (see the armory).",
-                  "title": "He yields"
+                  "title": "He yields",
+                  "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board. The hero writes the crossbow on the character sheet (see the armory)."
                 },
                 {
                   "type": "giveItem",
@@ -549,7 +515,57 @@
               ]
             },
             {
-              "label": "No, not yet",
+              "label": "Yes, but the hero does not attack",
+              "effects": []
+            },
+            {
+              "label": "No",
+              "effects": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-B-attack",
+      "target": {
+        "kind": "monster",
+        "id": "m-xbow"
+      },
+      "trigger": {
+        "type": "manual",
+        "label": "Hero next to the Crossbowman"
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "Is the hero next to the Crossbowman?",
+          "options": [
+            {
+              "label": "Yes, and the hero attacks him",
+              "effects": [
+                {
+                  "type": "showText",
+                  "title": "He yields",
+                  "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board. The hero writes the crossbow on the character sheet (see the armory)."
+                },
+                {
+                  "type": "giveItem",
+                  "text": "A crossbow (see the armory)"
+                },
+                {
+                  "type": "setMonsterState",
+                  "monster": "m-xbow",
+                  "state": "away"
+                }
+              ]
+            },
+            {
+              "label": "Yes, but the hero does not attack",
+              "effects": []
+            },
+            {
+              "label": "No",
               "effects": []
             }
           ]
