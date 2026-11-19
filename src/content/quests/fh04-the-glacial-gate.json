@@ -1,0 +1,919 @@
+{
+  "schemaVersion": 1,
+  "id": "fh04-the-glacial-gate",
+  "number": 4,
+  "pack": "frozen-horror",
+  "title": "The Glacial Gate",
+  "intro": {
+    "summary": "The tribal elders name the Barbarian their champion against the Frozen Horror and its servants. With the Dwarf, the Elf and the Wizard at their side, the Barbarian storms the outer chambers of the fortress under Ice Mountain, entering by an iron door. The way into the deeper halls is a wooden exit door."
+  },
+  "start": {
+    "door": "in"
+  },
+  "edgeDoors": [
+    {
+      "id": "in",
+      "cell": [0, 0],
+      "side": "n",
+      "kind": "ironEntry"
+    },
+    {
+      "id": "out",
+      "cell": [25, 0],
+      "side": "e",
+      "kind": "woodenExit"
+    }
+  ],
+  "rock": {
+    "rooms": ["R15", "R16", "R19", "R21", "R22"],
+    "cells": [
+      [25, 11],
+      [25, 12],
+      [25, 13],
+      [25, 14],
+      [25, 15],
+      [25, 16],
+      [25, 17],
+      [15, 18],
+      [16, 18],
+      [17, 18],
+      [18, 18],
+      [19, 18],
+      [20, 18],
+      [21, 18],
+      [22, 18],
+      [23, 18],
+      [24, 18],
+      [25, 18]
+    ]
+  },
+  "roomTiles": [
+    {
+      "type": "cageRoom",
+      "area": "R20"
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "a": [3, 0],
+      "b": [3, 1]
+    },
+    {
+      "id": "d2",
+      "a": [4, 2],
+      "b": [5, 2]
+    },
+    {
+      "id": "d3",
+      "a": [8, 2],
+      "b": [9, 2]
+    },
+    {
+      "id": "d4",
+      "a": [8, 3],
+      "b": [8, 4]
+    },
+    {
+      "id": "d5",
+      "a": [8, 5],
+      "b": [9, 5]
+    },
+    {
+      "id": "d6",
+      "a": [6, 8],
+      "b": [6, 9]
+    },
+    {
+      "id": "d7",
+      "a": [2, 9],
+      "b": [2, 10]
+    },
+    {
+      "id": "d8",
+      "a": [4, 13],
+      "b": [4, 14]
+    },
+    {
+      "id": "d9",
+      "a": [4, 15],
+      "b": [5, 15]
+    },
+    {
+      "id": "d10",
+      "a": [6, 10],
+      "b": [7, 10]
+    },
+    {
+      "id": "d11",
+      "a": [6, 12],
+      "b": [6, 13]
+    },
+    {
+      "id": "d12",
+      "a": [7, 12],
+      "b": [7, 13]
+    },
+    {
+      "id": "d13",
+      "a": [8, 15],
+      "b": [9, 15]
+    },
+    {
+      "id": "d14",
+      "a": [10, 17],
+      "b": [10, 18]
+    },
+    {
+      "id": "d15",
+      "a": [9, 9],
+      "b": [10, 9]
+    },
+    {
+      "id": "d16",
+      "a": [15, 0],
+      "b": [15, 1]
+    },
+    {
+      "id": "d17",
+      "a": [15, 5],
+      "b": [15, 6]
+    },
+    {
+      "id": "d18",
+      "a": [17, 4],
+      "b": [17, 5]
+    },
+    {
+      "id": "d19",
+      "a": [20, 4],
+      "b": [21, 4]
+    },
+    {
+      "id": "d20",
+      "a": [23, 0],
+      "b": [23, 1]
+    },
+    {
+      "id": "d21",
+      "a": [20, 8],
+      "b": [21, 8]
+    },
+    {
+      "id": "d22",
+      "a": [24, 8],
+      "b": [25, 8]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [1, 3],
+      "b": [1, 4]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [
+        [12, 1],
+        [13, 1]
+      ]
+    },
+    {
+      "cells": [[1, 9]]
+    },
+    {
+      "cells": [[8, 9]]
+    },
+    {
+      "cells": [[21, 0]]
+    },
+    {
+      "cells": [[25, 1]]
+    },
+    {
+      "cells": [[25, 10]]
+    },
+    {
+      "cells": [[14, 18]]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-tomb",
+      "type": "tomb",
+      "cells": [
+        [3, 6],
+        [4, 6],
+        [3, 7],
+        [4, 7],
+        [3, 8],
+        [4, 8]
+      ]
+    },
+    {
+      "id": "f-table-1",
+      "type": "table",
+      "cells": [
+        [5, 4],
+        [6, 4],
+        [5, 5],
+        [6, 5],
+        [5, 6],
+        [6, 6]
+      ]
+    },
+    {
+      "id": "f-table-2",
+      "type": "table",
+      "cells": [
+        [1, 12],
+        [2, 12],
+        [3, 12],
+        [1, 13],
+        [2, 13],
+        [3, 13]
+      ]
+    },
+    {
+      "id": "f-chest",
+      "type": "chest",
+      "cells": [[8, 11]]
+    },
+    {
+      "id": "f-bookcase-c",
+      "type": "bookcase",
+      "cells": [
+        [5, 17],
+        [6, 17],
+        [7, 17]
+      ]
+    },
+    {
+      "id": "f-bench",
+      "type": "alchemistsBench",
+      "cells": [
+        [9, 13],
+        [10, 13],
+        [11, 13],
+        [9, 14],
+        [10, 14],
+        [11, 14]
+      ]
+    },
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [11, 7],
+        [12, 7],
+        [13, 7]
+      ]
+    },
+    {
+      "id": "f-fireplace",
+      "type": "fireplace",
+      "cells": [
+        [11, 11],
+        [12, 11],
+        [13, 11]
+      ]
+    },
+    {
+      "id": "f-bookcase-2",
+      "type": "bookcase",
+      "cells": [
+        [17, 1],
+        [18, 1],
+        [19, 1]
+      ]
+    },
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [17, 6],
+        [17, 7],
+        [17, 8]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [22, 6],
+        [23, 6],
+        [22, 7],
+        [23, 7],
+        [22, 8],
+        [23, 8]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m-abom-1",
+      "type": "abomination",
+      "cell": [2, 2]
+    },
+    {
+      "id": "m-abom-2",
+      "type": "abomination",
+      "cell": [3, 2]
+    },
+    {
+      "id": "m-yeti-1",
+      "type": "goblin",
+      "cell": [3, 4],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-yeti-2",
+      "type": "goblin",
+      "cell": [1, 6],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-bear-1",
+      "type": "goblin",
+      "cell": [2, 5],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-skel-1",
+      "type": "skeleton",
+      "cell": [3, 9]
+    },
+    {
+      "id": "m-mummy-1",
+      "type": "mummy",
+      "cell": [4, 9]
+    },
+    {
+      "id": "m-skel-2",
+      "type": "skeleton",
+      "cell": [5, 9]
+    },
+    {
+      "id": "m-mummy-2",
+      "type": "mummy",
+      "cell": [14, 3]
+    },
+    {
+      "id": "m-mummy-3",
+      "type": "mummy",
+      "cell": [16, 3]
+    },
+    {
+      "id": "m-gremlin",
+      "type": "goblin",
+      "cell": [2, 15],
+      "enemy": "iceGremlin",
+      "state": "passive"
+    },
+    {
+      "id": "m-orc-1",
+      "type": "orc",
+      "cell": [6, 14]
+    },
+    {
+      "id": "m-goblin-1",
+      "type": "goblin",
+      "cell": [7, 14]
+    },
+    {
+      "id": "m-orc-2",
+      "type": "orc",
+      "cell": [6, 15]
+    },
+    {
+      "id": "m-orc-3",
+      "type": "orc",
+      "cell": [7, 15]
+    },
+    {
+      "id": "m-goblin-2",
+      "type": "goblin",
+      "cell": [6, 16]
+    },
+    {
+      "id": "m-orc-4",
+      "type": "orc",
+      "cell": [7, 16]
+    },
+    {
+      "id": "m-orc-5",
+      "type": "orc",
+      "cell": [12, 8]
+    },
+    {
+      "id": "m-orc-6",
+      "type": "orc",
+      "cell": [12, 9]
+    },
+    {
+      "id": "m-orc-7",
+      "type": "orc",
+      "cell": [12, 10]
+    },
+    {
+      "id": "m-dread-1",
+      "type": "dreadWarrior",
+      "cell": [14, 8]
+    },
+    {
+      "id": "m-dread-2",
+      "type": "dreadWarrior",
+      "cell": [14, 10]
+    },
+    {
+      "id": "m-gargoyle",
+      "type": "gargoyle",
+      "cell": [15, 9]
+    },
+    {
+      "id": "m-zombie-1",
+      "type": "zombie",
+      "cell": [18, 6]
+    },
+    {
+      "id": "m-skel-3",
+      "type": "skeleton",
+      "cell": [19, 6]
+    },
+    {
+      "id": "m-skel-4",
+      "type": "skeleton",
+      "cell": [18, 7]
+    },
+    {
+      "id": "m-zombie-2",
+      "type": "zombie",
+      "cell": [19, 7]
+    },
+    {
+      "id": "m-bear-2",
+      "type": "goblin",
+      "cell": [22, 2],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-bear-3",
+      "type": "goblin",
+      "cell": [23, 2],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-xbow-1",
+      "type": "goblin",
+      "cell": [22, 5],
+      "enemy": "crossbowman"
+    },
+    {
+      "id": "m-xbow-2",
+      "type": "goblin",
+      "cell": [23, 5],
+      "enemy": "crossbowman"
+    },
+    {
+      "id": "m-sword-1",
+      "type": "goblin",
+      "cell": [21, 7],
+      "enemy": "swordsman"
+    },
+    {
+      "id": "m-sword-2",
+      "type": "goblin",
+      "cell": [24, 7],
+      "enemy": "swordsman"
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-pit-1",
+      "kind": "pit",
+      "cell": [1, 0]
+    },
+    {
+      "id": "t-pit-2",
+      "kind": "pit",
+      "cell": [6, 12]
+    },
+    {
+      "id": "t-pit-3",
+      "kind": "pit",
+      "cell": [10, 16]
+    },
+    {
+      "id": "t-pit-4",
+      "kind": "pit",
+      "cell": [25, 9]
+    },
+    {
+      "id": "t-spear-5",
+      "kind": "spear",
+      "cell": [5, 12]
+    },
+    {
+      "id": "t-spear-6",
+      "kind": "spear",
+      "cell": [9, 16]
+    },
+    {
+      "id": "t-spear-7",
+      "kind": "spear",
+      "cell": [11, 16]
+    },
+    {
+      "id": "t-stalactite-8",
+      "kind": "stalactite",
+      "cell": [7, 1]
+    },
+    {
+      "id": "t-stalactite-9",
+      "kind": "stalactite",
+      "cell": [6, 2]
+    },
+    {
+      "id": "t-stalactite-10",
+      "kind": "stalactite",
+      "cell": [7, 3]
+    },
+    {
+      "id": "t-swingingAxe-11",
+      "kind": "swingingAxe",
+      "cell": [8, 4]
+    },
+    {
+      "id": "t-swingingAxe-12",
+      "kind": "swingingAxe",
+      "cell": [8, 5]
+    },
+    {
+      "id": "t-swingingAxe-13",
+      "kind": "swingingAxe",
+      "cell": [5, 11]
+    },
+    {
+      "id": "t-swingingAxe-14",
+      "kind": "swingingAxe",
+      "cell": [6, 11]
+    },
+    {
+      "id": "t-wanderingTrap-15",
+      "kind": "wanderingTrap",
+      "cell": [0, 9]
+    },
+    {
+      "id": "t-wanderingTrap-16",
+      "kind": "wanderingTrap",
+      "cell": [15, 0]
+    },
+    {
+      "id": "t-wanderingTrap-17",
+      "kind": "wanderingTrap",
+      "cell": [14, 12]
+    },
+    {
+      "id": "t-slide",
+      "kind": "iceSlide",
+      "cell": [17, 9],
+      "path": [
+        [17, 9],
+        [18, 9],
+        [19, 9],
+        [20, 9],
+        [21, 9],
+        [22, 9],
+        [23, 9],
+        [24, 9]
+      ]
+    },
+    {
+      "id": "t-chest",
+      "kind": "chest",
+      "furniture": "f-chest",
+      "effect": "The explosive device goes off: every hero in the room loses 2 Body Points."
+    }
+  ],
+  "boardTiles": [
+    {
+      "type": "iceLedge",
+      "cells": [
+        [14, 1],
+        [15, 1],
+        [16, 1],
+        [14, 2],
+        [15, 2],
+        [16, 2],
+        [14, 3],
+        [15, 3],
+        [16, 3],
+        [14, 4],
+        [15, 4],
+        [16, 4],
+        [14, 5],
+        [15, 5],
+        [16, 5]
+      ]
+    },
+    {
+      "type": "icyRiver",
+      "cells": [
+        [9, 3],
+        [10, 3],
+        [11, 3]
+      ]
+    },
+    {
+      "type": "cage",
+      "cells": [
+        [2, 15],
+        [3, 15],
+        [2, 16],
+        [3, 16]
+      ],
+      "hiddenWhen": "gremlinFreed"
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
+      "overrides": {
+        "move": 10,
+        "att": 2,
+        "def": 3,
+        "body": 3,
+        "mind": 3
+      },
+      "profile": "thief",
+      "weights": {
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
+      },
+      "abilities": ["fhSteal"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "polarWarbear",
+      "name": "Polar Warbear",
+      "letter": "PW",
+      "overrides": {
+        "move": 6,
+        "att": 4,
+        "def": 3,
+        "body": 6,
+        "mind": 2
+      },
+      "profile": "relentless",
+      "weights": {
+        "closest": 3,
+        "highestAtt": 2,
+        "lastAttacker": 2,
+        "grudge": 1
+      },
+      "attacks": 2,
+      "abilities": ["fhTwoAttacks"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "yeti",
+      "name": "Yeti",
+      "letter": "Y",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 5,
+        "mind": 2
+      },
+      "profile": "grappler",
+      "weights": {
+        "lowestDef": 3,
+        "lowestBody": 2,
+        "closest": 2
+      },
+      "abilities": ["fhHug"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "crossbowman",
+      "name": "Crossbowman",
+      "letter": "CB",
+      "overrides": {
+        "move": 6,
+        "att": 3,
+        "def": 3,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "shooter",
+      "weights": {
+        "caster": 3,
+        "lowestDef": 2,
+        "lastAttacker": 2
+      },
+      "abilities": ["fhRanged"],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "swordsman",
+      "name": "Swordsman",
+      "letter": "SW",
+      "overrides": {
+        "move": 5,
+        "att": 4,
+        "def": 5,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "fighter",
+      "weights": {
+        "highestAtt": 3,
+        "highestBody": 2,
+        "grudge": 2,
+        "lastAttacker": 1
+      },
+      "expansion": "Frozen Horror"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The heroes line up outside the iron door in the north-west corner of the map. The way on is a wooden exit door at the other end of the fortress. Zargon puts it on the board only when a hero looks along the corridor that leads to it.",
+          "title": "The Glacial Gate"
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [2, 8],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R07",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The Snowshoes of Speed rest on top of the tomb. Read the artifact card in the Frozen Horror pack."
+        },
+        {
+          "type": "giveItem",
+          "text": "The Snowshoes of Speed (artifact, see its card)"
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [3, 14],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R20"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A locked cage stands in the middle of this room, and an Ice Gremlin sits inside. It begs the heroes to let it out, swearing that the Frozen Horror left it here to die and that it wants revenge. The cage cannot be entered."
+        }
+      ]
+    },
+    {
+      "id": "n-B-free",
+      "target": {
+        "kind": "monster",
+        "id": "m-gremlin"
+      },
+      "when": [
+        {
+          "flag": "gremlinFreed",
+          "is": false
+        }
+      ],
+      "trigger": {
+        "type": "manual",
+        "label": "Free the gremlin",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "type": "promptChoice",
+          "text": "The gremlin waits behind the bars. Does a hero say they are freeing it and step next to the cage?",
+          "options": [
+            {
+              "label": "Yes, a hero frees it",
+              "effects": [
+                {
+                  "type": "showText",
+                  "text": "The cage swings open and the Ice Gremlin leaps out. It steals one item from the hero who freed it, and it chooses which one: never the armor or shield the hero is using, and never the weapon in their hand. Cross the item off that hero's sheet. Then the gremlin drops through a hole in the floor: take its figure off the board.",
+                  "title": "The cage opens"
+                },
+                {
+                  "type": "setFlag",
+                  "flag": "gremlinFreed",
+                  "value": true
+                },
+                {
+                  "type": "setMonsterState",
+                  "monster": "m-gremlin",
+                  "state": "away"
+                }
+              ]
+            },
+            {
+              "label": "No, leave it",
+              "effects": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [8, 17],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R17",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A spell scroll is hidden inside the bookcase. The hero draws one spell scroll card at random and writes it on their character sheet."
+        },
+        {
+          "type": "giveItem",
+          "text": "A spell scroll (drawn at random from the spell scroll cards)"
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [8, 12],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R14",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest is rigged with an explosive device. If a hero searches it before the trap is disarmed, every hero in the room loses 2 Body Points. The chest holds 600 gold coins, shared among the surviving heroes."
+        },
+        {
+          "type": "giveItem",
+          "text": "600 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-E",
+      "letter": "E",
+      "at": [14, 1],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R04"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A narrow ice ledge runs around a deep crevasse, and it is very slippery. When a hero steps through a door onto their first square here, they roll 1 combat die. Skull or white shield: they keep their footing and may go on. Black shield: they start to slip and lose 1 Body Point, then roll again at once. A second black shield: they fall into the crevasse and are lost for good. Any other result: they go back to the square they came in on, and their turn ends. The same roll is made at the start of every turn a hero begins in this room.",
+          "title": "The ice ledge"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "abomination",
+    "count": 2
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find the wooden exit door and leave through it",
+      "done": {
+        "when": [
+          {
+            "doorOpened": "out"
+          }
+        ]
+      }
+    }
+  ]
+}
