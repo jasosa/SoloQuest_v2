@@ -1,0 +1,658 @@
+{
+  "schemaVersion": 1,
+  "id": "fh03-the-rescue",
+  "number": 3,
+  "pack": "frozen-horror",
+  "title": "The Rescue",
+  "intro": {
+    "summary": "Servants of the Frozen Horror have seized Gothar, the Great Elder of the Barbarian tribe, and carried him to a Dread stronghold near Ice Mountain. He is wise but old and frail, and he will not last long in the hands of Dread's creatures. This final solo test is to enter the stronghold, find Gothar and bring him out alive. The Barbarian begins on the spiral stairway and must return to it to end the quest."
+  },
+  "start": {
+    "area": "R07"
+  },
+  "rock": {
+    "rooms": ["R05", "R06", "R09", "R10", "R15", "R16", "R19", "R21", "R22"],
+    "cells": [
+      [15, 0],
+      [16, 0],
+      [17, 0],
+      [18, 0],
+      [19, 0],
+      [20, 0],
+      [21, 0],
+      [22, 0],
+      [23, 0],
+      [24, 0],
+      [25, 0],
+      [25, 1],
+      [25, 2],
+      [25, 3],
+      [25, 4],
+      [25, 5],
+      [25, 6],
+      [25, 7],
+      [25, 8],
+      [18, 9],
+      [19, 9],
+      [20, 9],
+      [21, 9],
+      [22, 9],
+      [23, 9],
+      [24, 9],
+      [25, 9],
+      [25, 10],
+      [25, 11],
+      [25, 12],
+      [25, 13],
+      [12, 14],
+      [13, 14],
+      [25, 14],
+      [12, 15],
+      [13, 15],
+      [25, 15],
+      [12, 16],
+      [13, 16],
+      [25, 16],
+      [12, 17],
+      [13, 17],
+      [25, 17],
+      [2, 18],
+      [3, 18],
+      [4, 18],
+      [5, 18],
+      [6, 18],
+      [7, 18],
+      [8, 18],
+      [9, 18],
+      [10, 18],
+      [11, 18],
+      [12, 18],
+      [13, 18],
+      [14, 18],
+      [15, 18],
+      [16, 18],
+      [17, 18],
+      [18, 18],
+      [19, 18],
+      [20, 18],
+      [21, 18],
+      [22, 18],
+      [23, 18],
+      [24, 18],
+      [25, 18]
+    ]
+  },
+  "roomTiles": [],
+  "boardTiles": [],
+  "doors": [
+    {
+      "id": "d1",
+      "a": [4, 1],
+      "b": [5, 1]
+    },
+    {
+      "id": "d2",
+      "a": [8, 3],
+      "b": [9, 3]
+    },
+    {
+      "id": "d3",
+      "a": [10, 0],
+      "b": [10, 1]
+    },
+    {
+      "id": "d4",
+      "a": [4, 6],
+      "b": [5, 6]
+    },
+    {
+      "id": "d5",
+      "a": [8, 6],
+      "b": [9, 6]
+    },
+    {
+      "id": "d6",
+      "a": [15, 5],
+      "b": [15, 6]
+    },
+    {
+      "id": "d7",
+      "a": [15, 9],
+      "b": [16, 9]
+    },
+    {
+      "id": "d8",
+      "a": [4, 11],
+      "b": [5, 11]
+    },
+    {
+      "id": "d9",
+      "a": [2, 13],
+      "b": [2, 14]
+    },
+    {
+      "id": "d10",
+      "a": [6, 12],
+      "b": [6, 13]
+    },
+    {
+      "id": "d11",
+      "a": [10, 12],
+      "b": [10, 13]
+    },
+    {
+      "id": "d12",
+      "a": [0, 15],
+      "b": [1, 15]
+    },
+    {
+      "id": "d13",
+      "a": [4, 17],
+      "b": [5, 17]
+    },
+    {
+      "id": "d14",
+      "a": [8, 17],
+      "b": [9, 17]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [3, 3],
+      "b": [3, 4]
+    },
+    {
+      "id": "s2",
+      "a": [6, 10],
+      "b": [7, 10]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [[14, 0]]
+    },
+    {
+      "cells": [[17, 9]]
+    },
+    {
+      "cells": [
+        [12, 13],
+        [13, 13]
+      ]
+    },
+    {
+      "cells": [[1, 18]]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-stairs",
+      "type": "stairs",
+      "cells": [
+        [1, 7],
+        [2, 7],
+        [1, 8],
+        [2, 8]
+      ]
+    },
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [1, 1],
+        [1, 2],
+        [1, 3]
+      ]
+    },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [[7, 1]]
+    },
+    {
+      "id": "f-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [11, 3],
+        [11, 4],
+        [11, 5]
+      ]
+    },
+    {
+      "id": "f-weapons",
+      "type": "weaponsRack",
+      "cells": [
+        [6, 8],
+        [7, 8],
+        [8, 8]
+      ]
+    },
+    {
+      "id": "f-chest-d",
+      "type": "chest",
+      "cells": [[1, 11]]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [10, 8],
+        [11, 8],
+        [10, 9],
+        [11, 9],
+        [10, 10],
+        [11, 10]
+      ]
+    },
+    {
+      "id": "f-sorcerer",
+      "type": "sorcerersTable",
+      "cells": [
+        [6, 14],
+        [7, 14],
+        [6, 15],
+        [7, 15],
+        [6, 16],
+        [7, 16]
+      ]
+    },
+    {
+      "id": "f-chest-c",
+      "type": "chest",
+      "cells": [[11, 17]]
+    },
+    {
+      "id": "f-tomb",
+      "type": "tomb",
+      "cells": [
+        [14, 1],
+        [15, 1],
+        [16, 1],
+        [14, 2],
+        [15, 2],
+        [16, 2]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m-gargoyle",
+      "type": "gargoyle",
+      "cell": [3, 2]
+    },
+    {
+      "id": "m-orc-1",
+      "type": "orc",
+      "cell": [10, 2]
+    },
+    {
+      "id": "m-goblin-1",
+      "type": "goblin",
+      "cell": [10, 3]
+    },
+    {
+      "id": "m-goblin-2",
+      "type": "goblin",
+      "cell": [10, 4]
+    },
+    {
+      "id": "m-orc-2",
+      "type": "orc",
+      "cell": [10, 5]
+    },
+    {
+      "id": "m-abom-1",
+      "type": "abomination",
+      "cell": [7, 5]
+    },
+    {
+      "id": "m-goblin-3",
+      "type": "goblin",
+      "cell": [5, 7]
+    },
+    {
+      "id": "m-mummy",
+      "type": "mummy",
+      "cell": [15, 3]
+    },
+    {
+      "id": "m-skel-1",
+      "type": "skeleton",
+      "cell": [14, 5]
+    },
+    {
+      "id": "m-skel-2",
+      "type": "skeleton",
+      "cell": [16, 5]
+    },
+    {
+      "id": "m-dread-1",
+      "type": "dreadWarrior",
+      "cell": [11, 7]
+    },
+    {
+      "id": "m-dread-2",
+      "type": "dreadWarrior",
+      "cell": [11, 11]
+    },
+    {
+      "id": "m-orc-3",
+      "type": "orc",
+      "cell": [13, 8]
+    },
+    {
+      "id": "m-orc-4",
+      "type": "orc",
+      "cell": [13, 9]
+    },
+    {
+      "id": "m-orc-5",
+      "type": "orc",
+      "cell": [13, 10]
+    },
+    {
+      "id": "m-abom-2",
+      "type": "abomination",
+      "cell": [3, 12]
+    },
+    {
+      "id": "m-goblin-4",
+      "type": "goblin",
+      "cell": [6, 11]
+    },
+    {
+      "id": "m-goblin-5",
+      "type": "goblin",
+      "cell": [5, 12]
+    },
+    {
+      "id": "m-dread-3",
+      "type": "dreadWarrior",
+      "cell": [8, 12]
+    },
+    {
+      "id": "m-zombie-1",
+      "type": "zombie",
+      "cell": [5, 14]
+    },
+    {
+      "id": "m-zombie-2",
+      "type": "zombie",
+      "cell": [8, 16]
+    },
+    {
+      "id": "m-orc-6",
+      "type": "orc",
+      "cell": [10, 14]
+    },
+    {
+      "id": "m-orc-7",
+      "type": "orc",
+      "cell": [10, 15]
+    },
+    {
+      "id": "m-gremlin-1",
+      "type": "goblin",
+      "cell": [3, 15],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-2",
+      "type": "goblin",
+      "cell": [2, 16],
+      "enemy": "iceGremlin"
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-stalactite",
+      "kind": "stalactite",
+      "cell": [9, 9]
+    },
+    {
+      "id": "t-pit-1",
+      "kind": "pit",
+      "cell": [16, 6]
+    },
+    {
+      "id": "t-pit-2",
+      "kind": "pit",
+      "cell": [14, 8]
+    },
+    {
+      "id": "t-pit-3",
+      "kind": "pit",
+      "cell": [14, 9]
+    },
+    {
+      "id": "t-pit-4",
+      "kind": "pit",
+      "cell": [14, 10]
+    },
+    {
+      "id": "t-pit-5",
+      "kind": "pit",
+      "cell": [16, 12]
+    },
+    {
+      "id": "t-wander-1",
+      "kind": "wanderingTrap",
+      "cell": [14, 6]
+    },
+    {
+      "id": "t-wander-2",
+      "kind": "wanderingTrap",
+      "cell": [0, 12]
+    },
+    {
+      "id": "t-chest-d",
+      "kind": "chest",
+      "furniture": "f-chest-d",
+      "effect": "A poison needle pricks the hero who searches the chest: that hero loses 1 Body Point."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "gothar",
+      "name": "Gothar",
+      "cell": [10, 9],
+      "move": 6,
+      "attack": 1,
+      "defend": 2,
+      "body": 2,
+      "text": "The Barbarian's charge, played with a spare hero figure. He moves after the Barbarian and has 4 Mind Points. Monsters never attack him: they go only for the Barbarian. He must reach the spiral stairway."
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
+      "overrides": {
+        "move": 10,
+        "att": 2,
+        "def": 3,
+        "body": 3,
+        "mind": 3
+      },
+      "profile": "thief",
+      "weights": {
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
+      },
+      "abilities": ["fhSteal"],
+      "expansion": "Frozen Horror"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-start",
+      "trigger": {
+        "type": "questStart"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Place the Barbarian on the spiral stairway. Gothar, the old Great Elder of the tribe, is held somewhere in this stronghold. Find him, free him and bring him back to the stairway. Monsters that meet the Barbarian go only for the Barbarian: they have orders to take Gothar alive. If the Barbarian dies, Gothar is captured and the quest is lost.",
+          "title": "The Rescue"
+        }
+      ]
+    },
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [7, 6],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R08",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "A battle axe hangs on the weapons rack (see the armory)."
+        },
+        {
+          "type": "giveItem",
+          "text": "A battle axe"
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [6, 1],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R02",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest holds 70 gold coins."
+        },
+        {
+          "type": "giveItem",
+          "text": "70 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [11, 16],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R18",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Inside the chest lies a helmet (see the armory)."
+        },
+        {
+          "type": "giveItem",
+          "text": "A helmet"
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [2, 10],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R12",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest holds 150 gold coins. If its needle trap was not disarmed first, it has just sprung (see the trap) and the searching hero loses 1 Body Point."
+        },
+        {
+          "type": "giveItem",
+          "text": "150 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-E",
+      "letter": "E",
+      "at": [12, 8],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R11"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Two Dread Warriors have only just strapped Gothar onto the rack. They ignore him and fight the Barbarian alone. Gothar is freed when the Barbarian has killed both of them.",
+          "title": "Gothar on the rack"
+        }
+      ]
+    },
+    {
+      "id": "n-gothar-freed",
+      "trigger": {
+        "type": "allKilled",
+        "monsters": ["m-dread-1", "m-dread-2"]
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Gothar is free. Put any spare hero figure next to the Barbarian for him. The Barbarian controls him and moves him right after the Barbarian has moved. His stats are in the Companions list. The Barbarian must now bring him to the spiral stairway.",
+          "title": "Gothar is freed"
+        },
+        {
+          "type": "spawnNpc",
+          "npc": "gothar"
+        },
+        {
+          "type": "setFlag",
+          "flag": "gotharFree",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "orc",
+    "count": 2
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find Gothar and free him: kill the two Dread warriors in the rack room",
+      "done": {
+        "allKilled": ["m-dread-1", "m-dread-2"]
+      }
+    },
+    {
+      "id": "o2",
+      "text": "Bring Gothar to the spiral stairway",
+      "confirm": "The Barbarian and Gothar are on the stairway",
+      "confirmWhen": [
+        {
+          "flag": "gotharFree",
+          "is": true
+        }
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "gothar-captured",
+      "label": "Gothar was captured",
+      "text": "Gothar has fallen into the hands of the Frozen Horror and the rescue has failed."
+    }
+  ]
+}
