@@ -28,7 +28,7 @@ export function joinRoster(level: Level, d: Draft, rec: WandererRecord): string 
   while (level.quest.monsters.some((m) => m.id === `w${n}`)) n++;
   const id = `w${n}`;
   d.wanderCount = n;
-  d.wanderers[id] = rec;
+  d.wanderers[id] = d.map !== undefined ? { ...rec, map: d.map } : rec;
   d.seenMonsters.add(id);
   d.monsters[id] = { body: statsOf(wandererDef(level, rec, id)).body, dead: false };
   return id;

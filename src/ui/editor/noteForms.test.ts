@@ -29,6 +29,7 @@ describe('note form defaults', () => {
       traps: [{ id: 't1', kind: 'pit', cell: [4, 4] }],
       zones: [{ id: 'z1', cells: [[6, 6]] }],
       objectives: [{ id: 'o1', text: 'Win' }],
+      links: [{ id: 'l1', a: { map: 'a', cell: [1, 1] }, b: { map: 'b', cell: [2, 2] } }],
       npcs: [{ id: 'n1', name: 'N', cell: [5, 5], defend: 1, body: 1, text: '' }],
     } as Quest;
     for (const t of TRIGGER_TYPES) {
@@ -60,6 +61,10 @@ describe('note form defaults', () => {
     const q = base();
     expect(defaultTrigger(q, 'doorOpened')).toEqual({ ok: false, error: 'Add a door first.' });
     expect(defaultEffect(q, 'spawnNpc').ok).toBe(false);
+    expect(defaultEffect(q, 'crossMap')).toEqual({
+      ok: false,
+      error: 'Add a link between two maps first.',
+    });
     expect(defaultEffect(q, 'revealAll').ok).toBe(true);
   });
 });

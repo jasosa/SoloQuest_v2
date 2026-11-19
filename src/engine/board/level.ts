@@ -4,6 +4,7 @@
  * Game-dependent facts (which doors are open) are passed in as a set of door ids.
  */
 import { resolveEnemies } from '../data/enemies';
+import { firstMapId, isMultiMap, questMaps } from '../quest/maps';
 import type { Quest } from '../quest/schema';
 import {
   areaAt,
@@ -71,6 +72,21 @@ export interface Level {
   readonly doorAtEdge: ReadonlyMap<string, DoorInfo>;
   /** Doors touching a cell (either side). */
   readonly doorsAt: ReadonlyMap<CellKey, readonly DoorInfo[]>;
+  /**
+   * Multi-map quests, on the ROOT level only: every map as an ordinary level, by map id. The root
+   * itself is map 1. Use `activeLevel` to get the level of the map the heroes are on.
+   */
+  readonly maps?: ReadonlyMap<string, Level>;
+}
+
+/**
+ * The level the heroes are on. A single-map level is its own active level. For a multi-map root
+ * level it is the level of `state.map` (map 1 when the state has none yet). Levels from `maps` have
+ * no `maps` of their own, so asking one of them again gives the same level.
+ */
+export function activeLevel(root: Level, state: { readonly map?: string | undefined }): Level {
+  if (!root.maps) return root;
+  return root.maps.get(state.map ?? firstMapId(root.quest)) ?? root;
 }
 
 /**
@@ -86,7 +102,18 @@ export function mergedBoard(base: Board, merges: Quest['areaOverrides']): Board 
   };
 }
 
+/**
+ * The level of a quest. A multi-map quest gives the level of map 1 with `maps` added (see
+ * `Level.maps`); every other quest gives a plain level.
+ */
 export function buildLevel(source: Quest, baseBoard: Board = defaultBoard): Level {
+  if (!isMultiMap(source)) return buildMapLevel(source, baseBoard);
+  const maps = new Map<string, Level>();
+  for (const m of questMaps(source)) maps.set(m.id, buildMapLevel(m.quest, baseBoard));
+  return { ...maps.get(firstMapId(source))!, maps };
+}
+
+function buildMapLevel(source: Quest, baseBoard: Board): Level {
   // Monsters that point at an enemy get its defaults here, so the engine never sees the link.
   const quest = resolveEnemies(source);
   const board = mergedBoard(baseBoard, quest.areaOverrides);

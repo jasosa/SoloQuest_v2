@@ -364,6 +364,7 @@ export type Effect =
     }
   | { type: 'addSecretDoor'; door: string }
   | { type: 'removeDoor'; door: string }
+  | { type: 'crossMap'; link: string }
   | { type: 'lookFrom'; cell: [number, number] }
   | { type: 'replaceFurnitureWithDoor'; furniture: string; door: string }
   | { type: 'placeBlock'; cells: [number, number][] }
@@ -389,6 +390,7 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
     }),
     z.strictObject({ type: z.literal('addSecretDoor'), door: id }),
     z.strictObject({ type: z.literal('removeDoor'), door: id }),
+    z.strictObject({ type: z.literal('crossMap'), link: id }),
     z.strictObject({ type: z.literal('lookFrom'), cell }),
     z.strictObject({ type: z.literal('replaceFurnitureWithDoor'), furniture: id, door: id }),
     z.strictObject({ type: z.literal('placeBlock'), cells }),
@@ -415,6 +417,11 @@ const NoteSchema = z.strictObject({
   id,
   target: TargetSchema.optional(),
   letter: z.string().min(1).optional(),
+  /**
+   * Multi-map quests: the map this note belongs to. A note with no `map` is in force on every map
+   * (a kill note, the quest start). A note on an area, square or zone must name its map.
+   */
+  map: id.optional(),
   at: cell.optional(),
   trigger: TriggerSchema,
   when: z.array(ConditionSchema).optional(),
@@ -485,31 +492,22 @@ const NpcSchema = z.strictObject({
   text: z.string(),
 });
 
-export const QuestSchema = z.strictObject({
-  schemaVersion: z.literal(SCHEMA_VERSION),
-  id: nonEmpty,
-  /** 1 to 14 in the core book; a pack may have a quest 0 (an online prelude). */
-  number: z.number().int().min(0),
-  /** The pack this quest belongs to. Left out: the pack that lists it (quests of this device are in none). */
-  pack: z
-    .string()
-    .regex(/^[a-z0-9][a-z0-9-]*$/)
-    .optional(),
-  title: nonEmpty,
-  intro: z.strictObject({ summary: nonEmpty, userText: z.string().optional() }),
-  /**
-   * Where the heroes begin: in a room (the stairway, or an ice cave entrance tile with `kind`), or
-   * outside an iron entry door (`door`, an id of `edgeDoors`). Exactly one of `area` and `door`.
-   */
-  start: z
-    .strictObject({
-      area: roomId.optional(),
-      door: id.optional(),
-      kind: z.enum(['stairway', 'tile']).optional(),
-    })
-    .refine((s) => (s.area === undefined) !== (s.door === undefined), {
-      message: 'start needs a room (area) or an iron door (door), not both',
-    }),
+/**
+ * Where the heroes begin: in a room (the stairway, or an ice cave entrance tile with `kind`), or
+ * outside an iron entry door (`door`, an id of `edgeDoors`). Exactly one of `area` and `door`.
+ */
+const StartSchema = z
+  .strictObject({
+    area: roomId.optional(),
+    door: id.optional(),
+    kind: z.enum(['stairway', 'tile']).optional(),
+  })
+  .refine((s) => (s.area === undefined) !== (s.door === undefined), {
+    message: 'start needs a room (area) or an iron door (door), not both',
+  });
+
+/** The fields that draw one map: the quest itself is map 1, `maps` holds the others. */
+const boardFields = {
   rock: z
     .strictObject({
       rooms: z.array(roomId).default([]),
@@ -565,6 +563,47 @@ export const QuestSchema = z.strictObject({
     )
     .default([]),
   zones: z.array(ZoneSchema).default([]),
+};
+
+/** An extra map of a multi-map quest: its own board data, and where the heroes arrive. */
+const MapSchema = z.strictObject({
+  id,
+  name: nonEmpty.optional(),
+  start: StartSchema,
+  ...boardFields,
+});
+
+/** One end of a link: a square of a stairway on a map. The heroes arrive here. */
+const LinkEndSchema = z.strictObject({ map: id, cell });
+/** Two stairways, on two different maps, that lead to each other (both ways). */
+const LinkSchema = z.strictObject({ id, a: LinkEndSchema, b: LinkEndSchema });
+
+export const QuestSchema = z.strictObject({
+  schemaVersion: z.literal(SCHEMA_VERSION),
+  id: nonEmpty,
+  /** 1 to 14 in the core book; a pack may have a quest 0 (an online prelude). */
+  number: z.number().int().min(0),
+  /** The pack this quest belongs to. Left out: the pack that lists it (quests of this device are in none). */
+  pack: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9-]*$/)
+    .optional(),
+  title: nonEmpty,
+  intro: z.strictObject({ summary: nonEmpty, userText: z.string().optional() }),
+  /** Where the heroes begin (on map 1 in a multi-map quest). */
+  start: StartSchema,
+  ...boardFields,
+  /**
+   * Multi-map quests (Frozen Horror Q9 and Q10, decision 45): the board fields above are map 1; here
+   * are the extra maps. Ids of doors, monsters, traps, furniture, zones, markers and the letters of
+   * notes are unique across all maps.
+   */
+  maps: z.array(MapSchema).optional(),
+  /** The id and name of map 1 (needed when `maps` is present). */
+  mapId: id.optional(),
+  mapName: nonEmpty.optional(),
+  /** Stairways that join two maps. The heroes cross by a `crossMap` note effect. */
+  links: z.array(LinkSchema).optional(),
   /** The quest's own abilities, next to the core library (decision 69). */
   abilityDefs: z.array(AbilityDefSchema).default([]),
   /** The quest's own spells, next to the core ones (decision 70). */
@@ -628,6 +667,8 @@ export type MonsterDef = z.infer<typeof MonsterSchema>;
 export type TrapDef = z.infer<typeof TrapSchema>;
 export type TunnelDef = Quest['tunnels'][number];
 export type MarkerDef = z.infer<typeof MarkerSchema>;
+export type MapDef = z.infer<typeof MapSchema>;
+export type LinkDef = z.infer<typeof LinkSchema>;
 export type EndingDef = z.infer<typeof EndingSchema>;
 export type NpcDef = z.infer<typeof NpcSchema>;
 export type ObjectiveDef = z.infer<typeof ObjectiveSchema>;

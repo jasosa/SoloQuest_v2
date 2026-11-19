@@ -36,6 +36,14 @@ export interface WandererRecord {
   readonly cell?: readonly [number, number];
   /** Added by the players, not a wandering monster. */
   readonly added?: boolean;
+  /** Multi-map quests: the map it appeared on. It is only in play on that map. */
+  readonly map?: string;
+}
+
+/** What a map keeps while the heroes are on another map: things tied to its squares and rooms. */
+export interface MapMemory {
+  readonly placedBlocks: readonly CellKey[];
+  readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
 }
 
 /** A trap that is not armed any more. An armed trap has no entry. */
@@ -72,6 +80,12 @@ export interface GameState {
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
   readonly turn: number;
+  /** Multi-map quests only: the id of the map the heroes are on (decision 45). */
+  readonly map?: string;
+  /** Multi-map quests: the last crossing, where the heroes arrived. The reducer reveals it. */
+  readonly arrival?: { readonly map: string; readonly cell: readonly [number, number] };
+  /** Multi-map quests: per map, what stays on a map while the heroes are elsewhere. */
+  readonly mapMemory: Readonly<Record<string, MapMemory>>;
   /** Cells whose floor is known (room cells, corridor cells in sight). Never rock. */
   readonly seenCells: ReadonlySet<CellKey>;
   /** Rooms revealed whole (start room, rooms behind opened doors). */
@@ -154,6 +168,7 @@ export function emptyState(seed: number): GameState {
     seed: seed >>> 0,
     rng: createRng(seed),
     turn: 1,
+    mapMemory: {},
     seenCells: new Set(),
     revealedRooms: new Set(),
     looked: new Set(),

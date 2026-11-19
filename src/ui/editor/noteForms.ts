@@ -32,6 +32,7 @@ export const EFFECT_TYPES: readonly { type: Effect['type']; label: string }[] = 
   { type: 'setMonsterState', label: 'Set a monster state' },
   { type: 'addSecretDoor', label: 'Show a secret door' },
   { type: 'removeDoor', label: 'Remove a door' },
+  { type: 'crossMap', label: 'Cross to the other map' },
   { type: 'lookFrom', label: 'Look from a square' },
   { type: 'replaceFurnitureWithDoor', label: 'Replace furniture with a door' },
   { type: 'placeBlock', label: 'Place a block' },
@@ -158,6 +159,10 @@ export function defaultEffect(q: Quest, type: Effect['type']): Made<Effect> {
     case 'removeDoor': {
       const d = q.doors[0];
       return d ? good({ type, door: d.id }) : bad('Add a door first.');
+    }
+    case 'crossMap': {
+      const l = q.links?.[0];
+      return l ? good({ type, link: l.id }) : bad('Add a link between two maps first.');
     }
     case 'placeBlock':
       return good({ type, cells: [firstCell(q)] });

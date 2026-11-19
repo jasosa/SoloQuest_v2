@@ -66,7 +66,7 @@ function levelFromParams(params: URLSearchParams): Level | undefined {
  * Jump straight into a game from the URL, for e2e tests and screenshots:
  * `?quest=1&team=dwarf,elf` plus optional `seed=7`, `open=d1,look@13:18,d5` (doors and looks done at the start, in order),
  * `look=12:18` (squares looked from), `select=door:d3`, `nosave=1` (no IndexedDB), `resume=1`.
- * In development `?quest=test` plays the engine test fixture.
+ * In development `?quest=test` plays the engine test fixture, `?quest=test-maps` the two-map one.
  */
 function startFromUrl(
   params: URLSearchParams,
@@ -74,7 +74,8 @@ function startFromUrl(
   level: Level | undefined = levelFromParams(params),
 ): GameStore | 'resume' | 'dev' | null {
   if (!level)
-    return ['test', 'frozen'].includes(params.get('quest') ?? '') && import.meta.env.DEV
+    return ['test', 'frozen', 'test-maps'].includes(params.get('quest') ?? '') &&
+      import.meta.env.DEV
       ? 'dev'
       : null;
   if (params.has('resume')) return 'resume';
