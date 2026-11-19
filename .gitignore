@@ -25,3 +25,5 @@ dev-dist/
 
 # The owner's own artwork for the example texture pack: never committed or served (public/ is bundled)
 public/assets/core/
+
+.claude/worktrees/
