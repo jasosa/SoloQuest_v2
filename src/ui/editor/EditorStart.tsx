@@ -12,6 +12,7 @@ import { setOverride } from '../../persist/questOverrides';
 import { useFitMode } from '../FitToScreen';
 import { Dialog, Fld } from '../shared/Frame';
 import { questEntries } from '../quests';
+import { packs } from '../packs';
 
 export interface EditorStartProps {
   store: UserQuestStore;
@@ -124,6 +125,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
   };
 
   const bundled = questEntries.filter((q) => q.level);
+  const packName = (id: string) => packs.byId.get(id)?.manifest.name ?? id;
 
   return (
     <div
@@ -321,8 +323,9 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 >
                   <option value="">Choose a quest</option>
                   {bundled.map((q) => (
-                    <option key={q.number} value={q.number}>
-                      Quest {q.number}: {q.level?.quest.title}
+                    <option key={q.slot} value={q.slot}>
+                      {q.level?.quest.pack ? `${packName(q.level.quest.pack)} ` : 'Quest '}
+                      {q.number}: {q.level?.quest.title}
                     </option>
                   ))}
                 </select>
@@ -331,7 +334,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 className="btn alt"
                 disabled={copyOf === ''}
                 onClick={() => {
-                  const q = bundled.find((b) => String(b.number) === copyOf)?.level?.quest;
+                  const q = bundled.find((b) => String(b.slot) === copyOf)?.level?.quest;
                   if (q) {
                     setPopup(null);
                     void take(exportQuest(q));
@@ -344,12 +347,13 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 className="btn"
                 disabled={copyOf === ''}
                 onClick={() => {
-                  const q = bundled.find((b) => String(b.number) === copyOf)?.level?.quest;
-                  if (!q) return;
+                  const entry = bundled.find((b) => String(b.slot) === copyOf);
+                  const q = entry?.level?.quest;
+                  if (!q || !entry) return;
                   setPopup(null);
                   void take(exportQuest(q)).then((made) => {
                     // The quest list plays this copy from now on (Use original resets it).
-                    if (made) setOverride(q.number, made.id);
+                    if (made) setOverride(entry.slot, made.id);
                     if (made) onOpen(made, made);
                   });
                 }}

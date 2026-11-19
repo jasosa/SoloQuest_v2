@@ -1330,3 +1330,17 @@ test('a copy of Frozen Horror quest 0 opens in the editor and keeps its tunnels 
   await expect(page.getByTestId('tunnel-row')).toHaveCount(3);
   await expect(page.getByLabel('Leave')).toHaveValue('through the cave');
 });
+
+test('the editor lists the Frozen Horror quests that share a number with a core quest (bug)', async ({
+  page,
+}) => {
+  await page.goto('/?editor=1&nosave=1');
+  await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+  const options = page.getByLabel('Bundled quest').locator('option');
+  await expect(options).toHaveCount(1 + 14 + 9);
+  await page.getByLabel('Bundled quest').selectOption('103');
+  await page.getByRole('button', { name: 'Edit it now' }).click();
+  await expect(board(page)).toBeVisible();
+  await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+  await expect(page.getByLabel('Title')).toHaveValue('The Rescue');
+});
