@@ -664,7 +664,9 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await expect(dlg(page).getByLabel('When')).toHaveValue('manual');
   });
 
-  test('a monster offers seen, slain, casts a spell and a button', async ({ page }) => {
+  test('a monster offers seen, slain, escapes or is freed, casts a spell and a button', async ({
+    page,
+  }) => {
     await newQuest(page);
     await tool(page, 'Monsters').click();
     await clickAt(page, 4, 17);
@@ -675,6 +677,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await expect(dlg(page).getByLabel('When').locator('option')).toHaveText([
       'It is seen',
       'It is slain',
+      'It escapes or is freed',
       'It casts a spell',
       'A button',
     ]);
