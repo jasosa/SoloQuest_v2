@@ -1,0 +1,1475 @@
+{
+  "schemaVersion": 1,
+  "id": "fh07-the-halls-of-kelvinos",
+  "number": 7,
+  "pack": "frozen-horror",
+  "title": "The Halls of Kelvinos",
+  "intro": {
+    "summary": "Centuries ago the Barbarian Kelvinos, a hero of great power and fame, drove the Frozen Horror from Ice Mountain and ended its reign of terror. He never came back from that last battle and his body was never found. Some say he walks again as an undead servant of Dread. The heroes start at the iron door and explore until they find the wooden exit door that leads closer to the Frozen Horror."
+  },
+  "start": {
+    "door": "in"
+  },
+  "edgeDoors": [
+    {
+      "id": "in",
+      "cell": [
+        0,
+        9
+      ],
+      "side": "w",
+      "kind": "ironEntry"
+    },
+    {
+      "id": "out",
+      "cell": [
+        25,
+        18
+      ],
+      "side": "e",
+      "kind": "woodenExit"
+    }
+  ],
+  "rock": {
+    "rooms": [
+      "R03",
+      "R08",
+      "R09",
+      "R10"
+    ],
+    "cells": []
+  },
+  "roomTiles": [
+    {
+      "type": "iceVault",
+      "area": "R02"
+    },
+    {
+      "type": "livingFog",
+      "area": "R16"
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "a": [
+        4,
+        3
+      ],
+      "b": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "d2",
+      "a": [
+        0,
+        6
+      ],
+      "b": [
+        1,
+        6
+      ]
+    },
+    {
+      "id": "d3",
+      "a": [
+        1,
+        9
+      ],
+      "b": [
+        1,
+        10
+      ]
+    },
+    {
+      "id": "d4",
+      "a": [
+        5,
+        9
+      ],
+      "b": [
+        5,
+        10
+      ]
+    },
+    {
+      "id": "d5",
+      "a": [
+        9,
+        9
+      ],
+      "b": [
+        10,
+        9
+      ]
+    },
+    {
+      "id": "d6",
+      "a": [
+        6,
+        12
+      ],
+      "b": [
+        7,
+        12
+      ]
+    },
+    {
+      "id": "d7",
+      "a": [
+        8,
+        12
+      ],
+      "b": [
+        9,
+        12
+      ]
+    },
+    {
+      "id": "d8",
+      "a": [
+        8,
+        13
+      ],
+      "b": [
+        9,
+        13
+      ]
+    },
+    {
+      "id": "d9",
+      "a": [
+        1,
+        13
+      ],
+      "b": [
+        1,
+        14
+      ]
+    },
+    {
+      "id": "d10",
+      "a": [
+        4,
+        17
+      ],
+      "b": [
+        5,
+        17
+      ]
+    },
+    {
+      "id": "d11",
+      "a": [
+        11,
+        17
+      ],
+      "b": [
+        12,
+        17
+      ]
+    },
+    {
+      "id": "d12",
+      "a": [
+        15,
+        0
+      ],
+      "b": [
+        15,
+        1
+      ]
+    },
+    {
+      "id": "d13",
+      "a": [
+        15,
+        5
+      ],
+      "b": [
+        15,
+        6
+      ]
+    },
+    {
+      "id": "d14",
+      "a": [
+        16,
+        4
+      ],
+      "b": [
+        17,
+        4
+      ]
+    },
+    {
+      "id": "d15",
+      "a": [
+        20,
+        1
+      ],
+      "b": [
+        21,
+        1
+      ]
+    },
+    {
+      "id": "d16",
+      "a": [
+        24,
+        4
+      ],
+      "b": [
+        25,
+        4
+      ]
+    },
+    {
+      "id": "d17",
+      "a": [
+        20,
+        9
+      ],
+      "b": [
+        20,
+        10
+      ]
+    },
+    {
+      "id": "d18",
+      "a": [
+        20,
+        13
+      ],
+      "b": [
+        21,
+        13
+      ]
+    },
+    {
+      "id": "d19",
+      "a": [
+        20,
+        14
+      ],
+      "b": [
+        21,
+        14
+      ]
+    },
+    {
+      "id": "d20",
+      "a": [
+        24,
+        13
+      ],
+      "b": [
+        24,
+        14
+      ]
+    },
+    {
+      "id": "d21",
+      "a": [
+        15,
+        17
+      ],
+      "b": [
+        15,
+        18
+      ]
+    },
+    {
+      "id": "d22",
+      "a": [
+        17,
+        17
+      ],
+      "b": [
+        18,
+        17
+      ]
+    }
+  ],
+  "secretDoors": [
+    {
+      "id": "s1",
+      "a": [
+        4,
+        2
+      ],
+      "b": [
+        5,
+        2
+      ]
+    },
+    {
+      "id": "s2",
+      "a": [
+        8,
+        0
+      ],
+      "b": [
+        8,
+        1
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "cells": [
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          25,
+          9
+        ]
+      ]
+    },
+    {
+      "cells": [
+        [
+          14,
+          18
+        ]
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "f-cupboard",
+      "type": "cupboard",
+      "cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "f-chest-a",
+      "type": "chest",
+      "cells": [
+        [
+          8,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "f-sorc",
+      "type": "sorcerersTable",
+      "cells": [
+        [
+          3,
+          5
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          4,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          4,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "f-rack",
+      "type": "rack",
+      "cells": [
+        [
+          3,
+          11
+        ],
+        [
+          4,
+          11
+        ],
+        [
+          3,
+          12
+        ],
+        [
+          4,
+          12
+        ],
+        [
+          3,
+          13
+        ],
+        [
+          4,
+          13
+        ]
+      ]
+    },
+    {
+      "id": "f-table-1",
+      "type": "table",
+      "cells": [
+        [
+          5,
+          13
+        ],
+        [
+          6,
+          13
+        ],
+        [
+          5,
+          14
+        ],
+        [
+          6,
+          14
+        ],
+        [
+          5,
+          15
+        ],
+        [
+          6,
+          15
+        ]
+      ]
+    },
+    {
+      "id": "f-chest-b",
+      "type": "chest",
+      "cells": [
+        [
+          9,
+          17
+        ]
+      ]
+    },
+    {
+      "id": "f-table-2",
+      "type": "table",
+      "cells": [
+        [
+          22,
+          1
+        ],
+        [
+          23,
+          1
+        ],
+        [
+          24,
+          1
+        ],
+        [
+          22,
+          2
+        ],
+        [
+          23,
+          2
+        ],
+        [
+          24,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "f-bookcase",
+      "type": "bookcase",
+      "cells": [
+        [
+          17,
+          10
+        ],
+        [
+          17,
+          11
+        ],
+        [
+          17,
+          12
+        ]
+      ]
+    },
+    {
+      "id": "f-chest-c",
+      "type": "chest",
+      "cells": [
+        [
+          17,
+          13
+        ]
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "id": "m-dw-1",
+      "type": "dreadWarrior",
+      "cell": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "m-yeti-1",
+      "type": "goblin",
+      "cell": [
+        6,
+        2
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-yeti-2",
+      "type": "goblin",
+      "cell": [
+        7,
+        2
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-orc-1",
+      "type": "orc",
+      "cell": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "m-gremlin-1",
+      "type": "goblin",
+      "cell": [
+        2,
+        4
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-orc-2",
+      "type": "orc",
+      "cell": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": "m-goblin-1",
+      "type": "goblin",
+      "cell": [
+        2,
+        5
+      ]
+    },
+    {
+      "id": "m-gremlin-2",
+      "type": "goblin",
+      "cell": [
+        2,
+        6
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-orc-3",
+      "type": "orc",
+      "cell": [
+        1,
+        7
+      ]
+    },
+    {
+      "id": "m-goblin-2",
+      "type": "goblin",
+      "cell": [
+        2,
+        7
+      ]
+    },
+    {
+      "id": "m-mummy-1",
+      "type": "mummy",
+      "cell": [
+        1,
+        12
+      ]
+    },
+    {
+      "id": "m-mummy-2",
+      "type": "mummy",
+      "cell": [
+        2,
+        12
+      ]
+    },
+    {
+      "id": "m-goblin-3",
+      "type": "goblin",
+      "cell": [
+        6,
+        10
+      ]
+    },
+    {
+      "id": "m-orc-4",
+      "type": "orc",
+      "cell": [
+        7,
+        10
+      ]
+    },
+    {
+      "id": "m-orc-5",
+      "type": "orc",
+      "cell": [
+        5,
+        11
+      ]
+    },
+    {
+      "id": "m-abom-1",
+      "type": "abomination",
+      "cell": [
+        6,
+        11
+      ]
+    },
+    {
+      "id": "m-goblin-4",
+      "type": "goblin",
+      "cell": [
+        7,
+        11
+      ]
+    },
+    {
+      "id": "m-abom-2",
+      "type": "abomination",
+      "cell": [
+        8,
+        11
+      ]
+    },
+    {
+      "id": "m-gremlin-3",
+      "type": "goblin",
+      "cell": [
+        10,
+        13
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-4",
+      "type": "goblin",
+      "cell": [
+        11,
+        13
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-bear-1",
+      "type": "goblin",
+      "cell": [
+        11,
+        14
+      ],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-yeti-3",
+      "type": "goblin",
+      "cell": [
+        11,
+        16
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-bear-2",
+      "type": "goblin",
+      "cell": [
+        15,
+        4
+      ],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-skel-1",
+      "type": "skeleton",
+      "cell": [
+        18,
+        2
+      ]
+    },
+    {
+      "id": "m-zombie-1",
+      "type": "zombie",
+      "cell": [
+        19,
+        2
+      ]
+    },
+    {
+      "id": "m-skel-2",
+      "type": "skeleton",
+      "cell": [
+        18,
+        3
+      ]
+    },
+    {
+      "id": "m-zombie-2",
+      "type": "zombie",
+      "cell": [
+        19,
+        3
+      ]
+    },
+    {
+      "id": "m-mummy-3",
+      "type": "mummy",
+      "cell": [
+        18,
+        4
+      ]
+    },
+    {
+      "id": "m-skel-3",
+      "type": "skeleton",
+      "cell": [
+        19,
+        4
+      ]
+    },
+    {
+      "id": "m-xbow-1",
+      "type": "goblin",
+      "cell": [
+        15,
+        7
+      ],
+      "enemy": "crossbowman"
+    },
+    {
+      "id": "m-xbow-2",
+      "type": "goblin",
+      "cell": [
+        15,
+        11
+      ],
+      "enemy": "crossbowman"
+    },
+    {
+      "id": "m-dw-2",
+      "type": "dreadWarrior",
+      "cell": [
+        13,
+        8
+      ]
+    },
+    {
+      "id": "m-dw-3",
+      "type": "dreadWarrior",
+      "cell": [
+        13,
+        10
+      ]
+    },
+    {
+      "id": "m-garg-1",
+      "type": "gargoyle",
+      "cell": [
+        14,
+        9
+      ]
+    },
+    {
+      "id": "m-goblin-r15-1",
+      "type": "goblin",
+      "cell": [
+        19,
+        11
+      ]
+    },
+    {
+      "id": "m-goblin-r15-2",
+      "type": "goblin",
+      "cell": [
+        20,
+        11
+      ]
+    },
+    {
+      "id": "m-goblin-r15-3",
+      "type": "goblin",
+      "cell": [
+        19,
+        12
+      ]
+    },
+    {
+      "id": "m-goblin-r15-4",
+      "type": "goblin",
+      "cell": [
+        20,
+        12
+      ]
+    },
+    {
+      "id": "m-goblin-r15-5",
+      "type": "goblin",
+      "cell": [
+        19,
+        13
+      ]
+    },
+    {
+      "id": "m-goblin-r15-6",
+      "type": "goblin",
+      "cell": [
+        20,
+        13
+      ]
+    },
+    {
+      "id": "m-gremlin-5",
+      "type": "goblin",
+      "cell": [
+        21,
+        11
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-gremlin-6",
+      "type": "goblin",
+      "cell": [
+        23,
+        11
+      ],
+      "enemy": "iceGremlin"
+    },
+    {
+      "id": "m-yeti-4",
+      "type": "goblin",
+      "cell": [
+        21,
+        13
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-bear-3",
+      "type": "goblin",
+      "cell": [
+        24,
+        13
+      ],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-kel",
+      "type": "goblin",
+      "cell": [
+        14,
+        14
+      ],
+      "enemy": "kelvinos"
+    },
+    {
+      "id": "m-dw-4",
+      "type": "dreadWarrior",
+      "cell": [
+        16,
+        14
+      ]
+    },
+    {
+      "id": "m-garg-2",
+      "type": "gargoyle",
+      "cell": [
+        14,
+        15
+      ]
+    },
+    {
+      "id": "m-yeti-5",
+      "type": "goblin",
+      "cell": [
+        17,
+        15
+      ],
+      "enemy": "yeti"
+    },
+    {
+      "id": "m-dw-5",
+      "type": "dreadWarrior",
+      "cell": [
+        14,
+        16
+      ]
+    },
+    {
+      "id": "m-orc-6",
+      "type": "orc",
+      "cell": [
+        16,
+        16
+      ]
+    },
+    {
+      "id": "m-orc-7",
+      "type": "orc",
+      "cell": [
+        16,
+        17
+      ]
+    },
+    {
+      "id": "m-bear-4",
+      "type": "goblin",
+      "cell": [
+        14,
+        17
+      ],
+      "enemy": "polarWarbear"
+    },
+    {
+      "id": "m-skel-4",
+      "type": "skeleton",
+      "cell": [
+        19,
+        14
+      ]
+    },
+    {
+      "id": "m-skel-5",
+      "type": "skeleton",
+      "cell": [
+        19,
+        15
+      ]
+    },
+    {
+      "id": "m-skel-6",
+      "type": "skeleton",
+      "cell": [
+        20,
+        15
+      ]
+    },
+    {
+      "id": "m-abom-3",
+      "type": "abomination",
+      "cell": [
+        22,
+        14
+      ]
+    },
+    {
+      "id": "m-dw-6",
+      "type": "dreadWarrior",
+      "cell": [
+        23,
+        15
+      ]
+    },
+    {
+      "id": "m-abom-4",
+      "type": "abomination",
+      "cell": [
+        24,
+        16
+      ]
+    }
+  ],
+  "traps": [
+    {
+      "id": "t-ice-1",
+      "kind": "slipperyIce",
+      "cell": [
+        10,
+        8
+      ]
+    },
+    {
+      "id": "t-ice-2",
+      "kind": "slipperyIce",
+      "cell": [
+        11,
+        8
+      ]
+    },
+    {
+      "id": "t-ice-3",
+      "kind": "slipperyIce",
+      "cell": [
+        10,
+        9
+      ]
+    },
+    {
+      "id": "t-ice-4",
+      "kind": "slipperyIce",
+      "cell": [
+        11,
+        9
+      ]
+    },
+    {
+      "id": "t-ice-5",
+      "kind": "slipperyIce",
+      "cell": [
+        10,
+        10
+      ]
+    },
+    {
+      "id": "t-ice-6",
+      "kind": "slipperyIce",
+      "cell": [
+        11,
+        10
+      ]
+    },
+    {
+      "id": "t-ice-7",
+      "kind": "slipperyIce",
+      "cell": [
+        15,
+        2
+      ]
+    },
+    {
+      "id": "t-ice-8",
+      "kind": "slipperyIce",
+      "cell": [
+        16,
+        2
+      ]
+    },
+    {
+      "id": "t-ice-9",
+      "kind": "slipperyIce",
+      "cell": [
+        14,
+        3
+      ]
+    },
+    {
+      "id": "t-ice-10",
+      "kind": "slipperyIce",
+      "cell": [
+        15,
+        3
+      ]
+    },
+    {
+      "id": "t-wander-1",
+      "kind": "wanderingTrap",
+      "cell": [
+        3,
+        0
+      ]
+    },
+    {
+      "id": "t-wander-2",
+      "kind": "wanderingTrap",
+      "cell": [
+        25,
+        0
+      ]
+    },
+    {
+      "id": "t-wander-3",
+      "kind": "wanderingTrap",
+      "cell": [
+        9,
+        18
+      ]
+    },
+    {
+      "id": "t-axe-1",
+      "kind": "swingingAxe",
+      "cell": [
+        1,
+        14
+      ]
+    },
+    {
+      "id": "t-axe-2",
+      "kind": "swingingAxe",
+      "cell": [
+        1,
+        15
+      ]
+    },
+    {
+      "id": "t-axe-3",
+      "kind": "swingingAxe",
+      "cell": [
+        4,
+        16
+      ]
+    },
+    {
+      "id": "t-axe-4",
+      "kind": "swingingAxe",
+      "cell": [
+        4,
+        17
+      ]
+    },
+    {
+      "id": "t-axe-5",
+      "kind": "swingingAxe",
+      "cell": [
+        18,
+        16
+      ]
+    },
+    {
+      "id": "t-axe-6",
+      "kind": "swingingAxe",
+      "cell": [
+        18,
+        17
+      ]
+    },
+    {
+      "id": "t-stal-1",
+      "kind": "stalactite",
+      "cell": [
+        23,
+        14
+      ]
+    },
+    {
+      "id": "t-stal-2",
+      "kind": "stalactite",
+      "cell": [
+        22,
+        15
+      ]
+    },
+    {
+      "id": "t-stal-3",
+      "kind": "stalactite",
+      "cell": [
+        23,
+        16
+      ]
+    },
+    {
+      "id": "t-pit-1",
+      "kind": "pit",
+      "cell": [
+        20,
+        10
+      ]
+    }
+  ],
+  "boardTiles": [
+    {
+      "type": "icyRiver",
+      "cells": [
+        [
+          9,
+          15
+        ],
+        [
+          10,
+          15
+        ],
+        [
+          11,
+          15
+        ]
+      ]
+    }
+  ],
+  "enemyDefs": [
+    {
+      "id": "iceGremlin",
+      "name": "Ice Gremlin",
+      "letter": "IG",
+      "overrides": {
+        "move": 10,
+        "att": 2,
+        "def": 3,
+        "body": 3,
+        "mind": 3
+      },
+      "profile": "thief",
+      "weights": {
+        "closest": 3,
+        "lowestDef": 2,
+        "lowestBody": 1
+      },
+      "abilities": [
+        "fhSteal"
+      ],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "polarWarbear",
+      "name": "Polar Warbear",
+      "letter": "PW",
+      "overrides": {
+        "move": 6,
+        "att": 4,
+        "def": 3,
+        "body": 6,
+        "mind": 2
+      },
+      "profile": "relentless",
+      "weights": {
+        "closest": 3,
+        "highestAtt": 2,
+        "lastAttacker": 2,
+        "grudge": 1
+      },
+      "attacks": 2,
+      "abilities": [
+        "fhTwoAttacks"
+      ],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "yeti",
+      "name": "Yeti",
+      "letter": "Y",
+      "overrides": {
+        "move": 8,
+        "att": 3,
+        "def": 3,
+        "body": 5,
+        "mind": 2
+      },
+      "profile": "grappler",
+      "weights": {
+        "lowestDef": 3,
+        "lowestBody": 2,
+        "closest": 2
+      },
+      "abilities": [
+        "fhHug"
+      ],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "crossbowman",
+      "name": "Crossbowman",
+      "letter": "CB",
+      "overrides": {
+        "move": 6,
+        "att": 3,
+        "def": 3,
+        "body": 2,
+        "mind": 2
+      },
+      "profile": "shooter",
+      "weights": {
+        "caster": 3,
+        "lowestDef": 2,
+        "lastAttacker": 2
+      },
+      "abilities": [
+        "fhRanged"
+      ],
+      "expansion": "Frozen Horror"
+    },
+    {
+      "id": "kelvinos",
+      "name": "Kelvinos",
+      "letter": "KV",
+      "expansion": "Frozen Horror",
+      "overrides": {
+        "move": 5,
+        "att": 4,
+        "def": 4,
+        "body": 4,
+        "mind": 0
+      },
+      "profile": "fighter",
+      "weights": {
+        "highestAtt": 3,
+        "highestBody": 2,
+        "grudge": 2,
+        "lastAttacker": 1
+      },
+      "traits": [
+        "A Barbarian hero of old, now an undead slave of the Frozen Horror"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-A",
+      "letter": "A",
+      "at": [
+        8,
+        2
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R02",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest in the ice vault holds a pile of 500 gold coins for the first hero who searches the room."
+        },
+        {
+          "type": "giveItem",
+          "text": "500 gold coins"
+        }
+      ]
+    },
+    {
+      "id": "n-B",
+      "letter": "B",
+      "at": [
+        9,
+        16
+      ],
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R18",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The chest in this room holds 2 potions of healing. Each one restores up to 4 lost Body Points."
+        },
+        {
+          "type": "giveItem",
+          "text": "2 potions of healing (up to 4 Body Points each)"
+        }
+      ]
+    },
+    {
+      "id": "n-C",
+      "letter": "C",
+      "at": [
+        15,
+        13
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R19"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Kelvinos, the Barbarian hero of old, is now one of the Frozen Horror's undead slaves. He stands on the square marked KEL. Use the spare Barbarian figure, or any other figure, for him. His stats: Movement 5, Attack 4, Defend 4, Body 4, Mind 0.",
+          "title": "Kelvinos"
+        }
+      ]
+    },
+    {
+      "id": "n-C-search",
+      "trigger": {
+        "type": "treasureSearch",
+        "area": "R19",
+        "first": true
+      },
+      "consumesTreasure": true,
+      "effects": [
+        {
+          "type": "showText",
+          "text": "The first hero to search this room finds the Amulet of the North in the chest. Read its artifact card."
+        },
+        {
+          "type": "giveItem",
+          "text": "The Amulet of the North (artifact, see its card)"
+        }
+      ]
+    },
+    {
+      "id": "n-D",
+      "letter": "D",
+      "at": [
+        22,
+        12
+      ],
+      "trigger": {
+        "type": "areaRevealed",
+        "area": "R16"
+      },
+      "effects": [
+        {
+          "type": "showText",
+          "text": "Nothing in the living fog room is quite what it seems. Monsters and fog likenesses of monsters fill the room. Every time a hero attacks a monster here, the hero rolls 1 combat die first. A black shield or a skull: the hero is confused and strikes a fog likeness, so the attack is wasted. A white shield: the hero sees the real monster, rolls the normal attack dice and the monster defends as usual. The monsters are never fooled and always see the heroes correctly.",
+          "title": "Living fog"
+        }
+      ]
+    }
+  ],
+  "wandering": {
+    "monster": "goblin",
+    "enemy": "yeti",
+    "count": 2
+  },
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "Find the wooden exit door and leave through it",
+      "done": {
+        "when": [
+          {
+            "doorOpened": "out"
+          }
+        ]
+      }
+    }
+  ]
+}
