@@ -837,7 +837,16 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           <p>
             Body {m.body} of {m.maxBody} · Mind {m.stats.mind}
           </p>
-          {m.maxBody > 1 && (
+          {m.surrenders && (
+            <button
+              className="btn"
+              data-testid="monster-attacked"
+              onClick={() => act({ type: 'MONSTER_LEAVE', monster: m.id, reason: 'surrendered' })}
+            >
+              A hero attacked it
+            </button>
+          )}
+          {!m.surrenders && m.maxBody > 1 && (
             <div className="row">
               <button
                 className="btn alt"
@@ -855,7 +864,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               </button>
             </div>
           )}
-          {slayAsk === m.id ? (
+          {m.surrenders ? null : slayAsk === m.id ? (
             <div className="row">
               <button
                 className="btn"

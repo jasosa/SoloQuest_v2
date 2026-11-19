@@ -315,7 +315,12 @@
       },
       "traits": [
         "Does not move in this quest: it shoots once during each Zargon turn, until the Barbarian reaches it"
-      ]
+      ],
+      "surrender": {
+        "title": "He yields",
+        "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board.",
+        "item": "A crossbow (see the armory)"
+      }
     },
     {
       "id": "m-gremlin-2",
@@ -492,83 +497,8 @@
       },
       "effects": [
         {
-          "type": "promptChoice",
-          "text": "Is the hero next to the Crossbowman?",
-          "options": [
-            {
-              "label": "Yes, and the hero attacks him",
-              "effects": [
-                {
-                  "type": "showText",
-                  "title": "He yields",
-                  "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board. The hero writes the crossbow on the character sheet (see the armory)."
-                },
-                {
-                  "type": "giveItem",
-                  "text": "A crossbow (see the armory)"
-                },
-                {
-                  "type": "setMonsterState",
-                  "monster": "m-xbow",
-                  "state": "away"
-                }
-              ]
-            },
-            {
-              "label": "Yes, but the hero does not attack",
-              "effects": []
-            },
-            {
-              "label": "No",
-              "effects": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "n-B-attack",
-      "target": {
-        "kind": "monster",
-        "id": "m-xbow"
-      },
-      "trigger": {
-        "type": "manual",
-        "label": "Hero next to the Crossbowman"
-      },
-      "effects": [
-        {
-          "type": "promptChoice",
-          "text": "Is the hero next to the Crossbowman?",
-          "options": [
-            {
-              "label": "Yes, and the hero attacks him",
-              "effects": [
-                {
-                  "type": "showText",
-                  "title": "He yields",
-                  "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board. The hero writes the crossbow on the character sheet (see the armory)."
-                },
-                {
-                  "type": "giveItem",
-                  "text": "A crossbow (see the armory)"
-                },
-                {
-                  "type": "setMonsterState",
-                  "monster": "m-xbow",
-                  "state": "away"
-                }
-              ]
-            },
-            {
-              "label": "Yes, but the hero does not attack",
-              "effects": []
-            },
-            {
-              "label": "No",
-              "effects": []
-            }
-          ]
+          "type": "showText",
+          "text": "An evil Crossbowman guards this room."
         }
       ]
     },

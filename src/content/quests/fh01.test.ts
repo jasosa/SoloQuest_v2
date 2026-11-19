@@ -242,19 +242,32 @@ describe('quest 1: the Crossbowman of room R18', () => {
     expect(JSON.stringify(order)).toMatch(/does not move|stay/i);
   });
 
-  it("attacking him from next to him: he yields, the crossbow is the Barbarian's and he leaves", () => {
-    const asked = reduce(level, inside, { type: 'MANUAL_TRIGGER', note: 'n-B-attack' });
-    expect(asked.prompts.some((p) => p.kind === 'choice')).toBe(true);
-    const yes = reduce(level, asked.state, { type: 'CHOOSE', note: 'n-B-attack', option: 0 });
-    expect(JSON.stringify(yes.prompts)).toContain('crossbow');
-    expect(monstersInPlay(level, yes.state).some((m) => m.id === 'm-xbow')).toBe(false);
-    expect(yes.state.monsters['m-xbow']?.dead).toBe(false);
+  it('he is attacked or not: an attack makes him surrender, with the crossbow, and he leaves', () => {
+    const view = monstersInPlay(level, inside).find((m) => m.id === 'm-xbow')!;
+    expect(view.surrenders).toBe(true);
+    const r = reduce(level, inside, {
+      type: 'MONSTER_LEAVE',
+      monster: 'm-xbow',
+      reason: 'surrendered',
+    });
+    expect(JSON.stringify(r.prompts)).toContain('crossbow');
+    expect(monstersInPlay(level, r.state).some((m) => m.id === 'm-xbow')).toBe(false);
+    expect(r.state.monsters['m-xbow']?.dead).toBe(false);
   });
 
-  it('answering No changes nothing', () => {
-    const asked = reduce(level, inside, { type: 'MANUAL_TRIGGER', note: 'n-B-attack' });
-    const no = reduce(level, asked.state, { type: 'CHOOSE', note: 'n-B-attack', option: 1 });
-    expect(monstersInPlay(level, no.state).some((m) => m.id === 'm-xbow')).toBe(true);
+  it('he cannot be wounded, healed or slain: no Slain for him', () => {
+    for (const e of [
+      { type: 'MONSTER_DAMAGE', monster: 'm-xbow', amount: 1 },
+      { type: 'MONSTER_HEAL', monster: 'm-xbow', amount: 1 },
+      { type: 'MONSTER_KILL', monster: 'm-xbow' },
+    ] as const)
+      expect(() => reduce(level, inside, e)).toThrow(/surrenders when attacked/);
+  });
+
+  it('note B only says a Crossbowman guards the room', () => {
+    const b = quest.notes.find((n) => n.id === 'n-B')!;
+    expect(JSON.stringify(b.effects)).not.toMatch(/gives in|shoots|never leaves|attack/i);
+    expect(quest.notes.some((n) => n.id === 'n-B-attack')).toBe(false);
   });
 });
 

@@ -424,6 +424,12 @@ function monsterChange(
   if (!state.seenMonsters.has(id) || !rec)
     throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} has not been seen yet`);
   if (rec.dead) throw new EventError('MONSTER_DEAD', `Monster ${id} is already dead`);
+  // A monster that surrenders is attacked, not fought: no wounds, no heal, no slaying.
+  if ('id' in def && def.surrender)
+    throw new EventError(
+      'MONSTER_YIELDS',
+      `Monster ${id} is not fought: it surrenders when attacked`,
+    );
   // A dormant monster is a statue: it cannot be wounded, healed or slain (decision 28).
   if ('id' in def && isDormant(def, state))
     throw new EventError('MONSTER_NOT_SEEN', `Monster ${id} is a statue until the quest wakes it`);
@@ -466,6 +472,20 @@ function monsterStatus(
   }
   // a wandering monster has no quest def: its record is kept the same way, by id
   d.monsterStates[id] = { state: 'away', reason: event.reason };
+  const yields = def?.surrender;
+  if (yields && event.reason === 'surrendered')
+    return {
+      state: d,
+      prompts: [
+        {
+          kind: 'note',
+          noteId: `${id}-surrender`,
+          ...(yields.title ? { title: yields.title } : {}),
+          texts: yields.item ? [yields.text, yields.item] : [yields.text],
+          consumesTreasure: false,
+        },
+      ],
+    };
   return { state: d, prompts: [] };
 }
 
