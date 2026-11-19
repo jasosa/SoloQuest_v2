@@ -130,3 +130,26 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Quest packs: choose the box first, then a quest of it (owner) */
+.pickcol {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+.packtabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 0 0 28px;
+}
+.packtabs .chip {
+  min-height: 44px;
+}
+.packtabs .chip[aria-selected='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.pickcol .pick {
+  padding-top: 14px;
+}

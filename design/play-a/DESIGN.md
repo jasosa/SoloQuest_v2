@@ -347,3 +347,7 @@ The Library list has a two-button **layer switch** at the top, "Core n" and "My 
 ## Toggle switch (owner, quest settings)
 
 A setting that is on or off is a row: its label on the left, a switch on the right. Track 48 x 28 px (the row is at least 44 px tall), a round knob; off: track `--paper-2` with an `--ink` outline, knob `--ink-2` on the left; on: track `--ink`, knob `--paper` on the right. The knob moves in 120 ms (none with reduced motion). It is a `button` with `role="switch"` and `aria-checked`; a short hint can sit under the label. Class `.switch-row`.
+
+## Quest packs on the quest list (owner)
+
+A row of tabs over the quest cards, one per installed pack: Core game, then each expansion by name. A tab is a chip (44 px tall); the chosen one is filled with `--ink` and `--paper` text. Choosing a tab shows only the quests of that pack and selects its first quest. Quests made in the editor sit with the core game.

@@ -10,6 +10,8 @@ import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { Dialog } from '../shared/Frame';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
+import { CORE_PACK } from '../../engine/pack/registry';
+import { packOfQuest, packs } from '../packs';
 
 export type StartChoice =
   | { kind: 'new'; level: Level; team: readonly Hero[] }
@@ -92,6 +94,9 @@ export function SelectScreen({
     return level ? { ...q, level } : q;
   });
 
+  /** A quest of this device (made in the editor) is shown with the core game. */
+  const inPack = (questId: string) => packOfQuest(questId) ?? CORE_PACK;
+  const [packId, setPackId] = useState<string>(CORE_PACK);
   const [number, setNumber] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.number,
   );
@@ -101,6 +106,9 @@ export function SelectScreen({
   /** The Heroes popup of "New game". */
   const [choosing, setChoosing] = useState(false);
 
+  const shown = questEntries.filter((q) =>
+    q.level ? inPack(q.level.quest.id) === packId : packId === CORE_PACK,
+  );
   const entry = questEntries.find((q) => q.number === number);
   const level = entry?.level;
   const questId = level?.quest.id;
@@ -163,23 +171,46 @@ export function SelectScreen({
         </span>
       </header>
 
-      <div className="pick">
-        {questEntries.map((q) => (
-          <button
-            key={q.number}
-            className="qcard"
-            aria-pressed={q.number === number}
-            disabled={!q.level}
-            onClick={() => {
-              setNumber(q.number);
-            }}
-          >
-            <span className="qnum">Quest {q.number}</span>
-            {q.level && <span className="qtitle">{q.level.quest.title}</span>}
-            {edited.has(q.number) && <span className="qnote">Edited</span>}
-            {!q.level && <span className="qnote">Not encoded yet</span>}
-          </button>
-        ))}
+      <div className="pickcol">
+        <div className="packtabs" role="tablist" aria-label="Quest packs">
+          {packs.packs.map((p) => (
+            <button
+              key={p.manifest.id}
+              role="tab"
+              className="chip"
+              aria-selected={p.manifest.id === packId}
+              data-testid={`pack-${p.manifest.id}`}
+              onClick={() => {
+                setPackId(p.manifest.id);
+                const first = questEntries.find(
+                  (q) => q.level && inPack(q.level.quest.id) === p.manifest.id,
+                );
+                if (first) setNumber(first.number);
+              }}
+            >
+              {p.manifest.id === CORE_PACK ? 'Core game' : p.manifest.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="pick">
+          {shown.map((q) => (
+            <button
+              key={q.number}
+              className="qcard"
+              aria-pressed={q.number === number}
+              disabled={!q.level}
+              onClick={() => {
+                setNumber(q.number);
+              }}
+            >
+              <span className="qnum">Quest {q.number}</span>
+              {q.level && <span className="qtitle">{q.level.quest.title}</span>}
+              {edited.has(q.number) && <span className="qnote">Edited</span>}
+              {!q.level && <span className="qnote">Not encoded yet</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
       <aside className="side">
