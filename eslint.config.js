@@ -15,6 +15,8 @@ export default tseslint.config(
       'node_modules',
       'dev-dist',
       '_to_delete',
+      '.agents',
+      '.claude',
     ],
   },
   js.configs.recommended,
@@ -24,6 +26,10 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     plugins: { 'react-hooks': reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
   },
   {
     // Engine rule 3: pure TypeScript, no DOM, no clock, no Math.random.

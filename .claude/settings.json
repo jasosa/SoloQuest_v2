@@ -13,14 +13,87 @@
       "Bash(git log*)",
       "Bash(git add*)",
       "Bash(pdftoppm*)",
-      "Bash(pdftotext*)"
+      "Bash(pdftotext*)",
+      "Bash(node scripts/verify.mjs*)",
+      "Bash(git commit*)",
+      "Bash(git branch*)",
+      "Bash(git switch*)",
+      "Bash(git checkout -b*)",
+      "Bash(git merge*)",
+      "Bash(git worktree*)",
+      "Bash(git stash*)",
+      "Bash(ls*)",
+      "Bash(rg*)"
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf /*)"
     ],
-    "additionalDirectories": [
-      "C:/Users/Juanan/Documents/Games/Heroquest/01_Rules/Official"
+    "additionalDirectories": ["C:/Users/Juanan/Documents/Games/Heroquest/01_Rules/Official"],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(git rebase*)",
+      "Bash(git branch -D*)",
+      "Bash(git clean*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-files.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-file.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/verify.mjs\" --hook",
+            "timeout": 300
+          }
+        ]
+      }
     ]
   }
 }
