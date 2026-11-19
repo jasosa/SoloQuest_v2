@@ -39,6 +39,7 @@ export type EventErrorCode =
   | 'SPELL_USED'
   | 'SPELL_LIMIT'
   | 'MONSTER_INACTIVE'
+  | 'MONSTER_YIELDS'
   | 'ALREADY_DONE'
   | 'SPELL_DECLINED'
   | 'ALREADY_DEAD'
