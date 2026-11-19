@@ -124,6 +124,31 @@ export interface Theme {
 
 export const CLASSIC_THEME: Theme = { id: 'classic', name: 'Classic' };
 
+/**
+ * A theme that builds on another (a Frozen Horror pack on a core pack): every slot the child has wins,
+ * every other slot comes from the parent. Groups (monsters, doors, furniture...) merge slot by slot.
+ */
+export function mergeThemes(parent: Theme, child: Theme): Theme {
+  const out: Record<string, unknown> = { ...parent, ...child };
+  for (const k of ['door', 'block', 'trap', 'monster', 'furniture'] as const) {
+    const a = parent[k];
+    const b = child[k];
+    if (a && b) out[k] = { ...a, ...b };
+  }
+  if (parent.tune || child.tune) {
+    const tune: Record<string, unknown> = { ...(parent.tune ?? {}), ...(child.tune ?? {}) };
+    for (const k of ['monster', 'door', 'block', 'trap'] as const) {
+      const a = parent.tune?.[k];
+      const b = child.tune?.[k];
+      if (a && b) tune[k] = { ...a, ...b };
+    }
+    out['tune'] = tune;
+  }
+  out['id'] = child.id;
+  out['name'] = child.name;
+  return out as unknown as Theme;
+}
+
 /** The same square always gets the same picture (no randomness, so a redraw never changes it). */
 export function tileFor(tiles: readonly string[], x: number, y: number): string | undefined {
   if (tiles.length === 0) return undefined;

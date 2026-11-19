@@ -100,6 +100,21 @@ built-in "?"). After a trap springs, its kind picture is shown: a sprung pit, an
 leaves. Zargon view shows every trap with the picture of its kind. A spear trap leaves nothing behind, so its
 picture shows in Zargon view only.
 
+### Packs for an expansion: `box` and `extends` (decision 85)
+
+Every quest pack (the core game, Frozen Horror) has its own built-in art, and the built-in art of an expansion builds on the core
+built-in art. A texture pack follows the same shape:
+
+```json
+{ "id": "fh-art", "name": "Frozen Horror art", "box": "frozen-horror", "extends": "stone-dungeon", "monster": { "goblin": "gremlin.png" } }
+```
+
+- `box` is the quest pack the texture pack dresses. Left out: the core game. The pack list says "For frozen-horror".
+- `extends` is the id of another texture pack this one builds on. It cannot be used without it: the list says "Needs the pack ..."
+  until the parent is imported. When it is used, every slot it has wins and every other slot comes from the parent, then from the
+  built-in look.
+- A pack that has no `extends` stands alone (a core pack, or a full pack for an expansion).
+
 ## Picture sizes
 
 The board draws a square at 34 px, and tablets show it at up to 2x. Make pictures for 2x:

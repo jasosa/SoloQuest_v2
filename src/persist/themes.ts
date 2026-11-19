@@ -13,6 +13,10 @@ export interface PackSummary {
   author?: string | undefined;
   /** Size of the pictures, in bytes. */
   bytes: number;
+  /** The quest pack it dresses; the core game when missing. */
+  box?: string | undefined;
+  /** The texture pack it builds on. */
+  extends?: string | undefined;
 }
 
 export interface ThemeStore {
@@ -33,6 +37,8 @@ export function summaryOf(pack: StoredPack): PackSummary {
     name: m.name,
     origin: m.origin,
     ...(m.author ? { author: m.author } : {}),
+    ...(m.box ? { box: m.box } : {}),
+    ...(m.extends ? { extends: m.extends } : {}),
     bytes: Object.values(pack.files).reduce((n, f) => n + f.bytes.length, 0),
   };
 }

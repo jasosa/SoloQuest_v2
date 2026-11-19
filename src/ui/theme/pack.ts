@@ -61,6 +61,16 @@ export const PackManifestSchema = z
     name: z.string().trim().min(1).max(60),
     origin: z.enum(['official', 'fan']).default('fan'),
     author: z.string().max(80).optional(),
+    /** The quest pack this one dresses (an id like `frozen-horror`). Left out: the core game. */
+    box: z
+      .string()
+      .regex(/^[a-z0-9][a-z0-9-]{1,40}$/)
+      .optional(),
+    /** Another texture pack this one builds on and cannot be used without (an id). Its slots win. */
+    extends: z
+      .string()
+      .regex(/^[a-z0-9][a-z0-9-]{1,40}$/)
+      .optional(),
     board: FileName.optional(),
     floor: Files.optional(),
     corridor: Files.optional(),

@@ -138,6 +138,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             <li key={p.id} data-pack={p.id}>
               <div className="fr-open-static">
                 <span className="fr-qnum">
+                  {p.box ? `For ${p.box}` : 'For the core game'} ·{' '}
                   {p.origin === 'official' ? 'Official' : 'Fan-made'}
                   {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
                 </span>
@@ -145,6 +146,10 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
               </div>
               {active === p.id ? (
                 <span className="fr-qnote">In use</span>
+              ) : p.extends && !packs.some((x) => x.id === p.extends) ? (
+                <span className="fr-qnote" data-testid={`needs-${p.id}`}>
+                  Needs the pack {p.extends}
+                </span>
               ) : (
                 <button className="chip" onClick={() => void choose(p.id)}>
                   Use
