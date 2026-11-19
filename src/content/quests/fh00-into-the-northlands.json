@@ -620,11 +620,6 @@
         {
           "type": "spawnNpc",
           "npc": "snowdasher"
-        },
-        {
-          "type": "showText",
-          "text": "Ice tunnels come in pairs with the same number. A hero or monster that lands on one comes out at the other, and that ends its move.",
-          "title": "Ice tunnels"
         }
       ]
     },

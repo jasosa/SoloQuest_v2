@@ -904,11 +904,6 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Ice tunnels come in pairs. A hero or monster that lands on one is moved at once to the other end of its pair.",
-          "title": "Ice tunnels"
-        },
-        {
-          "type": "showText",
           "text": "The heroes enter by the iron door and must find the wooden exit door. Vilor the Dread Warlock waits in the center room. This is a group quest: hire mercenaries for the quests after it if the party is small.",
           "title": "The Deadly Depths"
         }
