@@ -36,8 +36,8 @@ export interface MonsterView {
   readonly profile: Profile;
   /** Squares along a side (2 is a large monster). */
   readonly size?: number;
-  /** It is only attacked or not: no wounds, no Slain. Attacked, it surrenders and leaves. */
-  readonly surrenders?: boolean;
+  /** It is attacked, not fought: no wounds, no Slain on its card. The quest's notes say what an attack does. */
+  readonly attackOnly?: boolean;
   /** Zargon turns of stone left, when the quest says so. */
   readonly stoneTurns?: number;
   /** The square the quest names for a monster placed by a note. Text for the players. */
@@ -100,7 +100,7 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
         ? { pictureType: pictureTypeOf(m, level.quest.enemyDefs)! }
         : {}),
       ...(m.size && m.size > 1 ? { size: m.size } : {}),
-      ...(m.surrender ? { surrenders: true } : {}),
+      ...(m.attackOnly ? { attackOnly: true } : {}),
       special: m.special === true,
       abilities: abilitiesOf(lookup, m.abilities),
       ...(m.letter ? { letter: m.letter } : {}),

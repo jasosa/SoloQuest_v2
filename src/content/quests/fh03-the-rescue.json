@@ -576,7 +576,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The chest holds 150 gold coins. If its needle trap was not disarmed first, it has just sprung (see the trap) and the searching hero loses 1 Body Point."
+          "text": "The chest holds 150 gold coins."
         },
         {
           "type": "giveItem",
@@ -595,16 +595,34 @@
       "effects": [
         {
           "type": "showText",
-          "text": "Two Dread Warriors have only just strapped Gothar onto the rack. They ignore him and fight the Barbarian alone. Gothar is freed when the Barbarian has killed both of them.",
+          "text": "Two Dread Warriors have only just strapped Gothar onto the rack. They ignore him and fight the Barbarian alone.",
           "title": "Gothar on the rack"
         }
       ]
     },
     {
       "id": "n-gothar-freed",
+      "target": {
+        "kind": "furniture",
+        "id": "f-rack"
+      },
+      "when": [
+        {
+          "monster": "m-dread-1",
+          "alive": false
+        },
+        {
+          "monster": "m-dread-2",
+          "alive": false
+        },
+        {
+          "flag": "gotharFree",
+          "is": false
+        }
+      ],
       "trigger": {
-        "type": "allKilled",
-        "monsters": ["m-dread-1", "m-dread-2"]
+        "type": "manual",
+        "label": "Free Gothar"
       },
       "effects": [
         {
@@ -631,9 +649,9 @@
   "objectives": [
     {
       "id": "o1",
-      "text": "Find Gothar and free him: kill the two Dread warriors in the rack room",
+      "text": "Find Gothar and free him",
       "done": {
-        "allKilled": ["m-dread-1", "m-dread-2"]
+        "flag": "gotharFree"
       }
     },
     {

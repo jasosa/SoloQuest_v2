@@ -12,10 +12,10 @@ test.describe('Frozen Horror quest 1', () => {
     await page.goto(URL);
     // his room is open: pick him
     await page.locator('[data-monster="m-xbow"]').first().click();
-    await expect(page.getByTestId('monster-attacked')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'A hero attacked it' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Slain' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /Wound/ })).toHaveCount(0);
-    await page.getByTestId('monster-attacked').click();
+    await page.getByRole('button', { name: 'A hero attacked it' }).click();
     await expect(page.getByText('The Crossbowman gives up at once')).toBeVisible();
     await expect(page.locator('[data-monster="m-xbow"]')).toHaveCount(0);
   });
