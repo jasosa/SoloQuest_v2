@@ -234,7 +234,8 @@ export type Draft = {
 export function seeMonster(d: Draft, m: MonsterDef): void {
   if (d.seenMonsters.has(m.id)) return;
   d.seenMonsters.add(m.id);
-  d.monsters[m.id] = { body: statsOf(m).body, dead: false };
+  // A monster seen again after a map crossing keeps its wounds (decision 45).
+  d.monsters[m.id] ??= { body: statsOf(m).body, dead: false };
 }
 
 export function draftOf(s: GameState): Draft {

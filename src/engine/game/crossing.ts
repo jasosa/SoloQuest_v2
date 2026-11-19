@@ -53,9 +53,12 @@ export function crossLink(level: Level, d: Draft, linkId: string): Arrival {
     if (door.kind !== 'secret') d.seenDoors.delete(door.id);
   }
 
-  // A wandering monster without a square cannot follow the heroes.
+  // The monsters of the map the heroes leave are fog again. Their wounds and kills are kept.
+  for (const m of level.quest.monsters) d.seenMonsters.delete(m.id);
+
+  // A wandering monster without a square cannot follow the heroes. A dead one stays as a kill.
   for (const [id, w] of Object.entries(d.wanderers)) {
-    if (w.map !== here || w.cell) continue;
+    if (w.map !== here || w.cell || d.monsters[id]?.dead) continue;
     delete d.wanderers[id];
     delete d.monsters[id];
     delete d.monsterStates[id];

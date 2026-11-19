@@ -129,6 +129,8 @@ describe('crossing', () => {
 
     const below = run([...open, ...down]).state;
     expect(below.openDoors.size).toBe(0);
+    // the monster of the map left behind is fog, but its record (the wounds) is kept
+    expect(below.seenMonsters.has('m1')).toBe(false);
     expect(below.seenCells.has('6,15')).toBe(false);
     expect(below.monsters.m1).toEqual({ body: 1, dead: false });
 
