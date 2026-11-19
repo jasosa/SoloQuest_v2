@@ -41,7 +41,7 @@ npm run lint           # ESLint
 npm run typecheck      # tsc --noEmit
 npm run verify          # THE gate: hard-rule checks, typecheck, lint, unit tests, quest validation (about 45 s)
 node scripts/verify.mjs --quick   # rule checks only (about 1 s)
-node scripts/wt.mjs new|list|merge|clean   # worktrees for parallel work; merge runs verify and rolls back on failure
+node scripts/wt.mjs new|list|merge|clean|drop   # worktrees for parallel work; merge runs verify and rolls back on failure
 npm run validate       # validate all quest JSON against the schema + board checks
 npm run render:maps    # render Quest Book map pages to reference/maps (needs poppler, see QUEST_ENCODING.md)
 ```

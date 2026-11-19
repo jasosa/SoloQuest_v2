@@ -3,6 +3,7 @@
 //   node scripts/wt.mjs list           worktrees and whether their branch is merged
 //   node scripts/wt.mjs merge <name>   merge wt-<name> into master, run the full verify, roll back if it fails
 //   node scripts/wt.mjs clean          remove the worktrees and branches that are merged (locked ones too)
+//   node scripts/wt.mjs drop <name>    throw a worktree and its branch away, merged or not
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, rmdirSync, symlinkSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -103,6 +104,15 @@ if (cmd === 'new') {
   }
   git('worktree', 'prune');
   console.log(kept ? `${kept} worktree(s) left.` : 'No worktrees left.');
+} else if (cmd === 'drop') {
+  // Throw away a worktree and its branch on purpose, even when not merged.
+  if (!name) die('Usage: node scripts/wt.mjs drop <name>');
+  dropLink(dirOf(name));
+  git('worktree', 'unlock', dirOf(name));
+  const r = git('worktree', 'remove', '--force', dirOf(name));
+  if (r.status !== 0) die(out(r));
+  git('branch', '-D', branchOf(name));
+  console.log(`Dropped ${dirOf(name)} and branch ${branchOf(name)}.`);
 } else {
-  die('Usage: node scripts/wt.mjs new|list|merge|clean [name]');
+  die('Usage: node scripts/wt.mjs new|list|merge|clean|drop [name]');
 }
