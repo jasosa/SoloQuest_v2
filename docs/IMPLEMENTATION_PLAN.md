@@ -108,7 +108,7 @@ SoloQuest_v2/
 **Engine pattern: event sourcing**
 
 - `GameState = reduce(questDefinition, events[])`.
-- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`. Pack additions: `NOTE_ANSWER` (note questions), `MONSTER_REMOVE` (escaped, surrendered, freed), `MONSTER_ACTIVATE` (passive attacked), `CROSS_MAP`.
+- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`. Pack additions: `NOTE_ANSWER` (note questions), `MONSTER_REMOVE` (escaped, freed), `MONSTER_ACTIVATE` (passive attacked), `CROSS_MAP`.
 - The reducer returns new state plus a list of **prompts** (texts, choices) for the UI.
 - Benefits: full undo (very important at the table, mis-taps happen), autosave is just the event list, deterministic tests, replay for debugging.
 - Randomness (AI tie breaks) uses a seeded RNG stored in state, so undo/redo is stable.
