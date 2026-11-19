@@ -260,3 +260,13 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [x] A lot of empty space left and right in a quest: the play screen is drawn as wide as the window, the right column takes the extra width
 - [x] More space to the board, and normal text size: the play screen is drawn at the window size and the board is fitted to the map area
 - [x] Zoom on the editor map (chips, two-finger pinch and move, wheel)
+
+### M10 follow-ups (2026-11-19, owner feedback)
+
+- [x] Quest settings popup with toggle switches; Rule hints per quest; free-movement hint for every quest (decision 84)
+- [x] Quest 0 feedback: tunnel destination highlight, lever as a Yes/No question, leave line, tiles to put on the board (toast, start sheet, room outline), Wolf Mummy picture, chest
+- [x] Editor: Board features panel (leave, tunnels, tiles, room tiles, edge doors and start, door flags); export keeps every Frozen Horror field
+- [x] Quest list: tabs per pack
+- [x] Texture packs: `box` and `extends` (decision 85). Still to do: choose a pack per box (core pack and expansion pack at once), built-in art per expansion as its own layer
+- [ ] Encode Frozen Horror quests 1 to 8 (in progress, one branch per quest); quests 9 and 10 need multi-map quests (M10 slice 6)
+- [ ] Editor map: draw and place tunnels, tiles and edge doors on the board (today they are typed in the Quest tab)
