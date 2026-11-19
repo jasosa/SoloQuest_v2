@@ -17,6 +17,20 @@ const die = (msg) => {
   process.exit(1);
 };
 
+// A branch counts as merged only when master has a merge commit that took it in. A branch with no
+// commits of its own (a worktree just created, an agent still working) also "is merged" to git, but
+// must never be cleaned: it may hold work that is not committed yet.
+function mergedIntoMaster(branch) {
+  const tip = out(git('rev-parse', branch));
+  const parents = out(git('log', 'master', '--merges', '--format=%P'))
+    .split(String.fromCharCode(10))
+    .map((l) => l.trim());
+  return parents.some((p) => p.split(' ')[1] === tip);
+}
+function isDirty(dir) {
+  return out(spawnSync('git', ['status', '--porcelain'], { cwd: dir, encoding: 'utf8' })) !== '';
+}
+
 const [cmd, name] = process.argv.slice(2);
 const branchOf = (n) => `wt-${n}`;
 
@@ -86,8 +100,13 @@ if (cmd === 'new') {
   let kept = 0;
   for (const w of worktrees()) {
     const b = (w.branch || '').replace('refs/heads/', '');
-    if (!merged.includes(b)) {
-      console.log(`kept (not merged): ${w.worktree} ${b}`);
+    if (!merged.includes(b) || !mergedIntoMaster(b)) {
+      console.log(`kept (not merged, or no commits of its own): ${w.worktree} ${b}`);
+      kept++;
+      continue;
+    }
+    if (isDirty(w.worktree)) {
+      console.log(`kept (uncommitted changes): ${w.worktree} ${b}`);
       kept++;
       continue;
     }
