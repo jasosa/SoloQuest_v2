@@ -344,3 +344,6 @@ Every dialog (the shared dialog, message cards, margin notes, the quest sheet, t
 
 The Library list has a two-button **layer switch** at the top, "Core n" and "My library n" (44 px), and lists one layer. A read-only Core item shows a "Core item" panel above its card with **Edit a copy**. The Details column has an **Expansions** panel (one switch per expansion: "<name> in the add menus") above **My library file**, whose **Export** opens "Share my library as a pack" (name, author) and whose **Import** says what came in. Details in `docs/LIBRARY_LAYERS.md`.
 
+## Toggle switch (owner, quest settings)
+
+A setting that is on or off is a row: its label on the left, a switch on the right. Track 48 x 28 px (the row is at least 44 px tall), a round knob; off: track `--paper-2` with an `--ink` outline, knob `--ink-2` on the left; on: track `--ink`, knob `--paper` on the right. The knob moves in 120 ms (none with reduced motion). It is a `button` with `role="switch"` and `aria-checked`; a short hint can sit under the label. Class `.switch-row`.

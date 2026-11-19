@@ -17,18 +17,23 @@ export function QuestSettingsCard({
   const s = useQuestSettings(questId);
   return (
     <NoteCard kind="Quest settings" title={title} onClose={onClose}>
-      <p>
-        Rule hints are short reminders of rules the app does not enforce: the rule of a terrain the
-        first time it is seen, and moving without rolling when no monster is awake.
-      </p>
       <button
-        className={s.ruleHints ? 'btn' : 'btn alt'}
+        className="switch-row"
         role="switch"
         aria-checked={s.ruleHints}
         data-testid="rule-hints"
         onClick={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
       >
-        Rule hints: {s.ruleHints ? 'on' : 'off'}
+        <span>
+          <b>Rule hints</b>
+          <span className="hint" style={{ display: 'block' }}>
+            Short reminders of rules the app does not enforce: terrain and special rooms the first
+            time they are seen, and moving without rolling when no monster is awake.
+          </span>
+        </span>
+        <span className="sw-track" aria-hidden="true">
+          <span className="sw-knob" />
+        </span>
       </button>
       <button className="btn alt" onClick={onClose}>
         Done
