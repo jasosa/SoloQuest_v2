@@ -7,6 +7,7 @@ import { buildLevel } from '../../engine/board/level';
 import { applyCoreFile, parseCoreFile } from '../../engine/data/coreFile';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
+import { conditionsHold } from '../../engine/game/notes';
 import { reduce, replay, startGame, type Prompt } from '../../engine/game/reducer';
 import {
   availableEndings,
@@ -208,7 +209,8 @@ describe('quest 3: rooms and notes', () => {
     expect(fired(done, 'n-D')).toBe(true);
     const text = JSON.stringify(quest.notes.find((n) => n.id === 'n-D'));
     expect(text).toContain('150 gold');
-    expect(text).toContain('1 Body Point');
+    // the trap is told by the trap itself, first: the treasure text does not repeat it
+    expect(text).not.toMatch(/trap|sprung|Body Point/i);
   });
 
   it('the chest trap of D: a needle that costs 1 Body Point, springs on a search before it is disarmed', () => {
@@ -298,9 +300,19 @@ describe('quest 3: Gothar and the end', () => {
     expect(fired(s, 'n-gothar-freed')).toBe(false);
   });
 
-  it('killing both frees Gothar: the NPC joins, with his stats, and the goal can be confirmed', () => {
-    const before = run(...toR11, kill('m-dread-1'));
-    const r = reduce(level, before, kill('m-dread-2'));
+  it('killing both does not free Gothar by itself: the action "Free Gothar" does', () => {
+    const both = run(...toR11, kill('m-dread-1'), kill('m-dread-2'));
+    expect(fired(both, 'n-gothar-freed')).toBe(false);
+    expect(both.flags['gotharFree']).toBeUndefined();
+    // the action is offered only when both are dead
+    const note = quest.notes.find((n) => n.id === 'n-gothar-freed')!;
+    expect(conditionsHold(level, both, note)).toBe(true);
+    expect(conditionsHold(level, run(...toR11, kill('m-dread-1')), note)).toBe(false);
+  });
+
+  it('the action frees Gothar: the NPC joins, with his stats, and the goal can be confirmed', () => {
+    const before = run(...toR11, kill('m-dread-1'), kill('m-dread-2'));
+    const r = reduce(level, before, { type: 'MANUAL_TRIGGER', note: 'n-gothar-freed' });
     expect(fired(r.state, 'n-gothar-freed')).toBe(true);
     expect(r.state.flags['gotharFree']).toBe(true);
     expect(r.prompts.some((p: Prompt) => p.kind === 'npcSpawned')).toBe(true);
@@ -321,7 +333,10 @@ describe('quest 3: Gothar and the end', () => {
   });
 
   it('confirming that Gothar is on the stairway wins the quest', () => {
-    const free = run(...toR11, kill('m-dread-1'), kill('m-dread-2'));
+    const free = reduce(level, run(...toR11, kill('m-dread-1'), kill('m-dread-2')), {
+      type: 'MANUAL_TRIGGER',
+      note: 'n-gothar-freed',
+    }).state;
     const done = reduce(level, free, { type: 'CONFIRM_OBJECTIVE', objective: 'o2' }).state;
     expect(objectivesStatus(level, done).goalDone).toBe(true);
     const end = reduce(level, done, { type: 'END_QUEST', outcome: 'stairs' }).state;
