@@ -603,6 +603,35 @@ export function PlayBoard({
                 fill={color.pitDeep}
               />
             </>
+          ) : t.state === 'sprung' && t.kind === 'swingingAxe' ? (
+            // The axe stays armed on its square: a hanging blade on an arm, so it is not a "?" again.
+            <>
+              <rect
+                x={tx * S + 3}
+                y={ty * S + 3}
+                width={S - 6}
+                height={S - 6}
+                fill={color.white}
+                stroke={color.ink}
+                strokeWidth={1.5}
+              />
+              <line
+                x1={cx - 9}
+                y1={cy - 14}
+                x2={cx + 5}
+                y2={cy + 3}
+                stroke={color.ink}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+              <path
+                d={`M${cx - 2} ${cy + 12} Q${cx + 14} ${cy + 12} ${cx + 12} ${cy - 3} Q${cx + 4} ${cy + 3} ${cx - 2} ${cy + 12} Z`}
+                fill={color.ink}
+                stroke={color.ink}
+                strokeWidth={1}
+                strokeLinejoin="round"
+              />
+            </>
           ) : (
             <>
               <polygon
