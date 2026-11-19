@@ -749,7 +749,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "The heroes line up outside the iron door in the north-west corner of the map. The way on is a wooden exit door at the other end of the fortress. Zargon puts it on the board only when a hero looks along the corridor that leads to it.",
+          "text": "The heroes line up outside the iron door in the north-west corner of the map. The way on is a wooden exit door at the other end of the fortress.",
           "title": "The Glacial Gate"
         }
       ]
