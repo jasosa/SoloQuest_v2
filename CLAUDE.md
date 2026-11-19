@@ -39,11 +39,14 @@ npm test               # Vitest (engine + content)
 npm run test:e2e       # Playwright (play flows, screenshots in test-results/)
 npm run lint           # ESLint
 npm run typecheck      # tsc --noEmit
+npm run verify          # THE gate: hard-rule checks, typecheck, lint, unit tests, quest validation (about 45 s)
+node scripts/verify.mjs --quick   # rule checks only (about 1 s)
+node scripts/wt.mjs new|list|merge|clean   # worktrees for parallel work; merge runs verify and rolls back on failure
 npm run validate       # validate all quest JSON against the schema + board checks
 npm run render:maps    # render Quest Book map pages to reference/maps (needs poppler, see QUEST_ENCODING.md)
 ```
 
-Run `npm run typecheck && npm test` before saying a task is done. Run `npm run test:e2e` when UI flows change.
+Run `npm run verify` before saying a task is done (it includes typecheck and tests). The git pre-commit hook and the Stop hook run it too, so a broken commit is blocked. Never use `--no-verify`. Run `npm run test:e2e` when UI flows change.
 
 ## Repository map
 
@@ -92,6 +95,14 @@ Source PDFs (owner's copy, read-only, outside the repo):
 4. Run typecheck + tests (+ e2e for UI). Use `reviewer` before committing a milestone task.
 5. Tick the task in `docs/BACKLOG.md`. Record any new decision in `docs/DECISIONS.md`.
 6. Commit with a short imperative message (`engine: reveal room on door open`).
+
+## Working rules for Claude (enforced by hooks in `.claude/hooks/`)
+
+- **Git:** commit and push are separate commands, never chained. Push only when the owner asks. Work that is more than a small fix goes on a branch and is merged when green. Parallel work uses `node scripts/wt.mjs`, never loose `git worktree` calls; run `clean` after merging.
+- **Windows edits:** working copies are CRLF. Change files with the Edit or Write tools. For a scripted edit use Python with `newline=''` and detect the line ending first. Do not use shell heredocs for content with quotes or `$`; write a script file instead. Never `sed -i` a CRLF file.
+- **Rules questions:** tag each as `[book]` (cite the page) or `[proposal]` (an edge case the book does not cover). Never present an invented rule as a game rule.
+- **Do not run Prettier over directories** you did not change; it reformats old files. Format only the files you touched.
+- **Review by size:** see `/ship`. Engine, schema or large changes get the `reviewer` agent; docs-only changes do not.
 
 ## Domain gotchas
 
