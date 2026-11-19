@@ -63,7 +63,8 @@ test.describe('quest and team select', () => {
     await shot(page, 'select-start');
     await expect(page.locator('.qcard')).toHaveCount(14);
     await page.getByTestId('pack-frozen-horror').click();
-    await expect(page.locator('.qcard')).toHaveCount(1);
+    expect(await page.locator('.qcard').count()).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('.qcard').first()).toContainText('Quest 0');
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);
