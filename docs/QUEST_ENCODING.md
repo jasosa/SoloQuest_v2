@@ -21,7 +21,7 @@ Goal: each quest of the core Quest Book becomes `src/content/quests/qNN-<slug>.j
 3. Doors, secret doors (on edges), blocked squares (single/double), stairs, furniture (cells), monsters (cell and type), traps (kind and cell), letters and markers (X, XX, numbers, "Cell").
 4. Notes: one note per letter + unlettered notes (wandering monster, quest-wide rules, named monster stats). Pick the trigger and effects from `QUEST_FORMAT.md`.
 5. `npm run validate`: schema + board checks (doors on real edges between different areas or across a wall, furniture inside one room, no overlap, every letter on the map has a note, start area exists).
-6. Overlay check: `npm run overlay -- N` renders the JSON on top of the scan (`reference/overlays/qNN.png`). Look at it at 100%, fix differences.
+6. Overlay check: `npm run overlay -- N` renders the JSON on top of the scan (`reference/overlays/qNN.png`). Look at it at 100%, fix differences. (Frozen Horror: `npm run overlay -- fh N`, see that section.)
 7. Walk-through test `src/content/quests/qNN.test.ts`: open the doors in a sensible order from the start, assert what each reveal shows (monsters, furniture, notes fired), and the end conditions.
 8. Update the status table below. Ask the owner for a 5 minute review in the editor (underlay mode).
 
@@ -31,7 +31,14 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 
 ## Frozen Horror quests
 
-File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rendering: the Frozen Horror book's PDF pages are print spreads and the prelude is 4 scanned letter pages, so there is no `npm run render:maps` for them yet. Quest 0 was done by hand: `pdftoppm -r 300` of page 1, the board frame at (349, 482) to (2210, 1847) pixels (about 71.7 px a square), a labeled grid and a JSON overlay drawn with a small script. The symbols are in the "Design Your Own" legend of each book.
+File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rendering and overlay work like the core quests, with an `fh` first argument (quests 0 to 8):
+
+```bash
+npm run render:maps -- fh [N ...]   # reference/maps/fhNN.png (whole page, upright) and fhNN-map.png (crop of the board)
+npm run overlay -- fh N [--grid]    # reference/overlays/fhNN.png and fhNN-zoom-{nw,ne,sw,se}.png
+```
+
+Where each map sits is in the table `tools/quest-import/fh-maps.ts` (PDF, page, turn, grid, all at 300 dpi). Quest 0 is page 1 of the online prelude (letter page, upright, grid corner (349, 482), about 71.6 x 71.8 px a square). Quests 1 to 8 are on pages 8 to 15 of the quest pack: each page is a print spread of 3900 x 3000 pixels with the real page turned a quarter turn, so the tool turns it 90 degrees clockwise (3000 x 3900) before cropping. The squares there are about 82.5 to 83.1 px wide. The grid corner and pitch of each quest were fitted on the grid lines and checked on the overlays (all nine line up within a few pixels). `render:maps -- fh` needs Poppler and Playwright's Chromium (it does the turn and crop). Set `FH_BOOK_PDF` or `FH_PRELUDE_PDF` if the PDFs are not in the default folder. The overlay also draws edge doors (iron entry in green, wooden exit in red), tunnel ends (`T` and the design number), board tiles and room tiles. The symbols are in the "Design Your Own" legend of each book.
 
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
 |---|---|---|---|---|---|---|---|

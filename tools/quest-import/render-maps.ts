@@ -4,6 +4,7 @@
  *
  *   npm run render:maps            all 14 quests
  *   npm run render:maps -- 3 5     only quests 3 and 5
+ *   npm run render:maps -- fh [N]  Frozen Horror quests 0 to 8 (see fh-render.ts)
  *
  * Writes reference/maps/qNN.png (full page, 300 dpi) and qNN-map.png (crop of the map frame).
  */
@@ -46,7 +47,24 @@ export function pdftoppmArgs(pdf: string, quest: number, outBase: string, crop: 
   return [...args, pdf, outBase];
 }
 
-function main(): void {
+/** Frozen Horror mode: the first argument is `fh`. Returns the quest numbers, or undefined. */
+export function parseFhArgs(args: string[]): number[] | undefined {
+  if (args[0] !== 'fh') return undefined;
+  const nums = args.slice(1).map(Number);
+  if (nums.some((q) => !Number.isInteger(q) || q < 0 || q > 8)) {
+    console.error('Frozen Horror quest numbers go from 0 to 8.');
+    process.exit(1);
+  }
+  return nums.length ? nums : Array.from({ length: 9 }, (_, i) => i);
+}
+
+async function main(): Promise<void> {
+  const fh = parseFhArgs(process.argv.slice(2));
+  if (fh) {
+    const { renderFh } = await import('./fh-render');
+    await renderFh(fh);
+    return;
+  }
   const pdf = process.env.QUEST_BOOK_PDF ?? DEFAULT_PDF;
   if (!existsSync(pdf)) {
     console.error(`Quest Book PDF not found: ${pdf}\nSet QUEST_BOOK_PDF to its path.`);
@@ -79,4 +97,4 @@ function main(): void {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.dirname, 'render-maps.ts'))
-  main();
+  void main();

@@ -44,6 +44,7 @@ node scripts/verify.mjs --quick   # rule checks only (about 1 s)
 node scripts/wt.mjs new|list|merge|clean|drop   # worktrees for parallel work; merge runs verify and rolls back on failure
 npm run validate       # validate all quest JSON against the schema + board checks
 npm run render:maps    # render Quest Book map pages to reference/maps (needs poppler, see QUEST_ENCODING.md)
+npm run overlay -- N   # draw quest N on its scan; Frozen Horror: `render:maps -- fh N`, `overlay -- fh N`
 ```
 
 Run `npm run verify` before saying a task is done (it includes typecheck and tests). The git pre-commit hook and the Stop hook run it too, so a broken commit is blocked. Never use `--no-verify`. Run `npm run test:e2e` when UI flows change.

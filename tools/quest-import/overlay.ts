@@ -3,6 +3,8 @@
  *
  * Reads reference/maps/qNN-map.png and src/content/quests/qNN-*.json (if it exists),
  * writes reference/overlays/qNN.png and four quarter crops qNN-zoom-{nw,ne,sw,se}.png at 100%.
+ * `npm run overlay -- fh N [--grid]` does the same for Frozen Horror quest N (0 to 8): fhNN-map.png,
+ * fhNN-*.json, fhNN.png (calibration in fh-maps.ts).
  * `--grid` also draws the cell coordinates (use it to read the scan before the JSON exists).
  * reference/ is git-ignored.
  */
@@ -12,14 +14,17 @@ import { chromium } from '@playwright/test';
 import { board } from '../../src/engine/board/board';
 import { parseQuest } from '../../src/engine/quest/loader';
 import type { Quest } from '../../src/engine/quest/schema';
+import { fhCalibration } from './fh-maps';
 import { buildOverlaySvg, DEFAULT_CALIBRATION } from './overlay-svg';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-function loadQuest(n: number): Quest | undefined {
+function loadQuest(n: number, prefix: string): Quest | undefined {
   const dir = resolve('src', 'content', 'quests');
   if (!existsSync(dir)) return undefined;
-  const file = readdirSync(dir).find((f) => f.startsWith(`q${pad(n)}-`) && f.endsWith('.json'));
+  const file = readdirSync(dir).find(
+    (f) => f.startsWith(`${prefix}${pad(n)}-`) && f.endsWith('.json'),
+  );
   if (!file) return undefined;
   return parseQuest(JSON.parse(readFileSync(join(dir, file), 'utf8')));
 }
@@ -27,19 +32,26 @@ function loadQuest(n: number): Quest | undefined {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const grid = args.includes('--grid');
+  const fh = args[0] === 'fh';
+  const prefix = fh ? 'fh' : 'q';
   const n = Number(args.find((a) => /^\d+$/.test(a)));
-  if (!Number.isInteger(n) || n < 1 || n > 14) {
-    console.error('usage: npm run overlay -- N [--grid]   (N from 1 to 14)');
+  const [lo, hi] = fh ? [0, 8] : [1, 14];
+  if (!Number.isInteger(n) || n < lo || n > hi) {
+    console.error(
+      fh
+        ? 'usage: npm run overlay -- fh N [--grid]   (N from 0 to 8)'
+        : 'usage: npm run overlay -- N [--grid]   (N from 1 to 14)',
+    );
     process.exit(1);
   }
-  const scan = resolve('reference', 'maps', `q${pad(n)}-map.png`);
+  const scan = resolve('reference', 'maps', `${prefix}${pad(n)}-map.png`);
   if (!existsSync(scan)) {
-    console.error(`Missing ${scan}. Run: npm run render:maps -- ${n}`);
+    console.error(`Missing ${scan}. Run: npm run render:maps -- ${fh ? 'fh ' : ''}${n}`);
     process.exit(1);
   }
-  const quest = loadQuest(n);
+  const quest = loadQuest(n, prefix);
   if (!quest) console.log(`no quest file for ${n}: drawing the scan, board walls and grid only`);
-  const cal = DEFAULT_CALIBRATION;
+  const cal = fh ? fhCalibration(n) : DEFAULT_CALIBRATION;
   const href = `data:image/png;base64,${readFileSync(scan).toString('base64')}`;
   const svg = buildOverlaySvg(board, quest, cal, { scanHref: href, grid: grid || !quest });
 
@@ -49,7 +61,7 @@ async function main(): Promise<void> {
   try {
     const page = await browser.newPage({ viewport: { width: cal.width, height: cal.height } });
     await page.setContent(`<body style="margin:0">${svg}</body>`);
-    const base = join(outDir, `q${pad(n)}`);
+    const base = join(outDir, `${prefix}${pad(n)}`);
     await page.screenshot({ path: `${base}.png` });
     const hw = cal.width / 2;
     const hh = cal.height / 2;
