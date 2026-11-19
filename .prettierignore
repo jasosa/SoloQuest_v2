@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+test-results
+playwright-report
+reference
+_to_delete
+.claude/worktrees
+package-lock.json
+# hand-written docs and the design prototypes keep their own layout
+docs
+design
+*.md
