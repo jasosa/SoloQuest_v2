@@ -69,9 +69,9 @@ describe('rule hints: terrain and room tiles on first reveal', () => {
 });
 
 describe('unthreatened movement', () => {
-  it('is only for expansion quests, and only while no seen monster is awake', () => {
-    // the test quest is a core-style quest: no hint
-    expect(unthreatenedMovement(lv, start)).toBe(false);
+  it('is for every quest, and only while no seen monster is awake', () => {
+    // a core-style quest too
+    expect(unthreatenedMovement(lv, start)).toBe(true);
     const fh = buildLevel(make({ pack: 'frozen-horror' }));
     expect(unthreatenedMovement(fh, replay(fh, 1, []))).toBe(true);
     // the orc of R17 comes into view and is awake

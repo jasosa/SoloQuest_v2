@@ -9,7 +9,7 @@ import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { Dialog } from '../shared/Frame';
-import { setRuleHints, useRuleHints } from '../settings';
+import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 
 export type StartChoice =
   | { kind: 'new'; level: Level; team: readonly Hero[] }
@@ -95,7 +95,7 @@ export function SelectScreen({
   const [number, setNumber] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.number,
   );
-  const hints = useRuleHints();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [team, setTeam] = useState<readonly Hero[]>([]);
   const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
   /** The Heroes popup of "New game". */
@@ -130,16 +130,15 @@ export function SelectScreen({
         <span className="qn">SoloQuest</span>
         <h1>Choose a quest</h1>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button
-            className="link"
-            role="switch"
-            aria-checked={hints}
-            data-testid="rule-hints"
-            title="Short reminders of rules the app does not enforce, the first time terrain or a special room is seen"
-            onClick={() => setRuleHints(!hints)}
-          >
-            Rule hints: <b>{hints ? 'on' : 'off'}</b>
-          </button>
+          {level && (
+            <button
+              className="link"
+              data-testid="quest-settings"
+              onClick={() => setSettingsOpen(true)}
+            >
+              Quest settings
+            </button>
+          )}
           {onTextures && (
             <button
               className="link"
@@ -254,6 +253,14 @@ export function SelectScreen({
           </>
         )}
       </aside>
+
+      {settingsOpen && level && (
+        <QuestSettingsCard
+          questId={level.quest.id}
+          title={level.quest.title}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {choosing && level && (
         <Dialog

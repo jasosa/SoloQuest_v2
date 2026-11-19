@@ -46,7 +46,8 @@ import type { NoteTarget } from '../../engine/quest/schema';
 import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
 import { liveMonstersInSight } from '../../engine/game/search';
-import { useRuleHints } from '../settings';
+import { useQuestSettings } from '../settings';
+import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
@@ -135,7 +136,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   /** Slain monsters leave the roster; the journal keeps the kill. */
   const alive = useMemo(() => monsters.filter((m) => !m.dead), [monsters]);
   const traps = useMemo(() => trapsInView(level, state), [level, state]);
-  const ruleHintsOn = useRuleHints();
+  const ruleHintsOn = useQuestSettings(level.quest.id).ruleHints;
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const living = useMemo(() => livingHeroes(team, state), [team, state]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
@@ -178,7 +180,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const zMonster = seq.current?.order.monster;
   const end = endSummary(level, state);
   const endings = useMemo(() => availableEndings(level), [level]);
-  const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen;
+  const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen && !settingsOpen;
   const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
   // A note that is read again can disappear (an Undo takes its event back): there is nothing to show then,
@@ -917,6 +919,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         >
           Quest info
         </button>
+        <button
+          className="chip hdr"
+          data-testid="settings-chip"
+          onClick={() => setSettingsOpen(true)}
+        >
+          Settings
+        </button>
         <button className="chip hdr" onClick={() => setEndOpen(true)}>
           End quest
         </button>
@@ -1093,6 +1102,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
             setBackToSheet(true);
             setReread(id);
           }}
+        />
+      )}
+
+      {settingsOpen && (
+        <QuestSettingsCard
+          questId={level.quest.id}
+          title={quest.title}
+          onClose={() => setSettingsOpen(false)}
         />
       )}
 

@@ -70,21 +70,39 @@ test.describe('terrain and rule hints', () => {
     await expect(page.getByTestId('tile-rule')).toContainText('roll 1 combat die');
   });
 
-  test('Rule hints can be turned off on the quest list: no reminder then', async ({ page }) => {
-    await page.goto('/?nosave=1');
+  test('Rule hints are a setting of the quest: off in its popup, no reminder', async ({ page }) => {
+    await gotoQuest(page, URL);
+    await page.getByTestId('settings-chip').click();
     const sw = page.getByTestId('rule-hints');
     await expect(sw).toHaveAttribute('aria-checked', 'true');
     await sw.click();
     await expect(sw).toHaveAttribute('aria-checked', 'false');
-    await gotoQuest(page, URL);
+    await page.getByRole('button', { name: 'Done' }).click();
     await page.locator('[data-door="in"]').click();
     await page.getByRole('button', { name: 'Open the door', exact: true }).click();
     await expect(page.locator('[data-board-tile="icyRiver"]')).toHaveCount(1);
     await expect(page.getByRole('status')).toHaveCount(0);
     await expect(page.getByTestId('free-move')).toHaveCount(0);
-    // back on, for the other tests of this browser profile
+  });
+
+  test('the quest list has the same popup, and the choice is for that quest only', async ({
+    page,
+  }) => {
     await page.goto('/?nosave=1');
+    await page.getByTestId('quest-settings').click();
     await page.getByTestId('rule-hints').click();
+    await expect(page.getByTestId('rule-hints')).toHaveAttribute('aria-checked', 'false');
+    await page.getByRole('button', { name: 'Done' }).click();
+    // another quest keeps its own setting
+    await page.getByRole('button', { name: /^Quest 2(?!\d)/ }).click();
+    await page.getByTestId('quest-settings').click();
+    await expect(page.getByTestId('rule-hints')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('the free-movement hint is a general rule: a core quest shows it too', async ({ page }) => {
+    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.getByTestId('free-move')).toBeVisible();
   });
 
   test('with no monster awake the free-movement hint shows in a Frozen Horror quest', async ({

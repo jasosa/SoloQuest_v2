@@ -33,11 +33,10 @@ export function newRuleHints(level: Level, before: GameState, after: GameState):
 }
 
 /**
- * The hint of unthreatened movement (Frozen Horror playtest rule): when no monster the heroes have
- * seen is awake and alive, the players may count each red die as 4 instead of rolling. Only for
- * quests of an expansion pack, where the rule belongs.
+ * The hint of unthreatened movement: when no monster the heroes have seen is awake and alive, the
+ * players may count each red die as 4 instead of rolling. A general rule, for every quest of every
+ * pack; the per-quest Rule hints setting turns the reminder off.
  */
 export function unthreatenedMovement(level: Level, state: GameState): boolean {
-  if (!level.quest.pack || level.quest.pack === 'core') return false;
   return !monstersInPlay(level, state).some((m) => !m.dead && m.state === 'active');
 }

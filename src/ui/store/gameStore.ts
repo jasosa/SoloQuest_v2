@@ -27,7 +27,7 @@ import type { EventErrorCode } from '../../engine/game/errors';
 import { monsterCodes } from '../play/monsterCodes';
 import { promptToasts } from '../play/promptToasts';
 import { newRuleHints } from '../../engine/game/ruleHints';
-import { getRuleHints } from '../settings';
+import { getQuestSettings } from '../settings';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
 export interface Fx {
@@ -172,7 +172,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
           toast = toastOf([`Heroes' turn ${state.turn}.`, ...lines].join(' '), true);
 
         // Rule hints (decision 60): a reminder the first time a terrain or a room tile comes into view.
-        if (getRuleHints()) {
+        if (getQuestSettings(level.quest.id).ruleHints) {
           const hints = newRuleHints(level, before, state);
           if (hints.length > 0)
             toast = toastOf(hints.map((h) => `${h.name}: ${h.lines[0]}`).join(' '));
