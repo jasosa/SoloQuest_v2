@@ -35,4 +35,47 @@ describe('overlay-svg', () => {
     const svg = buildOverlaySvg(board, undefined, DEFAULT_CALIBRATION, { grid: true });
     expect(svg).toContain('>25,18<');
   });
+
+  it('draws edge doors, the start door in green', () => {
+    const q = {
+      ...testQuest(),
+      start: { door: 'in' },
+      edgeDoors: [
+        {
+          id: 'in',
+          cell: [0, 5] as [number, number],
+          side: 'w' as const,
+          kind: 'ironEntry' as const,
+        },
+        {
+          id: 'out',
+          cell: [10, 0] as [number, number],
+          side: 'n' as const,
+          kind: 'woodenExit' as const,
+        },
+      ],
+    };
+    const svg = buildOverlaySvg(board, q, cal);
+    expect(svg).toContain('>in iron<');
+    expect(svg).toContain('>out wood<');
+    // West edge of square (0,5): x = x0, from y0 + 5 ch down one square.
+    expect(svg).toContain('x1="10.0" y1="420.0" x2="10.0" y2="500.0" stroke="#00c853"');
+    // North edge of square (10,0).
+    expect(svg).toContain('x1="810.0" y1="20.0" x2="890.0" y2="20.0" stroke="#ff1744"');
+  });
+
+  it('draws tunnel ends, board tiles and room tiles', () => {
+    const q = {
+      ...testQuest(),
+      tunnels: [
+        { id: 't1', design: 2, a: [1, 1] as [number, number], b: [5, 5] as [number, number] },
+      ],
+      boardTiles: [{ type: 'iceCaveEntrance' as const, cells: [[0, 0] as [number, number]] }],
+      roomTiles: [{ type: 'iceVault' as const, area: 'R20' }],
+    };
+    const svg = buildOverlaySvg(board, q, cal);
+    expect(svg.match(/>T2</g)).toHaveLength(2);
+    expect(svg).toContain('&lt;iceCaveEntrance>');
+    expect(svg).toContain('[iceVault]');
+  });
 });

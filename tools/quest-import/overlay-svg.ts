@@ -79,6 +79,13 @@ export interface OverlayOptions {
   scanOpacity?: number;
 }
 
+/** First square (row by row) of an area, or undefined. */
+function firstCellOfArea(board: Board, area: string): [number, number] | undefined {
+  for (let y = 0; y < board.height; y++)
+    for (let x = 0; x < board.width; x++) if (areaAt(board, x, y) === area) return [x, y];
+  return undefined;
+}
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function rectEl(r: Rect, attrs: string): string {
@@ -161,6 +168,37 @@ export function buildOverlaySvg(
         out.push(text(r.x + r.w / 2, r.y + r.h / 2 + 8, 'B', 24, '#fff'));
       }
 
+    // Room tiles (Frozen Horror): the room's tile type, written in its first square.
+    for (const rt of quest.roomTiles) {
+      for (let y = 0; y < board.height; y++)
+        for (let x = 0; x < board.width; x++)
+          if (areaAt(board, x, y) === rt.area) {
+            const r = cellRect(cal, x, y);
+            out.push(rectEl(r, 'fill="#00acc1" fill-opacity="0.12"'));
+          }
+      const first = firstCellOfArea(board, rt.area);
+      if (first) {
+        const r = cellRect(cal, first[0], first[1]);
+        out.push(text(r.x + r.w / 2, r.y + r.h / 2 + 5, `[${rt.type}]`, 13, '#006064'));
+      }
+    }
+
+    // Board tiles (ice cave entrance, cage, river, ledge...).
+    for (const bt of quest.boardTiles) {
+      for (const c of bt.cells)
+        out.push(
+          rectEl(
+            cellRect(cal, c[0], c[1]),
+            'fill="#00e5ff" fill-opacity="0.15" stroke="#00838f" stroke-width="3" stroke-dasharray="8 5"',
+          ),
+        );
+      const first = bt.cells[0];
+      if (first) {
+        const r = cellRect(cal, first[0], first[1]);
+        out.push(text(r.x + r.w / 2, r.y + 18, `<${bt.type}>`, 13, '#006064'));
+      }
+    }
+
     // Furniture.
     for (const f of quest.furniture) {
       for (const c of f.cells)
@@ -209,6 +247,16 @@ export function buildOverlaySvg(
       out.push(text(cx, cy + 20, m.id, 14, '#b71c1c'));
     }
 
+    // Ice tunnels: both ends, labelled with the design number.
+    for (const t of quest.tunnels)
+      for (const c of [t.a, t.b]) {
+        const [cx, cy] = cellCenter(cal, c[0], c[1]);
+        out.push(
+          `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="30" fill="#2979ff" fill-opacity="0.2" stroke="#1a237e" stroke-width="4"/>`,
+        );
+        out.push(text(cx, cy + 9, `T${t.design}`, 24, '#1a237e'));
+      }
+
     // Markers.
     for (const m of quest.markers) {
       const [cx, cy] = cellCenter(cal, m.cell[0], m.cell[1]);
@@ -239,6 +287,33 @@ export function buildOverlaySvg(
     for (const d of quest.doors) doorLine(d, '#ff6d00');
     for (const d of quest.secretDoors) doorLine(d, '#aa00ff');
     for (const d of quest.falseDoors) doorLine(d, '#e91e63');
+
+    // Doors in the outer wall of the board (Frozen Horror): the start door is green.
+    for (const d of quest.edgeDoors) {
+      const [x, y] = d.cell;
+      const outside: [number, number] =
+        d.side === 'n'
+          ? [x, y - 1]
+          : d.side === 's'
+            ? [x, y + 1]
+            : d.side === 'w'
+              ? [x - 1, y]
+              : [x + 1, y];
+      const [x1, y1, x2, y2] = edgeLine(cal, d.cell, outside);
+      const color = quest.start.door === d.id ? '#00c853' : '#ff1744';
+      out.push(
+        `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-width="11" stroke-opacity="0.85"/>`,
+      );
+      out.push(
+        text(
+          (x1 + x2) / 2,
+          (y1 + y2) / 2 + 26,
+          `${d.id} ${d.kind === 'ironEntry' ? 'iron' : 'wood'}`,
+          14,
+          color,
+        ),
+      );
+    }
   }
 
   out.push('</svg>');
