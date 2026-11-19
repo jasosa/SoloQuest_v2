@@ -27,11 +27,13 @@ export function subjectLabel(q: Quest, s: Subject): string {
     case 'zone':
       return `Zone ${s.id}`;
     case 'door':
-      return q.secretDoors.some((d) => d.id === s.id)
-        ? `Secret door ${s.id}`
-        : q.falseDoors.some((d) => d.id === s.id)
-          ? `False door ${s.id}`
-          : `Door ${s.id}`;
+      return q.edgeDoors.some((d) => d.id === s.id)
+        ? `${q.edgeDoors.find((d) => d.id === s.id)?.kind === 'ironEntry' ? 'Entry' : 'Exit'} door ${s.id}`
+        : q.secretDoors.some((d) => d.id === s.id)
+          ? `Secret door ${s.id}`
+          : q.falseDoors.some((d) => d.id === s.id)
+            ? `False door ${s.id}`
+            : `Door ${s.id}`;
     case 'furniture':
       return `Furniture ${s.id}`;
     case 'monster': {
@@ -82,6 +84,7 @@ export function triggerChoices(s: Subject): readonly TriggerChoice[] {
       return [
         { type: 'monsterSeen', label: 'It is seen' },
         { type: 'monsterKilled', label: 'It is slain' },
+        { type: 'monsterLeft', label: 'It escapes or is freed' },
         { type: 'spellCast', label: 'It casts a spell' },
         button,
       ];
@@ -140,6 +143,7 @@ export function triggerFor(
       return s.kind === 'door' ? done({ type, door: s.id }) : noFit();
     case 'monsterSeen':
     case 'monsterKilled':
+    case 'monsterLeft':
     case 'spellCast':
       return s.kind === 'monster' ? done({ type, monster: s.id }) : noFit();
     case 'trapSprung':
@@ -166,7 +170,7 @@ export function subjectChoices(q: Quest): Subject[] {
   out.push({ kind: 'area', id: 'C' });
   for (const z of q.zones) out.push({ kind: 'zone', id: z.id });
   for (const m of q.markers) out.push({ kind: 'square', id: `${m.cell[0]},${m.cell[1]}` });
-  for (const d of [...q.doors, ...q.secretDoors, ...q.falseDoors])
+  for (const d of [...q.doors, ...q.edgeDoors, ...q.secretDoors, ...q.falseDoors])
     out.push({ kind: 'door', id: d.id });
   for (const f of q.furniture) out.push({ kind: 'furniture', id: f.id });
   for (const m of q.monsters) out.push({ kind: 'monster', id: m.id });

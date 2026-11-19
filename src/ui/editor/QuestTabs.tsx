@@ -69,6 +69,9 @@ export function QuestTab({ store }: { store: EditorStore }) {
         <Panel title="Wandering monster">
           <QuestPanel store={store} only="wandering" />
         </Panel>
+        <Panel title="Characters (bring-in helpers)">
+          <QuestPanel store={store} only="characters" />
+        </Panel>
         <Panel title="Ending">
           <QuestPanel store={store} only="endings" />
         </Panel>

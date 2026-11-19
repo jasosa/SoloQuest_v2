@@ -53,7 +53,7 @@ export type TrapState = 'sprung' | 'disarmed';
 export interface MonsterStateRecord {
   readonly state: 'active' | 'dormant' | 'stone' | 'away' | 'passive';
   /** Why a monster is `away`: it left the roster without being killed (decision 51). */
-  readonly reason?: 'escaped' | 'surrendered' | 'freed' | undefined;
+  readonly reason?: 'escaped' | 'freed' | undefined;
   /** Zargon turns left as stone (counts down on ZARGON_TURN_END). Only for `stone`. */
   readonly turns?: number | undefined;
 }

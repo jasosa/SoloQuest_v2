@@ -108,7 +108,7 @@ SoloQuest_v2/
 **Engine pattern: event sourcing**
 
 - `GameState = reduce(questDefinition, events[])`.
-- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`. Pack additions: `NOTE_ANSWER` (note questions), `MONSTER_REMOVE` (escaped, surrendered, freed), `MONSTER_ACTIVATE` (passive attacked), `CROSS_MAP`.
+- Every user action is an event: `OPEN_DOOR`, `LOOK_FROM`, `SEARCH_TREASURE`, `SEARCH_SECRET_DOORS`, `TRAP_JUMP`, `TRAP_DISARM`, `TRAP_STEP`, `MONSTER_DAMAGE`, `MONSTER_KILL`, `WANDERING_MONSTER`, `HERO_DIED`, `SQUARE_TRIGGER`, `AREA_ENTER`, `ZARGON_TURN_START`, `ZARGON_TURN_END`, `NOTE_ACK`, `END_QUEST`. Pack additions: `NOTE_ANSWER` (note questions), `MONSTER_REMOVE` (escaped, freed), `MONSTER_ACTIVATE` (passive attacked), `CROSS_MAP`.
 - The reducer returns new state plus a list of **prompts** (texts, choices) for the UI.
 - Benefits: full undo (very important at the table, mis-taps happen), autosave is just the event list, deterministic tests, replay for debugging.
 - Randomness (AI tie breaks) uses a seeded RNG stored in state, so undo/redo is stable.
@@ -212,7 +212,7 @@ Named monsters from the quest book: Ulag 10/4/5/2/3, Grak 8/4/4/3/3 + fear, slee
 
 Pack monsters (Frozen Horror: Frozen Horror, Ice Gremlin, Polar Warbear, Yeti, enemy mercenaries, named monsters) come with stats, profile, weights, special rules, defensive abilities and spells in the pack data (`docs/FROZEN_HORROR.md`).
 
-Monster instance in game state: `{ id, type, name, stats, body, size?, map?, state: 'hidden'|'dormant'|'passive'|'active'|'dead'|'escaped'|'surrendered'|'freed', flags, spellsLeft, revealedAt }`.
+Monster instance in game state: `{ id, type, name, stats, body, size?, map?, state: 'hidden'|'dormant'|'passive'|'active'|'dead'|'escaped'|'freed', flags, spellsLeft, revealedAt }`.
 
 ### 4.5 Pack manifest (`pack.json`, M9)
 

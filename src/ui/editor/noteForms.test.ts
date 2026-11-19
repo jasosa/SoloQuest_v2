@@ -111,3 +111,28 @@ describe('note list', () => {
     expect(triggerSummary({ type: 'zargonTurn', every: 3 })).toBe('Every 3 Zargon turns');
   });
 });
+
+describe('Frozen Horror pieces in the form lists', () => {
+  it('the monster-left trigger has a default, a summary and a list entry', () => {
+    const q = { ...base(), monsters: [{ id: 'm1', type: 'goblin', cell: [3, 3] }] } as Quest;
+    expect(TRIGGER_TYPES.some((t) => t.type === 'monsterLeft')).toBe(true);
+    const r = defaultTrigger(q, 'monsterLeft');
+    expect(r.ok && r.value).toEqual({ type: 'monsterLeft', monster: 'm1' });
+    expect(triggerSummary({ type: 'monsterLeft', monster: 'm1', reason: 'escaped' })).toBe(
+      'Left (escaped): m1',
+    );
+    expect(triggerSummary({ type: 'monsterLeft', monsterType: 'goblin' })).toBe('Left: goblin');
+    expect(defaultTrigger(base(), 'monsterLeft').ok).toBe(false);
+  });
+
+  it('an entry or exit door of the board can be picked for "a door is opened"', () => {
+    const q = {
+      ...base(),
+      edgeDoors: [{ id: 'out', cell: [0, 5], side: 'w', kind: 'woodenExit' }],
+    } as Quest;
+    const t = defaultTrigger(q, 'doorOpened');
+    expect(t.ok && t.value).toEqual({ type: 'doorOpened', door: 'out' });
+    const c = defaultCondition(q, 'doorOpened');
+    expect(c.ok && c.value).toEqual({ doorOpened: 'out' });
+  });
+});

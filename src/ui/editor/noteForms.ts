@@ -17,6 +17,7 @@ export const TRIGGER_TYPES: readonly { type: Trigger['type']; label: string }[] 
   { type: 'trapDisarmed', label: 'A trap is disarmed' },
   { type: 'monsterSeen', label: 'A monster comes into view' },
   { type: 'monsterKilled', label: 'A monster is slain' },
+  { type: 'monsterLeft', label: 'A monster escapes or is freed' },
   { type: 'allKilled', label: 'All of some monsters are slain' },
   { type: 'spellCast', label: 'A spell is cast' },
   { type: 'zargonTurn', label: "Zargon's turn ends" },
@@ -92,7 +93,7 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
     case 'treasureSearch':
       return good({ type, area });
     case 'doorOpened': {
-      const d = q.doors[0] ?? q.secretDoors[0];
+      const d = q.doors[0] ?? q.edgeDoors[0] ?? q.secretDoors[0];
       return d ? good({ type, door: d.id }) : bad('Add a door first.');
     }
     case 'zoneEntered': {
@@ -108,7 +109,8 @@ export function defaultTrigger(q: Quest, type: Trigger['type']): Made<Trigger> {
       return t ? good({ type, trap: t.id }) : bad('Add a trap first.');
     }
     case 'monsterSeen':
-    case 'monsterKilled': {
+    case 'monsterKilled':
+    case 'monsterLeft': {
       const m = q.monsters[0];
       return m ? good({ type, monster: m.id }) : bad('Add a monster first.');
     }
@@ -204,7 +206,7 @@ export function defaultCondition(q: Quest, key: ConditionKey): Made<Condition> {
     case 'areaRevealed':
       return good({ areaRevealed: q.start.area ?? 'R01' });
     case 'doorOpened': {
-      const d = q.doors[0];
+      const d = q.doors[0] ?? q.edgeDoors[0] ?? q.secretDoors[0];
       return d ? good({ doorOpened: d.id }) : bad('Add a door first.');
     }
     case 'monsterSeen': {
@@ -281,6 +283,8 @@ export function triggerSummary(t: Trigger): string {
       return `Seen: ${t.monster ?? t.monsterType ?? 'any monster'}`;
     case 'monsterKilled':
       return `Slain: ${t.monster ?? t.monsterType ?? 'any monster'}`;
+    case 'monsterLeft':
+      return `Left${t.reason ? ` (${t.reason})` : ''}: ${t.monster ?? t.monsterType ?? 'any monster'}`;
     case 'allKilled':
       return `All slain: ${t.monsters.join(', ')}`;
     case 'spellCast':

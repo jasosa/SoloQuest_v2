@@ -50,7 +50,7 @@ const ROOMS = roomIds(board);
 
 // ---- small form pieces
 
-function Text({
+export function Text({
   label,
   value,
   onSave,
@@ -90,7 +90,7 @@ function Text({
 }
 
 /** A whole number field. Empty is allowed when `optional`. A bad value says why and is dropped. */
-function Num({
+export function Num({
   store,
   label,
   value,
@@ -149,7 +149,7 @@ function Pick({
   );
 }
 
-function Choose({
+export function Choose({
   label,
   value,
   options,
@@ -178,7 +178,7 @@ function Choose({
   );
 }
 
-function Chips<T extends string>({
+export function Chips<T extends string>({
   options,
   value,
   onChange,
@@ -588,42 +588,58 @@ function TriggerForm({
           </button>
         </>
       )}
-      {(t.type === 'monsterKilled' || t.type === 'monsterSeen') && t.monster === undefined && (
-        <>
-          <Chips
-            value={t.monsterType !== undefined ? 'type' : 'one'}
-            options={[
-              { value: 'one', label: 'One monster' },
-              { value: 'type', label: 'A kind' },
-            ]}
-            onChange={(mode) => {
-              if (mode === 'type') onChange({ type: t.type, monsterType: 'orc' });
-              else {
-                const m = quest.monsters[0];
-                if (m) onChange({ type: t.type, monster: m.id });
-                else store.getState().say('Add a monster first.');
-              }
-            }}
-          />
-          {t.monsterType !== undefined ? (
-            <Choose
-              label="Kind"
-              value={t.monsterType}
-              options={MONSTER_TYPES.map((m) => ({ value: m, label: MONSTER_NAMES[m] }))}
-              onChange={(m) =>
-                onChange({ type: t.type, monsterType: m as (typeof MONSTER_TYPES)[number] })
-              }
-            />
-          ) : (
-            <Choose
-              label="Monster"
-              value={t.monster ?? ''}
-              options={monsters}
-              onChange={(monster) => onChange({ type: t.type, monster })}
-            />
-          )}
-        </>
+      {t.type === 'monsterLeft' && (
+        <Chips
+          value={t.reason ?? 'any'}
+          options={[
+            { value: 'any', label: 'Either way' },
+            { value: 'escaped', label: 'Escaped' },
+            { value: 'freed', label: 'Freed' },
+          ]}
+          onChange={(v) => {
+            const { reason: _gone, ...rest } = t;
+            void _gone;
+            onChange(v === 'any' ? rest : { ...rest, reason: v });
+          }}
+        />
       )}
+      {(t.type === 'monsterKilled' || t.type === 'monsterSeen' || t.type === 'monsterLeft') &&
+        t.monster === undefined && (
+          <>
+            <Chips
+              value={t.monsterType !== undefined ? 'type' : 'one'}
+              options={[
+                { value: 'one', label: 'One monster' },
+                { value: 'type', label: 'A kind' },
+              ]}
+              onChange={(mode) => {
+                if (mode === 'type') onChange({ type: t.type, monsterType: 'orc' });
+                else {
+                  const m = quest.monsters[0];
+                  if (m) onChange({ type: t.type, monster: m.id });
+                  else store.getState().say('Add a monster first.');
+                }
+              }}
+            />
+            {t.monsterType !== undefined ? (
+              <Choose
+                label="Kind"
+                value={t.monsterType}
+                options={MONSTER_TYPES.map((m) => ({ value: m, label: MONSTER_NAMES[m] }))}
+                onChange={(m) =>
+                  onChange({ type: t.type, monsterType: m as (typeof MONSTER_TYPES)[number] })
+                }
+              />
+            ) : (
+              <Choose
+                label="Monster"
+                value={t.monster ?? ''}
+                options={monsters}
+                onChange={(monster) => onChange({ type: t.type, monster })}
+              />
+            )}
+          </>
+        )}
       {t.type === 'allKilled' && (
         <>
           <div className="lbl">All of these</div>
@@ -705,7 +721,7 @@ function withOptional<T extends object, K extends string>(
 
 // ---- conditions
 
-function ConditionList({
+export function ConditionList({
   store,
   quest,
   conditions,
@@ -851,6 +867,10 @@ function ConditionFields({
         value={c.doorOpened}
         options={[
           ...quest.doors.map((d) => ({ value: d.id, label: d.id })),
+          ...quest.edgeDoors.map((d) => ({
+            value: d.id,
+            label: `${d.id} (${d.kind === 'ironEntry' ? 'entry' : 'exit'})`,
+          })),
           ...quest.secretDoors.map((d) => ({ value: d.id, label: `${d.id} (secret)` })),
         ]}
         onChange={(doorOpened) => onChange({ ...c, doorOpened })}
@@ -945,6 +965,7 @@ const STATE_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'dormant', label: 'Dormant' },
   { value: 'stone', label: 'Stone' },
+  { value: 'passive', label: 'Passive' },
   { value: 'away', label: 'Away (not on the map)' },
 ] as const;
 

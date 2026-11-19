@@ -26,12 +26,12 @@ export type GameEvent =
   | { readonly type: 'MONSTER_KILL'; readonly monster: string }
   /**
    * A seen monster leaves the roster without being killed (decision 51): a thief escaped with its
-   * loot, an enemy surrendered, a caged monster was freed. It is not a kill: no kill notes.
+   * loot, a caged monster was freed (a surrender is a quest action: setMonsterState away). It is not a kill: no kill notes.
    */
   | {
       readonly type: 'MONSTER_LEAVE';
       readonly monster: string;
-      readonly reason: 'escaped' | 'surrendered' | 'freed';
+      readonly reason: 'escaped' | 'freed';
     }
   /** A passive monster is attacked and becomes active (decision 51). */
   | { readonly type: 'MONSTER_WAKE'; readonly monster: string }

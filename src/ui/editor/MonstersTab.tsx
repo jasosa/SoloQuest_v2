@@ -21,6 +21,10 @@ const STATES = [
   { value: 'active', label: 'Active' },
   { value: 'dormant', label: 'Dormant' },
   { value: 'stone', label: 'Stone' },
+  {
+    value: 'passive',
+    label: 'Passive (does nothing until a hero attacks it or an action wakes it)',
+  },
 ] as const;
 
 /**
@@ -242,7 +246,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                       state:
                         e.target.value === 'active'
                           ? null
-                          : (e.target.value as 'dormant' | 'stone'),
+                          : (e.target.value as 'dormant' | 'stone' | 'passive'),
                     })
                   }
                 >
@@ -319,6 +323,25 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   </select>
                 </Fld>
               )}
+              <Fld label="Attacks per turn">
+                <select
+                  className="fr-sel"
+                  aria-label="Attacks per turn"
+                  value={String(monster.attacks ?? '')}
+                  onChange={(e) =>
+                    patch({ attacks: e.target.value ? Number(e.target.value) : null })
+                  }
+                >
+                  <option value="">As its enemy (usually one)</option>
+                  <option value="2">Two</option>
+                  <option value="3">Three</option>
+                </select>
+              </Fld>
+              <Toggle
+                label="Attacked, not fought: no wounds, no Slain button (an action says what an attack does)"
+                on={monster.attackOnly === true}
+                onChange={(on) => patch({ attackOnly: on })}
+              />
               <Toggle
                 label="Hidden until an action places it"
                 on={monster.hidden === true}

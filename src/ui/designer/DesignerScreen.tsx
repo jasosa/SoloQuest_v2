@@ -974,6 +974,45 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             </select>
           </Fld>
           <p className="fr-help">{PLAN_TEXT[profile]}</p>
+          <div className="fr-row2">
+            <Fld label="Attacks per turn">
+              <select
+                className="fr-sel"
+                aria-label="Attacks per turn"
+                disabled={locked}
+                value={String(d.attacks ?? 1)}
+                onChange={(e) =>
+                  change(
+                    put(
+                      d,
+                      'attacks',
+                      Number(e.target.value) > 1 ? Number(e.target.value) : undefined,
+                    ),
+                  )
+                }
+              >
+                <option value="1">One</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+              </select>
+            </Fld>
+            <Fld label="Size">
+              <select
+                className="fr-sel"
+                aria-label="Size"
+                disabled={locked}
+                value={String(d.size ?? 1)}
+                onChange={(e) =>
+                  change(
+                    put(d, 'size', Number(e.target.value) > 1 ? Number(e.target.value) : undefined),
+                  )
+                }
+              >
+                <option value="1">One square</option>
+                <option value="2">Large: 2 x 2 squares</option>
+              </select>
+            </Fld>
+          </div>
           <div className="lbl">Who it goes for (weight 0 to 9, 0 never)</div>
           <div data-testid="dz-weights">
             {RULE_KEYS.map((k) => (

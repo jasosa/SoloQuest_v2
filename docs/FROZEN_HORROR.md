@@ -126,7 +126,7 @@ A note can have: public text → question on its letter → hidden text + effect
 
 | Note | Question | Effects |
 |---|---|---|
-| Q1 B | Did the Barbarian attack the Crossbowman from next to it? | Crossbowman `surrendered`; text: crossbow gained |
+| Q1 B | Did the Barbarian attack the Crossbowman from next to it? | Crossbowman set `away` by an action on the monster (a button, no special surrender); text: crossbow gained |
 | Q4 B | Do the heroes free the Gremlin? | Steal text; Gremlin `freed` |
 | Q5 B | Are all heroes in this room? | Remove both B doors; set flag → door C appears (hidden until flag) |
 | Q5 C | (door opened) | Crypt monsters wake (dormant → active, decision 28), act next Zargon turn |
@@ -140,7 +140,7 @@ A note can have: public text → question on its letter → hidden text + effect
 | Q7 D, Q9 B | (reveal) | Living Fog rule reference |
 | Q0 notes | see §8 | |
 
-New effects: `removeDoor`, door `hiddenUntil: flag`, `removeMonster(reason)`, `excludeTarget`, `replaceFurnitureWithDoor(open)`, clear a sight blocker, `crossMap`.
+New effects: `removeDoor`, door `hiddenUntil: flag`, `replaceFurnitureWithDoor`, a sight blocker that opens with a flag, `crossMap`. A monster leaving the board (surrender, freed, gone) is `setMonsterState` `away` in an action: there is no special "remove monster" or "surrender" in the engine (owner, 2026-11-19). The trigger `monsterLeft` reacts to a thief that escaped or a caged monster that was freed.
 
 ---
 
@@ -186,7 +186,40 @@ Free online quest (Online Quest 2), solo for any hero. The hero gets the wolf Sn
 
 ---
 
-## 9. Open items
+## 9. What the editor can model
+
+Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (falling block and door pattern). Rule of the owner: quests are built from general triggers, effects and conditions, and only what is impossible that way lives in the engine. `src/ui/editor/questCoverage.test.ts` fails when a quest file uses a trigger, effect, condition or objective rule that the editor has no form for.
+
+| Behavior | Used in | Built from | Editor |
+|---|---|---|---|
+| Monster that is attacked, not fought (no wounds, no Slain), and what an attack does | Q1 Crossbowman | `attackOnly` on the monster, a `manual` action on it ("A hero attacked it") with `showText`, `giveItem`, `setMonsterState` away | yes: toggle "Attacked, not fought" in the Monsters tab (new), Actions on it |
+| Monster states: starts passive or dormant, woken, sent away | Q0 Warbear, Q4 Gremlin, Q5 crypt, Q1 | monster `state`, effect `setMonsterState` (active, dormant, stone, passive, away, `turns`) | yes: `passive` was missing in both the Starts list and the effect (added) |
+| "It left" and "A hero attacked it" buttons on a passive monster | Q0, Q4 | built-in for every passive monster (`MONSTER_LEAVE` freed, `MONSTER_WAKE`) | by setting the state; buttons are automatic |
+| Monster never moves, guards a square, waits for a hero | Q1 | `behavior` (`goesToward`, `waitsFor`) | yes (Monsters tab) |
+| Several attacks per turn | Polar Warbear | `attacks` on the enemy or the monster | yes: per monster in the Monsters tab (new), per enemy in the Designer (new field) |
+| Thief that runs off ("Escaped") and what follows | Q0, Q8 Gremlins, Q9 key | enemy profile `thief`, event `MONSTER_LEAVE`, trigger `monsterLeft` (new) | yes: the trigger is in every action list of a monster and in the quest-wide list |
+| Door that vanishes | Q5 B | effect `removeDoor` | yes |
+| Door not on the map until a flag, door that stays stuck until a flag | Q0 throne, Q5 C, Q9 key door | door `hiddenUntil`, `lockedUntil`, effect `setFlag` | yes: flags in Board features (door flags), `setFlag` in the effect list |
+| Secret door that shows | core | effect `addSecretDoor` | yes |
+| Furniture that turns into an open door | Q0 throne | effect `replaceFurnitureWithDoor` | yes |
+| Block placed by an event, sight-blocking tile until a flag | Q12 block, Q0 cage | effect `placeBlock`, board tile `blocks` with `hiddenWhen` | yes (`placeBlock`; tiles in Board features) |
+| "Look from this square" | Q0, Q12 | effect `lookFrom`, condition `lookDone` | yes |
+| Character that joins the heroes | Q0 wolf, Q3 Gothar | `npcs`, effect `spawnNpc` | the effect yes; the character itself had no form: new Characters panel (Quest tab) |
+| A question to the players with different results | Q0 C, Q4 B, Q5 B, Q8 G | `manual` action with `promptChoice`, nested effects | yes |
+| Conditions on flags, monsters alive or slain, doors open, rooms revealed, monsters seen | Q0, Q3, Q4, Q5, Q8 | `when` | yes; entry and exit doors are now in the door lists |
+| Cross to the other map | Q9, Q10 | effect `crossMap`, `maps`, `links` | the effect yes; creating maps and links is slice 7 (tab per map), not yet |
+| Wandering monster with a count and an enemy | Q0 to Q8 | `wandering` `{ monster, count, enemy }` | yes: count and enemy were lost on every edit before (new) |
+| Objective done rule, confirm button and its conditions | all | objective `done`, `confirm`, `confirmWhen` | yes: full objective form (new); before only the text |
+| Endings, end text, leave text | Q3, Q0, Q8 | `endings`, `endText`, `leave` | yes: `endText` is new in the Ending panel; `leave` is in Board features |
+| Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools (separate work). Merging rooms (`areaOverrides`): file only, kept on import and export, no form |
+| Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer (new field); not per monster |
+| Quest rules `bounty`, `doorTeleport` | core only | `rules` | no form (no Frozen Horror quest uses them) |
+
+Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a wandering monster CARD that brings several monsters (backlog 4g: only the trap uses `count`; the owner decides if the card should too), a condition on a tile.
+
+---
+
+## 10. Open items
 
 - Check each spell's card wording against its tags and warnings before release.
 - Q0 map: encoded 2026-11-18 (`fh00-into-the-northlands.json`). The dark squares near F are rock, and the odd square at (19,7) is a falling block trap. Still to confirm with the owner: the slatted piece at (10,8) (encoded as a rack) and that the two skull tokens in the tomb room are skeletons.
