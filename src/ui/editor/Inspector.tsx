@@ -31,6 +31,13 @@ import { ProblemsPanel } from './ProblemsPanel';
 import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseOverrides, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
+import {
+  DoorFlagFields,
+  ExteriorDoorFields,
+  RoomTileFields,
+  TileFields,
+  TunnelFields,
+} from './FeatureFields';
 
 export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
   { kind: 'normal', label: 'Normal' },
@@ -58,6 +65,9 @@ const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
   trap: 'Trap',
   marker: 'Marker',
   zone: 'Zone',
+  tile: 'Tile',
+  roomTile: 'Room tile',
+  tunnel: 'Ice tunnel',
 };
 
 export function Inspector({
@@ -73,6 +83,8 @@ export function Inspector({
   const st = store.getState();
 
   const door = selection?.kind === 'door' ? findDoor(quest, selection.id) : undefined;
+  const edgeDoor =
+    selection?.kind === 'door' ? quest.edgeDoors.find((e) => e.id === selection.id) : undefined;
   const furniture =
     selection?.kind === 'furniture'
       ? quest.furniture.find((f) => f.id === selection.id)
@@ -145,13 +157,17 @@ export function Inspector({
         <section data-testid="inspector-selection">
           <div className="lbl">{SELECTION_NAMES[selection.kind]}</div>
           <p className="ed-id" data-testid="selection-id">
-            {selection.kind === 'block'
-              ? `Square ${selection.cell[0]}, ${selection.cell[1]}`
-              : selection.id}
+            {selectionLabel(selection)}
             {furniture ? ` · ${FURNITURE_NAMES[furniture.type]}` : ''}
             {monster ? ` · ${shownName(quest, monster)}` : ''}
           </p>
           {door && <DoorFields store={store} door={door} />}
+          {edgeDoor && <ExteriorDoorFields store={store} id={edgeDoor.id} />}
+          {selection.kind === 'tile' && <TileFields store={store} index={selection.index} />}
+          {selection.kind === 'roomTile' && <RoomTileFields store={store} area={selection.area} />}
+          {selection.kind === 'tunnel' && (
+            <TunnelFields store={store} id={selection.id} end={selection.end} />
+          )}
           {furniture && <FurnitureFields store={store} furniture={furniture} />}
           {monster && <MonsterPointer store={store} />}
           {marker && <MarkerFields store={store} marker={marker} />}
@@ -223,35 +239,60 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
   );
 }
 
-type DoorView = { id: string; a: [number, number]; b: [number, number]; kind: DoorKind };
+function selectionLabel(selection: NonNullable<EditSelection>): string {
+  switch (selection.kind) {
+    case 'block':
+      return `Square ${selection.cell[0]}, ${selection.cell[1]}`;
+    case 'tile':
+      return `Tile ${selection.index + 1}`;
+    case 'roomTile':
+      return `Room ${selection.area}`;
+    case 'tunnel':
+      return `${selection.id}, end ${selection.end.toUpperCase()}`;
+    default:
+      return selection.id;
+  }
+}
+
+type DoorView = {
+  id: string;
+  a: [number, number];
+  b: [number, number];
+  kind: DoorKind;
+  hiddenUntil?: string;
+  lockedUntil?: string;
+};
 
 function DoorFields({ store, door }: { store: EditorStore; door: DoorView }) {
   const st = store.getState();
   return (
-    <div className="ed-chips">
-      {DOOR_KINDS.map((d) => (
-        <button
-          key={d.kind}
-          className="chip"
-          aria-pressed={door.kind === d.kind}
-          onClick={() => {
-            st.apply((q) => setDoorKind(q, door.id, d.kind));
-            // the id changes with the kind: select the door at the same edge again
-            const q = store.getState().quest;
-            const moved = [...q.doors, ...q.secretDoors, ...q.falseDoors].find(
-              (x) =>
-                x.a[0] === door.a[0] &&
-                x.a[1] === door.a[1] &&
-                x.b[0] === door.b[0] &&
-                x.b[1] === door.b[1],
-            );
-            if (moved) st.select({ kind: 'door', id: moved.id });
-          }}
-        >
-          {d.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="ed-chips">
+        {DOOR_KINDS.map((d) => (
+          <button
+            key={d.kind}
+            className="chip"
+            aria-pressed={door.kind === d.kind}
+            onClick={() => {
+              st.apply((q) => setDoorKind(q, door.id, d.kind));
+              // the id changes with the kind: select the door at the same edge again
+              const q = store.getState().quest;
+              const moved = [...q.doors, ...q.secretDoors, ...q.falseDoors].find(
+                (x) =>
+                  x.a[0] === door.a[0] &&
+                  x.a[1] === door.a[1] &&
+                  x.b[0] === door.b[0] &&
+                  x.b[1] === door.b[1],
+              );
+              if (moved) st.select({ kind: 'door', id: moved.id });
+            }}
+          >
+            {d.label}
+          </button>
+        ))}
+      </div>
+      <DoorFlagFields store={store} door={door} />
+    </>
   );
 }
 

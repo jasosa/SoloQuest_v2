@@ -58,6 +58,10 @@ export function refLabel(ref: IssueRef | undefined): string {
       return 'Marker';
     case 'zone':
       return 'Zone';
+    case 'tile':
+      return 'Tile';
+    case 'tunnel':
+      return 'Tunnel';
     case 'note':
       return 'Note';
     case 'objective':
@@ -102,6 +106,14 @@ function cellOfRef(quest: Quest, ref: IssueRef): Cell | undefined {
       return quest.npcs.find((n) => n.id === id)?.cell;
     case 'note':
       return quest.notes.find((n) => n.id === id)?.at;
+    case 'tile': {
+      const c = quest.boardTiles[Number(id)]?.cells[0];
+      return c ? [c[0], c[1]] : undefined;
+    }
+    case 'tunnel': {
+      const c = quest.tunnels.find((t) => t.id === id)?.a;
+      return c ? [c[0], c[1]] : undefined;
+    }
     default:
       return undefined;
   }
@@ -122,6 +134,24 @@ export function jumpFor(quest: Quest, ref: IssueRef | undefined): Jump {
     case 'zone':
       return ref.id
         ? { panel: 'element', selection: { kind: ref.kind, id: ref.id }, noteId: null, flash }
+        : { ...none, flash };
+    case 'tile':
+      return ref.id !== undefined && quest.boardTiles[Number(ref.id)]
+        ? {
+            panel: 'element',
+            selection: { kind: 'tile', index: Number(ref.id) },
+            noteId: null,
+            flash,
+          }
+        : { ...none, flash };
+    case 'tunnel':
+      return ref.id
+        ? {
+            panel: 'element',
+            selection: { kind: 'tunnel', id: ref.id, end: 'a' },
+            noteId: null,
+            flash,
+          }
         : { ...none, flash };
     case 'block':
       return ref.cell

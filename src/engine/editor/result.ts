@@ -2,7 +2,7 @@
  * Shared result type and small helpers of the editor operations.
  * Internal: `index.ts` does not export this file, except the `EditResult` type through `ops.ts`.
  */
-import { board } from '../board/board';
+import { areaAt, board } from '../board/board';
 import { QuestSchema, type Quest } from '../quest/schema';
 import { validateQuestIssues, type Issue } from '../quest/validate';
 
@@ -25,6 +25,13 @@ export const ok = (quest: Quest, warnings: Issue[] = []): EditResult => {
   }
   return { ok: true, quest, warnings };
 };
+
+/** A square the quest turns into rock: a rock square, or a square of a rock room. */
+export function isRockCell(q: Quest, c: readonly number[]): boolean {
+  if (q.rock.cells.some((r) => r[0] === c[0] && r[1] === c[1])) return true;
+  const a = areaAt(board, c[0] as number, c[1] as number);
+  return a !== undefined && q.rock.rooms.includes(a);
+}
 
 /** Drop keys whose value is undefined (the schema does not allow explicit undefined). */
 export function clean<T extends object>(o: T): T {

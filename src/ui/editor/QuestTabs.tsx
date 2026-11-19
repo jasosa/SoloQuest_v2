@@ -75,7 +75,7 @@ export function QuestTab({ store }: { store: EditorStore }) {
         <Panel title="Ending">
           <QuestPanel store={store} only="endings" />
         </Panel>
-        <Panel title="Board features (expansions)" testId="quest-features">
+        <Panel title="Leaving and textures" testId="quest-features">
           <FeaturesPanel store={store} />
         </Panel>
         <Panel title="Abilities and spells of this quest">

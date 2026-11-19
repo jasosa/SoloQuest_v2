@@ -13,3 +13,4 @@ export {
   type IssueRefKind,
 } from '../quest/validate';
 export * from './features';
+export * from './tiles';
