@@ -7,7 +7,7 @@ Ship the current changes of SoloQuest v2: $ARGUMENTS
 
 1. `git status` and `git diff --stat`. If you are on `master` and the change is more than a small fix, make a branch first.
 2. Run `node scripts/verify.mjs` (full gate). If it fails, fix the cause and run it again. Never skip hooks.
-3. Run `npm run test:e2e` if anything in `src/ui/` or `tests/e2e/` changed. If it fails, find out if it is real or load related (run that test alone) before changing code.
+3. Run `npm run test:e2e` if anything in `src/ui/` or `tests/e2e/` changed. For new content (a quest, a pack, a library item) also open it from the real screen (quest list, editor, `?quest=<id>`) and check it is listed and starts; a walk-through test alone does not prove it is visible. If it fails, find out if it is real or load related (run that test alone) before changing code.
 4. Review, by size of the change:
    - Changes in `src/engine/`, the quest schema or more than about 200 lines: run the `reviewer` agent. Also the `rules-referee` agent when engine rules or a quest file changed.
    - Smaller code changes: read your own diff once against `CLAUDE.md` hard rules.

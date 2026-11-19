@@ -97,6 +97,36 @@ scan(ui, 'use a color token, not a raw color', /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\b
 // 4. Quests are data: no quest numbers in engine code.
 scan(engine, 'quest logic belongs in quest data', /quest(Id|Number)?\s*===?\s*['"\d]/i, true);
 
+// 5. A test that gets weaker is a warning sign: skipped, focused or "at least one" assertions in the
+// lines this change adds. Add `// verify-ok` on the line when it is meant.
+if (mode !== 'quick') {
+  const diff = run(
+    'git',
+    mode === 'staged' ? ['diff', '--cached', '-U0'] : ['diff', 'HEAD', '-U0'],
+  ).stdout;
+  let file = '';
+  for (const line of diff.split(/\r?\n/)) {
+    if (line.startsWith('+++ ')) file = line.slice(6);
+    else if (
+      line.startsWith('+') &&
+      /(\.test\.ts|\.spec\.ts)$/.test(file) &&
+      !line.includes('verify-ok')
+    ) {
+      if (
+        /(?<![\w.])(it|test|describe)\.(only|skip|todo|fixme)|toBeGreaterThanOrEqual\((0|1)\)|\.toBeTruthy\(\)\s*;?\s*$/.test(
+          line,
+        )
+      )
+        add(
+          'weaker test (skip, only, "at least one"): say why with // verify-ok',
+          file,
+          0,
+          line.slice(1),
+        );
+    }
+  }
+}
+
 const step = (name, cmd, a) => {
   const r = run(cmd, a);
   if (r.status !== 0) {

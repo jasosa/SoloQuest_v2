@@ -26,3 +26,13 @@ describe('the bundled quest entries', () => {
     expect(levelOfId('nope')).toBeUndefined();
   });
 });
+
+describe('what the manifests promise', () => {
+  it('every quest file and every quest of a pack manifest is in the quest list', async () => {
+    const files = import.meta.glob('../content/quests/*.json', { eager: true, import: 'default' });
+    expect(questEntries.filter((e) => e.level)).toHaveLength(Object.keys(files).length);
+    const { packs } = await import('./packs');
+    for (const p of packs.packs)
+      for (const id of p.manifest.quests) expect(levelOfId(id), id).toBeDefined();
+  });
+});
