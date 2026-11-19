@@ -1101,6 +1101,15 @@ function EffectFields({
           />
         </>
       );
+    case 'crossMap':
+      return (
+        <Choose
+          label="Link (the heroes cross it)"
+          value={e.link}
+          options={(quest.links ?? []).map((l) => ({ value: l.id, label: l.id }))}
+          onChange={(link) => onChange({ ...e, link })}
+        />
+      );
     case 'placeBlock':
       return (
         <>

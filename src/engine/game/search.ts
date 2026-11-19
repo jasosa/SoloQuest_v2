@@ -57,6 +57,7 @@ export function liveMonstersInSight(level: Level, state: GameState, from: Cell):
   const wanderers = Object.entries(state.wanderers)
     .filter(
       ([id, w]) =>
+        w.map === state.map &&
         state.monsters[id]?.dead === false &&
         cellsOf(level.board, w.room).some(
           (c) => state.seenCells.has(keyOf(c)) && lineOfSight(map, from, c),

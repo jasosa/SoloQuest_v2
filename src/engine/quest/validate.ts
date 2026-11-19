@@ -19,7 +19,8 @@ import { footprintShapeProblem } from './footprint';
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
 import { forEachEffect } from './effects';
-import type { Condition, Effect, Quest } from './schema';
+import { isMultiMap, noteOnMap, questMaps } from './maps';
+import type { Condition, Effect, Note, Quest } from './schema';
 
 type C = readonly [number, number];
 const key = (c: C) => `${c[0]},${c[1]}`;
@@ -52,7 +53,21 @@ export interface Issue {
   ref?: IssueRef;
 }
 
+/** Ids on the other maps of a multi-map quest: they are valid targets, and a repeat is a duplicate. */
+export interface ForeignIds {
+  doors: readonly string[];
+  furniture: readonly string[];
+  monsters: readonly string[];
+  traps: readonly string[];
+  zones: readonly string[];
+  markers: readonly string[];
+  /** Notes of the other maps (their flags, counters and placed monsters count). */
+  notes: readonly Note[];
+}
+
 export interface ValidateOptions {
+  /** Set by the multi-map check: what the other maps hold. */
+  foreign?: ForeignIds;
   /** Also run the editor-only checks (letters have notes, an objective exists). Default true. */
   editor?: boolean;
 }
@@ -86,6 +101,12 @@ export function validateQuestIssues(
   board: Board,
   options: ValidateOptions = {},
 ): Issue[] {
+  if (isMultiMap(quest)) return validateMultiMap(quest, board, options);
+  const foreign = options.foreign;
+  const eachEffect = (fn: (e: Effect) => void) => {
+    forEachEffect(quest, fn);
+    if (foreign) forEachEffect({ ...quest, notes: [...foreign.notes] }, fn);
+  };
   const editor = options.editor ?? true;
   const issues: Issue[] = [];
   const err = (message: string, ref?: IssueRef) =>
@@ -263,17 +284,18 @@ export function validateQuestIssues(
       ...quest.edgeDoors.map((d) => d.id),
       ...quest.secretDoors.map((d) => d.id),
       ...quest.falseDoors.map((d) => d.id),
+      ...(foreign?.doors ?? []),
     ],
     'door',
   );
   const furnitureIds = unique(
     'furniture',
-    quest.furniture.map((f) => f.id),
+    [...quest.furniture.map((f) => f.id), ...(foreign?.furniture ?? [])],
     'furniture',
   );
   const monsterIds = unique(
     'monsters',
-    quest.monsters.map((m) => m.id),
+    [...quest.monsters.map((m) => m.id), ...(foreign?.monsters ?? [])],
     'monster',
   );
   const spellIds = new Set<string>(CORE_SPELLS.map((s) => s.id));
@@ -315,19 +337,15 @@ export function validateQuestIssues(
       if (!spellIds.has(sp)) err(`enemy ${e.id}: unknown spell "${sp}"`, { kind: 'quest' });
   const trapIds = unique(
     'traps',
-    quest.traps.map((t) => t.id),
+    [...quest.traps.map((t) => t.id), ...(foreign?.traps ?? [])],
     'trap',
   );
   const zoneIds = unique(
     'zones',
-    quest.zones.map((z) => z.id),
+    [...quest.zones.map((z) => z.id), ...(foreign?.zones ?? [])],
     'zone',
   );
-  unique(
-    'markers',
-    quest.markers.map((m) => m.id),
-    'marker',
-  );
+  unique('markers', [...quest.markers.map((m) => m.id), ...(foreign?.markers ?? [])], 'marker');
   unique(
     'notes',
     quest.notes.map((n) => n.id),
@@ -503,7 +521,7 @@ export function validateQuestIssues(
     else trapCells.set(key(t.cell), t.id);
   }
   const flagsSetEarly = new Set<string>();
-  forEachEffect(quest, (e) => {
+  eachEffect((e) => {
     if (e.type === 'setFlag') flagsSetEarly.add(e.flag);
   });
   quest.boardTiles.forEach((t, i) => {
@@ -574,7 +592,7 @@ export function validateQuestIssues(
   }
   // A door that replaces a piece of furniture (a melted throne) may stand on its squares.
   const replaces = new Map<string, string>();
-  forEachEffect(quest, (e) => {
+  eachEffect((e) => {
     if (e.type === 'replaceFurnitureWithDoor') replaces.set(e.door, e.furniture);
   });
   // A door cell must be walkable: no block or furniture on either side.
@@ -618,7 +636,7 @@ export function validateQuestIssues(
   const countersAdded = new Set<string>();
   const completed = new Set<string>();
   const placed = new Set<string>();
-  forEachEffect(quest, (e) => {
+  eachEffect((e) => {
     if (e.type === 'setFlag') flagsSet.add(e.flag);
     else if (e.type === 'addCounter') countersAdded.add(e.counter);
     else if (e.type === 'completeObjective') completed.add(e.objective);
@@ -696,6 +714,10 @@ export function validateQuestIssues(
         break;
       case 'removeDoor':
         if (!doorIds.has(e.door)) err(`${where}: unknown door ${e.door}`, noteRef);
+        break;
+      case 'crossMap':
+        if (!(quest.links ?? []).some((l) => l.id === e.link))
+          err(`${where}: unknown link ${e.link}`, noteRef);
         break;
       case 'placeBlock':
         e.cells.forEach((c) => {
@@ -820,7 +842,7 @@ export function validateQuestIssues(
   for (const m of quest.monsters)
     if (m.hidden && !placed.has(m.id))
       err(`monster ${m.id}: hidden but no note places it`, { kind: 'monster', id: m.id });
-  const noteIds = new Set(quest.notes.map((n) => n.id));
+  const noteIds = new Set([...quest.notes, ...(foreign?.notes ?? [])].map((n) => n.id));
   if (quest.rules.noEquipmentUntil && !noteIds.has(quest.rules.noEquipmentUntil))
     err(`rules.noEquipmentUntil: unknown note ${quest.rules.noEquipmentUntil}`, {
       kind: 'quest',
@@ -908,5 +930,105 @@ export function validateQuestIssues(
     }
     checkReachable();
   }
+  return issues;
+}
+
+/** Triggers that name a room or a square: the same ids are on every map, so the note must say which. */
+const NEEDS_MAP = new Set([
+  'areaRevealed',
+  'areaEntered',
+  'treasureSearch',
+  'secretDoorSearch',
+  'squareEntered',
+]);
+
+/**
+ * A quest with several maps (decision 45): every map is checked as a quest of its own (with the
+ * ids of the other maps known), then the checks that only make sense across maps: the ids of the
+ * maps, the links, the notes that name a map, and letters used on two maps.
+ */
+function validateMultiMap(quest: Quest, board: Board, options: ValidateOptions): Issue[] {
+  const issues: Issue[] = [];
+  const err = (message: string, ref?: IssueRef) =>
+    issues.push(ref ? { message, severity: 'error', ref } : { message, severity: 'error' });
+  const maps = questMaps(quest);
+  const label = (m: { id: string; name: string | undefined }) => m.name ?? m.id;
+
+  if (quest.mapId === undefined)
+    err('mapId: a quest with several maps needs the id of map 1', { kind: 'quest' });
+  const mapIds = new Set<string>();
+  for (const m of maps) {
+    if (mapIds.has(m.id)) err(`maps: duplicate map id ${m.id}`, { kind: 'quest' });
+    mapIds.add(m.id);
+  }
+
+  // Notes: the map must exist, and a note on a room or a square must name its map.
+  const noteIds = new Set<string>();
+  const letterMap = new Map<string, string>();
+  for (const n of quest.notes) {
+    const ref: IssueRef = { kind: 'note', id: n.id };
+    if (noteIds.has(n.id)) err(`notes: duplicate id ${n.id}`, ref);
+    noteIds.add(n.id);
+    if (n.map !== undefined && !mapIds.has(n.map)) err(`note ${n.id}: unknown map ${n.map}`, ref);
+    if (n.map === undefined && NEEDS_MAP.has(n.trigger.type))
+      err(`note ${n.id}: a note on a room or a square needs a map`, ref);
+    if (n.letter !== undefined && n.map !== undefined) {
+      const other = letterMap.get(n.letter);
+      if (other !== undefined && other !== n.map)
+        err(`note ${n.id}: letter ${n.letter} is also used on map ${other}`, ref);
+      letterMap.set(n.letter, other ?? n.map);
+    }
+  }
+
+  // Links: two different maps, each end on a stairway square.
+  const linkIds = new Set<string>();
+  for (const l of quest.links ?? []) {
+    const ref: IssueRef = { kind: 'quest' };
+    if (linkIds.has(l.id)) err(`link ${l.id}: duplicate id`, ref);
+    linkIds.add(l.id);
+    if (l.a.map === l.b.map) err(`link ${l.id}: both ends are on map ${l.a.map}`, ref);
+    for (const [end, name] of [
+      [l.a, 'a'],
+      [l.b, 'b'],
+    ] as const) {
+      const m = maps.find((x) => x.id === end.map);
+      if (!m) {
+        err(`link ${l.id}: end ${name} is on an unknown map ${end.map}`, ref);
+        continue;
+      }
+      if (
+        !m.quest.furniture.some(
+          (f) => f.type === 'stairs' && f.cells.some((c) => key(c) === key(end.cell)),
+        )
+      )
+        err(`link ${l.id}: end ${name} ${key(end.cell)} is not on a stairway of map ${label(m)}`, {
+          kind: 'quest',
+          cell: cellOf(end.cell),
+        });
+    }
+  }
+
+  // Each map on its own. A repeated issue (a shared note checked on every map) is told once.
+  const told = new Set<string>();
+  maps.forEach((m, i) => {
+    const others = maps.filter((_, j) => j !== i).map((x) => x.quest);
+    const foreign: ForeignIds = {
+      doors: others
+        .flatMap((q) => [...q.doors, ...q.edgeDoors, ...q.secretDoors, ...q.falseDoors])
+        .map((d) => d.id),
+      furniture: others.flatMap((q) => q.furniture.map((f) => f.id)),
+      monsters: others.flatMap((q) => q.monsters.map((x) => x.id)),
+      traps: others.flatMap((q) => q.traps.map((t) => t.id)),
+      zones: others.flatMap((q) => q.zones.map((z) => z.id)),
+      markers: others.flatMap((q) => q.markers.map((x) => x.id)),
+      notes: quest.notes.filter((n) => !noteOnMap(n, m.id)),
+    };
+    for (const issue of validateQuestIssues(m.quest, board, { ...options, foreign })) {
+      const k = `${issue.severity}|${issue.message}|${JSON.stringify(issue.ref ?? null)}`;
+      if (told.has(k)) continue;
+      told.add(k);
+      issues.push({ ...issue, message: `Map ${label(m)}: ${issue.message}` });
+    }
+  });
   return issues;
 }

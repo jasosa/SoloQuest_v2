@@ -22,6 +22,9 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
         else if (p.state === 'away') out.push(`${p.name} is gone from the map.`);
         else out.push(`${p.name} is awake.`);
         break;
+      case 'crossed':
+        out.push(`The heroes are on ${p.name ?? 'the other map'} now.`);
+        break;
       case 'doorsOpened':
         out.push(p.doors.length > 1 ? 'Doors open on the map.' : 'A door opens on the map.');
         break;

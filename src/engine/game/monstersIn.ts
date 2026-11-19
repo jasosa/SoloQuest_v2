@@ -20,7 +20,9 @@ export function liveMonstersInRoom(level: Level, state: GameState, room: AreaId)
     )
     .map((m) => m.id);
   const wanderers = Object.entries(state.wanderers)
-    .filter(([id, w]) => w.room === room && state.monsters[id]?.dead === false)
+    .filter(
+      ([id, w]) => w.room === room && w.map === state.map && state.monsters[id]?.dead === false,
+    )
     .map(([id]) => id);
   return [...quest, ...wanderers];
 }

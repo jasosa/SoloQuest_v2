@@ -18,6 +18,7 @@ import { MONSTER_NAMES } from '../data/monsters';
 import type { Condition, Effect, MonsterType, Note } from '../quest/schema';
 import { textsOf } from '../quest/effects';
 import { EventError } from './errors';
+import { crossLink } from './crossing';
 import { liveMonstersInRoom } from './monstersIn';
 import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
@@ -515,6 +516,11 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
       d.seenDoors.delete(door.id);
       return;
     }
+    case 'crossMap':
+      // The arrival is revealed by the reducer once the event is done. Put this effect last in a
+      // note: what comes after it still runs on the map the heroes left.
+      if (d.map === level.quest.mapId) crossLink(level, d, e.link);
+      return;
     case 'addCounter': {
       const value = (d.counters[e.counter] ?? 0) + e.by;
       d.counters[e.counter] = value;

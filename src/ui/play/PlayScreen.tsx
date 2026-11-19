@@ -127,7 +127,7 @@ export interface PlayScreenProps {
 export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
   useFitMode('fill');
   useWakeLock(true); // the tablet must not go dark between turns
-  const { level, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
+  const { level, root, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
   const codes = useMemo(
@@ -204,7 +204,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     );
     return journalEntries.filter((e) => !starts.has(e.id));
   }, [level, journalEntries]);
-  const log = useMemo(() => eventLog(level, state.seed, events), [level, state.seed, events]);
+  const log = useMemo(() => eventLog(root, state.seed, events), [root, state.seed, events]);
   const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
   const goalLine = objectives.goalDone
@@ -912,7 +912,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <div className="titleblock">
           <h1 title={quest.title}>{quest.title}</h1>
           <div className="subline">
-            <span className="qn">{playtest ? 'Playtest' : `Quest ${quest.number}`}</span>
+            <span className="qn">
+              {(playtest ? 'Playtest' : `Quest ${quest.number}`) +
+                (quest.mapName ? `: ${quest.mapName}` : '')}
+            </span>
             {goalLine && (
               <span className="goalline" title={goalLine}>
                 <b>Goal</b> {goalLine}

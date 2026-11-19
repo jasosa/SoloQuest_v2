@@ -110,6 +110,8 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
     const rec = state.monsters[id];
     // a wanderer that escaped (MONSTER_LEAVE) is off the roster
     if (!rec || state.monsterStates[id]?.state === 'away') continue;
+    // a wanderer of another map (multi-map quests) is not here
+    if (w.map !== state.map) continue;
     const def = wandererDef(level, w, id);
     const stats = statsOf(def);
     const bx = boxOfMonster(def, level.quest.enemyDefs);

@@ -1,5 +1,5 @@
 import { wandererDef } from './roster';
-import type { Level } from '../board/level';
+import { activeLevel, type Level } from '../board/level';
 import { MONSTER_NAMES } from '../data/monsters';
 import type { GameEvent } from './events';
 import type { Prompt } from './prompts';
@@ -52,6 +52,8 @@ function fromPrompts(prompts: readonly Prompt[], turn: number): LogEntry[] {
         note: p.noteId,
         text: p.letter ? `Note ${p.letter}: ${what}` : what,
       });
+    } else if (p.kind === 'crossed') {
+      out.push({ turn, kind: 'look', text: `The heroes crossed to ${p.name ?? 'the other map'}` });
     } else if (p.kind === 'monsterPlaced') {
       out.push({ turn, kind: 'monster', text: `${p.name} joins the fight` });
     } else if (p.kind === 'objectiveDone') {
@@ -118,14 +120,14 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
  * The "What happened" log, oldest first, derived from the events (so an undo removes its line).
  * Pure: it replays the events. Numbers, doors and traps are never named, so nothing hidden leaks.
  */
-export function eventLog(level: Level, seed: number, events: readonly GameEvent[]): LogEntry[] {
-  const start = startGame(level, seed);
+export function eventLog(root: Level, seed: number, events: readonly GameEvent[]): LogEntry[] {
+  const start = startGame(root, seed);
   const out: LogEntry[] = [{ turn: start.state.turn, kind: 'start', text: 'The quest starts' }];
   out.push(...fromPrompts(start.prompts, start.state.turn));
   let state = start.state;
   for (const e of events) {
-    const r = reduce(level, state, e);
-    const line = fromEvent(level, state, e);
+    const r = reduce(root, state, e);
+    const line = fromEvent(activeLevel(root, state), state, e);
     if (line) out.push(line);
     out.push(...fromPrompts(r.prompts, state.turn));
     state = r.state;

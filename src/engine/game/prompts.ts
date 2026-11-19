@@ -15,6 +15,8 @@ export type Prompt =
       readonly cells: readonly CellKey[];
       readonly origin: readonly [number, number];
     }
+  /** The heroes crossed to another map of the quest. The arrival room is revealed. */
+  | { readonly kind: 'crossed'; readonly map: string; readonly name?: string | undefined }
   /** The players tried a false door: it cannot be opened. Nothing changed. */
   | { readonly kind: 'doorStuck'; readonly door: string }
   /** The action showed nothing new. */

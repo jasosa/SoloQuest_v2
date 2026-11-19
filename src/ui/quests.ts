@@ -71,6 +71,11 @@ export function levelOfId(id: string): Level | undefined {
  */
 export async function devTestLevel(which: string = 'test'): Promise<Level | undefined> {
   if (!import.meta.env.DEV) return undefined;
+  // `?quest=test-maps`: a quest with two maps joined by a stairway (see testMaps.ts).
+  if (which === 'test-maps') {
+    const { testMapsQuest } = await import('../engine/quest/testMaps');
+    return buildLevel(testMapsQuest());
+  }
   const { testQuest } = await import('../engine/quest/testQuest');
   // `?quest=frozen`: the heroes start outside an iron door in the bottom wall and leave through a
   // wooden exit; the bottom corridor holds the Frozen Horror hazards.

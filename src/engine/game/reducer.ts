@@ -11,7 +11,9 @@
  */
 import { wandererDef } from './roster';
 import { inBoard, areaAt, type Cell } from '../board/board';
-import { keyOf, type CellKey, type Level } from '../board/level';
+import { activeLevel, keyOf, type CellKey, type Level } from '../board/level';
+import { crossLink, revealArrival } from './crossing';
+import { firstMapId } from '../quest/maps';
 import { EventError } from './errors';
 import type { GameEvent } from './events';
 import type { Prompt } from './prompts';
@@ -55,8 +57,11 @@ export interface Reduced {
  * The start of the quest: the start room is revealed, then the `questStart` notes and the
  * `areaRevealed` notes of the start room fire. The prompts are the ones to show at the start.
  */
-export function startGame(level: Level, seed: number): Reduced {
+export function startGame(root: Level, seed: number): Reduced {
+  const level = activeLevel(root, {});
   const d = draftOf(emptyState(seed));
+  // Multi-map quests begin on map 1.
+  if (root.maps) d.map = firstMapId(root.quest);
   syncBlockers(level, d);
   const start = level.quest.start;
   // Heroes at an iron entry door see only that door. The first tap on it opens it and looks in.
@@ -75,15 +80,21 @@ export function startGame(level: Level, seed: number): Reduced {
  * State at the start of the quest (see `startGame`). The UI must call `startGame` to also get
  * the questStart and start-room prompts; this only gives the state.
  */
-export function initialState(level: Level, seed: number): GameState {
-  return startGame(level, seed).state;
+export function initialState(root: Level, seed: number): GameState {
+  return startGame(root, seed).state;
 }
 
-/** Apply one event. After END_QUEST every event is rejected with QUEST_ENDED. */
-export function reduce(level: Level, state: GameState, event: GameEvent): Reduced {
+/**
+ * Apply one event. After END_QUEST every event is rejected with QUEST_ENDED. `root` is the level
+ * from `buildLevel`: in a multi-map quest the event is applied on the map the heroes are on.
+ */
+export function reduce(root: Level, state: GameState, event: GameEvent): Reduced {
   if (state.ended) throw new EventError('QUEST_ENDED', 'The quest is over');
-  const r0 = reduceEvent(level, state, event);
-  const r = afterSeen(level, state, r0);
+  const r0 = reduceEvent(activeLevel(root, state), state, event);
+  // A crossing (note effect or CROSS_MAP): the heroes arrive on the other map.
+  const crossed = r0.state.arrival !== state.arrival ? arrive(root, r0) : r0;
+  const level = activeLevel(root, crossed.state);
+  const r = afterSeen(level, state, crossed);
   // Objectives that became done by this event are told to the players.
   const before = objectivesStatus(level, state);
   const after = objectivesStatus(level, r.state);
@@ -94,6 +105,30 @@ export function reduce(level: Level, state: GameState, event: GameEvent): Reduce
   });
   if (after.goalDone && !before.goalDone) extra.push({ kind: 'goalDone' });
   return extra.length > 0 ? { state: r.state, prompts: [...r.prompts, ...extra] } : r;
+}
+
+/** The heroes crossed: reveal the stairway room of the new map and fire the notes of what shows. */
+function arrive(root: Level, r: Reduced): Reduced {
+  const level = activeLevel(root, r.state);
+  const arrival = r.state.arrival!;
+  const d = draftOf(r.state);
+  const cells = revealArrival(level, d, arrival.cell);
+  const name = level.quest.mapName;
+  const shown: Prompt[] = [
+    { kind: 'crossed', map: arrival.map, ...(name !== undefined ? { name } : {}) },
+    ...r.prompts,
+    ...(cells.length > 0
+      ? [
+          {
+            kind: 'revealed' as const,
+            cells,
+            origin: [arrival.cell[0] + 0.5, arrival.cell[1] + 0.5] as const,
+          },
+        ]
+      : []),
+  ];
+  const notes = runTriggers(level, d, [], { beforeRooms: new Set() }).prompts;
+  return { state: d, prompts: withNotes(shown, notes) };
 }
 
 /** Monsters that came into view by this event fire their `monsterSeen` notes (decision 67). */
@@ -117,6 +152,11 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
   switch (event.type) {
     case 'OPEN_DOOR':
       return openDoor(level, state, event.door);
+    case 'CROSS_MAP': {
+      const d = draftOf(state);
+      crossLink(level, d, event.link);
+      return { state: d, prompts: [] };
+    }
     case 'LOOK_FROM':
       return lookFrom(level, state, event.cell);
     case 'TUNNEL_USE':
@@ -253,20 +293,20 @@ function endNotes(
 }
 
 /** Rebuild the state from the start. Throws if an event is invalid. */
-export function replay(level: Level, seed: number, events: readonly GameEvent[]): GameState {
-  let state = initialState(level, seed);
-  for (const e of events) state = reduce(level, state, e).state;
+export function replay(root: Level, seed: number, events: readonly GameEvent[]): GameState {
+  let state = initialState(root, seed);
+  for (const e of events) state = reduce(root, state, e).state;
   return state;
 }
 
 /** Drop the last event and replay. With no events, nothing changes. */
 export function undo(
-  level: Level,
+  root: Level,
   seed: number,
   events: readonly GameEvent[],
 ): { events: readonly GameEvent[]; state: GameState } {
   const rest = events.slice(0, -1);
-  return { events: rest, state: replay(level, seed, rest) };
+  return { events: rest, state: replay(root, seed, rest) };
 }
 
 function finish(
