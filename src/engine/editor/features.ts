@@ -47,6 +47,15 @@ export function setLeave(q: Quest, text: string): EditResult {
   return ok(quest, newIssues(q, quest));
 }
 
+/** The texture pack the quest looks best with (an id). Only a hint. Empty clears it. */
+export function setSuggestedPack(q: Quest, id: string): EditResult {
+  const t = id.trim();
+  const rest: Partial<Quest> = { ...q };
+  delete rest.suggestedPack;
+  const quest = (t === '' ? rest : { ...rest, suggestedPack: t }) as Quest;
+  return ok(quest, newIssues(q, quest));
+}
+
 export function addTunnel(q: Quest, input: { design: number; a: Cell; b: Cell }): EditResult {
   if (!onBoard(input.a) || !onBoard(input.b)) return fail('A tunnel end must be on the board.');
   if (input.a[0] === input.b[0] && input.a[1] === input.b[1])

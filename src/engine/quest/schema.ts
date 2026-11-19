@@ -579,6 +579,8 @@ export const QuestSchema = z.strictObject({
   endText: nonEmpty.optional(),
   /** How the heroes leave when the stairs are not the way ("through the cave"). Words only. */
   leave: nonEmpty.optional(),
+  /** A texture pack id the quest looks best with (decision 78). Only a hint: never applied for the player. */
+  suggestedPack: nonEmpty.optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */
