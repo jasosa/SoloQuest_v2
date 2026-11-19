@@ -226,7 +226,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           </button>
           <button className="fr-card" onClick={() => setPopup('open')}>
             <b>OPEN QUEST</b>
-            <span>Load a quest from a file, or one of the 14 bundled quests.</span>
+            <span>Load a quest from a file, or copy one of the bundled quests.</span>
           </button>
           {onDesigner && (
             <button className="fr-card" onClick={onDesigner}>

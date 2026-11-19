@@ -305,3 +305,24 @@ describe('quest 0: hazards', () => {
     expect(JSON.stringify(r.prompts)).toContain('slipperyIce');
   });
 });
+
+describe('quest 0 in the editor', () => {
+  it('survives an export and import with every Frozen Horror field', async () => {
+    const { exportQuest, importQuest } = await import('../../engine/editor');
+    const r = importQuest(exportQuest(level.quest));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const q = r.quest;
+    for (const k of [
+      'tunnels',
+      'boardTiles',
+      'roomTiles',
+      'edgeDoors',
+      'areaOverrides',
+      'leave',
+      'start',
+    ] as const)
+      expect(q[k]).toEqual(level.quest[k]);
+    expect(q.doors.find((d) => d.id === 'd-throne')?.hiddenUntil).toBe('throneMelted');
+  });
+});

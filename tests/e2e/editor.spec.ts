@@ -1288,3 +1288,37 @@ test.describe('editor: endings and blocked search', () => {
     await expect(block).toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+test.describe('editor: Frozen Horror features', () => {
+  test('add a tunnel, a room tile and an edge door in the Quest tab; they list and remove', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    await page.getByLabel('Tunnel end A').fill('4,18');
+    await page.getByLabel('Tunnel end B').fill('20,18');
+    await page.getByRole('button', { name: 'Add a tunnel' }).click();
+    await expect(page.getByTestId('tunnel-row')).toContainText('Design 1: 4,18 to 20,18');
+    await page.getByLabel('Tile room').fill('R04');
+    await page.getByRole('button', { name: 'Put the tile in the room' }).click();
+    await expect(page.getByTestId('room-tile-row')).toHaveCount(1);
+    await page.getByLabel('Edge door square').fill('0,9');
+    await page.getByRole('button', { name: 'Add an edge door' }).click();
+    await expect(page.getByTestId('edge-row')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Remove tunnel 1' }).click();
+    await expect(page.getByTestId('tunnel-row')).toHaveCount(0);
+  });
+});
+
+test('a copy of Frozen Horror quest 0 opens in the editor and keeps its tunnels (bug)', async ({
+  page,
+}) => {
+  await page.goto('/?editor=1&nosave=1');
+  await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+  await page.getByLabel('Bundled quest').selectOption('0');
+  await page.getByRole('button', { name: 'Edit it now' }).click();
+  await expect(board(page)).toBeVisible();
+  await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+  await expect(page.getByTestId('tunnel-row')).toHaveCount(3);
+  await expect(page.getByLabel('Leave')).toHaveValue('through the cave');
+});

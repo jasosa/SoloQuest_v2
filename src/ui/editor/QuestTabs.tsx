@@ -4,6 +4,7 @@ import { Col, Fld, Frame, Panel } from '../shared/Frame';
 import { ActionsPanel } from './ActionsPanel';
 import type { EditorStore } from './editorStore';
 import { ActionForm } from './NotesPanel';
+import { FeaturesPanel } from './FeaturesPanel';
 import { QuestPanel } from './QuestPanel';
 
 /**
@@ -70,6 +71,9 @@ export function QuestTab({ store }: { store: EditorStore }) {
         </Panel>
         <Panel title="Ending">
           <QuestPanel store={store} only="endings" />
+        </Panel>
+        <Panel title="Board features (expansions)" testId="quest-features">
+          <FeaturesPanel store={store} />
         </Panel>
         <Panel title="Abilities and spells of this quest">
           <QuestPanel store={store} only="abilities" />
