@@ -15,6 +15,14 @@ export const MAX_TEXT_LENGTH = 4000;
 export const ENGLISH_CODE = 'en';
 /** The name in the header of an English file that holds edited texts. */
 export const ENGLISH_EDITED_NAME = 'English (edited)';
+/**
+ * The code of the owner's changes to the built-in English (decision 92): kept on the device like
+ * the edited English, and exported as the update that `npm run i18n:apply` writes into the repository.
+ */
+export const BUILTIN_UPDATE_CODE = 'en-core';
+export const BUILTIN_UPDATE_NAME = 'English (built-in update)';
+export const isEnglishCode = (code: string): boolean =>
+  code === ENGLISH_CODE || code === BUILTIN_UPDATE_CODE;
 
 const CODE = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
 
@@ -28,6 +36,8 @@ export const LanguageFileSchema = z.object({
     code: z.string().regex(CODE, 'The language code looks like "es" or "pt-BR".'),
   }),
   author: z.string().max(120).optional(),
+  /** When an update of the built-in English was made (ISO date). */
+  date: z.string().max(40).optional(),
   /** The version of the English file this one was made from (see `baseOf`). */
   base: z.string().max(40),
   strings: z.record(z.string().min(1).max(300), z.string().max(MAX_TEXT_LENGTH)),
@@ -85,13 +95,19 @@ export function languageToText(file: LanguageFile): string {
 export function englishEditsFile(
   builtin: Readonly<Record<string, string>>,
   edits: Readonly<Record<string, string>>,
+  code: string = ENGLISH_CODE,
+  date?: string,
 ): LanguageFile {
   const strings: Record<string, string> = {};
   for (const [k, v] of Object.entries(edits)) if (v && v !== builtin[k]) strings[k] = v;
   return {
     format: LANGUAGE_FORMAT,
     version: 1,
-    language: { name: ENGLISH_EDITED_NAME, code: ENGLISH_CODE },
+    language: {
+      name: code === BUILTIN_UPDATE_CODE ? BUILTIN_UPDATE_NAME : ENGLISH_EDITED_NAME,
+      code,
+    },
+    ...(date ? { date } : {}),
     base: baseOf(builtin),
     strings,
   };
@@ -102,12 +118,10 @@ export function englishEditsFile(
  * missing in the language falls to the edited English, then (in `tr`) to the built-in English.
  */
 export function effectiveStrings(
-  englishEdits: Readonly<Record<string, string>> | undefined,
-  language: Readonly<Record<string, string>> | undefined,
+  ...layers: (Readonly<Record<string, string>> | undefined)[]
 ): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const src of [englishEdits, language])
-    for (const [k, v] of Object.entries(src ?? {})) if (v) out[k] = v;
+  for (const src of layers) for (const [k, v] of Object.entries(src ?? {})) if (v) out[k] = v;
   return out;
 }
 

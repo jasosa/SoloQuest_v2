@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { ENGLISH_CODE, type LanguageFile } from '../i18n/file';
+import { isEnglishCode, type LanguageFile } from '../i18n/file';
 
 /**
  * Translations kept on this device (decision 92): the files the user made or imported, in IndexedDB,
@@ -49,7 +49,7 @@ export function summaryOfLanguage(file: LanguageFile): LanguageSummary {
 }
 
 const refuseEnglish = (code: string) => {
-  if (code === ENGLISH_CODE) throw new EnglishCannotBeDeletedError();
+  if (isEnglishCode(code)) throw new EnglishCannotBeDeletedError();
 };
 const hasTexts = (f: LanguageFile | undefined) => !!f && Object.keys(f.strings).length > 0;
 
@@ -58,11 +58,11 @@ export class MemoryLanguageStore implements LanguageStore {
   private active: string | null = null;
   async list() {
     return [...this.files.values()]
-      .filter((f) => f.language.code !== ENGLISH_CODE)
+      .filter((f) => !isEnglishCode(f.language.code))
       .map(summaryOfLanguage);
   }
   async englishEdited() {
-    return hasTexts(this.files.get(ENGLISH_CODE));
+    return ['en', 'en-core'].some((c) => hasTexts(this.files.get(c)));
   }
   async load(code: string) {
     return this.files.get(code);
@@ -79,7 +79,7 @@ export class MemoryLanguageStore implements LanguageStore {
     return this.active;
   }
   async setActive(code: string | null) {
-    this.active = code === ENGLISH_CODE ? null : code;
+    this.active = code && isEnglishCode(code) ? null : code;
   }
 }
 
@@ -98,7 +98,7 @@ class LanguageDb extends Dexie {
 }
 
 const ACTIVE_KEY = 'soloquest-active-language';
-const EDITED_KEY = 'soloquest-english-edited';
+const EDITED_KEY = 'soloquest-english-edited-';
 
 export class DexieLanguageStore implements LanguageStore {
   private db: LanguageDb;
@@ -108,7 +108,7 @@ export class DexieLanguageStore implements LanguageStore {
   async list() {
     try {
       return (await this.db.languages.toArray())
-        .filter((r) => r.code !== ENGLISH_CODE)
+        .filter((r) => !isEnglishCode(r.code))
         .map((r) => summaryOfLanguage(r.file));
     } catch {
       return [];
@@ -127,10 +127,11 @@ export class DexieLanguageStore implements LanguageStore {
       updatedAt: Date.now(),
       file,
     });
-    if (file.language.code === ENGLISH_CODE) {
+    if (isEnglishCode(file.language.code)) {
       try {
-        if (hasTexts(file)) localStorage.setItem(EDITED_KEY, '1');
-        else localStorage.removeItem(EDITED_KEY);
+        const flag = EDITED_KEY + file.language.code;
+        if (hasTexts(file)) localStorage.setItem(flag, '1');
+        else localStorage.removeItem(flag);
       } catch {
         /* the edited English is read from the database at the next start only if this flag is set */
       }
@@ -138,7 +139,7 @@ export class DexieLanguageStore implements LanguageStore {
   }
   async englishEdited() {
     try {
-      return localStorage.getItem(EDITED_KEY) === '1';
+      return ['en', 'en-core'].some((c) => localStorage.getItem(EDITED_KEY + c) === '1');
     } catch {
       return false;
     }
@@ -157,7 +158,7 @@ export class DexieLanguageStore implements LanguageStore {
   }
   async setActive(code: string | null) {
     try {
-      if (code && code !== ENGLISH_CODE) localStorage.setItem(ACTIVE_KEY, code);
+      if (code && !isEnglishCode(code)) localStorage.setItem(ACTIVE_KEY, code);
       else localStorage.removeItem(ACTIVE_KEY);
     } catch {
       /* storage unavailable: English is used the next time the app starts */

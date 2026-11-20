@@ -74,7 +74,11 @@ export function QuestSettingsCard({
   );
   const listed = campaign?.pack.campaignSettings ?? [];
   return (
-    <NoteCard kind="Quest settings" title={title} onClose={onClose}>
+    <NoteCard
+      kind={t('shared.QuestSettingsCard.questSettings', 'Quest settings')}
+      title={title}
+      onClose={onClose}
+    >
       <SwitchRow
         label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
         hint={t(

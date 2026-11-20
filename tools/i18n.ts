@@ -3,12 +3,14 @@
  *   write                      write src/i18n/en.json from the t() calls of the source
  *   check                      fail when en.json is not what write would make
  *   report                     list the literals still in each file (all files, or the covered ones)
+ *   apply <file> [--dry-run]    write an update of the built-in English into the repository (npm run i18n:apply)
  *   codemod <area> <file>...   route the plain literals of the files through t, under the key area
  *                              (then run write, review the listed mixed texts by hand, add the files to covered.ts)
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { COVERED, ROOT, readCatalogue, rel, sortedJson, sourceFiles } from './i18n/catalogue';
+import { applyUpdate, reportText } from './i18n/applyUpdate';
 import { codemod } from './i18n/codemod';
 import { literals } from './i18n/scan';
 
@@ -34,7 +36,7 @@ if (cmd === 'write' || cmd === 'check') {
   let total = 0;
   const files = all
     ? sourceFiles()
-        .map(rel)
+        .map((f) => rel(f))
         .filter((f) => f.endsWith('.tsx'))
     : COVERED;
   for (const f of files) {
@@ -55,7 +57,8 @@ if (cmd === 'write' || cmd === 'check') {
     );
   console.log(`${total} literals left`);
 } else if (cmd === 'codemod') {
-  const [area, ...files] = args;
+  const sentences = args.includes('--sentences');
+  const [area, ...files] = args.filter((a) => a !== '--sentences');
   if (!area || !files.length) {
     console.error('usage: codemod <area> <file>...');
     process.exit(1);
@@ -72,6 +75,7 @@ if (cmd === 'write' || cmd === 'check') {
       area,
       existing,
       imp.startsWith('.') ? imp : `./${imp}`,
+      sentences,
     );
     writeFileSync(abs, r.source);
     Object.assign(existing, r.entries);
@@ -80,7 +84,24 @@ if (cmd === 'write' || cmd === 'check') {
     );
     for (const s of r.skipped) console.log(`    ${s.line} [${s.kind}] ${s.text.slice(0, 70)}`);
   }
+} else if (cmd === 'apply') {
+  const [file, ...flags] = args;
+  if (!file) {
+    console.error('usage: npm run i18n:apply -- <update file> [--dry-run]');
+    process.exit(1);
+  }
+  const dryRun = flags.includes('--dry-run');
+  try {
+    const report = await applyUpdate(ROOT, readFileSync(file, 'utf8'), { dryRun });
+    console.log(reportText(report, dryRun));
+    if (report.refused.length) process.exitCode = 1;
+  } catch (e) {
+    console.error((e as Error).message);
+    process.exit(1);
+  }
 } else {
-  console.error('commands: write, check, report [--all] [-v], codemod <area> <file>...');
+  console.error(
+    'commands: write, check, report [--all] [-v], codemod <area> <file>..., apply <file> [--dry-run]',
+  );
   process.exit(1);
 }

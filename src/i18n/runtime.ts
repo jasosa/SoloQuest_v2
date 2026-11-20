@@ -28,10 +28,12 @@ export async function initI18n(store: LanguageStore = languageStore): Promise<vo
   if (started) return;
   started = true;
   try {
-    const edited = (await store.englishEdited()) ? await store.load('en') : undefined;
+    const edited = await store.englishEdited();
+    const mine = edited ? await store.load('en') : undefined;
+    const update = edited ? await store.load('en-core') : undefined;
     const code = await store.getActive();
     const file = code ? await store.load(code) : undefined;
-    const strings = effectiveStrings(edited?.strings, file?.strings);
+    const strings = effectiveStrings(update?.strings, mine?.strings, file?.strings);
     if (Object.keys(strings).length === 0) return;
     englishData = dataStrings();
     setActiveStrings(strings);

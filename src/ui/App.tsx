@@ -363,7 +363,11 @@ function Game({ params }: { params: URLSearchParams }) {
       });
       setPlaytest({ game: store, editor });
     } catch (e) {
-      editor.getState().say(`Cannot playtest yet: ${(e as Error).message}`);
+      editor.getState().say(
+        t('ui.App.cannotPlaytestYet', 'Cannot playtest yet: {message}', {
+          message: (e as Error).message,
+        }),
+      );
     }
   };
 

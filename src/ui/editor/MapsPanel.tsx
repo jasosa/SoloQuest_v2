@@ -40,7 +40,7 @@ export function MapsPanel({ store }: { store: EditorStore }) {
     const a = pick(first);
     const b = pick(second);
     if (!a || !b) {
-      st.say('Pick the two stairways to join.');
+      st.say(t('editor.MapsPanel.pickTheTwoStairways', 'Pick the two stairways to join.'));
       return;
     }
     if (

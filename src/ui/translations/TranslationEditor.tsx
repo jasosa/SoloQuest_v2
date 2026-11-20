@@ -10,7 +10,8 @@ import {
   type RowFilter,
 } from '../../i18n/editorModel';
 import {
-  ENGLISH_CODE,
+  BUILTIN_UPDATE_CODE,
+  isEnglishCode,
   baseOf,
   compare,
   englishEditsFile,
@@ -29,6 +30,7 @@ export function TranslationEditor({
   code,
   english: effective,
   builtin,
+  shipped,
   onBack,
 }: {
   store: LanguageStore;
@@ -37,12 +39,14 @@ export function TranslationEditor({
   english: Readonly<Record<string, string>>;
   /** The built-in English, which the editor of English changes by an overlay and never overwrites. */
   builtin: Readonly<Record<string, string>>;
+  /** The built-in English with the update of the owner: what device edits are compared with. */
+  shipped: Readonly<Record<string, string>>;
   /** `saved`: something was saved, so the page may need to load again. */
   onBack(saved: boolean): void;
 }) {
-  const isEnglish = code === ENGLISH_CODE;
+  const isEnglish = isEnglishCode(code);
   /** The texts the rows are compared with: the built-in English when editing English itself. */
-  const english = isEnglish ? builtin : effective;
+  const english = code === BUILTIN_UPDATE_CODE ? builtin : isEnglish ? shipped : effective;
   const [everSaved, setEverSaved] = useState(false);
   const [file, setFile] = useState<LanguageFile | null>(null);
   const [strings, setStrings] = useState<Record<string, string>>({});
@@ -56,7 +60,7 @@ export function TranslationEditor({
   useEffect(() => {
     let live = true;
     void store.load(code).then((loaded) => {
-      const f = loaded ?? (code === ENGLISH_CODE ? englishEditsFile(builtin, {}) : undefined);
+      const f = loaded ?? (isEnglishCode(code) ? englishEditsFile(english, {}, code) : undefined);
       if (!live || !f) return;
       setFile(f);
       setStrings(f.strings);
@@ -64,7 +68,7 @@ export function TranslationEditor({
     return () => {
       live = false;
     };
-  }, [store, code, builtin]);
+  }, [store, code, english]);
 
   const areas = useMemo(() => areasOf(english), [english]);
   const progress = useMemo(() => progressByArea(english, strings), [english, strings]);
@@ -81,7 +85,7 @@ export function TranslationEditor({
     setStrings((s) => {
       const next = { ...s, [key]: text };
       // English keeps only the texts that differ from the built-in ones
-      if (isEnglish && (text === '' || text === builtin[key])) delete next[key];
+      if (isEnglish && (text === '' || text === english[key])) delete next[key];
       return next;
     });
     setDirty(true);
@@ -89,7 +93,12 @@ export function TranslationEditor({
   };
   const save = async () => {
     const next: LanguageFile = isEnglish
-      ? englishEditsFile(builtin, strings)
+      ? englishEditsFile(
+          english,
+          strings,
+          code,
+          code === BUILTIN_UPDATE_CODE ? new Date().toISOString().slice(0, 10) : undefined,
+        )
       : { ...file, base: currentBase, strings };
     await store.save(next);
     setFile(next);
@@ -110,7 +119,9 @@ export function TranslationEditor({
     <Dialog
       title={
         isEnglish
-          ? t('translations.editEnglish', 'Edit English')
+          ? code === BUILTIN_UPDATE_CODE
+            ? t('translations.editBuiltInEnglish', 'Edit the built-in English')
+            : t('translations.editEnglish', 'Edit English')
           : t('translations.translate', 'Translate {name}', { name: file.language.name })
       }
       wide
@@ -240,7 +251,7 @@ export function TranslationEditor({
       </p>
       <ul className="fr-recent" data-testid="translation-rows">
         {keys.slice(0, shown).map((key) => {
-          const own = isEnglish ? (strings[key] ?? builtin[key]!) : (strings[key] ?? '');
+          const own = isEnglish ? (strings[key] ?? english[key]!) : (strings[key] ?? '');
           const problem = placeholderProblem(english[key]!, own);
           const changed = isTranslated(english, strings, key);
           return (

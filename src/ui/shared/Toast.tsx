@@ -51,7 +51,11 @@ export function ToastBox({
 /** A message that was too long for its toast, in full. */
 export function FullMessage({ text, onClose }: { text: string; onClose(): void }) {
   return (
-    <NoteCard kind="Message" title={t('shared.Toast.message', 'Message')} onClose={onClose}>
+    <NoteCard
+      kind={t('shared.Toast.message', 'Message')}
+      title={t('shared.Toast.message', 'Message')}
+      onClose={onClose}
+    >
       <p data-testid="full-message">{text}</p>
       <button className="btn" onClick={onClose}>
         {t('shared.Toast.close', 'Close')}

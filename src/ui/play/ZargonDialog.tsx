@@ -35,7 +35,7 @@ export function ZargonDialog(p: ZargonDialogProps) {
     return (
       <NoteCard
         light
-        kind="Zargon's turn"
+        kind={t('play.ZargonDialog.zargonSTurn', "Zargon's turn")}
         title={t('play.ZargonDialog.allHeroesHaveFallen', 'All heroes have fallen')}
         onClose={p.onClose}
       >
@@ -57,7 +57,9 @@ export function ZargonDialog(p: ZargonDialogProps) {
     return (
       <NoteCard
         light
-        kind={`Zargon's turn · Turn ${p.turn}`}
+        kind={t('play.ZargonDialog.zargonSTurnTurn', "Zargon's turn · Turn {turn}", {
+          turn: p.turn,
+        })}
         title={
           p.seq.items.length === 0
             ? t('play.ZargonDialog.noMonsterToAct', 'No monster to act')
@@ -74,7 +76,7 @@ export function ZargonDialog(p: ZargonDialogProps) {
               )}
         </p>
         <button className="btn" onClick={p.onEnd}>
-          End Zargon&apos;s turn
+          {t('play.ZargonDialog.endZargonsTurn', "End Zargon's turn")}
         </button>
         {back}
       </NoteCard>
@@ -90,7 +92,7 @@ export function ZargonDialog(p: ZargonDialogProps) {
         key={o.monster}
         light
         letter={code}
-        kind="Not acting this turn"
+        kind={t('play.ZargonDialog.notActingThisTurn', 'Not acting this turn')}
         title={o.name}
         onClose={p.onClose}
       >
@@ -107,7 +109,10 @@ export function ZargonDialog(p: ZargonDialogProps) {
       key={o.monster}
       light
       letter={code}
-      kind={`Monster ${cur.number} of ${p.seq.actingTotal}`}
+      kind={t('play.ZargonDialog.monsterOf', 'Monster {number} of {actingTotal}', {
+        number: cur.number ?? 0,
+        actingTotal: p.seq.actingTotal ?? 0,
+      })}
       title={o.name}
       onClose={p.onClose}
     >

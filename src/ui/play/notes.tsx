@@ -195,7 +195,7 @@ export function trapStepBody(props: {
     case 'jump':
       return {
         kind: 'Jump · needs 2 moves left',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
             <p>{t('play.notes.anythingButASkull', 'Anything but a skull: you jump over.')}</p>
@@ -213,7 +213,7 @@ export function trapStepBody(props: {
     case 'who':
       return {
         kind: 'Disarm',
-        title: 'Who tries?',
+        title: t('play.notes.whoTries', 'Who tries?'),
         body: (
           <>
             <p>{t('play.notes.moveOntoTheSquare', 'Move onto the square first.')}</p>
@@ -229,12 +229,10 @@ export function trapStepBody(props: {
     case 'dwarf':
       return {
         kind: 'Disarm · Dwarf',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
-            <p>
-              Only a <b>{t('play.notes.blackShield', 'black shield')}</b> springs the trap.
-            </p>
+            <p>{t('play.notes.onlyABlackShield', 'Only a black shield springs the trap.')}</p>
             <div className="row">
               <button className="btn" onClick={() => props.onDisarm('dwarf', 'blackShield')}>
                 {t('play.notes.blackShield2', 'Black shield')}
@@ -249,7 +247,7 @@ export function trapStepBody(props: {
     case 'kit':
       return {
         kind: 'Disarm · tool kit',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
             <p>
@@ -310,27 +308,31 @@ export function headingOf(p: Prompt, nameOf: (id: string) => string = nameFromId
     case 'trapSprung':
       return sprungTitle(p.trapKind);
     case 'trapJumped':
-      return 'You land safely';
+      return t('play.notes.youLandSafely', 'You land safely');
     case 'trapDisarmed':
-      return `It was a ${TRAP_NAMES[p.trapKind]}`;
+      return t('play.notes.itWasA', 'It was a {v1}', { v1: TRAP_NAMES[p.trapKind] });
     case 'tunnelUsed':
-      return `Ice tunnel ${p.design}`;
+      return t('play.notes.iceTunnel', 'Ice tunnel {design}', { design: p.design });
     case 'note':
-      return p.letter ? `Quest note ${p.letter}` : 'Quest note';
+      return p.letter
+        ? t('play.notes.questNote', 'Quest note {letter}', { letter: p.letter })
+        : t('play.notes.questNote2', 'Quest note');
     case 'drawCard':
-      return 'Draw a treasure card';
+      return t('play.notes.drawATreasureCard', 'Draw a treasure card');
     case 'wanderingMonster':
-      return `It attacks the ${nameOf(p.hero)}!`;
+      return t('play.notes.itAttacksThe', 'It attacks the {v1}!', { v1: nameOf(p.hero) });
     case 'wanderingText':
-      return 'Wandering monster';
+      return t('play.notes.wanderingMonster', 'Wandering monster');
     case 'secretDoorsFound':
-      return p.doors.length > 1 ? 'Secret doors!' : 'A secret door!';
+      return p.doors.length > 1
+        ? t('play.notes.secretDoors', 'Secret doors!')
+        : t('play.notes.aSecretDoor', 'A secret door!');
     case 'nothingFound':
-      return 'Nothing found';
+      return t('play.notes.nothingFound', 'Nothing found');
     case 'trapFound':
-      return 'You found a trap';
+      return t('play.notes.youFoundATrap', 'You found a trap');
     case 'noTrap':
-      return 'No trap';
+      return t('play.notes.noTrap', 'No trap');
     case 'doorStuck':
       return 'A door that will not open';
     default:
@@ -345,36 +347,50 @@ function lines(p: Prompt, nameOf: (id: string) => string): string[] {
     case 'trapJumped':
       return p.slide
         ? [
-            'The trap is still there for the next hero.',
-            'The hero saw the whole slide: put the ice slide tile on the board. It ends at the arrow.',
+            t('play.notes.theTrapIsStill', 'The trap is still there for the next hero.'),
+            t(
+              'play.notes.theHeroSawThe',
+              'The hero saw the whole slide: put the ice slide tile on the board. It ends at the arrow.',
+            ),
           ]
-        : ['The trap is still there for the next hero.'];
+        : [t('play.notes.theTrapIsStill', 'The trap is still there for the next hero.')];
     case 'trapDisarmed':
-      return ['The square is safe now.'];
+      return [t('play.notes.theSquareIsSafe', 'The square is safe now.')];
     case 'note':
       return [...p.texts];
     case 'drawCard':
-      return ['No quest treasure here. Read the card aloud.'];
+      return [t('play.notes.noQuestTreasureHere', 'No quest treasure here. Read the card aloud.')];
     case 'tunnelUsed':
       return [
-        `The hero comes out at the other square of ice tunnel ${p.design}. If a figure is on it, move that figure to a free square next to it. The move ends here.`,
+        t(
+          'play.notes.theHeroComesOut',
+          'The hero comes out at the other square of ice tunnel {design}. If a figure is on it, move that figure to a free square next to it. The move ends here.',
+          { design: p.design },
+        ),
       ];
     case 'wanderingMonster':
       return wanderingLines(p, nameOf);
     case 'wanderingText':
       return [p.text];
     case 'secretDoorsFound':
-      return [`${p.doors.length > 1 ? 'They are' : 'It is'} on the map now, closed. Tap to open.`];
+      return [
+        p.doors.length > 1
+          ? t('play.notes.theyAreOnTheMap', 'They are on the map now, closed. Tap to open.')
+          : t('play.notes.itIsOnTheMap', 'It is on the map now, closed. Tap to open.'),
+      ];
     case 'nothingFound':
-      return ['There is no secret door to find here.'];
+      return [t('play.notes.thereIsNoSecret', 'There is no secret door to find here.')];
     case 'trapFound':
       return [
-        'You found a trap on this chest. Try to disarm it, or a treasure search here springs it.',
+        t(
+          'play.notes.youFoundATrap2',
+          'You found a trap on this chest. Try to disarm it, or a treasure search here springs it.',
+        ),
       ];
     case 'noTrap':
-      return ['No trap on this chest.'];
+      return [t('play.notes.noTrapOnThis', 'No trap on this chest.')];
     case 'doorStuck':
-      return ['This door cannot be opened. Nothing changed.'];
+      return [t('play.notes.thisDoorCannotBe', 'This door cannot be opened. Nothing changed.')];
     default:
       return [];
   }

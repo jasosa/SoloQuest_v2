@@ -71,19 +71,22 @@ const DOOR_TOOLS: readonly { kind: DoorTool; label: string }[] = [
   { kind: 'normal', label: 'Normal' },
   { kind: 'secret', label: 'Secret' },
   { kind: 'false', label: 'False' },
-  { kind: 'tunnel', label: 'Ice tunnel' },
-  { kind: 'ironEntry', label: 'Iron entry' },
-  { kind: 'woodenExit', label: 'Wooden exit' },
+  { kind: 'tunnel', label: t('editor.EditorScreen.iceTunnel', 'Ice tunnel') },
+  { kind: 'ironEntry', label: t('editor.EditorScreen.ironEntry', 'Iron entry') },
+  { kind: 'woodenExit', label: t('editor.EditorScreen.woodenExit', 'Wooden exit') },
 ];
 
 const TRAP_KINDS = [
   { kind: 'pit', label: 'Pit' },
-  { kind: 'fallingBlock', label: 'Falling block' },
+  { kind: 'fallingBlock', label: t('editor.EditorScreen.fallingBlock', 'Falling block') },
   { kind: 'spear', label: 'Spear' },
   { kind: 'stalactite', label: 'Stalactite' },
-  { kind: 'swingingAxe', label: 'Swinging axe' },
-  { kind: 'wanderingTrap', label: 'Wandering monsters' },
-  { kind: 'slipperyIce', label: 'Slippery ice' },
+  { kind: 'swingingAxe', label: t('editor.EditorScreen.swingingAxe', 'Swinging axe') },
+  {
+    kind: 'wanderingTrap',
+    label: t('editor.EditorScreen.wanderingMonsters', 'Wandering monsters'),
+  },
+  { kind: 'slipperyIce', label: t('editor.EditorScreen.slipperyIce', 'Slippery ice') },
   { kind: 'chest', label: 'Chest' },
 ] as const;
 
@@ -352,7 +355,9 @@ function ToolOptions({ store }: { store: EditorStore }) {
       {tool === 'rock' && (
         <>
           <div className="lbl">{t('editor.EditorScreen.rock', 'Rock')}</div>
-          {chip('Whole room', opts.rockRoom, () => set({ rockRoom: !opts.rockRoom }))}
+          {chip(t('editor.EditorScreen.wholeRoom', 'Whole room'), opts.rockRoom, () =>
+            set({ rockRoom: !opts.rockRoom }),
+          )}
         </>
       )}
       {tool === 'doors' && (
@@ -576,7 +581,9 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </p>
           <div className="ed-chips" data-testid="zone-chips">
             {quest.zones.map((z) => chip(z.id, opts.zoneId === z.id, () => set({ zoneId: z.id })))}
-            {chip('New zone', opts.zoneId === null, () => set({ zoneId: null }))}
+            {chip(t('editor.EditorScreen.newZone', 'New zone'), opts.zoneId === null, () =>
+              set({ zoneId: null }),
+            )}
           </div>
         </>
       )}
@@ -592,11 +599,15 @@ function ToolOptions({ store }: { store: EditorStore }) {
             />
           </label>
           <div className="ed-chips">
-            {chip('Editor only', opts.markerVisible === 'editor', () =>
-              set({ markerVisible: 'editor' }),
+            {chip(
+              t('editor.EditorScreen.editorOnly', 'Editor only'),
+              opts.markerVisible === 'editor',
+              () => set({ markerVisible: 'editor' }),
             )}
-            {chip('Players see', opts.markerVisible === 'players', () =>
-              set({ markerVisible: 'players' }),
+            {chip(
+              t('editor.EditorScreen.playersSee', 'Players see'),
+              opts.markerVisible === 'players',
+              () => set({ markerVisible: 'players' }),
             )}
           </div>
         </>
@@ -607,7 +618,9 @@ function ToolOptions({ store }: { store: EditorStore }) {
         </p>
       )}
       <div className="lbl ed-gap">{t('editor.EditorScreen.view', 'View')}</div>
-      {chip('Room ids', opts.roomIds, () => set({ roomIds: !opts.roomIds }))}
+      {chip(t('editor.EditorScreen.roomIds', 'Room ids'), opts.roomIds, () =>
+        set({ roomIds: !opts.roomIds }),
+      )}
       {packInUse && (
         <button
           className="chip"

@@ -408,10 +408,10 @@ export function ZoomLayer({
               aria-label={t('play.ZoomLayer.moveTheMap', 'Move the map')}
               data-testid="pan-controls"
             >
-              {moveButton('Move the map left', '←', 1, 0)}
-              {moveButton('Move the map up', '↑', 0, 1)}
-              {moveButton('Move the map down', '↓', 0, -1)}
-              {moveButton('Move the map right', '→', -1, 0)}
+              {moveButton(t('play.ZoomLayer.moveTheMapLeft', 'Move the map left'), '←', 1, 0)}
+              {moveButton(t('play.ZoomLayer.moveTheMapUp', 'Move the map up'), '↑', 0, 1)}
+              {moveButton(t('play.ZoomLayer.moveTheMapDown', 'Move the map down'), '↓', 0, -1)}
+              {moveButton(t('play.ZoomLayer.moveTheMapRight', 'Move the map right'), '→', -1, 0)}
             </span>
           )}
         </div>

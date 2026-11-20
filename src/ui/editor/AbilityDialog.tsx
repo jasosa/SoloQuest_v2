@@ -91,8 +91,10 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
             />
           </label>
           <p className="ed-note">
-            In your own words. It shows on the token tooltip, the margin note and Zargon&apos;s
-            order.
+            {t(
+              'designer.helpInYourOwnWords',
+              "In your own words. It shows on the token tooltip, the margin note and Zargon's order.",
+            )}
           </p>
           <p className="ed-note" data-testid="ability-used">
             {used.length === 0
@@ -105,7 +107,13 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
             className="btn alt"
             data-testid="save-in-library"
             onClick={() =>
-              void lib.save('ability', a).then((m) => setSaved(m || 'Saved in the library.'))
+              void lib
+                .save('ability', a)
+                .then((m) =>
+                  setSaved(
+                    m || t('editor.AbilityDialog.savedInTheLibrary', 'Saved in the library.'),
+                  ),
+                )
             }
           >
             {t('editor.AbilityDialog.saveInTheLibrary', 'Save in the library')}

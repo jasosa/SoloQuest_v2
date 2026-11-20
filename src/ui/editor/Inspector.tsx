@@ -48,12 +48,12 @@ export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
 
 const TRAP_KINDS_ALL: readonly { kind: TrapKind; label: string }[] = [
   { kind: 'pit', label: 'Pit' },
-  { kind: 'fallingBlock', label: 'Falling block' },
+  { kind: 'fallingBlock', label: t('editor.Inspector.fallingBlock', 'Falling block') },
   { kind: 'spear', label: 'Spear' },
   { kind: 'stalactite', label: 'Stalactite' },
-  { kind: 'swingingAxe', label: 'Swinging axe' },
-  { kind: 'wanderingTrap', label: 'Wandering monsters' },
-  { kind: 'slipperyIce', label: 'Slippery ice' },
+  { kind: 'swingingAxe', label: t('editor.Inspector.swingingAxe', 'Swinging axe') },
+  { kind: 'wanderingTrap', label: t('editor.Inspector.wanderingMonsters', 'Wandering monsters') },
+  { kind: 'slipperyIce', label: t('editor.Inspector.slipperyIce', 'Slippery ice') },
   { kind: 'chest', label: 'Chest' },
   { kind: 'scripted', label: 'Scripted' },
 ];
@@ -67,8 +67,8 @@ const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
   marker: 'Marker',
   zone: 'Zone',
   tile: 'Tile',
-  roomTile: 'Room tile',
-  tunnel: 'Ice tunnel',
+  roomTile: t('editor.Inspector.roomTile', 'Room tile'),
+  tunnel: t('editor.Inspector.iceTunnel', 'Ice tunnel'),
 };
 
 export function Inspector({
@@ -261,11 +261,14 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
 function selectionLabel(selection: NonNullable<EditSelection>): string {
   switch (selection.kind) {
     case 'block':
-      return `Square ${selection.cell[0]}, ${selection.cell[1]}`;
+      return t('editor.Inspector.square2', 'Square {v1}, {v2}', {
+        v1: selection.cell[0],
+        v2: selection.cell[1],
+      });
     case 'tile':
-      return `Tile ${selection.index + 1}`;
+      return t('editor.Inspector.tile', 'Tile {v1}', { v1: selection.index + 1 });
     case 'roomTile':
-      return `Room tile ${selection.index + 1}`;
+      return t('editor.Inspector.roomTile2', 'Room tile {v1}', { v1: selection.index + 1 });
     case 'tunnel':
       return `${selection.id}, end ${selection.end.toUpperCase()}`;
     default:
@@ -554,7 +557,12 @@ function CellFields({
     const c: [number, number] = [Number(x), Number(y)];
     if (cell && c[0] === cell[0] && c[1] === cell[1]) return;
     if (c[0] > 25 || c[1] > 18)
-      return say('That square is off the board. Across 0 to 25, down 0 to 18.');
+      return say(
+        t(
+          'editor.Inspector.thatSquareIsOff',
+          'That square is off the board. Across 0 to 25, down 0 to 18.',
+        ),
+      );
     onSave(c);
   };
   return (

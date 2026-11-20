@@ -143,8 +143,13 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
     aligning,
     setAligning,
     async load(file) {
-      if (!file.type.startsWith('image/')) return 'That file is not an image.';
-      if (file.size > MAX_BYTES) return 'That image is too big. Use one under 40 MB.';
+      if (!file.type.startsWith('image/'))
+        return t('editor.ReferenceImage.thatFileIsNot', 'That file is not an image.');
+      if (file.size > MAX_BYTES)
+        return t(
+          'editor.ReferenceImage.thatImageIsToo',
+          'That image is too big. Use one under 40 MB.',
+        );
       try {
         picked.current = true;
         const m = await measure(file);
@@ -153,7 +158,10 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
         setAligning(true);
         return null;
       } catch {
-        return 'The browser cannot read that image.';
+        return t(
+          'editor.ReferenceImage.theBrowserCannotRead',
+          'The browser cannot read that image.',
+        );
       }
     },
     setCorners: (corners) => setState((s) => (s ? { ...s, corners, visible: true } : s)),
@@ -242,7 +250,10 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
       return;
     }
     if (!isConvexQuad(next)) {
-      const text = 'Those corners do not make a four sided shape.';
+      const text = t(
+        'editor.ReferenceImage.thoseCornersDoNot',
+        'Those corners do not make a four sided shape.',
+      );
       say(text);
       setProblem(text);
       setPoints([]);
@@ -311,7 +322,12 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
             draggable={false}
             onClick={tap}
             onError={() => {
-              say('The browser could not show that image. Try a PNG or JPG.');
+              say(
+                t(
+                  'editor.ReferenceImage.theBrowserCouldNot',
+                  'The browser could not show that image. Try a PNG or JPG.',
+                ),
+              );
               api.clear();
             }}
           />

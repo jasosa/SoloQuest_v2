@@ -321,7 +321,7 @@ function AppliesTo({ store, quest, note }: { store: EditorStore; quest: Quest; n
         if (key === '__square') {
           st.setPicking({
             kind: 'cell',
-            hint: 'Click a square on the board.',
+            hint: t('editor.NotesPanel.clickASquareOn', 'Click a square on the board.'),
             onPick: (v) => {
               const c = v as Cell;
               move({ kind: 'square', id: `${c[0]},${c[1]}` });
@@ -418,7 +418,7 @@ export function ActionForm({
             label={t('editor.NotesPanel.map', 'Map')}
             value={note.map ?? ''}
             options={[
-              { value: '', label: 'Every map' },
+              { value: '', label: t('editor.NotesPanel.everyMap', 'Every map') },
               ...questMaps(store.getState().canon).map((m) => ({
                 value: m.id,
                 label: m.name ?? m.id,
@@ -562,8 +562,8 @@ function TriggerForm({
           <Chips
             value={tv.repeat ? 'many' : 'once'}
             options={[
-              { value: 'once', label: 'Pressed once' },
-              { value: 'many', label: 'Every time' },
+              { value: 'once', label: t('editor.NotesPanel.pressedOnce', 'Pressed once') },
+              { value: 'many', label: t('editor.NotesPanel.everyTime', 'Every time') },
             ]}
             onChange={(v) => {
               const { repeat: _gone, ...rest } = tv;
@@ -614,7 +614,7 @@ function TriggerForm({
         <Chips
           value={tv.reason ?? 'any'}
           options={[
-            { value: 'any', label: 'Either way' },
+            { value: 'any', label: t('editor.NotesPanel.eitherWay', 'Either way') },
             { value: 'escaped', label: 'Escaped' },
             { value: 'freed', label: 'Freed' },
           ]}
@@ -631,7 +631,7 @@ function TriggerForm({
             <Chips
               value={tv.monsterType !== undefined ? 'type' : 'one'}
               options={[
-                { value: 'one', label: 'One monster' },
+                { value: 'one', label: t('editor.NotesPanel.oneMonster', 'One monster') },
                 { value: 'type', label: 'A kind' },
               ]}
               onChange={(mode) => {
@@ -639,7 +639,10 @@ function TriggerForm({
                 else {
                   const m = quest.monsters[0];
                   if (m) onChange({ type: tv.type, monster: m.id });
-                  else store.getState().say('Add a monster first.');
+                  else
+                    store
+                      .getState()
+                      .say(t('editor.NotesPanel.addAMonsterFirst', 'Add a monster first.'));
                 }
               }}
             />
@@ -677,7 +680,10 @@ function TriggerForm({
                     const next = on
                       ? tv.monsters.filter((x) => x !== m.id)
                       : [...tv.monsters, m.id];
-                    if (next.length === 0) store.getState().say('Keep at least one monster.');
+                    if (next.length === 0)
+                      store
+                        .getState()
+                        .say(t('editor.NotesPanel.keepAtLeastOne', 'Keep at least one monster.'));
                     else onChange({ ...tv, monsters: next });
                   }}
                 >
@@ -693,14 +699,17 @@ function TriggerForm({
           <Choose
             label={t('editor.NotesPanel.monster', 'Monster')}
             value={tv.monster ?? ''}
-            options={[{ value: '', label: 'Any monster' }, ...monsters]}
+            options={[
+              { value: '', label: t('editor.NotesPanel.anyMonster', 'Any monster') },
+              ...monsters,
+            ]}
             onChange={(monster) => onChange(withOptional(tv, 'monster', monster))}
           />
           <Choose
             label={t('editor.NotesPanel.spell', 'Spell')}
             value={tv.spell ?? ''}
             options={[
-              { value: '', label: 'Any spell' },
+              { value: '', label: t('editor.NotesPanel.anySpell', 'Any spell') },
               ...SPELL_KEYS.map((k) => ({ value: k, label: SPELL_NAMES[k] })),
             ]}
             onChange={(spell) => onChange(withOptional(tv, 'spell', spell))}
@@ -822,7 +831,10 @@ function ConditionFields({
         />
         <Chips
           value={c.is ? 'yes' : 'no'}
-          options={YES_NO('Is set', 'Is not set')}
+          options={YES_NO(
+            t('editor.NotesPanel.isSet', 'Is set'),
+            t('editor.NotesPanel.isNotSet', 'Is not set'),
+          )}
           onChange={(v) => onChange({ ...c, is: v === 'yes' })}
         />
       </>
@@ -1225,7 +1237,10 @@ function EffectFields({
           />
           <Chips
             value={e.value ? 'yes' : 'no'}
-            options={YES_NO('Set it', 'Clear it')}
+            options={YES_NO(
+              t('editor.NotesPanel.setIt', 'Set it'),
+              t('editor.NotesPanel.clearIt', 'Clear it'),
+            )}
             onChange={(v) => onChange({ ...e, value: v === 'yes' })}
           />
         </>
@@ -1311,7 +1326,15 @@ function EffectFields({
             onClick={() =>
               onChange({
                 ...e,
-                options: [...e.options, { label: `Answer ${e.options.length + 1}`, effects: [] }],
+                options: [
+                  ...e.options,
+                  {
+                    label: t('editor.NotesPanel.answer', 'Answer {v1}', {
+                      v1: e.options.length + 1,
+                    }),
+                    effects: [],
+                  },
+                ],
               })
             }
           >

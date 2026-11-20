@@ -39,14 +39,23 @@ export function exportDraft(store: EditorStore) {
   const r = exportQuestChecked(quest);
   if (!r.ok) {
     say(
-      `Cannot export: ${r.errors.length} ${r.errors.length === 1 ? 'problem' : 'problems'} to fix first. See Problems.`,
+      t(
+        'editor.QuestFile.cannotExportToFix',
+        'Cannot export: {count} {v1} to fix first. See Problems.',
+        { count: r.errors.length, v1: r.errors.length === 1 ? 'problem' : 'problems' },
+      ),
     );
     return;
   }
   const name = `${titleSlug(quest.title)}.hqquest.json`;
   download(name, r.text);
   const w = r.warnings.length;
-  say(`Exported ${name}.${w > 0 ? ` ${w} ${w === 1 ? 'warning' : 'warnings'} in the file.` : ''}`);
+  say(
+    t('editor.QuestFile.exported', 'Exported {name}.{v1}', {
+      name,
+      v1: w > 0 ? ` ${w} ${w === 1 ? 'warning' : 'warnings'} in the file.` : '',
+    }),
+  );
 }
 
 type Pending =
@@ -60,7 +69,15 @@ function load(store: EditorStore, quest: Quest, warnings: Issue[]) {
   const ok = store.getState().applyQuest(() => ({ ok: true, quest: next, warnings }));
   if (ok) {
     store.getState().select(null);
-    store.getState().say(`Imported ${next.title}. Undo brings the old draft back.`);
+    store
+      .getState()
+      .say(
+        t(
+          'editor.QuestFile.importedUndoBringsThe',
+          'Imported {title}. Undo brings the old draft back.',
+          { title: next.title },
+        ),
+      );
   }
 }
 
@@ -143,8 +160,11 @@ export function ImportButton({ store }: { store: EditorStore }) {
               <>
                 <h2>{t('editor.QuestFile.replaceYourDraft', 'Replace your draft?')}</h2>
                 <p>
-                  The file holds &ldquo;{pending.quest.title}&rdquo;. It will replace the quest you
-                  are editing. Undo brings your draft back.
+                  {t(
+                    'editor.QuestFile.theFileHolds',
+                    'The file holds “{title}”. It will replace the quest you are editing. Undo brings your draft back.',
+                    { title: pending.quest.title },
+                  )}
                 </p>
                 {pending.notes.length > 0 && (
                   <ul>

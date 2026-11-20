@@ -416,7 +416,9 @@ export function PlayBoard({
           y={cy - 22}
           width={44}
           height={44}
-          {...press('Closed door', () => onSelect({ kind: 'door', id }))}
+          {...press(t('board.PlayBoard.closedDoor', 'Closed door'), () =>
+            onSelect({ kind: 'door', id }),
+          )}
         />,
       );
   }
@@ -437,7 +439,9 @@ export function PlayBoard({
           key={`c${k}`}
           data-cell={k}
           {...common}
-          {...press('Corridor square', () => onSelect({ kind: 'cell', at: [x, y] }))}
+          {...press(t('board.PlayBoard.corridorSquare', 'Corridor square'), () =>
+            onSelect({ kind: 'cell', at: [x, y] }),
+          )}
         />,
       );
     } else {
@@ -449,7 +453,9 @@ export function PlayBoard({
           key={`r${k}`}
           data-room-cell={k}
           {...common}
-          {...press(`Room ${area}`, () => onSelect({ kind: 'room', room: area }))}
+          {...press(t('board.PlayBoard.room', 'Room {area}', { area }), () =>
+            onSelect({ kind: 'room', room: area }),
+          )}
           tabIndex={first ? 0 : -1}
         />,
       );
@@ -880,7 +886,7 @@ export function PlayBoard({
         y={cy - 22}
         width={44}
         height={44}
-        {...press(`Ice tunnel ${e.design}`, () =>
+        {...press(t('board.PlayBoard.iceTunnel', 'Ice tunnel {design}', { design: e.design }), () =>
           onSelect({ kind: 'tunnel', id: e.tunnel, end: e.end }),
         )}
       />,
@@ -1082,7 +1088,7 @@ export function PlayBoard({
         y={cy - 22}
         width={44}
         height={44}
-        {...press('Square with a note', () =>
+        {...press(t('board.PlayBoard.squareWithANote', 'Square with a note'), () =>
           onSelect({ kind: 'square', at: [m.cell[0], m.cell[1]] }),
         )}
       />,
@@ -1144,8 +1150,9 @@ export function PlayBoard({
           y={c[1] * S}
           width={S}
           height={S}
-          {...press('Zone with something waiting', () =>
-            onSelect({ kind: 'zone', id: z.zone, at: [c[0], c[1]] }),
+          {...press(
+            t('board.PlayBoard.zoneWithSomethingWaiting', 'Zone with something waiting'),
+            () => onSelect({ kind: 'zone', id: z.zone, at: [c[0], c[1]] }),
           )}
         />,
       ),
@@ -1192,7 +1199,9 @@ export function PlayBoard({
         y={cy - 22}
         width={44}
         height={44}
-        {...press(`Quest note ${l.letter}`, () => onLetter(l.note))}
+        {...press(t('board.PlayBoard.questNote', 'Quest note {letter}', { letter: l.letter }), () =>
+          onLetter(l.note),
+        )}
       />,
     );
   }
@@ -1259,7 +1268,9 @@ export function PlayBoard({
           height={S}
           fill={color.sel}
           fillOpacity={0.18}
-          {...press(`Square ${x}, ${y}`, () => onPickCell([x, y]))}
+          {...press(t('board.PlayBoard.square', 'Square {x}, {y}', { x, y }), () =>
+            onPickCell([x, y]),
+          )}
         />,
       );
     }

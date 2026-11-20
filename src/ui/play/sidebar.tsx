@@ -6,7 +6,10 @@ import { t } from '../../i18n/t';
 export function Objectives({
   view,
   intro,
-  goalDoneText = 'Goal done. Bring the heroes back to the stairs.',
+  goalDoneText = t(
+    'play.sidebar.goalDoneBringThe',
+    'Goal done. Bring the heroes back to the stairs.',
+  ),
 }: {
   view: ObjectivesView;
   intro: string;
@@ -62,7 +65,10 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
                   })}{' '}
                 </>
               )}
-              Defend dice {n.defend} · Body {n.body}
+              {t('play.sidebar.defendDiceBody', 'Defend dice {defend} · Body {body}', {
+                defend: n.defend,
+                body: n.body,
+              })}
             </div>
             {n.text && <p>{n.text}</p>}
           </li>

@@ -20,6 +20,21 @@ export interface Literal {
 }
 
 const CALLEES = new Set(['t', 'tr']);
+/** Attributes of the note cards that people read (`kind` is also an enum on other elements). */
+export const CARD_ATTRS = new Set(['kind', 'clear']);
+const CARDS = new Set(['NoteCard', 'MarginNote']);
+/** Is this attribute text that people read? */
+export function isTextAttr(attr: ts.JsxAttribute, sf: ts.SourceFile): boolean {
+  const name = attr.name.getText(sf);
+  if (TEXT_ATTRS.has(name)) return true;
+  const tag = attr.parent.parent;
+  return (
+    CARD_ATTRS.has(name) &&
+    (ts.isJsxOpeningElement(tag) || ts.isJsxSelfClosingElement(tag)) &&
+    CARDS.has(tag.tagName.getText(sf))
+  );
+}
+
 /** Attributes whose value is read by people. */
 export const TEXT_ATTRS = new Set([
   'title',
@@ -96,9 +111,8 @@ export function literals(file: string, source: string): Literal[] {
     if (ts.isJsxText(n)) {
       if (hasLetters(n.text)) add(n, n.text.replace(/\s+/g, ' '), 'jsx-text');
     } else if (ts.isJsxAttribute(n)) {
-      const name = n.name.getText(sf);
       const v = n.initializer;
-      if (TEXT_ATTRS.has(name) && v) {
+      if (isTextAttr(n, sf) && v) {
         if (ts.isStringLiteral(v) && hasLetters(v.text)) add(v, v.text, 'attribute');
         else if (ts.isJsxExpression(v) && v.expression) scanExpr(v.expression, 'attribute');
       } else if (v) visit(v);

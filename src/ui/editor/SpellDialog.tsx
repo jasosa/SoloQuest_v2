@@ -195,7 +195,11 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             className="btn alt"
             data-testid="save-in-library"
             onClick={() =>
-              void lib.save('spell', sp).then((m) => setSaved(m || 'Saved in the library.'))
+              void lib
+                .save('spell', sp)
+                .then((m) =>
+                  setSaved(m || t('editor.SpellDialog.savedInTheLibrary', 'Saved in the library.')),
+                )
             }
           >
             {t('editor.SpellDialog.saveInTheLibrary', 'Save in the library')}

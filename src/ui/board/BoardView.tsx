@@ -101,6 +101,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
               y={cy * CELL}
               textAnchor="middle"
               dominantBaseline="central"
+              // i18n-ok: a font
               fontFamily="Bonum, serif"
               fontSize={13}
               fill={color.ink}

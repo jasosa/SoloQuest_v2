@@ -59,7 +59,10 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
     if (!file) return;
     if (file.size > PACK_MAX_BYTES + 1024 * 1024) {
       setMessage({
-        text: 'This file is too big for a texture pack (about 10 MB at most).',
+        text: t(
+          'theme.TexturesDialog.thisFileIsToo',
+          'This file is too big for a texture pack (about 10 MB at most).',
+        ),
         bad: true,
       });
       return;
@@ -73,7 +76,13 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
     try {
       await store.save(r.pack);
     } catch {
-      setMessage({ text: 'The texture pack could not be stored on this device.', bad: true });
+      setMessage({
+        text: t(
+          'theme.TexturesDialog.theTexturePackCould',
+          'The texture pack could not be stored on this device.',
+        ),
+        bad: true,
+      });
       return;
     }
     // a replaced pack that is in use is loaded again, so the board shows the new pictures
@@ -220,13 +229,24 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             try {
               await store.save(next);
             } catch {
-              setMessage({ text: 'The changes could not be stored on this device.', bad: true });
+              setMessage({
+                text: t(
+                  'theme.TexturesDialog.theChangesCouldNot',
+                  'The changes could not be stored on this device.',
+                ),
+                bad: true,
+              });
               return;
             }
             // a pack in use is loaded again, so the game shows the new sizes at once
             if (active === manifest.id) await applyPack(store, manifest.id);
             setPreviewing(next);
-            setMessage({ text: `Saved the changes to ${manifest.name}.`, bad: false });
+            setMessage({
+              text: t('theme.TexturesDialog.savedTheChangesTo', 'Saved the changes to {name}.', {
+                name: manifest.name,
+              }),
+              bad: false,
+            });
             await refresh();
           }}
         />

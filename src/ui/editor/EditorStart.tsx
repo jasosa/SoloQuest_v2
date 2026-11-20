@@ -29,8 +29,10 @@ interface Row extends UserQuestSummary {
 }
 
 /** What the person is told when this device refuses to store a quest. */
-const STORE_ERROR =
-  'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.';
+const STORE_ERROR = t(
+  'editor.EditorStart.thisDeviceCouldNot',
+  'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.',
+);
 
 export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
   useFitMode('width');
@@ -69,7 +71,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
 
   const create = async () => {
     const n = Math.max(1, Math.min(99, Math.floor(Number(number)) || 1));
-    const name = title.trim() === '' ? 'New quest' : title.trim();
+    const name =
+      title.trim() === '' ? t('editor.EditorStart.newQuest2', 'New quest') : title.trim();
     const taken = rows.map((r) => r.id);
     const quest = emptyQuest({ id: newUserQuestId(name, taken), number: n, title: name });
     try {

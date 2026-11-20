@@ -121,7 +121,11 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
           </p>
           <button
             className="btn"
-            onClick={() => st.apply((q) => addObjective(q, { text: 'New objective' }))}
+            onClick={() =>
+              st.apply((q) =>
+                addObjective(q, { text: t('editor.QuestPanel.newObjective', 'New objective') }),
+              )
+            }
           >
             {t('editor.QuestPanel.addAnObjective', 'Add an objective')}
           </button>
@@ -196,7 +200,11 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
           </p>
           <button
             className="btn"
-            onClick={() => st.apply((q) => addEnding(q, { label: 'New ending' }))}
+            onClick={() =>
+              st.apply((q) =>
+                addEnding(q, { label: t('editor.QuestPanel.newEnding', 'New ending') }),
+              )
+            }
           >
             {t('editor.QuestPanel.addAnEnding', 'Add an ending')}
           </button>
@@ -274,7 +282,10 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 onClick={() =>
                   st.setPicking({
                     kind: 'cell',
-                    hint: 'Click the square where the character appears.',
+                    hint: t(
+                      'editor.QuestPanel.clickTheSquareWhere',
+                      'Click the square where the character appears.',
+                    ),
                     onPick: (v) => {
                       const c = v as [number, number];
                       st.apply((q) => updateNpc(q, n.id, { cell: c }));
@@ -303,11 +314,14 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
             onClick={() =>
               st.setPicking({
                 kind: 'cell',
-                hint: 'Click the square where the character appears.',
+                hint: t(
+                  'editor.QuestPanel.clickTheSquareWhere',
+                  'Click the square where the character appears.',
+                ),
                 onPick: (v) =>
                   st.apply((q) =>
                     addNpc(q, {
-                      name: 'New character',
+                      name: t('editor.QuestPanel.newCharacter', 'New character'),
                       cell: v as [number, number],
                       defend: 2,
                       body: 2,
@@ -434,7 +448,10 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
               onClick={() => {
                 if (
                   !st.apply((q) =>
-                    addAbility(q, { name: 'New ability', text: 'Write what it does.' }),
+                    addAbility(q, {
+                      name: t('editor.QuestPanel.newAbility', 'New ability'),
+                      text: t('editor.QuestPanel.writeWhatItDoes', 'Write what it does.'),
+                    }),
                   )
                 )
                   return;
@@ -447,7 +464,15 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
             <button
               className="btn"
               onClick={() => {
-                if (!st.apply((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
+                if (
+                  !st.apply((q) =>
+                    addSpell(q, {
+                      name: t('editor.QuestPanel.newSpell', 'New spell'),
+                      tags: ['any'],
+                    }),
+                  )
+                )
+                  return;
                 const made = store.getState().quest.spellDefs.at(-1);
                 if (made) st.setSpellId(made.id);
               }}
@@ -620,7 +645,12 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
     const squares = (patch.squares ?? tele?.squares ?? '').trim();
     if (dice === '' && squares === '') return st.apply((q) => setRules(q, { doorTeleport: null }));
     if (dice === '' || squares === '') {
-      st.say('The door teleport rule needs both the dice and the squares.');
+      st.say(
+        t(
+          'editor.QuestPanel.theDoorTeleportRule',
+          'The door teleport rule needs both the dice and the squares.',
+        ),
+      );
       return false;
     }
     return st.apply((q) => setRules(q, { doorTeleport: { dice, squares } }));
@@ -657,7 +687,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
                 const v = Number(e.target.value);
                 if (v === gold) return;
                 if (!Number.isInteger(v) || v < 0) {
-                  st.say('Gold is a whole number, 0 or more.');
+                  st.say(t('editor.QuestPanel.goldIsAWhole', 'Gold is a whole number, 0 or more.'));
                   e.target.value = String(gold);
                   return;
                 }
@@ -767,7 +797,8 @@ function ObjectiveRule({
                 aria-pressed={on}
                 onClick={() => {
                   const next = on ? d.allKilled.filter((x) => x !== m.id) : [...d.allKilled, m.id];
-                  if (next.length === 0) st.say('Keep at least one monster.');
+                  if (next.length === 0)
+                    st.say(t('editor.QuestPanel.keepAtLeastOne', 'Keep at least one monster.'));
                   else setDone({ allKilled: next });
                 }}
               >
@@ -790,7 +821,9 @@ function ObjectiveRule({
           quest={quest}
           conditions={d.when}
           onChange={(when) =>
-            when.length > 0 ? setDone({ when }) : st.say('Keep at least one condition.')
+            when.length > 0
+              ? setDone({ when })
+              : st.say(t('editor.QuestPanel.keepAtLeastOne2', 'Keep at least one condition.'))
           }
         />
       )}

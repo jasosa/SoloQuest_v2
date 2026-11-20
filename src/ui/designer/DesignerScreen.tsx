@@ -55,31 +55,10 @@ import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
 import { expansionNames, expansionOf, setExpansionHidden, useHiddenExpansions } from './expansions';
 import { t } from '../../i18n/t';
+import { ownerModeOn, rememberOwnerMode } from '../../persist/ownerMode';
 
 type Data = Record<string, unknown>;
 
-/**
- * Owner mode (decision 76): the owner can change Core items. Everyone else sees Core read only.
- * The choice is kept on this device; without one, the development build is in owner mode.
- */
-const OWNER_KEY = 'soloquest-owner-mode';
-function ownerModeOn(): boolean {
-  try {
-    const v = localStorage.getItem(OWNER_KEY);
-    if (v === '1') return true;
-    if (v === '0') return false;
-  } catch {
-    /* storage unavailable: fall through */
-  }
-  return import.meta.env.DEV;
-}
-function rememberOwnerMode(on: boolean): void {
-  try {
-    localStorage.setItem(OWNER_KEY, on ? '1' : '0');
-  } catch {
-    /* ignore */
-  }
-}
 const ORIGIN_LABEL: Readonly<Record<Origin, string>> = {
   official: 'official',
   'fan-made': 'fan-made',
@@ -144,7 +123,7 @@ const PROFILE_LABELS: Readonly<Record<Profile, string>> = {
   passive: 'Passive: no orders',
 };
 const LIMITS = [
-  { n: 1, label: 'Once in the quest' },
+  { n: 1, label: t('designer.DesignerScreen.onceInTheQuest', 'Once in the quest') },
   { n: 2, label: 'Twice' },
   { n: 3, label: '3 times' },
   { n: 4, label: '4 times' },
@@ -218,10 +197,15 @@ function coreRows(kind: LibraryKind): Row[] {
 }
 
 function blank(kind: LibraryKind, id: string): Data {
-  const name = `New ${ONE[kind]}`;
+  const name = t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] });
   switch (kind) {
     case 'ability':
-      return { id, name, origin: 'fan-made', text: 'Describe it in your own words.' };
+      return {
+        id,
+        name,
+        origin: 'fan-made',
+        text: t('designer.DesignerScreen.describeItInYour', 'Describe it in your own words.'),
+      };
     case 'spell':
       return { id, name, origin: 'fan-made', tags: ['heroAdjacent'] };
     case 'enemy':
@@ -235,7 +219,7 @@ function blank(kind: LibraryKind, id: string): Data {
         origin: 'fan-made',
         defend: 2,
         body: 2,
-        text: 'What the helper does.',
+        text: t('designer.DesignerScreen.whatTheHelperDoes', 'What the helper does.'),
       };
   }
 }
@@ -350,7 +334,10 @@ function AbilityFields({
         />
       </Fld>
       <p className="fr-help">
-        In your own words. It shows on the token tooltip, the margin note and Zargon&apos;s order.
+        {t(
+          'designer.helpInYourOwnWords',
+          "In your own words. It shows on the token tooltip, the margin note and Zargon's order.",
+        )}
       </p>
     </>
   );
@@ -637,7 +624,8 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   ];
   // The box of an item: the expansion it belongs to, or the base game.
   const boxKey = (r: Row) => expansionOf(kind, r.id, r.data) ?? 'base';
-  const boxName = (r: Row) => (boxKey(r) === 'base' ? 'Base game' : boxKey(r));
+  const boxName = (r: Row) =>
+    boxKey(r) === 'base' ? t('designer.DesignerScreen.baseGame', 'Base game') : boxKey(r);
   const boxes = [...new Set(rows.filter((r) => r.core && boxKey(r) !== 'base').map(boxKey))].sort(
     (a, b) => a.localeCompare(b),
   );
@@ -647,7 +635,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const locked = isCore && !owner;
   const data: Data | null = sel ? (draft ?? sel.data) : null;
   const sourceLabel = !isCore
-    ? 'My library (this device)'
+    ? t('designer.DesignerScreen.myLibraryThisDevice', 'My library (this device)')
     : !owner
       ? 'Core (read only)'
       : sel?.edited
@@ -715,7 +703,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const create = () => {
     const id = freeId(
       rows.map((r) => r.id),
-      `New ${ONE[kind]}`,
+      t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] }),
     );
     void make(blank(kind, id));
   };
@@ -753,7 +741,15 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           sel.id,
           questEntries.flatMap((q) =>
             q.level
-              ? [{ title: `Quest ${q.number}: ${q.level.quest.title}`, quest: q.level.quest }]
+              ? [
+                  {
+                    title: t('designer.DesignerScreen.quest', 'Quest {number}: {title}', {
+                      number: q.number,
+                      title: q.level.quest.title,
+                    }),
+                    quest: q.level.quest,
+                  },
+                ]
               : [],
           ),
         )
@@ -830,7 +826,16 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       const r = await store.importAll(await f.text(), stamp(), { fanMade: !owner });
       const from = r.name ? `"${r.name}"${r.author ? ` by ${r.author}` : ''}: ` : '';
       setMessage(
-        `Imported ${from}${r.added} added, ${r.replaced} replaced${r.skipped ? `, ${r.skipped} skipped` : ''}.`,
+        t(
+          'designer.DesignerScreen.importedAddedReplaced',
+          'Imported {from}{added} added, {replaced} replaced{v1}.',
+          {
+            from,
+            added: r.added,
+            replaced: r.replaced,
+            v1: r.skipped ? `, ${r.skipped} skipped` : '',
+          },
+        ),
       );
       await refresh();
     } catch (e) {
@@ -1599,7 +1604,13 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                       };
                       void updateQuests((q) => refreshEnemyInQuest(q, enemyDef, libContent)).then(
                         (n) => {
-                          setMessage(`Updated in ${n} quest${n === 1 ? '' : 's'}.`);
+                          setMessage(
+                            t(
+                              'designer.DesignerScreen.updatedInQuest',
+                              'Updated in {n} quest{v1}.',
+                              { n, v1: n === 1 ? '' : 's' },
+                            ),
+                          );
                           void quests?.().then((qs) => setQuestList(qs));
                         },
                       );
@@ -1698,7 +1709,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               <button
                 className="btn alt"
                 data-testid="dz-export-pack"
-                onClick={() => setPack({ name: 'My library', author: '' })}
+                onClick={() =>
+                  setPack({
+                    name: t('designer.DesignerScreen.myLibrary2', 'My library'),
+                    author: '',
+                  })
+                }
               >
                 {t('designer.DesignerScreen.export', 'Export')}
               </button>

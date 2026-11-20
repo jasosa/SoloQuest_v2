@@ -8,7 +8,7 @@
  * An element that mixes text with other elements (`<b>`) is left and listed: it needs a hand-made text.
  */
 import ts from 'typescript';
-import { isTCall, TEXT_ATTRS, type Literal } from './scan';
+import { isTCall, isTextAttr, type Literal } from './scan';
 
 const NL = String.fromCharCode(10);
 
@@ -58,6 +58,7 @@ export function codemod(
   area: string,
   existing: Readonly<Record<string, string>>,
   importPath: string,
+  sentences = false,
 ): CodemodResult {
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TSX);
   const entries: Record<string, string> = {};
@@ -196,7 +197,7 @@ export function codemod(
       }
     } else if (ts.isJsxAttribute(n)) {
       const v = n.initializer;
-      if (TEXT_ATTRS.has(n.name.getText(sf)) && v) {
+      if (isTextAttr(n, sf) && v) {
         if (ts.isStringLiteral(v) && hasLetters(v.text)) {
           if (/[&{}]/.test(v.text))
             skipped.push({ text: v.text, line: line(v), kind: 'attribute' });
@@ -207,6 +208,29 @@ export function codemod(
       return;
     } else if (ts.isJsxExpression(n) && n.expression && n.parent && !ts.isJsxAttribute(n.parent)) {
       branches(n.expression);
+    }
+    if (
+      sentences &&
+      isStr(n) &&
+      /^[A-Z][a-z]+(?:[ ,'.!?-]+[A-Za-z0-9]+)+/.test(n.text) &&
+      !/[{}]/.test(n.text)
+    ) {
+      // a sentence in code: not a key, not compared, not a type
+      const p = n.parent;
+      const compared =
+        ts.isBinaryExpression(p) && /Equals/.test(ts.SyntaxKind[p.operatorToken.kind]!);
+      if (
+        !(ts.isPropertyAssignment(p) && p.name === n) &&
+        !compared &&
+        !ts.isCaseClause(p) &&
+        !ts.isLiteralTypeNode(p) &&
+        !ts.isJsxAttribute(p) &&
+        !ts.isElementAccessExpression(p)
+      )
+        edits.push({ start: n.getStart(sf), end: n.end, text: call(n.text, []) });
+    } else if (sentences && ts.isTemplateExpression(n) && /^[A-Z][a-z]+ /.test(n.head.text)) {
+      const t = fromTemplate(n);
+      if (t) edits.push({ start: n.getStart(sf), end: n.end, text: t });
     }
     ts.forEachChild(n, visit);
   };

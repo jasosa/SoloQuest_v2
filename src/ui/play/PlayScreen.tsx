@@ -111,10 +111,12 @@ interface Result {
 function resultKind(prompts: readonly Prompt[]): string {
   const has = (...kinds: Prompt['kind'][]) => prompts.some((p) => kinds.includes(p.kind));
   if (has('trapSprung', 'trapJumped', 'trapDisarmed')) return 'Trap';
-  if (has('wanderingMonster', 'wanderingText')) return 'Wandering monster';
-  if (has('secretDoorsFound', 'nothingFound')) return 'Secret doors';
+  if (has('wanderingMonster', 'wanderingText'))
+    return t('play.PlayScreen.wanderingMonster', 'Wandering monster');
+  if (has('secretDoorsFound', 'nothingFound'))
+    return t('play.PlayScreen.secretDoors', 'Secret doors');
   if (has('doorStuck')) return 'Door';
-  if (has('tunnelUsed')) return 'Ice tunnel';
+  if (has('tunnelUsed')) return t('play.PlayScreen.iceTunnel', 'Ice tunnel');
   if (has('trapFound', 'noTrap')) return 'Chest';
   return 'Treasure';
 }
@@ -460,7 +462,7 @@ export function PlayScreen({
       note = magic ? (
         <MarginNote
           anchor={anchor}
-          kind="Door"
+          kind={t('play.PlayScreen.door', 'Door')}
           title={t('play.PlayScreen.aMagicDoor', 'A magic door')}
           onClose={closeNote}
         >
@@ -469,7 +471,7 @@ export function PlayScreen({
       ) : (
         <MarginNote
           anchor={anchor}
-          kind="Closed door"
+          kind={t('play.PlayScreen.closedDoor', 'Closed door')}
           title={t('play.PlayScreen.openThisDoor', 'Open this door?')}
           onClose={closeNote}
         >
@@ -511,14 +513,14 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Search for secret doors"
+          kind={t('play.PlayScreen.searchForSecretDoors', 'Search for secret doors')}
           title={t('play.PlayScreen.aMonsterIsIn', 'A monster is in the way')}
           onClose={closeNote}
         >
           <SecretGuard
             monsters={liveMonstersInSight(level, state, sel.at).map((id) => codes.get(id) ?? id)}
             onOverride={() => search(true)}
-            clear="The corridor is clear, search anyway"
+            clear={t('play.PlayScreen.theCorridorIsClear', 'The corridor is clear, search anyway')}
           />
         </MarginNote>
       );
@@ -526,7 +528,7 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Corridor"
+          kind={t('play.PlayScreen.corridor', 'Corridor')}
           title={
             canLook
               ? t('play.PlayScreen.aHeroStandsHere', 'A hero stands here')
@@ -574,7 +576,7 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Search for secret doors"
+          kind={t('play.PlayScreen.searchForSecretDoors', 'Search for secret doors')}
           title={t('play.PlayScreen.aMonsterIsIn', 'A monster is in the way')}
           onClose={closeNote}
         >
@@ -585,7 +587,7 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Search for treasure"
+          kind={t('play.PlayScreen.searchForTreasure', 'Search for treasure')}
           title={t('play.PlayScreen.whoSearches', 'Who searches?')}
           onClose={closeNote}
         >
@@ -669,7 +671,7 @@ export function PlayScreen({
       ) : (
         <MarginNote
           anchor={anchor}
-          kind={roomTiles[0] ? roomTiles[0].tile.name : 'Room'}
+          kind={roomTiles[0] ? roomTiles[0].tile.name : t('play.PlayScreen.room', 'Room')}
           title={t('play.PlayScreen.searchThisRoom', 'Search this room')}
           onClose={closeNote}
         >
@@ -688,7 +690,7 @@ export function PlayScreen({
     note = (
       <MarginNote
         anchor={{ x: 880, y: 420 }}
-        kind="Heroes"
+        kind={t('play.PlayScreen.heroes', 'Heroes')}
         title={`${nameOf(sel.hero)} fell?`}
         onClose={closeNote}
       >
@@ -710,7 +712,7 @@ export function PlayScreen({
         <MarginNote
           // the popup opens at the square that was tapped
           anchor={toMap((sel.at ?? label.cell)[0] + 0.5, (sel.at ?? label.cell)[1] + 0.5)}
-          kind="Zone"
+          kind={t('play.PlayScreen.zone', 'Zone')}
           title={
             label.enter
               ? t('play.PlayScreen.aHeroEnters', 'A hero enters')
@@ -743,7 +745,7 @@ export function PlayScreen({
     note = (
       <MarginNote
         anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
-        kind="Square with a note"
+        kind={t('play.PlayScreen.squareWithANote', 'Square with a note')}
         title={
           marker?.step === false
             ? t('play.PlayScreen.thisSquare', 'This square')
@@ -789,7 +791,7 @@ export function PlayScreen({
         note = (
           <MarginNote
             anchor={anchor}
-            kind={sprung && tv.kind ? TRAP_NAMES[tv.kind] : 'Trap'}
+            kind={sprung && tv.kind ? TRAP_NAMES[tv.kind] : t('play.PlayScreen.trap', 'Trap')}
             title={
               sprung
                 ? t('play.PlayScreen.itSprangHereBefore', 'It sprang here before')
@@ -821,7 +823,7 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Ice tunnel"
+          kind={t('play.PlayScreen.iceTunnel', 'Ice tunnel')}
           title={t('play.PlayScreen.tunnel', 'Tunnel {design}', { design: tv.design })}
           onClose={closeNote}
         >
@@ -856,7 +858,7 @@ export function PlayScreen({
       note = (
         <MarginNote
           anchor={anchor}
-          kind="Chest"
+          kind={t('play.PlayScreen.chest', 'Chest')}
           title={t('play.PlayScreen.lookForTraps', 'Look for traps')}
           onClose={closeNote}
         >
@@ -1043,7 +1045,9 @@ export function PlayScreen({
           <h1 title={quest.title}>{quest.title}</h1>
           <div className="subline">
             <span className="qn">
-              {(playtest ? 'Playtest' : `Quest ${quest.number}`) +
+              {(playtest
+                ? 'Playtest'
+                : t('play.PlayScreen.quest', 'Quest {number}', { number: quest.number })) +
                 (quest.mapName ? `: ${quest.mapName}` : '')}
             </span>
             {goalLine && (
@@ -1101,7 +1105,7 @@ export function PlayScreen({
             {sheet?.t === 'place' && sheet.p.cell ? (
               <MarginNote
                 anchor={toMap(sheet.p.cell[0] + 0.5, sheet.p.cell[1] + 0.5)}
-                kind="New monster"
+                kind={t('play.PlayScreen.newMonster', 'New monster')}
                 title={t('play.PlayScreen.putHere', 'Put {name} here', { name: sheet.p.name })}
                 onClose={nextSheet}
               >
@@ -1226,7 +1230,7 @@ export function PlayScreen({
             </button>
           )}
           <button className="zargon-btn" onClick={() => setZOpen(true)}>
-            Zargon&apos;s turn
+            {t('play.PlayScreen.zargonsTurn', "Zargon's turn")}
             <small>{progressLabel(progress)}</small>
           </button>
         </div>
@@ -1315,14 +1319,22 @@ export function PlayScreen({
           end={end}
           title={quest.title}
           onLeave={playtest ? playtest.onBack : onLeave}
-          leaveLabel={playtest ? 'Back to editor' : 'Back to the quests'}
+          leaveLabel={
+            playtest
+              ? t('play.PlayScreen.backToEditor', 'Back to editor')
+              : t('play.PlayScreen.backToTheQuests', 'Back to the quests')
+          }
           leave={leaveWay(level)}
           onUndo={() => undo()}
         />
       ) : sheet?.t === 'note' ? (
         <NoteSheet p={sheet.p} onClose={nextSheet} />
       ) : sheet?.t === 'goal' ? (
-        <NoteCard kind="Objective done" title={sheet.p.text} onClose={nextSheet}>
+        <NoteCard
+          kind={t('play.PlayScreen.objectiveDone', 'Objective done')}
+          title={sheet.p.text}
+          onClose={nextSheet}
+        >
           <p>
             {sheet.all
               ? t(
@@ -1344,7 +1356,10 @@ export function PlayScreen({
           </button>
         </NoteCard>
       ) : pending ? (
-        <NoteCard kind="Quest note" title={t('play.PlayScreen.choose', 'Choose')}>
+        <NoteCard
+          kind={t('play.PlayScreen.questNote', 'Quest note')}
+          title={t('play.PlayScreen.choose', 'Choose')}
+        >
           <p>{pending.text}</p>
           {pending.options.map((o, i) => (
             <button
@@ -1369,7 +1384,7 @@ export function PlayScreen({
         </RereadSheet>
       ) : endOpen ? (
         <NoteCard
-          kind="End quest"
+          kind={t('play.PlayScreen.endQuest', 'End quest')}
           title={t('play.PlayScreen.howDidTheQuest', 'How did the quest end?')}
           onClose={() => setEndOpen(false)}
         >
@@ -1409,7 +1424,7 @@ export function PlayScreen({
         </NoteCard>
       ) : allFallen && !endOpen && !fallenDismissed ? (
         <NoteCard
-          kind="The heroes"
+          kind={t('play.PlayScreen.theHeroes', 'The heroes')}
           title={t('play.PlayScreen.allHeroesHaveFallen', 'All heroes have fallen')}
           onClose={() => setFallenDismissed(true)}
         >
@@ -1514,6 +1529,7 @@ function RosterRow({
           className={
             'coin' +
             (m.dead ? ' off' : '') +
+            // i18n-ok: a box name
             (m.box === 'Frozen Horror' ? ' ice' : '') +
             (pic ? ' pic' : '') +
             (pic && whole ? ' whole' : '')
@@ -1562,17 +1578,24 @@ function RosterRow({
 function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
   if (m.state === 'stone')
     return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
-  if (m.added) return 'Added in play';
-  if (m.wandering && m.fresh && m.wanderAt) return `Wandering · next to the ${nameOf(m.wanderAt)}`;
-  if (m.placeAt) return 'Placed by a quest note';
-  return `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`;
+  if (m.added) return t('play.PlayScreen.addedInPlay', 'Added in play');
+  if (m.wandering && m.fresh && m.wanderAt)
+    return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
+      v1: nameOf(m.wanderAt),
+    });
+  if (m.placeAt) return t('play.PlayScreen.placedByAQuest2', 'Placed by a quest note');
+  return t('play.PlayScreen.moveAttDef', 'Move {move} · Att {att} · Def {def}', {
+    move: m.stats.move,
+    att: m.stats.att,
+    def: m.stats.def,
+  });
 }
 
 function NoteSheet({ p, onClose }: { p: Extract<Prompt, { kind: 'note' }>; onClose(): void }) {
   return (
     <NoteCard
       letter={p.letter}
-      kind="Quest note"
+      kind={t('play.PlayScreen.questNote', 'Quest note')}
       title={
         p.title ??
         (p.letter
@@ -1613,7 +1636,7 @@ function RereadSheet({
   return (
     <NoteCard
       letter={entry.letter}
-      kind="Quest note"
+      kind={t('play.PlayScreen.questNote', 'Quest note')}
       title={entry.title ?? t('play.PlayScreen.readAgain', 'Read again')}
       onClose={onClose}
     >
