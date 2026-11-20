@@ -23,7 +23,7 @@ const COPY = [
   'src/engine/data/heroes.ts',
   'src/engine/data/roomTiles.ts',
   'src/engine/zargon/texts.ts',
-  'src/ui/select/SelectScreen.tsx',
+  'src/ui/select/StartPages.tsx',
   'src/ui/select/TeamPicker.tsx',
 ];
 
@@ -54,16 +54,16 @@ const NOTE = 'quest:q01-the-trial:notes.n-start.effects.0.text';
 
 describe('applying an update of the built-in English', () => {
   it('changes an interface string in the code and in en.json', async () => {
-    const r = await applyUpdate(root, update({ 'select.chooseAQuest': 'Pick your quest' }));
+    const r = await applyUpdate(root, update({ 'select.playASingleQuest': 'Pick your quest' }));
     expect(r.refused).toEqual([]);
-    expect(r.changes.map((c) => c.key)).toEqual(['select.chooseAQuest']);
-    expect(text('src/ui/select/SelectScreen.tsx')).toContain("'Pick your quest'");
-    expect(text('src/ui/select/SelectScreen.tsx')).not.toContain("'Choose a quest'");
+    expect(r.changes.map((c) => c.key)).toEqual(['select.playASingleQuest']);
+    expect(text('src/ui/select/StartPages.tsx')).toContain("'Pick your quest'");
+    expect(text('src/ui/select/StartPages.tsx')).not.toContain("'Play a single quest'");
     const en = JSON.parse(text('src/i18n/en.json')) as Record<string, string>;
-    expect(en['select.chooseAQuest']).toBe('Pick your quest');
+    expect(en['select.playASingleQuest']).toBe('Pick your quest');
     // en.json is what the code says (the check the repository runs)
     expect(en).toEqual(readCatalogue(root).strings);
-    expect(tsErrors('src/ui/select/SelectScreen.tsx')).toEqual([]);
+    expect(tsErrors('src/ui/select/StartPages.tsx')).toEqual([]);
   });
 
   it('changes a quest note text and keeps the quest valid and its formatting', async () => {
@@ -122,7 +122,7 @@ describe('applying an update of the built-in English', () => {
       QUEST,
       'src/i18n/en.json',
       'src/engine/data/trapKinds.ts',
-      'src/ui/select/SelectScreen.tsx',
+      'src/ui/select/StartPages.tsx',
     ];
     const before = files.map(text);
     const r = await applyUpdate(
@@ -130,7 +130,7 @@ describe('applying an update of the built-in English', () => {
       update({
         [NOTE]: 'Changed.',
         'data:trapKinds.pit.name': 'pit',
-        'select.chooseAQuest': 'Pick',
+        'select.playASingleQuest': 'Pick',
       }),
       { dryRun: true },
     );
@@ -150,7 +150,7 @@ describe('applying an update of the built-in English', () => {
         'data:trapKinds.nope.name': 'x',
         'data:nothing.here': 'x',
         'library:ability:nope.text': 'x',
-        'select.chooseAQuest': 'Pick',
+        'select.playASingleQuest': 'Pick',
       }),
     );
     expect(r.refused.map((x) => x.key).sort()).toEqual([
@@ -162,7 +162,7 @@ describe('applying an update of the built-in English', () => {
       'quest:user-mine:title',
       'select.nope',
     ]);
-    expect(r.changes.map((c) => c.key)).toEqual(['select.chooseAQuest']);
+    expect(r.changes.map((c) => c.key)).toEqual(['select.playASingleQuest']);
   });
 
   it('refuses a text that loses or adds a {name}', async () => {
@@ -175,14 +175,14 @@ describe('applying an update of the built-in English', () => {
 
   it('a text that is the same as now changes nothing', async () => {
     const en = JSON.parse(text('src/i18n/en.json')) as Record<string, string>;
-    const before = text('src/ui/select/SelectScreen.tsx');
+    const before = text('src/ui/select/StartPages.tsx');
     const r = await applyUpdate(
       root,
-      update({ 'select.chooseAQuest': en['select.chooseAQuest']! }),
+      update({ 'select.playASingleQuest': en['select.playASingleQuest']! }),
     );
     expect(r.changes).toEqual([]);
-    expect(r.unchanged).toEqual(['select.chooseAQuest']);
-    expect(text('src/ui/select/SelectScreen.tsx')).toBe(before);
+    expect(r.unchanged).toEqual(['select.playASingleQuest']);
+    expect(text('src/ui/select/StartPages.tsx')).toBe(before);
   });
 
   it('refuses a file that is not an update of the built-in English', async () => {
@@ -192,7 +192,7 @@ describe('applying an update of the built-in English', () => {
   });
 
   it('leaves en.json as sortedJson of the code after a change', async () => {
-    await applyUpdate(root, update({ 'select.chooseAQuest': 'Pick' }));
+    await applyUpdate(root, update({ 'select.playASingleQuest': 'Pick' }));
     expect(text('src/i18n/en.json').replace(/\r\n/g, '\n')).toBe(
       sortedJson(readCatalogue(root).strings),
     );

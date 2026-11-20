@@ -6,6 +6,7 @@ import { testQuest } from '../quest/testQuest';
 import {
   finishQuest,
   newCampaign,
+  nextCampaignSlot,
   nextQuest,
   questFinished,
   startFlagsFor,
@@ -30,6 +31,8 @@ describe('a campaign (decision 37)', () => {
   it('starts empty, with the pack settings at their defaults and its seed', () => {
     expect(newCampaign(pack, SEED)).toEqual({
       version: 1,
+      id: 'ice',
+      name: 'Ice',
       pack: 'ice',
       seed: SEED,
       finished: [],
@@ -38,6 +41,16 @@ describe('a campaign (decision 37)', () => {
       fallen: [],
       settings: { raiment: false, extra: true },
     });
+  });
+
+  it('a campaign can have its own id and name, and the next id of a pack is free', () => {
+    const c = newCampaign(pack, SEED, { id: 'ice-2', name: 'Campaign 2' });
+    expect(c.id).toBe('ice-2');
+    expect(c.name).toBe('Campaign 2');
+    expect(nextCampaignSlot('ice', [])).toEqual({ id: 'ice', number: 1 });
+    expect(nextCampaignSlot('ice', ['ice', 'core'])).toEqual({ id: 'ice-2', number: 2 });
+    expect(nextCampaignSlot('ice', ['ice', 'ice-3'])).toEqual({ id: 'ice-2', number: 2 });
+    expect(nextCampaignSlot('ice', ['ice', 'ice-2'])).toEqual({ id: 'ice-3', number: 3 });
   });
 
   it('a one-shot takes the one-shot value of a carried flag, a campaign what was carried (false if nothing)', () => {

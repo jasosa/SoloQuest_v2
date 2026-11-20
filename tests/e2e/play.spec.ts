@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, gotoQuest, newGame } from './helpers';
+import { dismissStart, gotoQuest, newGame, openQuest, questCard } from './helpers';
 
 const shot = (page: Page, name: string) => page.screenshot({ path: `test-results/${name}.png` });
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
@@ -7,10 +7,7 @@ const rosterRows = (page: Page) => page.locator('.roster li:not(.empty)');
 
 async function startQuest1(page: Page, heroes: string[]) {
   await page.goto('/?nosave=1');
-  await page
-    .getByRole('button', { name: /Quest 1/ })
-    .first()
-    .click();
+  await openQuest(page, 1);
   await newGame(page, heroes);
   await dismissStart(page);
 }
@@ -56,28 +53,33 @@ test.describe('adding a monster in play (decision 66)', () => {
 });
 
 test.describe('quest and team select', () => {
-  test('the core game lists its 14 quests, an expansion tab its own; start needs a hero', async ({
+  test('the core game lists its 14 quests, an expansion pack its own; start needs a hero', async ({
     page,
   }) => {
     await page.goto('/?nosave=1');
+    await shot(page, 'select-home');
+    await page.getByTestId('home-single').click();
     await shot(page, 'select-start');
+    await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
+    await page.getByTestId('back').click();
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.locator('.qcard')).toHaveCount(10);
     await expect(page.locator('.qcard').first()).toContainText('Quest 0');
     // Frozen Horror 3 shares its number with Core 3: both must be playable
-    await page.locator('.qcard', { hasText: 'Quest 3' }).click();
+    await questCard(page, 3).click();
     await expect(page.locator('.side h2')).toHaveText('The Rescue');
+    await page.getByTestId('back').click();
+    await page.getByTestId('back').click();
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);
-    // the heroes are chosen in a popup: Start needs at least one
-    await page.getByTestId('new-game').click();
-    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
-    const start = dialog.getByRole('button', { name: 'Start the quest' });
+    // the heroes are chosen on the next page: Start needs at least one
+    await questCard(page, 1).click();
+    const start = page.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeDisabled();
-    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    await dialog.getByRole('button', { name: 'Elf', exact: true }).click();
+    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    await page.getByRole('button', { name: 'Elf', exact: true }).click();
     await shot(page, 'select-team');
     await expect(start).toBeEnabled();
     await start.click();
@@ -215,11 +217,8 @@ test.describe('play quest 1', () => {
     await startQuestWithSave(page);
     await expect(rosterRows(page)).toHaveCount(2);
     await page.reload();
-    await page
-      .getByRole('button', { name: /Quest 1/ })
-      .first()
-      .click();
-    await expect(page.getByText('Saved game')).toBeVisible();
+    await openQuest(page, 1);
+    await expect(page.getByText('Saved game', { exact: true })).toBeVisible();
     await page.waitForTimeout(350); // let the pop animation finish
     await shot(page, 'select-resume');
     await page.getByRole('button', { name: 'Resume' }).click();
@@ -231,21 +230,16 @@ test.describe('play quest 1', () => {
 });
 
 test.describe('new game over a saved game', () => {
-  test('asks first; keeping the save leaves it intact, replacing starts fresh', async ({
-    page,
-  }) => {
+  test('tells first; leaving keeps the save intact, replacing starts fresh', async ({ page }) => {
     await startQuestWithSave(page);
     await page.reload();
-    await page
-      .getByRole('button', { name: /Quest 1/ })
-      .first()
-      .click();
-    await page.getByTestId('new-game').click();
-    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
-    await expect(dialog.getByRole('alert')).toContainText('replaces the saved game');
-    await dialog.getByRole('button', { name: 'Keep the saved game' }).click();
-    await expect(dialog).toHaveCount(0);
-    await expect(page.getByText('Saved game')).toBeVisible();
+    await openQuest(page, 1);
+    await expect(page.getByTestId('replace-hint')).toContainText('replaces the saved game');
+    // leaving the page keeps the save: the quest card still says so
+    await page.getByTestId('back').click();
+    await expect(questCard(page, 1)).toContainText('Saved game');
+    await questCard(page, 1).click();
+    await expect(page.getByText('Saved game', { exact: true })).toBeVisible();
     await newGame(page, ['Elf']);
     await dismissStart(page);
     await expect(page.locator('header .turn')).toContainText('Turn 1');
@@ -255,10 +249,7 @@ test.describe('new game over a saved game', () => {
 
 async function startQuestWithSave(page: Page) {
   await page.goto('/');
-  await page
-    .getByRole('button', { name: /Quest 1/ })
-    .first()
-    .click();
+  await openQuest(page, 1);
   await newGame(page, ['Dwarf']);
   await dismissStart(page);
   for (const d of ['d1', 'd2']) {

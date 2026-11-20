@@ -19,6 +19,7 @@ export async function openSaved(
       events: r.events,
       startFlags: r.startFlags,
       campaign: r.campaign,
+      campaignId: r.campaignId,
       pack: r.pack,
       saves,
     });

@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { closeQuestSheet, dismissStart, gotoQuest, newGame, openQuestSheet } from './helpers';
+import {
+  closeQuestSheet,
+  dismissStart,
+  gotoQuest,
+  newGame,
+  openQuest,
+  openQuestSheet,
+} from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(400); // let the animations finish
@@ -149,7 +156,7 @@ test.describe('quest 1 notes', () => {
         .or(page.getByRole('dialog', { name: 'Quest complete' })),
     ).toBeVisible();
     await btn(page, 'Back to the quests').click();
-    await expect(page.locator('header h1')).toHaveText('Choose a quest');
+    await expect(page.locator('header h1')).toHaveText('Home');
   });
 
   test('a quest that is not won says so', async ({ page }) => {
@@ -163,10 +170,7 @@ test.describe('quest 1 notes', () => {
 
   test('reload keeps the letters and journal and does not replay the notes', async ({ page }) => {
     await page.goto('/');
-    await page
-      .getByRole('button', { name: /Quest 1/ })
-      .first()
-      .click();
+    await openQuest(page, 1);
     await newGame(page, ['Dwarf']);
     await dismissStart(page);
     for (const d of ['d1', 'd2', 'd3']) {
@@ -183,10 +187,7 @@ test.describe('quest 1 notes', () => {
     await page.waitForTimeout(300);
 
     await page.reload();
-    await page
-      .getByRole('button', { name: /Quest 1/ })
-      .first()
-      .click();
+    await openQuest(page, 1);
     await btn(page, 'Resume').click();
     await expect(page.locator('[data-letter="n-A"]')).toHaveCount(1);
     await expect(dialog(page)).toHaveCount(0); // nothing is replayed as a sheet

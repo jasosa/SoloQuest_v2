@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { newGame } from './helpers';
+import { newGame, openQuest } from './helpers';
 
 declare global {
   interface Window {
@@ -36,6 +36,7 @@ test.describe('wake lock (M8)', () => {
   }) => {
     await page.goto('/?nosave=1');
     expect(await page.evaluate(() => window.__wl.requests)).toBe(0); // not on the select screen
+    await openQuest(page, 1);
     await newGame(page, ['Dwarf']);
     await expect.poll(() => page.evaluate(() => window.__wl.requests)).toBeGreaterThan(0);
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -45,7 +46,7 @@ test.describe('wake lock (M8)', () => {
       .getByRole('link', { name: 'Quests' })
       .or(page.getByRole('button', { name: 'Quests' }))
       .click();
-    await expect(page.getByTestId('new-game')).toBeVisible();
+    await expect(page.getByTestId('start-game')).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => window.__wl.requests - window.__wl.releases))
       .toBe(0);
@@ -59,6 +60,7 @@ test.describe('wake lock (M8)', () => {
       });
     });
     await page.goto('/?nosave=1');
+    await openQuest(page, 1);
     await newGame(page, ['Dwarf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('#board')).toBeVisible();
