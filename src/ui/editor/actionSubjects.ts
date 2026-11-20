@@ -26,27 +26,34 @@ export function subjectLabel(q: Quest, s: Subject): string {
         ? tr('editor.actionSubjects.theCorridors', 'The corridors')
         : tr('editor.actionSubjects.room', 'Room {id}', { id: s.id });
     case 'square':
-      return `Square ${s.id}`;
+      return tr('editor.actionSubjects.square', 'Square {id}', { id: s.id });
     case 'zone':
-      return `Zone ${s.id}`;
+      return tr('editor.actionSubjects.zone', 'Zone {id}', { id: s.id });
     case 'door':
       return q.edgeDoors.some((d) => d.id === s.id)
-        ? `${q.edgeDoors.find((d) => d.id === s.id)?.kind === 'ironEntry' ? 'Entry' : 'Exit'} door ${s.id}`
+        ? q.edgeDoors.find((d) => d.id === s.id)?.kind === 'ironEntry'
+          ? tr('editor.actionSubjects.entryDoor', 'Entry door {id}', { id: s.id })
+          : tr('editor.actionSubjects.exitDoor', 'Exit door {id}', { id: s.id })
         : q.secretDoors.some((d) => d.id === s.id)
           ? tr('editor.actionSubjects.secretDoor', 'Secret door {id}', { id: s.id })
           : q.falseDoors.some((d) => d.id === s.id)
             ? tr('editor.actionSubjects.falseDoor', 'False door {id}', { id: s.id })
-            : `Door ${s.id}`;
+            : tr('editor.actionSubjects.door', 'Door {id}', { id: s.id });
     case 'furniture':
-      return `Furniture ${s.id}`;
+      return tr('editor.actionSubjects.furniture', 'Furniture {id}', { id: s.id });
     case 'monster': {
       const m = q.monsters.find((x) => x.id === s.id);
-      return m ? `Monster ${s.id} (${m.name ?? MONSTER_NAMES[m.type]})` : `Monster ${s.id}`;
+      return m
+        ? tr('editor.actionSubjects.monsterNamed', 'Monster {id} ({name})', {
+            id: s.id,
+            name: m.name ?? MONSTER_NAMES[m.type],
+          })
+        : tr('editor.actionSubjects.monster', 'Monster {id}', { id: s.id });
     }
     case 'trap':
-      return `Trap ${s.id}`;
+      return tr('editor.actionSubjects.trap', 'Trap {id}', { id: s.id });
     case 'marker':
-      return `Marker ${s.id}`;
+      return tr('editor.actionSubjects.marker', 'Marker {id}', { id: s.id });
   }
 }
 

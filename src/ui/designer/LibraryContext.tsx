@@ -2,7 +2,12 @@ import { t } from '../../i18n/t';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CORE_EXTRA } from '../../engine/data/coreFile';
-import type { AbilityDefData, EnemyDef, SpellDefData } from '../../engine/quest/schema';
+import type {
+  AbilityDefData,
+  CompanionDef,
+  EnemyDef,
+  SpellDefData,
+} from '../../engine/quest/schema';
 import type { LibraryItem, LibraryKind, LibraryStore } from '../../persist/library';
 import { isShown, useHiddenExpansions } from './expansions';
 
@@ -11,6 +16,8 @@ export interface LibraryApi {
   readonly abilities: readonly AbilityDefData[];
   readonly spells: readonly SpellDefData[];
   readonly enemies: readonly EnemyDef[];
+  /** Helper characters (Core and My library), to bring into a quest. */
+  readonly companions: readonly CompanionDef[];
   /** The part of the above that the add menus offer: without the expansions the person switched off. */
   readonly addable: {
     readonly abilities: readonly AbilityDefData[];
@@ -52,12 +59,17 @@ export function LibraryProvider({ store, children }: { store: LibraryStore; chil
       CORE_EXTRA.enemy.map((c) => ({ ...c.data }) as unknown as EnemyDef),
       of<EnemyDef>(items, 'enemy'),
     );
+    const companions = stacked(
+      CORE_EXTRA.companion.map((c) => ({ ...c.data }) as unknown as CompanionDef),
+      of<CompanionDef>(items, 'companion'),
+    );
     const shown = (kind: LibraryKind, id: string, data?: { readonly expansion?: unknown }) =>
       isShown(hidden, kind, id, data);
     return {
       abilities,
       spells,
       enemies,
+      companions,
       addable: {
         abilities: abilities.filter((a) => shown('ability', a.id, a)),
         spells: spells.filter((s) => shown('spell', s.id, s)),
@@ -82,6 +94,7 @@ const EMPTY: LibraryApi = {
   abilities: [],
   spells: [],
   enemies: [],
+  companions: [],
   addable: { abilities: [], spells: [], enemies: [] },
   isShown: () => true,
   save: async () => t('designer.LibraryContext.notAvailable', 'The library is not available here.'),

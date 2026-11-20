@@ -8,7 +8,8 @@
 import { tr } from '../../i18n/translate';
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
-import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+import type { AbilityDefData, CompanionDef, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+import { addNpc } from './meta';
 import { addMonster, updateMonster, type Cell } from './ops';
 import { fail, newIssues, ok, type EditResult } from './result';
 
@@ -46,6 +47,22 @@ export function spellChanged(def: SpellDefData): boolean {
       timing: x.timing ?? 'either',
     });
   return norm(rest) !== norm(def as unknown as Record<string, unknown>);
+}
+
+/**
+ * Bring a library companion into the quest as a character, on a square the author picks. The
+ * character keeps the companion's id when it is free, else a new id (the quest keeps its own copy).
+ */
+export function addNpcFromCompanion(q: Quest, def: CompanionDef, cell: Cell): EditResult {
+  const free = !q.npcs.some((n) => n.id === def.id) && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(def.id);
+  return addNpc(q, {
+    name: def.name,
+    cell: [cell[0], cell[1]],
+    defend: def.defend,
+    body: def.body,
+    text: def.text,
+    ...(free ? { id: def.id } : {}),
+  });
 }
 
 export interface Added {

@@ -5,6 +5,7 @@ import { addMonster, emptyQuest, updateMonster } from './ops';
 import {
   abilityChanged,
   addLibraryAbilityToMonster,
+  addNpcFromCompanion,
   addLibrarySpellToMonster,
   setMonsterEnemyFromLibrary,
   spellChanged,
@@ -18,6 +19,17 @@ const bog = { id: 'bog', name: 'Bog skin', text: 'Mud spells fail.' };
 const mud = { id: 'mud', name: 'Mud', tags: ['heroAdjacent' as const] };
 
 describe('taking library items into a quest', () => {
+  it('a companion becomes a character on the picked square, keeping its id when free', () => {
+    const ragnar = { id: 'ragnar', name: 'Sir Ragnar', defend: 2, body: 4, text: 'He helps.' };
+    const r = addNpcFromCompanion(q(), ragnar, [3, 4]);
+    expect(r.ok && r.quest.npcs).toEqual([
+      { id: 'ragnar', name: 'Sir Ragnar', cell: [3, 4], defend: 2, body: 4, text: 'He helps.' },
+    ]);
+    // the same companion twice: the second gets a new id
+    const again = r.ok ? addNpcFromCompanion(r.quest, ragnar, [5, 5]) : r;
+    expect(again.ok && again.quest.npcs.map((n) => n.id)).toEqual(['ragnar', 'npc1']);
+  });
+
   it('a library spell keeps the situations it defines in the quest copy', () => {
     const wet = {
       id: 'wet',
