@@ -7,18 +7,20 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useModal } from '../shared/useModal';
 import type { ReferenceStore } from '../../persist/reference';
 import { BOARD_H, BOARD_W, U } from './geometry';
-import {
-  CORNER_NAMES,
-  boardCorners,
-  isConvexQuad,
-  referenceMatrix,
-  toMatrix3d,
-  type Pt,
-} from './reference';
+import { boardCorners, isConvexQuad, referenceMatrix, toMatrix3d, type Pt } from './reference';
 import { t } from '../../i18n/t';
 
 /** The svg of the board draws 2 units of margin around the squares (viewBox starts at -2). */
 const PAD = 2;
+/** The corner asked for, by its place in the order of `boardCorners`. */
+const cornerName = (i: number): string =>
+  [
+    t('editor.ReferenceImage.cornerTopLeft', 'top left'),
+    t('editor.ReferenceImage.cornerTopRight', 'top right'),
+    t('editor.ReferenceImage.cornerBottomRight', 'bottom right'),
+    t('editor.ReferenceImage.cornerBottomLeft', 'bottom left'),
+  ][i] ?? '';
+
 export const BOARD_VIEW_W = BOARD_W * U + 4;
 export const BOARD_VIEW_H = BOARD_H * U + 4;
 const MAX_BYTES = 40 * 1024 * 1024;
@@ -278,7 +280,7 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
           {t(
             'editor.ReferenceImage.tapTheCornerOf',
             'Tap the {v1} corner of the map frame. ({v2} of 4)',
-            { v1: CORNER_NAMES[step] ?? '', v2: step + 1 },
+            { v1: cornerName(step), v2: step + 1 },
           )}
         </p>
         <div className="ed-chips">

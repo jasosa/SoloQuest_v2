@@ -4,6 +4,7 @@
  * element. Under the hood it is the same note; these helpers only choose and fill the trigger and
  * the target. Pure, no React.
  */
+import { tr } from '../../i18n/translate';
 import { board, roomIds } from '../../engine/board/board';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import type { Note, NoteTarget, Quest, Trigger } from '../../engine/quest/schema';
@@ -19,9 +20,11 @@ export const subjectOf = (n: Note): Subject => noteTarget(n) ?? { kind: 'quest' 
 export function subjectLabel(q: Quest, s: Subject): string {
   switch (s.kind) {
     case 'quest':
-      return 'The quest';
+      return tr('editor.actionSubjects.theQuest', 'The quest');
     case 'area':
-      return s.id === 'C' ? 'The corridors' : `Room ${s.id}`;
+      return s.id === 'C'
+        ? tr('editor.actionSubjects.theCorridors', 'The corridors')
+        : tr('editor.actionSubjects.room', 'Room {id}', { id: s.id });
     case 'square':
       return `Square ${s.id}`;
     case 'zone':
@@ -30,9 +33,9 @@ export function subjectLabel(q: Quest, s: Subject): string {
       return q.edgeDoors.some((d) => d.id === s.id)
         ? `${q.edgeDoors.find((d) => d.id === s.id)?.kind === 'ironEntry' ? 'Entry' : 'Exit'} door ${s.id}`
         : q.secretDoors.some((d) => d.id === s.id)
-          ? `Secret door ${s.id}`
+          ? tr('editor.actionSubjects.secretDoor', 'Secret door {id}', { id: s.id })
           : q.falseDoors.some((d) => d.id === s.id)
-            ? `False door ${s.id}`
+            ? tr('editor.actionSubjects.falseDoor', 'False door {id}', { id: s.id })
             : `Door ${s.id}`;
     case 'furniture':
       return `Furniture ${s.id}`;
@@ -52,46 +55,93 @@ export interface TriggerChoice {
   readonly label: string;
 }
 
-const button: TriggerChoice = { type: 'manual', label: 'A button' };
+const button: TriggerChoice = {
+  type: 'manual',
+  get label() {
+    return tr('editor.actionSubjects.aButton', 'A button');
+  },
+};
 
 /** The triggers that fit a subject, in the order the author sees them. */
 export function triggerChoices(s: Subject): readonly TriggerChoice[] {
   switch (s.kind) {
     case 'quest':
       return [
-        { type: 'questStart', label: 'The quest starts' },
-        { type: 'questEnds', label: 'The quest ends' },
-        { type: 'zargonTurn', label: 'A Zargon turn ends' },
-        { type: 'allKilled', label: 'All of some monsters are slain' },
-        { type: 'manual', label: 'A button in the Quest sheet' },
+        {
+          type: 'questStart',
+          label: tr('editor.actionSubjects.theQuestStarts', 'The quest starts'),
+        },
+        { type: 'questEnds', label: tr('editor.actionSubjects.theQuestEnds', 'The quest ends') },
+        {
+          type: 'zargonTurn',
+          label: tr('editor.actionSubjects.aZargonTurnEnds', 'A Zargon turn ends'),
+        },
+        {
+          type: 'allKilled',
+          label: tr(
+            'editor.actionSubjects.allOfSomeMonstersAreSlain',
+            'All of some monsters are slain',
+          ),
+        },
+        {
+          type: 'manual',
+          label: tr('editor.actionSubjects.aButtonInTheQuestSheet', 'A button in the Quest sheet'),
+        },
       ];
     case 'area':
       return [
-        { type: 'areaRevealed', label: 'It is revealed' },
-        { type: 'areaEntered', label: 'A hero enters it' },
-        { type: 'treasureSearch', label: 'It is searched for treasure' },
-        { type: 'secretDoorSearch', label: 'It is searched for secret doors' },
+        { type: 'areaRevealed', label: tr('editor.actionSubjects.itIsRevealed', 'It is revealed') },
+        {
+          type: 'areaEntered',
+          label: tr('editor.actionSubjects.aHeroEntersIt', 'A hero enters it'),
+        },
+        {
+          type: 'treasureSearch',
+          label: tr('editor.actionSubjects.itIsSearchedForTreasure', 'It is searched for treasure'),
+        },
+        {
+          type: 'secretDoorSearch',
+          label: tr(
+            'editor.actionSubjects.itIsSearchedForSecretDoors',
+            'It is searched for secret doors',
+          ),
+        },
         button,
       ];
     case 'square':
     case 'marker':
-      return [{ type: 'squareEntered', label: 'A hero is here' }, button];
+      return [
+        { type: 'squareEntered', label: tr('editor.actionSubjects.aHeroIsHere', 'A hero is here') },
+        button,
+      ];
     case 'zone':
-      return [{ type: 'zoneEntered', label: 'A hero enters it' }, button];
+      return [
+        {
+          type: 'zoneEntered',
+          label: tr('editor.actionSubjects.aHeroEntersIt', 'A hero enters it'),
+        },
+        button,
+      ];
     case 'door':
-      return [{ type: 'doorOpened', label: 'It is opened' }, button];
+      return [
+        { type: 'doorOpened', label: tr('editor.actionSubjects.itIsOpened', 'It is opened') },
+        button,
+      ];
     case 'monster':
       return [
-        { type: 'monsterSeen', label: 'It is seen' },
-        { type: 'monsterKilled', label: 'It is slain' },
-        { type: 'monsterLeft', label: 'It escapes or is freed' },
-        { type: 'spellCast', label: 'It casts a spell' },
+        { type: 'monsterSeen', label: tr('editor.actionSubjects.itIsSeen', 'It is seen') },
+        { type: 'monsterKilled', label: tr('editor.actionSubjects.itIsSlain', 'It is slain') },
+        {
+          type: 'monsterLeft',
+          label: tr('editor.actionSubjects.itEscapesOrIsFreed', 'It escapes or is freed'),
+        },
+        { type: 'spellCast', label: tr('editor.actionSubjects.itCastsASpell', 'It casts a spell') },
         button,
       ];
     case 'trap':
       return [
-        { type: 'trapSprung', label: 'It springs' },
-        { type: 'trapDisarmed', label: 'It is disarmed' },
+        { type: 'trapSprung', label: tr('editor.actionSubjects.itSprings', 'It springs') },
+        { type: 'trapDisarmed', label: tr('editor.actionSubjects.itIsDisarmed', 'It is disarmed') },
         button,
       ];
     case 'furniture':
@@ -106,7 +156,10 @@ const cellOf = (id: string): [number, number] | undefined => {
 
 const noFit = <T>(): Made<T> => ({
   ok: false,
-  error: 'That trigger does not fit this subject.',
+  error: tr(
+    'editor.actionSubjects.thatTriggerDoesNotFitThis',
+    'That trigger does not fit this subject.',
+  ),
 });
 
 /**
@@ -125,7 +178,10 @@ export function triggerFor(
   switch (type) {
     case 'manual': {
       const old = previous?.type === 'manual' ? previous : undefined;
-      const trigger: Trigger = old ?? { type: 'manual', label: 'Press me' };
+      const trigger: Trigger = old ?? {
+        type: 'manual',
+        label: 'Press me',
+      };
       return { ok: true, value: { trigger, target: s.kind === 'quest' ? undefined : s } };
     }
     case 'areaRevealed':
@@ -205,7 +261,11 @@ const asRetarget = (
 export function retarget(q: Quest, n: Note, to: Subject): Made<Retarget> {
   const choices = triggerChoices(to);
   const type = choices.find((c) => c.type === n.trigger.type)?.type ?? choices[0]?.type;
-  if (!type) return { ok: false, error: 'Nothing fits this subject.' };
+  if (!type)
+    return {
+      ok: false,
+      error: tr('editor.actionSubjects.nothingFitsThisSubject', 'Nothing fits this subject.'),
+    };
   return asRetarget(triggerFor(q, to, type, n.trigger));
 }
 
