@@ -1,10 +1,12 @@
 {
   "format": "sqtextures",
   "version": 1,
-  "id": "frozen-horror-art",
+  "id": "fz-ah-2021",
   "name": "Frozen Horror",
   "origin": "official",
   "box": "frozen-horror",
+  "family": "ah-2021",
+  "extends": "core-ah-2021",
   "block": { "single": "furniture/block.png" },
   "enemy": {
     "iceGremlin": "monsters/ice_gremlin.png",

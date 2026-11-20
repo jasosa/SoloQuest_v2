@@ -1,7 +1,7 @@
 # Texture packs
 
 A texture pack changes how the board looks. It never changes rules, quests or saved games (decision 78).
-Pick one with the **Textures** link on the quest select screen. The built-in look (Classic) is always there.
+Pick packs with the **Textures** link on the quest select screen. The built-in look (Classic) is always there.
 
 A pack is made of whole pictures: **one picture of the board**, one picture per monster, one per piece of
 furniture, and pictures for doors, blocks and traps. It does not need small tiles for floors or walls.
@@ -121,28 +121,26 @@ picture shows in Zargon view only.
 - Tunnel pictures fill their square. Edge door pictures are drawn with the arrow pointing right: the picture sits inside the square next to the wall, turned so the arrow points into the board for `ironEntry` and out of it for `woodenExit`; an opened door is drawn at 45%.
 - Magic Ice has no slot: the app ignores blocks that spells place (decision 57).
 
-### The Frozen Horror pack that ships with the app (decision 98)
+### The Frozen Horror pack that ships with the app (decisions 98 and 99)
 
-Frozen Horror pictures are a texture pack like any other, with one difference: it ships with the app, so it is in the list of the Textures dialog from the start (marked "Included with the app", for `frozen-horror`, official, about 3 MB). **It is not applied by itself.** The player taps **Use** (and **Stop using it** to go back to the built-in look). The source is `src/content/art/frozen-horror.theme.json`; the pictures stay once in `public/assets/frozen-horror/` (png, in the offline cache) and are read from there when the pack is used, previewed or exported. It is stand-alone (no `extends`).
+Frozen Horror pictures are a texture pack like any other, with one difference: it ships with the app, so it is in the list of the Textures dialog from the start (marked "Included with the app", for `frozen-horror`, official, about 3 MB). It is an **expansion pack** (id `fz-ah-2021`, family `ah-2021`): its `extends` is `core-ah-2021`, the core pack it is made for (the owner's own core pack, not shipped), so the dialog says "Needs the pack core-ah-2021. Import it first." until that core pack is imported and in use. **It is not applied by itself.** The player taps **Use** (and **Stop using it**). The source is `src/content/art/fz-ah-2021.theme.json`; the pictures stay once in `public/assets/frozen-horror/` (png, in the offline cache) and are read from there when the pack is used, previewed or exported.
 
-- **Export** in the dialog, and `npm run build:pack -- frozen-horror`, give the same file, `frozen-horror-art.sqtextures` / `dist-packs/frozen-horror.sqtextures` (git-ignored). It imports like any pack.
-- A pack with `box` dresses only the quests of that box. The Frozen Horror pack draws nothing in a core quest.
+- **Export** in the dialog, and `npm run build:pack -- frozen-horror`, give the same file, `fz-ah-2021.sqtextures` / `dist-packs/fz-ah-2021.sqtextures` (git-ignored). It includes `extends`, and imports like any pack.
 - If the player saves an adjusted copy from Preview, the copy replaces the shipped row (Delete on the copy brings the shipped one back).
 
-### Packs for an expansion: `box` and `extends` (decision 85)
+### Pack families: core packs and expansion packs (decision 99)
 
-Every quest pack (the core game, Frozen Horror) has its own built-in art, and the built-in art of an expansion builds on the core
-built-in art. A texture pack follows the same shape:
+Packs come in families. Someone can make textures for the core game and for every expansion, as one family.
+
+- A **core pack** has no `box` and no `extends`. It dresses every quest. Its `family` (a short id like `ah-2021`) names the family it starts.
+- An **expansion pack** has a `box` (the quest pack it dresses, for example `frozen-horror`), an `extends` (the id of the ONE concrete core pack it is made for) **and** the same `family` as that core pack. It dresses only the quests of its box. Importing refuses an expansion pack without `extends` ("An expansion pack needs the core pack it is made for."), one without `family` ("An expansion pack needs the family of its core pack.") and a core pack with `extends` ("A core pack cannot extend another pack."). `extends` names the concrete pack and `family` the family it belongs to; the two must agree, and an expansion pack is used only with its core pack of its family ("Made for the family {family}, but {pack} is of another family.").
 
 ```json
-{ "id": "fh-art", "name": "Frozen Horror art", "box": "frozen-horror", "extends": "stone-dungeon", "monster": { "goblin": "gremlin.png" } }
+{ "id": "stone-dungeon", "name": "Stone dungeon", "family": "stone", "board": "board.webp" }
+{ "id": "stone-frozen", "name": "Stone dungeon: Frozen Horror", "box": "frozen-horror", "extends": "stone-dungeon", "family": "stone", "enemy": { "iceGremlin": "gremlin.png" } }
 ```
 
-- `box` is the quest pack the texture pack dresses. Left out: the core game. The pack list says "For frozen-horror".
-- `extends` is the id of another texture pack this one builds on. It cannot be used without it: the list says "Needs the pack ..."
-  until the parent is imported. When it is used, every slot it has wins and every other slot comes from the parent, then from the
-  built-in look.
-- A pack that has no `extends` stands alone (a core pack, or a full pack for an expansion).
+What the player can use: no pack (the built-in look), a core pack alone, or a core pack and any number of expansion packs of that family together, one per box. In a quest of a box the expansion pack's pictures are on top of the core pack's, slot by slot; every slot it leaves out comes from the core pack, then from the built-in look. A core quest never gets an expansion pack. An expansion pack can only be used while the core pack it names is the core pack in use. Using another core pack stops the expansion packs of the first family; stopping the core pack stops its expansion packs too; using a second expansion pack of the same box replaces the first. The packs in use are kept on the device as `{ core, expansions }`; an older single choice is read as the core pack, and an older single expansion pack, with no core pack in use, is cleared.
 
 ## Picture sizes
 

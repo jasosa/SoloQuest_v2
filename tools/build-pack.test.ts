@@ -9,7 +9,7 @@ describe('build:pack frozen-horror', () => {
     const r = readPack(writePack(pack));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.pack.manifest.id).toBe('frozen-horror-art');
+    expect(r.pack.manifest.id).toBe('fz-ah-2021');
     expect(r.pack.manifest.box).toBe('frozen-horror');
     expect(r.pack.manifest.origin).toBe('official');
     expect(Object.keys(r.pack.files).sort()).toEqual(manifestFiles(r.pack.manifest).sort());

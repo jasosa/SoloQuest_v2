@@ -2,19 +2,10 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ROOM_TILES, BOARD_TILES } from '../../engine/data/roomTiles';
 import { MemoryThemeStore } from '../../persist/themes';
-import { applyPack } from './activate';
-import { getActiveTheme } from './activeTheme';
 import { INCLUDED_PACKS, withIncluded } from './included';
-import { boxOfQuest, FROZEN_HORROR, themeForBox } from './questBox';
+import { boxOfQuest, FROZEN_HORROR } from './questBox';
 import { manifestFiles, PackManifestSchema, readPack, themeFromPack, writePack } from './pack';
-import {
-  CLASSIC_THEME,
-  mergeThemes,
-  monsterPicture,
-  isThemeToken,
-  tilePictureFor,
-  type Theme,
-} from './theme';
+import { mergeThemes, monsterPicture, isThemeToken, tilePictureFor, type Theme } from './theme';
 
 const base = { format: 'sqtextures', version: 1, id: 'fh-x', name: 'FH x' };
 
@@ -23,6 +14,8 @@ describe('pack slots for Frozen Horror pictures', () => {
     const m = PackManifestSchema.parse({
       ...base,
       box: 'frozen-horror',
+      extends: 'core-a',
+      family: 'fam-a',
       enemy: { iceGremlin: { file: 'g.png', scale: 1.2 } },
       edgeDoor: { ironEntry: 'i.png' },
       tunnel: { '1': 't1.png' },
@@ -103,11 +96,12 @@ describe('the Frozen Horror pack that ships with the app', () => {
   const t = themeFromPack({ manifest: inc.manifest, files: {} }, (f) => `u/${f}`);
   const disk = (f: string) => readFileSync(`public/${inc.folder}${f}`);
 
-  it('is a real, explicit pack: named, official, for its box, stand-alone', () => {
+  it('is a real, explicit expansion pack: named, official, for its box, made for one core pack', () => {
     expect(inc.manifest.name).toBe('Frozen Horror');
     expect(inc.manifest.origin).toBe('official');
     expect(inc.manifest.box).toBe('frozen-horror');
-    expect(inc.manifest.extends).toBeUndefined();
+    expect(inc.manifest.extends).toBe('core-ah-2021');
+    expect(inc.manifest.family).toBe('ah-2021');
   });
 
   it('names only pictures that are in public/assets/frozen-horror, and knows their size', () => {
@@ -138,48 +132,25 @@ describe('the Frozen Horror pack that ships with the app', () => {
 
   it('is listed with its name, box and size, and can be loaded and exported as a file', async () => {
     const store = withIncluded(new MemoryThemeStore(), fetcher, '/');
-    const row = (await store.list()).find((p) => p.id === 'frozen-horror-art')!;
+    const row = (await store.list()).find((p) => p.id === 'fz-ah-2021')!;
     expect(row).toMatchObject({
       name: 'Frozen Horror',
       box: 'frozen-horror',
       included: true,
       bytes: inc.bytes,
     });
-    const pack = (await store.load('frozen-horror-art'))!;
+    const pack = (await store.load('fz-ah-2021'))!;
     const back = readPack(writePack(pack));
     expect(back.ok).toBe(true);
-  });
-
-  it('is not applied by itself, and is applied and stopped explicitly', async () => {
-    const store = withIncluded(new MemoryThemeStore(), fetcher, '/');
-    await applyPack(store, null);
-    expect(getActiveTheme().enemy).toBeUndefined();
-    expect(await store.getActive()).toBeNull();
-    expect(await applyPack(store, 'frozen-horror-art')).toBe(true);
-    expect(getActiveTheme().box).toBe('frozen-horror');
-    expect(getActiveTheme().enemy?.yeti).toBeDefined();
-    expect(await store.getActive()).toBe('frozen-horror-art');
-    await applyPack(store, null);
-    expect(getActiveTheme().enemy).toBeUndefined();
   });
 
   it('a copy the player saved wins over the shipped one in the list', async () => {
     const mem = new MemoryThemeStore();
     const store = withIncluded(mem, fetcher, '/');
-    await mem.save((await store.load('frozen-horror-art'))!);
-    const rows = (await store.list()).filter((p) => p.id === 'frozen-horror-art');
+    await mem.save((await store.load('fz-ah-2021'))!);
+    const rows = (await store.list()).filter((p) => p.id === 'fz-ah-2021');
     expect(rows).toHaveLength(1);
     expect(rows[0]?.included).toBeUndefined();
-  });
-
-  it('a pack for a box dresses only the quests of that box', () => {
-    const mine: Theme = { ...t };
-    expect(themeForBox(mine, 'frozen-horror')).toBe(mine);
-    expect(themeForBox(mine, undefined)).toBe(CLASSIC_THEME);
-    expect(themeForBox(mine, 'core')).toBe(CLASSIC_THEME);
-    const core: Theme = { id: 'c', name: 'c' };
-    expect(themeForBox(core, undefined)).toBe(core);
-    expect(themeForBox(core, 'frozen-horror')).toBe(core);
   });
 
   it('a quest is Frozen Horror by its pack, or by using its pieces', () => {

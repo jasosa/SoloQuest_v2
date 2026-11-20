@@ -83,12 +83,23 @@ export const PackManifestSchema = z
     name: z.string().trim().min(1).max(60),
     origin: z.enum(['official', 'fan']).default('fan'),
     author: z.string().max(80).optional(),
-    /** The quest pack this one dresses (an id like `frozen-horror`). Left out: the core game. */
+    /**
+     * The quest pack this one dresses (an id like `frozen-horror`): an expansion pack. Left out: a core
+     * pack, which dresses every quest. An expansion pack always has `extends` (decision 99).
+     */
     box: z
       .string()
       .regex(/^[a-z0-9][a-z0-9-]{1,40}$/)
       .optional(),
-    /** Another texture pack this one builds on and cannot be used without (an id). Its slots win. */
+    /**
+     * The family of packs this one belongs to (a short id like `ah-2021`). A core pack names the family it
+     * starts; an expansion pack names the family of its core pack and is used only with it (decision 99).
+     */
+    family: z
+      .string()
+      .regex(/^[a-z0-9][a-z0-9-]{1,40}$/)
+      .optional(),
+    /** Expansion packs only: the id of the ONE core texture pack this pack is made for and needs applied. */
     extends: z
       .string()
       .regex(/^[a-z0-9][a-z0-9-]{1,40}$/)
@@ -131,7 +142,28 @@ export const PackManifestSchema = z
       )
       .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((m, ctx) => {
+    // the family rule (decision 99): a core pack stands alone, an expansion pack depends on one core pack
+    if (m.box !== undefined && m.extends === undefined)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['extends'],
+        message: 'An expansion pack needs the core pack it is made for.',
+      });
+    if (m.box !== undefined && m.extends !== undefined && m.family === undefined)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['family'],
+        message: 'An expansion pack needs the family of its core pack.',
+      });
+    if (m.box === undefined && m.extends !== undefined)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['extends'],
+        message: 'A core pack cannot extend another pack.',
+      });
+  });
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
 export interface PackFile {
@@ -224,7 +256,7 @@ export function readPack(data: Uint8Array): PackResult {
     const i = parsed.error.issues[0];
     return {
       ok: false,
-      message: `The theme.json is not right: ${i?.path.join('.') || 'file'}: ${i?.message ?? 'invalid'}.`,
+      message: `The theme.json is not right: ${i?.path.join('.') || 'file'}: ${(i?.message ?? 'invalid').replace(/\.$/, '')}.`,
     };
   }
   const manifest = parsed.data;

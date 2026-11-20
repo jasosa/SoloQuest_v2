@@ -13,9 +13,11 @@ export interface PackSummary {
   author?: string | undefined;
   /** Size of the pictures, in bytes. */
   bytes: number;
-  /** The quest pack it dresses; the core game when missing. */
+  /** The quest pack it dresses (an expansion pack); a core pack has none. */
   box?: string | undefined;
-  /** The texture pack it builds on. */
+  /** The family of packs it belongs to (a core pack starts one, an expansion pack joins one). */
+  family?: string | undefined;
+  /** An expansion pack: the id of the one core pack it is made for. */
   extends?: string | undefined;
   /** Ships with the app: it cannot be deleted. */
   included?: boolean | undefined;
@@ -27,10 +29,21 @@ export interface ThemeStore {
   /** Adds the pack, or replaces the one with the same id. */
   save(pack: StoredPack): Promise<void>;
   remove(id: string): Promise<void>;
-  /** The id of the pack in use, or null for the built-in look. */
-  getActive(): Promise<string | null>;
-  setActive(id: string | null): Promise<void>;
+  /** The packs in use (decision 99). */
+  getSelection(): Promise<ActiveSelection>;
+  setSelection(selection: ActiveSelection): Promise<void>;
 }
+
+/**
+ * The packs in use: one core pack (null: the built-in look) and the expansion packs of that core pack's
+ * family, one per box. An expansion pack is only in the list while its core pack is the core one.
+ */
+export interface ActiveSelection {
+  core: string | null;
+  expansions: string[];
+}
+
+export const NO_SELECTION: ActiveSelection = { core: null, expansions: [] };
 
 export function summaryOf(pack: StoredPack): PackSummary {
   const m = pack.manifest;
@@ -40,6 +53,7 @@ export function summaryOf(pack: StoredPack): PackSummary {
     origin: m.origin,
     ...(m.author ? { author: m.author } : {}),
     ...(m.box ? { box: m.box } : {}),
+    ...(m.family ? { family: m.family } : {}),
     ...(m.extends ? { extends: m.extends } : {}),
     bytes: Object.values(pack.files).reduce((n, f) => n + f.bytes.length, 0),
   };
@@ -47,7 +61,7 @@ export function summaryOf(pack: StoredPack): PackSummary {
 
 export class MemoryThemeStore implements ThemeStore {
   private packs = new Map<string, StoredPack>();
-  private active: string | null = null;
+  private selection: ActiveSelection = { core: null, expansions: [] };
   async list() {
     return [...this.packs.values()].map(summaryOf);
   }
@@ -59,13 +73,12 @@ export class MemoryThemeStore implements ThemeStore {
   }
   async remove(id: string) {
     this.packs.delete(id);
-    if (this.active === id) this.active = null;
   }
-  async getActive() {
-    return this.active;
+  async getSelection() {
+    return { core: this.selection.core, expansions: [...this.selection.expansions] };
   }
-  async setActive(id: string | null) {
-    this.active = id;
+  async setSelection(selection: ActiveSelection) {
+    this.selection = { core: selection.core, expansions: [...selection.expansions] };
   }
 }
 
@@ -83,7 +96,9 @@ class ThemeDb extends Dexie {
   }
 }
 
-const ACTIVE_KEY = 'soloquest-active-texture-pack';
+/** The first versions kept one pack id here. It is read as the core pack and moved to `SELECTION_KEY`. */
+const LEGACY_KEY = 'soloquest-active-texture-pack';
+const SELECTION_KEY = 'soloquest-texture-selection';
 
 export class DexieThemeStore implements ThemeStore {
   private db: ThemeDb;
@@ -109,21 +124,32 @@ export class DexieThemeStore implements ThemeStore {
   }
   async remove(id: string) {
     await this.db.packs.delete(id);
-    if ((await this.getActive()) === id) await this.setActive(null);
   }
-  async getActive() {
+  async getSelection(): Promise<ActiveSelection> {
     try {
-      return localStorage.getItem(ACTIVE_KEY);
+      const raw = localStorage.getItem(SELECTION_KEY);
+      if (raw) {
+        const v = JSON.parse(raw) as Partial<ActiveSelection>;
+        return {
+          core: typeof v.core === 'string' ? v.core : null,
+          expansions: Array.isArray(v.expansions)
+            ? v.expansions.filter((x): x is string => typeof x === 'string')
+            : [],
+        };
+      }
+      const legacy = localStorage.getItem(LEGACY_KEY);
+      return { core: legacy, expansions: [] };
     } catch {
-      return null;
+      return { core: null, expansions: [] };
     }
   }
-  async setActive(id: string | null) {
+  async setSelection(selection: ActiveSelection) {
     try {
-      if (id) localStorage.setItem(ACTIVE_KEY, id);
-      else localStorage.removeItem(ACTIVE_KEY);
+      localStorage.removeItem(LEGACY_KEY);
+      if (selection.core) localStorage.setItem(SELECTION_KEY, JSON.stringify(selection));
+      else localStorage.removeItem(SELECTION_KEY);
     } catch {
-      /* storage unavailable: the pack is used until the page closes */
+      /* storage unavailable: the packs are used until the page closes */
     }
   }
 }
