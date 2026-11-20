@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   closeQuestSheet,
   dismissStart,
+  endQuestWith,
+  openEndSheet,
   gotoQuest,
   newGame,
   openQuest,
@@ -137,10 +139,13 @@ test.describe('quest 1 notes', () => {
     await closeQuestSheet(page);
 
     // end the quest
-    await btn(page, 'End quest').click();
-    await expect(dialog(page)).toContainText('How did the quest end?');
+    await expect(btn(page, 'Finish the quest')).toBeVisible(); // the title band offers it now
+    await openEndSheet(page);
+    await expect(dialog(page)).toContainText('Goal and ending');
     await shot(page, 'notes-end-ask');
-    await btn(page, 'Heroes left by the stairs').click();
+    await dialog(page).getByRole('button', { name: 'Finish the quest', exact: true }).click();
+    await expect(dialog(page)).toContainText('Finish the quest?');
+    await page.getByTestId('end-confirm').click();
     const end = page.getByRole('dialog', { name: 'Quest complete' });
     await expect(end).toBeVisible();
     await expect(end).toContainText('The goal was done');
@@ -148,8 +153,7 @@ test.describe('quest 1 notes', () => {
     // undo the ending: the game is playable again
     await btn(page, 'Undo the ending').click();
     await expect(dialog(page)).toHaveCount(0);
-    await btn(page, 'End quest').click();
-    await btn(page, 'All heroes fell').click();
+    await endQuestWith(page, 'All heroes fell');
     await expect(
       page
         .getByRole('dialog', { name: 'Quest over, goal not reached' })
@@ -161,8 +165,7 @@ test.describe('quest 1 notes', () => {
 
   test('a quest that is not won says so', async ({ page }) => {
     await quest1(page, 'd1');
-    await btn(page, 'End quest').click();
-    await btn(page, 'All heroes fell').click();
+    await endQuestWith(page, 'All heroes fell');
     const end = page.getByRole('dialog', { name: 'Quest over, goal not reached' });
     await expect(end).toContainText('The goal was not done');
     await shot(page, 'notes-end-lost');
@@ -444,12 +447,14 @@ test.describe('quest 2 endings and blocked search', () => {
     page,
   }) => {
     await quest2(page);
-    await page.getByRole('button', { name: 'End quest', exact: true }).click();
-    await expect(btn(page, 'Heroes left by the stairs')).toBeVisible();
+    await openEndSheet(page);
+    await expect(btn(page, 'Leave without finishing')).toBeVisible();
     await expect(btn(page, 'Sir Ragnar died')).toBeVisible();
     expect((await btn(page, 'Sir Ragnar died').boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await shot(page, 'end-options-ending');
     await btn(page, 'Sir Ragnar died').click();
+    await expect(dialog(page)).toContainText('Sir Ragnar died?');
+    await page.getByTestId('end-confirm').click();
     const card = dialog(page);
     await expect(card).toContainText('Quest over');
     await expect(card).toContainText('Sir Ragnar died');

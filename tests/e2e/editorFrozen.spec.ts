@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, openQuestSheet } from './helpers';
+import { dismissStart, openEndSheet } from './helpers';
 
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 
@@ -28,9 +28,9 @@ test.describe('editor: Frozen Horror pieces', () => {
 
     await page.getByTestId('playtest').click();
     await dismissStart(page);
-    await openQuestSheet(page);
+    await openEndSheet(page);
     await expect(
-      page.getByRole('dialog', { name: 'Quest sheet' }).getByRole('button', {
+      page.getByRole('dialog', { name: 'Goal and ending' }).getByRole('button', {
         name: 'The heroes left through the cave',
       }),
     ).toBeVisible();
@@ -89,5 +89,22 @@ test.describe('editor: Frozen Horror pieces', () => {
     await page.getByLabel('When').selectOption('monsterLeft');
     await expect(page.getByLabel('When')).toHaveValue('monsterLeft');
     await expect(page.getByRole('button', { name: 'Escaped', exact: true })).toBeVisible();
+  });
+});
+
+test.describe('end sheet of a quest with no objectives', () => {
+  test('the goal line still opens the sheet and the stairs button asks once', async ({ page }) => {
+    await newQuest(page);
+    await page.getByTestId('playtest').click();
+    await dismissStart(page);
+    const goal = page.getByTestId('goal-line');
+    await expect(goal).toContainText('End the quest');
+    await goal.click();
+    const sheet = page.getByRole('dialog', { name: 'Goal and ending' });
+    await expect(sheet.locator('.goals')).toHaveCount(0);
+    await expect(sheet.getByRole('button', { name: 'Finish the quest' })).toHaveCount(0);
+    await sheet.getByRole('button', { name: 'Heroes left by the stairs', exact: true }).click();
+    await page.getByTestId('end-confirm').click();
+    await expect(page.getByRole('dialog')).toContainText('Quest');
   });
 });

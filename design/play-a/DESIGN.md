@@ -50,7 +50,7 @@ Same shell as the play screen (title band, 920 px left area, right column). Left
 - **Note sheet**: centered card on a dim veil (prototype `.note`): letter chip, small caps kind, title, text, one button ("Continue"). Several notes from one event show one after the other. A choice (`promptChoice`) is the same card with one button per option and cannot be skipped.
 - **Letters**: a note that was read leaves its letter (ink square, light letter) on the map at its square; tap to read again. The right column "Quest notes" lists the same notes (letter or a bullet, first sentence). Notes that were never read leave no trace.
 - **Waiting notes**: a seen square with a `squareEntered` note shows a neutral dashed ring with a dot (tap: "Did a hero step here?" Yes / No). A revealed room with an `areaEntered` note shows a small arrow glyph at its top left, and its margin note gets "A hero enters". `manual` notes (buttons for things the app cannot see) are replaced by the element buttons and the Quest sheet (decision 67, see below).
-- **Goal**: the right column lists the objectives with a tick box; when all are done: "Goal done. Bring the heroes back to the stairs." "End quest" in the title band asks "Heroes left by the stairs" or "All heroes fell", then the end card ("Quest complete" or "Quest over, goal not reached", objectives, rewards as text, "Back to the quests", "Undo the ending"). After the end the board is read-only (the card covers it); undo still works.
+- **Goal**: the right column lists the objectives with a tick box; when all are done: "Goal done. Bring the heroes back to the stairs." the goal line in the title band opens the end sheet (see "End flow" below), then the end card ("Quest complete" or "Quest over, goal not reached", objectives, rewards as text, "Back to the quests", "Undo the ending"). After the end the board is read-only (the card covers it); undo still works.
 - **Companions**: an NPC is a row (name, then "Defend n · Body n" so the players can write the numbers down) above the monsters. The app does not track the Body Points.
 - **Statues**: a dormant monster is drawn as a small statue figure (line art, ink on white), not in the roster, not tappable. When a note wakes it, it stamps in like any monster. A monster placed by a note shows its token on the named square, a margin note "Put X here" and a pulsing ring on the square. Roster lines: "Stone: n turns", "Placed by a quest note".
 
@@ -160,7 +160,7 @@ A local picture (a photo or scan of a map) to trace from. It stays on this devic
 
 ## Custom endings and blocked searches (decisions 64 and 65)
 
-**End quest list.** The "How did the quest end?" card lists "Heroes left by the stairs", then one `btn alt` per custom ending of the quest (its label, for example "Sir Ragnar died"), then "All heroes fell" and "Keep playing". A tap ends the quest at once; "Undo the ending" on the end card brings it back.
+**Endings in the end sheet.** The end sheet (see "End flow") lists one `btn alt` per custom ending of the quest (its label, for example "Sir Ragnar died") between the stairs button and "All heroes fell". A tap asks once, then ends the quest; "Undo the ending" on the end card brings it back.
 
 **End card for a custom ending.** Title "Quest over" (never "Quest complete"), the ending label in bold, the ending text if there is one, then "The goal was done" or "The goal was not done" and the objective ticks. No rewards line. "Back to the quests" and "Undo the ending" as for the other endings.
 
@@ -172,7 +172,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 
 **Mockup.** Open `design/play-a/quest-sheet.html` (six clickable states: title band and side column, Quest sheet, element button, room label, message sheet, start sheet). Screenshots are in `design/play-a/shots/qs-*.png`. The mockup uses the quest 1 board with sample texts, so the content of the sheet is an example, not quest data.
 
-**Title band.** Quest, turn, then a second line with the **current goal**: the first objective that is not done, in one line ("Goal: Find the Talisman of Lore"). Buttons on the right, all 44 px tall `btn alt` chips: **Quest**, Undo, End quest. A small ink dot on the Quest chip means a confirm button is available now (an objective with `confirm` whose `confirmWhen` holds). End quest stays its own menu and is never reached from a quest button.
+**Title band.** Quest, turn, then a second line with the **current goal**: the first objective that is not done, in one line ("Goal: Find the Talisman of Lore"). Buttons on the right, all 44 px tall `btn alt` chips: Undo, **Quest info**, Settings. The goal line is a button that opens the end sheet; there is no End quest chip (see "End flow"). A small ink dot on the goal line means a confirm button is available now (an objective with `confirm` whose `confirmWhen` holds); the dot on Quest info means a loose Quest action is available.
 
 **Side column (right), after the change.** Heroes, Companions, Monsters in play (alive only), the wandering monster line, the Zargon's turn button. No objectives list, no journal, no Quest actions block. Less scrolling: the list of monsters is the only part that can grow.
 
@@ -181,7 +181,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 1. Header: small caps "Quest 5", the title, Close.
 2. **About this quest**: the quest intro (the same summary as on the quest list), so the story can be read again in play.
 3. **At the start**: the start instruction (the text of the `questStart` note), so it can be read again.
-4. **Goal**: one row per objective with a tick box (same as today). A row that has a `confirm` button and is not done shows the button under it (`btn alt`, full width, 48 px): for example "All surviving heroes have left by the stairs". A button whose `confirmWhen` does not hold yet is not shown.
+4. **Goal**: one row per objective with a tick box (same as today). Read only here: the ticks and the goal-done line. The confirm buttons moved to the end sheet (see "End flow").
 5. **Quest actions** (only when it has rows): buttons of notes with no element (a `manual` note with no `target`), each with a one-line hint under the label. Nothing here ends the quest. **A button only shows while its conditions hold** (the room or square it is about is seen, a flag is set): it never appears before the players could need it. The same holds for element buttons and objective confirm buttons.
 6. **Notes read**: letter chip or bullet, first sentence, tap to read again (the Quest sheet closes and the note opens alone; closing the note brings the Quest sheet back, so only one dialog is open at a time). Pressing any button in the sheet closes it too, so the message that follows is the only dialog.
 7. **What happened**: the log, newest first, one line each with the turn number: door opened, room revealed, monster slain, trap sprung, search made, hero fell, note read, monster added. Tap a note line to read it again. The log is derived from the events, so undo removes the line.
@@ -211,9 +211,9 @@ The line is not drawn when there is nothing to show, so most notes stay as they 
 
 **Start.** At the start of a quest the start instruction opens as a message sheet titled "Start" (for example "Place the heroes on the stairs."). It is also kept in the Quest sheet.
 
-**Touch and keyboard.** All hit areas 44 px or more. Quest sheet buttons are reachable by Tab in reading order. The goal line in the title band is plain text, not a control.
+**Touch and keyboard.** All hit areas 44 px or more. Quest sheet buttons are reachable by Tab in reading order. The goal line in the title band is a button (44 px hit area) that opens the end sheet.
 
-**What changes in the code (for ui-dev).** New components in `src/ui/play/`: `QuestSheet`, `ForThisQuest` (inside the margin notes), `RoomLabel`. New engine views: `eventLog(level, events)` (pure, derived from the event list), and a lookup of notes by target (`notesOf`, exists). The sidebar loses `Objectives`, `Journal` and `QuestActions`. The title band gains the goal line and the Quest chip.
+**What changes in the code (for ui-dev).** New components in `src/ui/play/`: `QuestSheet`, `ForThisQuest` (inside the margin notes), `RoomLabel`. New engine views: `eventLog(level, events)` (pure, derived from the event list), and a lookup of notes by target (`notesOf`, exists). The sidebar loses `Objectives`, `Journal` and `QuestActions`. The title band gains the goal line and the Quest chip. `EndSheet` (`src/ui/play/EndSheet.tsx`) is the end flow.
 
 ### Actions of an element (decision 67)
 
@@ -244,19 +244,19 @@ A monster the quest marks special has a second ink ring around its token and a s
 
 ## Play screen: title band and right column
 
-**Title band.** The quest title is on top (26 px, one line). Under it, small: the quest number and the goal (one line, ellipsis when long; the full text is the tooltip and is on the Quest info sheet). On the right: Turn, Undo, Quest Info, End quest, Quests. Nothing in the band wraps: a long title such as "Barak Tor: Barrow of the Witch Lord" must not break the buttons at 1194 px.
+**Title band.** The quest title is on top (26 px, one line). Under it, small: the quest number and the goal (one line, ellipsis when long; the full text is the tooltip and is on the Quest info sheet). On the right: Turn, Undo, Quest Info, Settings, Quests (and "Finish the quest" when the goal is done). Nothing in the band wraps: a long title such as "Barak Tor: Barrow of the Witch Lord" must not break the buttons at 1194 px.
 
 **Right column, top to bottom.** Heroes (a compact row, always shown) · Monsters in play (a paper-3 panel that takes all the height that is left and scrolls inside) · a footer set apart by a hairline: the wandering monster line (quiet, 14.5 px muted), Add a monster (outlined), and Zargon's turn (the one filled button, 68 px tall). The panels are not collapsible: what the players check each turn (who fell, which monsters are out) stays in sight.
 
 ## One set of rules for all screens
 
-**Three action tiers, on every screen.** (1) **Filled**: the one main action of the screen (Resume and Start on the select screen, Zargon's turn in play, Save in the editor). Filled ink also means "chosen" for toggles and tools (`aria-pressed`). (2) **Outlined chip**: every other action (Undo, Redo, Quest Info, End quest, Playtest, Import, Export). Disabled ones are struck through. (3) **Italic link**: only to leave the screen (Quest editor, Quests, Back). Undo is a chip everywhere.
+**Three action tiers, on every screen.** (1) **Filled**: the one main action of the screen (Resume and Start on the select screen, Zargon's turn in play, Save in the editor). Filled ink also means "chosen" for toggles and tools (`aria-pressed`). (2) **Outlined chip**: every other action (Undo, Redo, Quest Info, Playtest, Import, Export). Disabled ones are struck through. (3) **Italic link**: only to leave the screen (Quest editor, Quests, Back). Undo is a chip everywhere.
 
 **Tabs are not chips.** The editor tabs (Quest, Map, Actions, Monsters, Library) are folder tabs: the open one has the page color and joins the page under the bar, the others are paper-2. A filled ink box is never a tab, so a chosen tool next to the tabs is not confused with navigation.
 
 **Quest identity.** A quest is always shown as "QUEST N" (small caps, ink-2) over its title (bold, ink) on paper-3 with a 2 px ink outline. The select screen uses it in a grid of cards; the editor's recent list uses it in rows, with the status (Unsaved draft or Saved, and the date) and Delete on the right.
 
-**Names.** Whole tool: Quest editor. Library of abilities, spells, enemies, heroes and companions: Library (decision 77). Buttons and labels use sentence case ("Quest info", "End quest", "Add a monster").
+**Names.** Whole tool: Quest editor. Library of abilities, spells, enemies, heroes and companions: Library (decision 77). Buttons and labels use sentence case ("Quest info", "Finish the quest", "Add a monster").
 
 ## Themes and texture packs (decision 78)
 
@@ -435,3 +435,19 @@ This replaces the quest list with pack tabs, its right column and the New game p
 **Returning.** After leaving a game the app returns to the page it started from: the start page of the quest, or the campaign overview, so the next quest is one tap away. The page is not kept across a reload: a reload goes to Home, saved games stay. The page only changes once the game has opened. The status of a quest is only Done, Saved game or Next, and the overview names only who fell in the last quest (hard rule 2 and decision 32: no casualties per quest).
 
 **Deleting a campaign.** "Delete this campaign" asks first and says it forgets the saved games of that campaign too; they are deleted with it. A saved game of a campaign that no longer exists is not offered by Continue. A campaign whose pack is not installed is listed disabled with its own Delete link.
+
+## End flow (decision 97)
+
+One control and one sheet end a quest. There is no End quest chip and no chain Quest info, confirm button, End quest.
+
+**Goal line (title band, second line).** A button, 44 px hit area (it overlaps the title row, which is not interactive), text only with a small chevron: "Goal" in small caps, then "1 of 2 done" when the quest has several objectives, then the first objective not done. When every objective is done it reads "Goal done" with the way to leave. A tap opens the end sheet. A small ink dot means an objective confirm is available now.
+
+**Finish the quest.** When every objective is done, a filled `btn` "Finish the quest" appears in the title band, in the place the End quest chip had (the band is 64 px, so a filled 44 px button does not fit on the goal line itself). One tap, then one confirmation card ("Finish the quest?", "Heroes left by the stairs.", "Yes, end the quest" and "Back"), then the end card. The outcome is `stairs`. A quest with custom endings still finishes by the stairs: its endings are the ways it can fail.
+
+**End sheet.** The note card (dim veil, role dialog, Esc closes), kind "The quest", title "Goal and ending". Top to bottom: the objectives as a checklist (tick box, text, "(done)" or "(not done)" for screen readers); under an open objective its confirm button (`btn alt`, 48 px) when its `confirmWhen` holds; then the ways to end: "Finish the quest" (`btn`, goal done), or "Leave without finishing" (`btn alt`, goal not done: heroes leave by the stairs, the end card says the goal was not reached), or "Heroes left by the stairs" (a quest with no objectives); one `btn alt` per custom ending; "All heroes fell"; "Keep playing". A way to end opens the confirmation card first; "Back" returns to the sheet. A confirm button closes the sheet and dispatches; the message that follows is the only dialog.
+
+**Last objective done.** The message sheet that tells it ("All objectives are done...") has two buttons: "Finish the quest" (`btn`, opens the confirmation card) and "Continue" (`btn alt`). Nothing is forced.
+
+**All heroes fallen.** The card "All heroes have fallen" and Zargon's turn card keep their "End quest" button; it opens the end sheet.
+
+**Quest info** keeps the story, At the start, the objectives (read only), Quest actions, Notes read and the log.

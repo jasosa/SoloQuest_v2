@@ -55,6 +55,7 @@ import { ForThisQuest } from './ForThisQuest';
 import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
 import { QuestSheet } from './QuestSheet';
+import { EndAsk, EndSheet, type EndChoice } from './EndSheet';
 import { ZOOM_STRIP, ZoomLayer } from './ZoomLayer';
 import { Helpers, Heroes } from './sidebar';
 import {
@@ -183,6 +184,8 @@ export function PlayScreen({
   /** A note was re-read from the Quest sheet: reopen the sheet when it closes. */
   const [backToSheet, setBackToSheet] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
+  /** A way to end was chosen and waits for its one confirmation. */
+  const [endAsk, setEndAsk] = useState<EndChoice | null>(null);
   const [zOpen, setZOpen] = useState(false);
   // Playtest only: show what the heroes cannot see. A view option, never a game event.
   const [zargonView, setZargonView] = useState(false);
@@ -224,7 +227,8 @@ export function PlayScreen({
   const zMonster = seq.current?.order.monster;
   const end = endSummary(level, state);
   const endings = useMemo(() => availableEndings(level), [level]);
-  const zActive = zOpen && !end && !sheet && !pending && !reread && !endOpen && !settingsOpen;
+  const zActive =
+    zOpen && !end && !sheet && !pending && !reread && !endOpen && !endAsk && !settingsOpen;
   const objectives = useMemo(() => objectivesStatus(level, state), [level, state]);
   const journalEntries = useMemo(() => journal(level, state), [level, state]);
   // A note that is read again can disappear (an Undo takes its event back): there is nothing to show then,
@@ -250,11 +254,21 @@ export function PlayScreen({
     () => eventLog(root, state.seed, events, state.startFlags),
     [root, state.seed, events, state.startFlags],
   );
-  const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
   const goalLine = objectives.goalDone
     ? goalDoneText(level)
     : (objectives.items.find((o) => !o.done)?.text ?? '');
+  const doneCount = objectives.items.filter((o) => o.done).length;
+  /** The end of the quest, once the players confirmed it. Each way is one engine event. */
+  const endQuest = (c: EndChoice) => {
+    setEndAsk(null);
+    setEndOpen(false);
+    dispatch(
+      c.outcome === 'ending'
+        ? { type: 'END_QUEST', outcome: 'ending', ending: c.ending.id }
+        : { type: 'END_QUEST', outcome: c.outcome },
+    );
+  };
   const enterable = useMemo(() => enterableAreas(level, state), [level, state]);
 
   const choose = (next: Selection | null) => {
@@ -1089,11 +1103,26 @@ export function PlayScreen({
                 : t('play.PlayScreen.quest', 'Quest {number}', { number: quest.number })) +
                 (quest.mapName ? `: ${quest.mapName}` : '')}
             </span>
-            {goalLine && (
-              <span className="goalline" title={goalLine}>
-                <b>{t('play.PlayScreen.goal', 'Goal')}</b> {goalLine}
+            <button
+              className={'goalline' + (confirms.length > 0 ? ' dot' : '')}
+              data-testid="goal-line"
+              title={goalLine}
+              onClick={() => setEndOpen(true)}
+            >
+              {!objectives.goalDone && <b>{t('play.PlayScreen.goal', 'Goal')} </b>}
+              {objectives.items.length > 1 && !objectives.goalDone && (
+                <span className="gcount">
+                  {t('play.PlayScreen.xOfYDone', '{done} of {total} done', {
+                    done: doneCount,
+                    total: objectives.items.length,
+                  })}
+                </span>
+              )}
+              <span className="gtext">
+                {goalLine || t('play.PlayScreen.endTheQuest', 'End the quest')}
               </span>
-            )}
+              {' ›'}
+            </button>
           </div>
         </div>
         <span className="turn">
@@ -1103,7 +1132,7 @@ export function PlayScreen({
           {t('play.PlayScreen.undo', 'Undo')}
         </button>
         <button
-          className={'chip hdr' + (needsYou && !questOpen ? ' dot' : '')}
+          className={'chip hdr' + (manual.length > 0 && !questOpen ? ' dot' : '')}
           aria-pressed={questOpen}
           data-testid="quest-chip"
           onClick={() => setQuestOpen((v) => !v)}
@@ -1117,9 +1146,15 @@ export function PlayScreen({
         >
           {t('play.PlayScreen.settings', 'Settings')}
         </button>
-        <button className="chip hdr" onClick={() => setEndOpen(true)}>
-          {t('play.PlayScreen.endQuest', 'End quest')}
-        </button>
+        {objectives.goalDone && (
+          <button
+            className="btn finish"
+            data-testid="finish-quest"
+            onClick={() => setEndAsk({ outcome: 'stairs', finished: true })}
+          >
+            {t('play.PlayScreen.finishTheQuest', 'Finish the quest')}
+          </button>
+        )}
         {playtest && (
           <button
             className="chip"
@@ -1351,15 +1386,10 @@ export function PlayScreen({
             ...(startTiles(level).length > 0 ? [putTilesText(startTiles(level))] : []),
           ]}
           objectives={objectives}
-          confirms={confirms}
           actions={manual}
           notes={sheetNotes}
           log={log}
           onClose={() => setQuestOpen(false)}
-          onConfirm={(objective) => {
-            setQuestOpen(false);
-            dispatch({ type: 'CONFIRM_OBJECTIVE', objective });
-          }}
           onPress={(note) => {
             setQuestOpen(false);
             dispatch({ type: 'MANUAL_TRIGGER', note });
@@ -1404,6 +1434,13 @@ export function PlayScreen({
           leave={leaveWay(level)}
           onUndo={() => undo()}
         />
+      ) : endAsk ? (
+        <EndAsk
+          choice={endAsk}
+          way={leaveWay(level)}
+          onYes={() => endQuest(endAsk)}
+          onBack={() => setEndAsk(null)}
+        />
       ) : sheet?.t === 'note' ? (
         <NoteSheet p={sheet.p} onClose={nextSheet} />
       ) : sheet?.t === 'goal' ? (
@@ -1430,7 +1467,19 @@ export function PlayScreen({
                   'This objective is done. The quest goes on.',
                 )}
           </p>
-          <button className="btn" onClick={nextSheet}>
+          {sheet.all && (
+            <button
+              className="btn"
+              data-testid="sheet-finish"
+              onClick={() => {
+                nextSheet();
+                setEndAsk({ outcome: 'stairs', finished: true });
+              }}
+            >
+              {t('play.PlayScreen.finishTheQuest', 'Finish the quest')}
+            </button>
+          )}
+          <button className={sheet.all ? 'btn alt' : 'btn'} onClick={nextSheet}>
             {t('play.PlayScreen.continue', 'Continue')}
           </button>
         </NoteCard>
@@ -1462,45 +1511,18 @@ export function PlayScreen({
           {rereadButtons}
         </RereadSheet>
       ) : endOpen ? (
-        <NoteCard
-          kind={t('play.PlayScreen.endQuest', 'End quest')}
-          title={t('play.PlayScreen.howDidTheQuest', 'How did the quest end?')}
+        <EndSheet
+          objectives={objectives}
+          confirms={confirms}
+          endings={endings}
+          way={leaveWay(level)}
+          onConfirm={(objective) => {
+            setEndOpen(false);
+            dispatch({ type: 'CONFIRM_OBJECTIVE', objective });
+          }}
+          onChoose={setEndAsk}
           onClose={() => setEndOpen(false)}
-        >
-          <button
-            className="btn"
-            onClick={() => {
-              setEndOpen(false);
-              dispatch({ type: 'END_QUEST', outcome: 'stairs' });
-            }}
-          >
-            {t('play.PlayScreen.heroesLeft', 'Heroes left {way}', { way: leaveWay(level) })}
-          </button>
-          {endings.map((e) => (
-            <button
-              key={e.id}
-              className="btn alt"
-              onClick={() => {
-                setEndOpen(false);
-                dispatch({ type: 'END_QUEST', outcome: 'ending', ending: e.id });
-              }}
-            >
-              {e.label}
-            </button>
-          ))}
-          <button
-            className="btn alt"
-            onClick={() => {
-              setEndOpen(false);
-              dispatch({ type: 'END_QUEST', outcome: 'fell' });
-            }}
-          >
-            {t('play.PlayScreen.allHeroesFell', 'All heroes fell')}
-          </button>
-          <button className="btn alt" onClick={() => setEndOpen(false)}>
-            {t('play.PlayScreen.keepPlaying', 'Keep playing')}
-          </button>
-        </NoteCard>
+        />
       ) : allFallen && !endOpen && !fallenDismissed ? (
         <NoteCard
           kind={t('play.PlayScreen.theHeroes', 'The heroes')}

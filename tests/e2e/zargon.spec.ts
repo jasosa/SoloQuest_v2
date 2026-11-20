@@ -244,8 +244,10 @@ test.describe('heroes who fell (decision 32)', () => {
     await expect(card).toBeVisible();
     await shot(page, 'heroes-all-fallen');
     await dlg(page).getByRole('button', { name: 'End quest' }).click();
-    await expect(dlg(page)).toContainText('How did the quest end?');
+    await expect(dlg(page)).toContainText('Goal and ending');
     await btn(page, 'All heroes fell').click();
+    await expect(dlg(page)).toContainText('All heroes fell?');
+    await page.getByTestId('end-confirm').click();
     await expect(dlg(page)).toContainText('Quest over, goal not reached');
   });
 
@@ -284,6 +286,6 @@ test.describe('heroes who fell (decision 32)', () => {
     await zbutton(page).click();
     await expect(dlg(page)).toContainText('All heroes have fallen');
     await dlg(page).getByRole('button', { name: 'End quest' }).click();
-    await expect(dlg(page)).toContainText('How did the quest end?');
+    await expect(dlg(page)).toContainText('Goal and ending');
   });
 });
