@@ -133,3 +133,50 @@ Engine changes in steps 3 and 6 follow `CLAUDE.md` (pure, tests with every chang
 5. Added and wandering monsters: players give a square (supersedes decision 33 for these monsters).
 6. `zargonInfo`: remove it.
 7. Markers: editor-only visibility (done, decision 66). Old text: Zargon markers are used in quests 2, 8 (two) and 12 and 14 (one each) as "place the monster here" anchors, never drawn to players. Proposal: drop the word Zargon, keep them as internal anchors with no `visible` field (players never see them), and use `visible: players` only for drawn labels.
+
+## 8. Status 2026-11-21 (play side audit)
+
+Checked by reading the code, the tests and the app (Playwright). "Done" names the file or test that shows it.
+
+| Step and item | Status | Evidence |
+|---|---|---|
+| 2. Start note in every quest | done | start sheet "Start" (`tests/e2e/helpers.ts` closes it in every e2e), `startTexts` in `QuestSheet` |
+| 2. Spoilers, repeated rewards, Q2, Q3, Q5, Q6, Q7 D, Q8, Q9, Q12 text fixes | done | backlog list in step 2, quest walk-through tests `src/content/quests/qNN.test.ts` |
+| 2. Q5 throne, Q7 note A (`monsterSeen`), Q11 goal (`allSeenKilled`) | done | `schema.ts`, `q11.test.ts`, `notes.test.ts` (monsterSeen), validator exception for a throne on a secret door |
+| 2. Q10 doors never open (repeatable button, no reveal), gold note after every ending | done | `q10.test.ts` |
+| 2. Q6 roster codes, Q7 D5 is a Gargoyle | done | Gargoyle in `q07-*.json`; codes in `monsterCodes.ts` |
+| 2. Q9 note B chests | no change by decision (one search gives both chests) | backlog |
+| 3. `monsterSeen`, conditions on manual triggers, objective `done` and `confirm`, rock-door exception (`doorTeleport`) | done | `notes.test.ts`, `noteView.ts`, Q10 |
+| 3. Wide-corridor double blocks (data pass) | partly | 2-square blocks exist in 17 quests (`blocks` with 2 cells). Whether each wide block on each map is a double block needs the overlay with the owner |
+| 4. Message sheet for every triggered text | done | `sheetsOf` (`promptToasts.ts`), notes, goals and monster placement are sheets; the rest are toasts with "More" |
+| 4. Start sheet | done | "Start" dialog, `questsheet.spec.ts` |
+| 4. Quest sheet (intro, start text, goal, actions, notes read) | done | `QuestSheet.tsx`, `questsheet.spec.ts` |
+| 4. Journal as the full log, entries can be read again | done for notes; other lines are one-line facts | `eventLog` in `log.ts` (`log.test.ts`); note lines re-open the note |
+| 4. Less scrolling | done | quest sheet takes goal, notes and log off the right column |
+| 4. "Things to confirm" apart from "End the quest" | done in another form | owner chose confirm buttons under their objective in Quest info; End quest is its own header chip. No block called "Things to confirm" |
+| 5. Special flag, abilities, tooltips, margin note | done | `monsterTip.ts`, `abilities.ts` |
+| 5. Behavior prompts, `questEnds` trigger, Add monster with a square | done | decision 71, `addMonster.test.ts`, `play.spec.ts` |
+| 5b. Added and wandering monsters: square, drawn, can be slain, acts on Zargon's turn, shown as new | done | `addMonster.test.ts`, `wandererEnemy.test.ts`, roster `new` class |
+| 6. Show room (layout only, warning, rock message) | done now | `layout.ts`, `layout.test.ts`, `tests/e2e/showroom.spec.ts` |
+| 6. Highlight on additions | done now (monsters before; blocks and secret doors added) | `additions.ts`, `additions.test.ts`, `PlayScreen` highlight |
+| 6. Trap hit area wins over "Look from here" | done | no eye on a trap square (`occupiedCells` has `trapAt`), trap hit rects sit above square hits in `PlayBoard.tsx` |
+| 6. Double blocks | see step 3 row | owner overlay check |
+| Notes refactor, engine slice 1, targets, zones, `questEnds` | done | `NOTES_REFACTOR.md`, `targets.test.ts`, `zones.test.ts` |
+| Notes refactor: light veil, furniture that is not a chest as an element, element taps for manual notes (Q12 doors, square C), element detail sheet, a "quest ends" trigger | not done | see 8.2 |
+
+### 8.1 Translation leftovers (decision 92) done in this pass
+
+Through `t()` or `tr()` now: the journal log (`engine/game/log.ts`), goal and tile sentences (`noteView.ts`, `tiles.ts`), Zargon plan and note texts (`engine/zargon/texts.ts`, `orders.ts`), the trap, wandering, tooltip, toast and store messages (`ui/play/texts.ts`, `promptToasts.ts`, `monsterTip.ts`, `zargonView.ts`, `ui/store/gameStore.ts`), refused events (`ui/play/errorTexts.ts`, a text per code, the engine message is the fallback). The bold in the dwarf note is back (`rich()` reads `<b>` marks, `ui/shared/rich.tsx`). Placeholders in the play, select and pack screens have real names (no `{v1}` left outside the editor and Designer). Left: the 96 engine error messages are developer text (only the codes players can reach have a player text), and the Zargon rule and plan tables are translated by the data layer, not by code.
+
+### 8.2 Proposal for the notes refactor (not built)
+
+What exists: notes with triggers, a `target` field (door, room, furniture, monster, trap, marker, zone, square), "For this quest" in the margin notes, objective `confirm`, zones, and the editor's Actions tab with the action popup. So the data model of section 3.2 is mostly there.
+
+Smallest next step: make every element tap show its actions in one place. In play, the tap on a closed door, a monster, a trap or a marker already shows "For this quest". The gap is the `manual` notes without a target that need an element (Q12 doors and square C). Move those 7 manual notes onto their elements with `target`, show them in the element's margin note, and keep only the truly quest-wide buttons in the Quest sheet. No format change, only data and a check in the validator ("a manual note with an element name needs a target"). Owner decision needed before it: should a quest-wide button also be allowed on the title band (for example "All heroes left by the stairs")?
+
+### 8.3 Needs the owner
+
+1. Double blocks: overlay check, one quest at a time, to say which wide corridors need a 2-square block.
+2. "Things to confirm" block: the owner chose confirm buttons under the objective. Say if that closes the item.
+3. Show room on a corridor draws the corridor squares in sight of the tapped square (rule interpretation): confirm.
+4. Show room on a room drawn dimmed even if a door of it is open but the room was not revealed: it cannot happen (opening reveals), so no rule needed.
