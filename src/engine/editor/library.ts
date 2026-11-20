@@ -39,6 +39,7 @@ export function spellChanged(def: SpellDefData): boolean {
       name: x.name,
       text: x.text ?? null,
       tags: x.tags ?? [],
+      situations: x.situations ?? [],
       question: x.question ?? null,
       warning: x.warning ?? null,
       offerWhen: x.offerWhen ?? 'always',

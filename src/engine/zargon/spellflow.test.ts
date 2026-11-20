@@ -117,6 +117,39 @@ describe('the spell flow of a caster (decisions 47 and 48)', () => {
     expect(p.spell?.name).toBe('Mud');
   });
 
+  it('a situation the author defines shows its own question, next to a fixed one', () => {
+    const lv = levelWith([caster(['mud'])], {
+      spellDefs: [
+        {
+          id: 'mud',
+          name: 'Mud',
+          tags: ['rain', 'heroAdjacent'],
+          situations: [{ id: 'rain', question: 'Is a hero standing on a wet square?' }],
+        },
+      ],
+    });
+    let o = orderAt(lv, 1);
+    for (let seed = 2; !o.spell && seed < 40; seed++) o = orderAt(lv, seed);
+    expect(o.spell?.questions).toEqual([
+      'Is a hero standing on a wet square?',
+      SPELL_TAG_QUESTIONS.heroAdjacent,
+    ]);
+  });
+
+  it('a spell tag that is neither fixed nor defined by the spell is refused by the schema', () => {
+    expect(() =>
+      parseQuest({ ...testQuestData, spellDefs: [{ id: 'mud', name: 'Mud', tags: ['rain'] }] }),
+    ).toThrow();
+    expect(() =>
+      parseQuest({
+        ...testQuestData,
+        spellDefs: [
+          { id: 'mud', name: 'Mud', tags: ['any'], situations: [{ id: 'any', question: 'Q?' }] },
+        ],
+      }),
+    ).toThrow();
+  });
+
   it('a caster always tries a spell first, the same for the same seed and turn', () => {
     const lv = levelWith([caster(['fear', 'sleep'])]);
     for (let seed = 1; seed <= 200; seed++) {

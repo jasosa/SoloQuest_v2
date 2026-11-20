@@ -18,6 +18,18 @@ const bog = { id: 'bog', name: 'Bog skin', text: 'Mud spells fail.' };
 const mud = { id: 'mud', name: 'Mud', tags: ['heroAdjacent' as const] };
 
 describe('taking library items into a quest', () => {
+  it('a library spell keeps the situations it defines in the quest copy', () => {
+    const wet = {
+      id: 'wet',
+      name: 'Wet',
+      tags: ['rain'],
+      situations: [{ id: 'rain', question: 'Is a hero on a wet square?' }],
+    };
+    const r = takeLibrarySpell(q(), wet);
+    expect(r.quest.spellDefs[0]?.situations).toEqual(wet.situations);
+    expect(takeLibrarySpell(r.quest, wet).quest.spellDefs).toHaveLength(1);
+  });
+
   it('copies an ability once and reuses the same one', () => {
     const a = takeLibraryAbility(q(), bog);
     expect(a.id).toBe('bog');

@@ -352,9 +352,22 @@ function SpellFields({
   onChange(d: Data): void;
   disabled?: boolean;
 }) {
-  const tags = list(data, 'tags').filter(isSpellTag);
-  const free = SPELL_TAG_IDS.filter((t) => !tags.includes(t));
+  const tags = list(data, 'tags');
+  const own = (Array.isArray(data.situations) ? data.situations : []) as {
+    id: string;
+    question: string;
+  }[];
+  const ownQuestion = (id: string) =>
+    own.find((x) => x.id === id)?.question ?? (isSpellTag(id) ? SPELL_TAG_QUESTIONS[id] : id);
+  const free = [...SPELL_TAG_IDS, ...own.map((x) => x.id)].filter((t) => !tags.includes(t));
   const [pick, setPick] = useState('');
+  const [newId, setNewId] = useState('');
+  const [newQuestion, setNewQuestion] = useState('');
+  const newIdOk =
+    /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(newId.trim()) &&
+    !isSpellTag(newId.trim()) &&
+    !own.some((x) => x.id === newId.trim()) &&
+    newQuestion.trim() !== '';
   return (
     <>
       <Fld
@@ -378,7 +391,7 @@ function SpellFields({
         {tags.map((tv) => (
           <li key={tv} data-tag={tv}>
             <b>{tv}</b>
-            <p className="fr-q">{SPELL_TAG_QUESTIONS[tv]}</p>
+            <p className="fr-q">{ownQuestion(tv)}</p>
             <button
               className="x"
               disabled={disabled}
@@ -411,7 +424,7 @@ function SpellFields({
           </option>
           {free.map((t) => (
             <option key={t} value={t}>
-              {t} · {SPELL_TAG_QUESTIONS[t]}
+              {t} · {ownQuestion(t)}
             </option>
           ))}
         </select>
@@ -430,6 +443,102 @@ function SpellFields({
       <p className="fr-help">
         {t('designer.DesignerScreen.itFitsWhenAny', 'It fits when any of them is true.')}
       </p>
+      <div className="fr-hd" style={{ border: 0, padding: '4px 0' }}>
+        {t('designer.DesignerScreen.situationsOfYourOwn', 'Situations of your own')}
+      </div>
+      <ul className="fr-items" data-testid="dz-situations">
+        {own.map((x) => (
+          <li key={x.id} data-situation={x.id}>
+            <b>{x.id}</b>
+            <input
+              className="fr-in"
+              aria-label={t('designer.DesignerScreen.questionOf', 'Question of {id}', { id: x.id })}
+              disabled={disabled}
+              value={x.question}
+              onChange={(e) =>
+                onChange(
+                  put(
+                    data,
+                    'situations',
+                    own.map((y) => (y.id === x.id ? { id: x.id, question: e.target.value } : y)),
+                  ),
+                )
+              }
+            />
+            <button
+              className="x"
+              disabled={disabled || tags.includes(x.id)}
+              title={
+                tags.includes(x.id)
+                  ? t(
+                      'designer.DesignerScreen.removeItFromTheList',
+                      'Remove it from the list above first',
+                    )
+                  : undefined
+              }
+              aria-label={t('designer.DesignerScreen.removeSituation', 'Remove situation {id}', {
+                id: x.id,
+              })}
+              onClick={() =>
+                onChange(
+                  put(
+                    data,
+                    'situations',
+                    own.filter((y) => y.id !== x.id),
+                  ),
+                )
+              }
+            >
+              {t('designer.DesignerScreen.remove', 'Remove')}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="fr-addrow">
+        <input
+          className="fr-in"
+          aria-label={t('designer.DesignerScreen.situationId', 'Situation id')}
+          placeholder={t('designer.DesignerScreen.idShortNoSpaces', 'Id (short, no spaces)')}
+          disabled={disabled}
+          value={newId}
+          onChange={(e) => setNewId(e.target.value)}
+        />
+        <input
+          className="fr-in"
+          aria-label={t('designer.DesignerScreen.situationQuestion', 'Situation question')}
+          placeholder={t(
+            'designer.DesignerScreen.aQuestionThePlayersCan',
+            'A question the players can answer',
+          )}
+          disabled={disabled}
+          value={newQuestion}
+          onChange={(e) => setNewQuestion(e.target.value)}
+        />
+        <button
+          className="btn"
+          disabled={disabled || !newIdOk}
+          aria-label={t('designer.DesignerScreen.addSituation', 'Add situation')}
+          onClick={() => {
+            const id = newId.trim();
+            onChange({
+              ...put(data, 'situations', [...own, { id, question: newQuestion.trim() }]),
+              tags: [...tags, id],
+            });
+            setNewId('');
+            setNewQuestion('');
+          }}
+        >
+          {t('designer.DesignerScreen.addSituation', 'Add situation')}
+        </button>
+      </div>
+      {newId.trim() !== '' && !newIdOk && (
+        <p className="fr-help">
+          {t(
+            'designer.DesignerScreen.theIdUsesLettersNumbers',
+            'The id uses letters, numbers, - and _, and is not a fixed situation or one you already added.',
+          )}
+        </p>
+      )}
       <Fld
         label={t(
           'designer.DesignerScreen.orOneQuestionOf',

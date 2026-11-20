@@ -6,13 +6,7 @@
  */
 import { tr } from '../../i18n/translate';
 import { CORE_ABILITIES } from '../data/abilities';
-import {
-  CORE_SPELLS,
-  isSpellTag,
-  type OfferWhen,
-  type SpellTag,
-  type SpellTiming,
-} from '../data/spells';
+import { CORE_SPELLS, isSpellTag, type OfferWhen, type SpellTiming } from '../data/spells';
 import type {
   Condition,
   EndingDef,
@@ -88,13 +82,59 @@ export function removeAbility(q: Quest, id: string): EditResult {
 export interface SpellInput {
   name?: string;
   text?: string | null;
-  tags?: SpellTag[];
+  tags?: string[];
+  /** Situations of the spell's own: an id and a question each. Replaces the list. */
+  situations?: { id: string; question: string }[];
   /** One question of its own; replaces the tags. `null` clears it. */
   question?: string | null;
   warning?: string | null;
   offerWhen?: OfferWhen;
   /** When it is cast in the turn. `either` is the default and is not stored. */
   timing?: SpellTiming;
+}
+
+/**
+ * Checks the own situations of a spell and the tags that use them. Returns the cleaned list, or
+ * an error text. An id is letters, digits, - and _, not a fixed situation id, not repeated.
+ */
+function checkSituations(
+  situations: readonly { id: string; question: string }[] | undefined,
+  tags: readonly string[],
+): { list: { id: string; question: string }[] } | { error: string } {
+  const list: { id: string; question: string }[] = [];
+  for (const s of situations ?? []) {
+    const id = s.id.trim();
+    const question = s.question.trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return {
+        error: tr(
+          'editor.meta.theSituationIdIsNotValid',
+          'The situation id "{id}" is not valid. Use letters, numbers, - and _.',
+          { id },
+        ),
+      };
+    if (isSpellTag(id) || list.some((x) => x.id === id))
+      return {
+        error: tr(
+          'editor.meta.theSituationIdIsTaken',
+          'The situation id "{id}" is already used. Pick another.',
+          { id },
+        ),
+      };
+    if (question === '')
+      return {
+        error: tr(
+          'editor.meta.aSituationNeedsAQuestion',
+          'The situation "{id}" needs a question the players can answer.',
+          { id },
+        ),
+      };
+    list.push({ id, question });
+  }
+  const bad = tags.find((t) => !isSpellTag(t) && !list.some((x) => x.id === t));
+  if (bad)
+    return { error: tr('editor.meta.unknownSituation', 'Unknown situation "{bad}".', { bad }) };
+  return { list };
 }
 
 export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditResult {
@@ -106,8 +146,8 @@ export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditRes
     return fail(
       tr('editor.meta.aSpellNeedsASituationOr', 'A spell needs a situation or a question.'),
     );
-  const bad = tags.find((t) => !isSpellTag(t));
-  if (bad) return fail(tr('editor.meta.unknownSituation', 'Unknown situation "{bad}".', { bad }));
+  const sit = checkSituations(input.situations, tags);
+  if ('error' in sit) return fail(sit.error);
   let id = input.id;
   if (id !== undefined) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
@@ -124,6 +164,7 @@ export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditRes
     name,
     text: input.text?.trim() || undefined,
     tags: [...new Set(tags)],
+    situations: sit.list.length ? sit.list : undefined,
     question,
     warning: input.warning?.trim() || undefined,
     offerWhen: input.offerWhen && input.offerWhen !== 'always' ? input.offerWhen : undefined,
@@ -142,8 +183,8 @@ export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult
   const name = patch.name === undefined ? s.name : patch.name.trim();
   if (name === '') return fail(tr('editor.meta.aSpellNeedsAName', 'A spell needs a name.'));
   const tags = patch.tags === undefined ? [...s.tags] : [...new Set(patch.tags)];
-  const bad = tags.find((t) => !isSpellTag(t));
-  if (bad) return fail(tr('editor.meta.unknownSituation', 'Unknown situation "{bad}".', { bad }));
+  const sit = checkSituations(patch.situations ?? s.situations, tags);
+  if ('error' in sit) return fail(sit.error);
   const question =
     patch.question === undefined
       ? s.question
@@ -161,6 +202,7 @@ export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult
     name,
     text: pick(s.text, patch.text),
     tags,
+    situations: sit.list.length ? sit.list : undefined,
     question,
     warning: pick(s.warning, patch.warning),
     offerWhen:
