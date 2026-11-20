@@ -210,10 +210,14 @@ test.describe('texture pack families (decision 99)', () => {
 
   test('both packs stay in use after a reload', async ({ page }) => {
     await useBoth(page);
-    await page.reload();
     await page.goto(FH0);
     await dismissStart(page);
+    // wait until the board is dressed (the pictures are read from the app) before leaving the page
     await expect(page.locator('[data-themed="edge-door"]')).toHaveCount(1);
+    await page.reload();
+    await dismissStart(page);
+    await expect(page.locator('[data-themed="edge-door"]')).toHaveCount(1);
+    await expect(page.locator('[data-themed="floor"]').first()).toBeAttached();
   });
 
   test('the Frozen Horror pack can be exported as a .sqtextures file with its core pack named', async ({

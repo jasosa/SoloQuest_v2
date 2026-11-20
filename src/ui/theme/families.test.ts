@@ -260,6 +260,40 @@ describe('using and stopping packs', () => {
     expect((await store.list()).some((p) => p.id === 'core-a')).toBe(false);
   });
 
+  it('a pack that cannot be loaded at start leaves the choice on the device', async () => {
+    const store = await seeded();
+    await applyPack(store, 'core-a');
+    await applyPack(store, 'fh-a');
+    const chosen = await store.getSelection();
+    const broken = Object.create(store) as MemoryThemeStore;
+    broken.load = async () => undefined; // offline: no picture can be read
+    await restorePack(broken);
+    expect(getActiveTheme()).toBe(CLASSIC_THEME); // the built-in look for this session
+    expect(await store.getSelection()).toEqual(chosen); // the choice stays
+    await restorePack(store);
+    expect(getExpansionThemes()['frozen-horror']).toBeDefined();
+  });
+
+  it('an expansion pack that names no core pack says so, and cannot be used', async () => {
+    const store = new MemoryThemeStore();
+    await store.save({
+      manifest: {
+        format: 'sqtextures',
+        version: 1,
+        id: 'old-fh',
+        name: 'Old FH',
+        origin: 'fan',
+        box: 'frozen-horror',
+      },
+      files: {},
+    } as never);
+    const r = await applyPack(store, 'old-fh');
+    expect(r).toEqual({
+      ok: false,
+      message: 'This expansion pack names no core pack. Import it again.',
+    });
+  });
+
   it('at start an old single choice is read as the core pack; an old single expansion pack is cleared', async () => {
     const store = await seeded();
     await store.setSelection({ core: 'core-a', expansions: [] }); // what the old single id becomes

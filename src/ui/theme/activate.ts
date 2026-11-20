@@ -4,6 +4,7 @@ import {
   type PackSummary,
   type ThemeStore,
 } from '../../persist/themes';
+import { t } from '../../i18n/t';
 import { setActiveTheme } from './activeTheme';
 import { themeFromPack, type StoredPack } from './pack';
 import { CLASSIC_THEME, mergeThemes, type Theme } from './theme';
@@ -63,7 +64,11 @@ export function expansionProblem(
   const core = pack.extends ?? '';
   const named = list.find((p) => p.id === core);
   if (named && coreInUse === core && !fits(pack, named))
-    return `Made for the family ${pack.family ?? '?'}, but ${named.name} is of another family.`;
+    return t(
+      'theme.activate.otherFamily',
+      'Made for the family {family}, but {name} is of another family.',
+      { family: pack.family ?? '?', name: named.name },
+    );
   return coreInUse === core ? null : needsMessage(core, list);
 }
 
@@ -88,9 +93,18 @@ export function normalizeSelection(
 
 /** The sentence that says what an expansion pack needs. */
 export function needsMessage(core: string, list: readonly PackSummary[]): string {
+  if (!core)
+    return t(
+      'theme.activate.namesNoCorePack',
+      'This expansion pack names no core pack. Import it again.',
+    );
   return list.some((p) => p.id === core)
-    ? `Needs the pack ${nameOf(list, core)}. Apply it first.`
-    : `Needs the pack ${core}. Import it first.`;
+    ? t('theme.activate.needsApplyFirst', 'Needs the pack {name}. Apply it first.', {
+        name: nameOf(list, core),
+      })
+    : t('theme.activate.needsImportFirst', 'Needs the pack {name}. Import it first.', {
+        name: core,
+      });
 }
 
 /** Build the themes of a selection and show them. False when a pack cannot be loaded (nothing changes). */
@@ -127,13 +141,17 @@ async function commit(store: ThemeStore, sel: ActiveSelection): Promise<boolean>
   return true;
 }
 
-const LOAD_FAILED = 'This texture pack could not be loaded. Check your connection and try again.';
+const loadFailed = () =>
+  t(
+    'textures.packCouldNotBeLoaded',
+    'This texture pack could not be loaded. Check your connection and try again.',
+  );
 
 /** Use a pack. A core pack replaces the one in use; an expansion pack needs its core pack in use. */
 export async function applyPack(store: ThemeStore, id: string): Promise<Change> {
   const list = await store.list();
   const pack = list.find((p) => p.id === id);
-  if (!pack) return { ok: false, message: LOAD_FAILED };
+  if (!pack) return { ok: false, message: loadFailed() };
   const sel = normalizeSelection(await store.getSelection(), list);
   if (pack.box) {
     const core = pack.extends ?? '';
@@ -145,7 +163,7 @@ export async function applyPack(store: ThemeStore, id: string): Promise<Change> 
     ];
     return (await commit(store, { core, expansions }))
       ? { ok: true }
-      : { ok: false, message: LOAD_FAILED };
+      : { ok: false, message: loadFailed() };
   }
   // a core pack: the expansion packs made for it stay, those made for another core pack stop
   const mine = list.find((p) => p.id === id);
@@ -155,11 +173,15 @@ export async function applyPack(store: ThemeStore, id: string): Promise<Change> 
   });
   const dropped = sel.expansions.filter((x) => !kept.includes(x));
   if (!(await commit(store, { core: id, expansions: kept })))
-    return { ok: false, message: LOAD_FAILED };
+    return { ok: false, message: loadFailed() };
   return dropped.length
     ? {
         ok: true,
-        message: `Stopped using ${dropped.map((x) => nameOf(list, x)).join(', ')}: made for another core pack.`,
+        message: t(
+          'theme.activate.stoppedOtherCore',
+          'Stopped using {names}: made for another core pack.',
+          { names: dropped.map((x) => nameOf(list, x)).join(', ') },
+        ),
       }
     : { ok: true };
 }
@@ -174,7 +196,11 @@ export async function stopPack(store: ThemeStore, id: string): Promise<Change> {
     return others.length
       ? {
           ok: true,
-          message: `Stopped using ${nameOf(list, id)} and its expansion packs: ${others.map((x) => nameOf(list, x)).join(', ')}.`,
+          message: t(
+            'theme.activate.stoppedWithExpansions',
+            'Stopped using {name} and its expansion packs: {names}.',
+            { name: nameOf(list, id), names: others.map((x) => nameOf(list, x)).join(', ') },
+          ),
         }
       : { ok: true };
   }
@@ -206,16 +232,25 @@ export async function restorePack(store: ThemeStore): Promise<void> {
   const saved = await store.getSelection();
   const sel = normalizeSelection(saved, list);
   const ok = await show(store, sel);
-  const final = ok ? sel : { ...NO_SELECTION };
-  if (!ok) await show(store, final);
-  if (JSON.stringify(final) !== JSON.stringify(saved)) await store.setSelection(final);
+  if (!ok) {
+    // a pack could not be loaded (offline, a navigation): the built-in look for this session, and the
+    // choice of the player stays on the device for the next start
+    await show(store, NO_SELECTION);
+    return;
+  }
+  // only a choice that is no longer valid (a pack is gone, the family does not fit) is cleaned up
+  if (JSON.stringify(sel) !== JSON.stringify(saved)) await store.setSelection(sel);
 }
 
 /** The line that says what is in use: "Core: X · Expansions: Y, Z", or null for the built-in look. */
 export function selectionLine(sel: ActiveSelection, list: readonly PackSummary[]): string | null {
   if (!sel.core) return null;
-  const parts = [`Core: ${nameOf(list, sel.core)}`];
+  const parts = [t('theme.activate.core', 'Core: {name}', { name: nameOf(list, sel.core) })];
   if (sel.expansions.length)
-    parts.push(`Expansions: ${sel.expansions.map((x) => nameOf(list, x)).join(', ')}`);
+    parts.push(
+      t('theme.activate.expansions', 'Expansions: {names}', {
+        names: sel.expansions.map((x) => nameOf(list, x)).join(', '),
+      }),
+    );
   return parts.join(' · ');
 }
