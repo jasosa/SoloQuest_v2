@@ -34,6 +34,7 @@ test.describe('the end flow (decision 97)', () => {
     expect((await goal.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await openEndSheet(page);
     const sheet = dlg(page);
+    await page.waitForTimeout(450); // the sheet rises: measure it at rest
     await expect(sheet.locator('.goals li')).toHaveCount(1);
     await expect(sheet.locator('.goals li.done')).toHaveCount(0);
     await expect(sheet.getByRole('button', { name: 'Finish the quest' })).toHaveCount(0);
@@ -192,5 +193,22 @@ test.describe('the end flow (decision 97)', () => {
     await expect(dlg(page)).toContainText('Goal and ending');
     await btn(page, 'All heroes fell').click();
     await expect(dlg(page)).toContainText('All heroes fell?');
+  });
+
+  test('a quest with no objectives: the goal line opens the sheet, the stairs button asks once', async ({
+    page,
+  }) => {
+    // the engine test fixture has no objectives (the editor requires one, so this is the only way)
+    await page.goto('/?quest=test&team=dwarf&nosave=1&seed=1');
+    await page.locator('#board').waitFor();
+    const goal = page.getByTestId('goal-line');
+    await expect(goal).toContainText('End the quest');
+    await goal.click();
+    const sheet = page.getByRole('dialog', { name: 'Goal and ending' });
+    await expect(sheet.locator('.goals')).toHaveCount(0);
+    await expect(sheet.getByRole('button', { name: 'Finish the quest' })).toHaveCount(0);
+    await sheet.getByRole('button', { name: 'Heroes left by the stairs', exact: true }).click();
+    await page.getByTestId('end-confirm').click();
+    await expect(page.getByRole('dialog', { name: /^Quest/ })).toBeVisible();
   });
 });

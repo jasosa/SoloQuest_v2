@@ -91,20 +91,3 @@ test.describe('editor: Frozen Horror pieces', () => {
     await expect(page.getByRole('button', { name: 'Escaped', exact: true })).toBeVisible();
   });
 });
-
-test.describe('end sheet of a quest with no objectives', () => {
-  test('the goal line still opens the sheet and the stairs button asks once', async ({ page }) => {
-    await newQuest(page);
-    await page.getByTestId('playtest').click();
-    await dismissStart(page);
-    const goal = page.getByTestId('goal-line');
-    await expect(goal).toContainText('End the quest');
-    await goal.click();
-    const sheet = page.getByRole('dialog', { name: 'Goal and ending' });
-    await expect(sheet.locator('.goals')).toHaveCount(0);
-    await expect(sheet.getByRole('button', { name: 'Finish the quest' })).toHaveCount(0);
-    await sheet.getByRole('button', { name: 'Heroes left by the stairs', exact: true }).click();
-    await page.getByTestId('end-confirm').click();
-    await expect(page.getByRole('dialog')).toContainText('Quest');
-  });
-});
