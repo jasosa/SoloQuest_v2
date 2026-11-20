@@ -170,6 +170,8 @@ export interface EditorState {
   readonly spellId: string | null;
   /** Set while the note builder waits for a click on the board. */
   readonly picking: PickRequest | null;
+  /** The tab the pick started from: it comes back when the pick ends or is cancelled. */
+  readonly pickReturn: EditorTabName | null;
   /** First square of a double block, waiting for the second click. */
   readonly pendingBlock: Cell | null;
   /** End A of an ice tunnel, waiting for end B. */
@@ -254,6 +256,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
     const reset = {
       selection: null,
       picking: null,
+      pickReturn: null,
       pendingBlock: null,
       pendingTunnel: null,
       flash: null,
@@ -275,6 +278,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       abilityId: null,
       spellId: null,
       picking: null,
+      pickReturn: null,
       pendingBlock: null,
       pendingTunnel: null,
       toast: null,
@@ -396,7 +400,22 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setAbilityId: (abilityId) => set({ abilityId }),
       setSpellId: (spellId) => set({ spellId }),
       // picking needs the board, so the Map tab comes back while a square is chosen
-      setPicking: (picking) => set(picking ? { picking, tab: 'Map' } : { picking }),
+      // and the tab it came from comes back when the pick ends, so the Actions tab stays the Actions tab
+      setPicking(picking) {
+        const cur = get();
+        if (picking)
+          set({
+            picking,
+            tab: 'Map',
+            pickReturn: cur.picking ? cur.pickReturn : cur.tab,
+          });
+        else
+          set({
+            picking: null,
+            pickReturn: null,
+            ...(cur.picking && cur.pickReturn ? { tab: cur.pickReturn } : {}),
+          });
+      },
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
       setPendingTunnel: (pendingTunnel) => set({ pendingTunnel }),
       jump(ref, message) {

@@ -530,11 +530,15 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(dlg(page)).toHaveCount(0);
     await expect(page.getByTestId('pick-bar')).toBeVisible();
     await clickAt(page, 4, 16);
-    await expect(dlg(page)).toContainText('Square 4, 16');
+    // the pick sends us back to the Actions tab, no popup over the map
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await expect(actionsTab(page)).toHaveAttribute('aria-selected', 'true');
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.getByTestId('action-card')).toContainText('Square 4, 16');
 
     // a condition and effects
-    const addEffect = dlg(page).getByLabel('Add an effect').last();
-    await dlg(page).getByLabel('Add a condition').selectOption('firstTime');
+    const addEffect = page.getByTestId('action-card').getByLabel('Add an effect').last();
+    await page.getByTestId('action-card').getByLabel('Add a condition').selectOption('firstTime');
     await expect(page.getByTestId('condition-row')).toHaveCount(1);
     await addEffect.selectOption('setFlag');
     await addEffect.selectOption('addCounter');
@@ -550,7 +554,11 @@ test.describe('editor: actions (decision 68)', () => {
     await shot(page, 'editor-action-popup');
 
     // an effect that needs a monster says so
-    await dlg(page).getByLabel('Add an effect').last().selectOption('placeMonster');
+    await page
+      .getByTestId('action-card')
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('placeMonster');
     await expect(page.locator('.toast')).toContainText('Add a monster first');
 
     // undo (the title band stays usable) goes back one change at a time
@@ -558,12 +566,31 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(page.getByTestId('option-row')).toHaveCount(1);
 
     // the list groups it under the room
-    await btn(page, 'Close').click();
-    await expect(dlg(page)).toHaveCount(0);
-    await actionsTab(page).click(); // picking a square on the board moved us to the Map tab
+    await actionsTab(page).click();
     await expect(page.getByTestId('actions-area')).toContainText('A dusty chest.');
     await expect(page.getByTestId('actions-area')).toContainText('Hero enters');
     await shot(page, 'editor-actions-list');
+  });
+
+  test('Cancel while picking the letter square returns to the Actions tab, no popup', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await chestWithLetter(page, 'A');
+    await actionsTab(page).click();
+    await btn(page, 'Add action A').click();
+    await page
+      .getByTestId('action-card')
+      .getByRole('button', { name: 'Click it on the board' })
+      .first()
+      .click();
+    await expect(page.getByTestId('pick-bar')).toBeVisible();
+    await page.getByTestId('pick-bar').getByRole('button', { name: 'Cancel' }).click();
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await expect(actionsTab(page)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('action-card')).toBeVisible();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.locator('.ed-veil')).toHaveCount(0);
   });
 
   test('a letter on the board: missing style, then solid; a tap opens the action', async ({
