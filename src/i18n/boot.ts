@@ -6,4 +6,5 @@
 import '../content/core'; // the Core library, so its items are translated too
 import { initI18n } from './runtime';
 
-await initI18n();
+// A store that never answers must not leave the app on a blank screen: English after 2.5 s.
+await Promise.race([initI18n(), new Promise<void>((done) => setTimeout(done, 2500))]);

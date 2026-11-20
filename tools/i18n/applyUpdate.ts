@@ -71,7 +71,9 @@ export function literal(text: string): string {
     .split("'")
     .join(BACKSLASH + "'")
     .split(NL)
-    .join(BACKSLASH + 'n');
+    .join(BACKSLASH + 'n')
+    .split(String.fromCharCode(13))
+    .join(BACKSLASH + 'r');
   return `'${escaped}'`;
 }
 

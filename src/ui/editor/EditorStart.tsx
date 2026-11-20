@@ -29,10 +29,11 @@ interface Row extends UserQuestSummary {
 }
 
 /** What the person is told when this device refuses to store a quest. */
-const STORE_ERROR = t(
-  'editor.EditorStart.thisDeviceCouldNot',
-  'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.',
-);
+const storeErrorText = () =>
+  t(
+    'editor.EditorStart.thisDeviceCouldNot',
+    'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.',
+  );
 
 export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
   useFitMode('width');
@@ -79,7 +80,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       await store.save(quest, Date.now());
     } catch {
       setPopup(null);
-      setStoreError(STORE_ERROR);
+      setStoreError(storeErrorText());
       return;
     }
     setStoreError(null);
@@ -91,7 +92,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       await store.remove(id);
       setStoreError(null);
     } catch {
-      setStoreError(STORE_ERROR);
+      setStoreError(storeErrorText());
     }
     setConfirm(null);
     await refresh();
@@ -112,7 +113,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       setProblems([]);
       setNotes([]);
       setImported(null);
-      setStoreError(STORE_ERROR);
+      setStoreError(storeErrorText());
       return undefined;
     }
     setStoreError(null);
