@@ -39,12 +39,28 @@ export function clean<T extends object>(o: T): T {
 }
 
 /**
+ * Ids that live on the other maps of a multi-map quest. While an edit runs on one map, new ids
+ * must not repeat them (ids are unique across maps). Set by `withForeignIds`, around one
+ * synchronous edit.
+ */
+let foreignIds: ReadonlySet<string> = new Set();
+export function withForeignIds<T>(ids: ReadonlySet<string>, fn: () => T): T {
+  const before = foreignIds;
+  foreignIds = ids;
+  try {
+    return fn();
+  } finally {
+    foreignIds = before;
+  }
+}
+
+/**
  * Generated ids take the LOWEST free number. If removing d3 warned about a note that points at
  * d3, and a new door later becomes d3, that note now points at the new door. The warning from the
  * removal is the only protection: the UI must make the user fix those notes.
  */
 export function nextId(prefix: string, taken: Iterable<string>): string {
-  const set = new Set(taken);
+  const set = new Set([...taken, ...foreignIds]);
   let n = 1;
   while (set.has(`${prefix}${n}`)) n++;
   return `${prefix}${n}`;

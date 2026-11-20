@@ -979,7 +979,7 @@ export function validateQuestIssues(
 }
 
 /** Triggers that name a room or a square: the same ids are on every map, so the note must say which. */
-const NEEDS_MAP = new Set([
+export const NEEDS_MAP = new Set([
   'areaRevealed',
   'areaEntered',
   'treasureSearch',
