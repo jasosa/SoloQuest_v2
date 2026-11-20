@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import { expect, test, type Page } from '@playwright/test';
+import { newGame, openSettings } from './helpers';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -17,6 +18,7 @@ test.describe('dialogs (M8: focus and Escape)', () => {
     page,
   }) => {
     await page.goto('/?nosave=1');
+    await openSettings(page);
     const link = page.getByTestId('textures-link');
     await link.click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
@@ -49,6 +51,7 @@ test.describe('dialogs (M8: focus and Escape)', () => {
       zipSync({ 'theme.json': strToU8(JSON.stringify(manifest)), 'orc.png': new Uint8Array(PNG) }),
     );
     await page.goto('/?nosave=1');
+    await openSettings(page);
     await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg.getByLabel('Texture pack file').setInputFiles({
@@ -73,14 +76,22 @@ test.describe('dialogs (M8: focus and Escape)', () => {
     await expect(dlg).toHaveCount(0);
   });
 
-  test('the Heroes popup closes with Escape and focus goes back to New game', async ({ page }) => {
+  test('the delete campaign dialog closes with Escape and focus goes back to its button', async ({
+    page,
+  }) => {
     await page.goto('/?nosave=1');
-    await page.getByTestId('new-game').click();
-    const dlg = page.getByRole('dialog', { name: 'Choose your heroes' });
-    await dlg.getByRole('button', { name: 'Elf', exact: true }).click();
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await newGame(page, ['Elf']);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Quests', exact: true }).click();
+    await page.getByTestId('delete-campaign').click();
+    const dlg = page.getByRole('dialog', { name: 'Delete this campaign' });
+    await expect(dlg).toBeVisible();
+    expect(await insideDialog(page)).toBe(true);
     await page.keyboard.press('Escape');
     await expect(dlg).toHaveCount(0);
-    await expect(page.getByTestId('new-game')).toBeFocused();
+    await expect(page.getByTestId('delete-campaign')).toBeFocused();
   });
 
   test('a margin note closes with Escape', async ({ page }) => {

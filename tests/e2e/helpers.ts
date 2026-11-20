@@ -25,10 +25,30 @@ export async function closeQuestSheet(page: Page): Promise<void> {
   if (await sheet.isVisible()) await page.keyboard.press('Escape');
 }
 
-/** On the quest select screen: New game, choose the heroes in the popup, and start. */
+/** The quest card of a pack's quest page (Quest 1 is not Quest 10). */
+export const questCard = (page: Page, number: number) =>
+  page
+    .locator('.qcard')
+    .filter({ has: page.locator('.qnum', { hasText: new RegExp(`^Quest ${number}$`) }) });
+
+/** From Home: Single Quest, the pack, the quest. Leaves the page where the heroes are chosen. */
+export async function openQuest(
+  page: Page,
+  number: number,
+  pack: 'core' | 'frozen-horror' = 'core',
+): Promise<void> {
+  await page.getByTestId('home-single').click();
+  await page.getByTestId(`pack-${pack}`).click();
+  await questCard(page, number).click();
+}
+
+/** From Home: Settings. */
+export async function openSettings(page: Page): Promise<void> {
+  await page.getByTestId('home-settings').click();
+}
+
+/** On the heroes page: choose the heroes and start (the quest, or a new game over a saved one). */
 export async function newGame(page: Page, heroes: string[]): Promise<void> {
-  await page.getByTestId('new-game').click();
-  const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
-  for (const h of heroes) await dialog.getByRole('button', { name: h, exact: true }).click();
-  await dialog.getByRole('button', { name: /^(Start the quest|Replace it and start)$/ }).click();
+  for (const h of heroes) await page.getByRole('button', { name: h, exact: true }).click();
+  await page.getByTestId('start-game').click();
 }

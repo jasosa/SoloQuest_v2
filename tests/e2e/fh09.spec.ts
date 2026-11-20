@@ -30,6 +30,7 @@ test.describe('Frozen Horror double quest (quests 9 and 10)', () => {
     page,
   }) => {
     await page.goto('/?nosave=1');
+    await page.getByTestId('home-single').click();
     await page.getByTestId('pack-frozen-horror').click();
     const card = page.locator('.qcard', { hasText: 'The Heart of Ice (double quest)' });
     await expect(card).toHaveCount(1);

@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { strToU8, zipSync } from 'fflate';
 import { expect, test, type Page } from '@playwright/test';
-import { newGame } from './helpers';
+import { newGame, openQuest, openSettings } from './helpers';
 
 /**
  * Accessibility pass (M8): axe checks WCAG 2.1 A and AA on the main screens and dialogs. Contrast,
@@ -19,13 +19,37 @@ async function violations(page: Page): Promise<string[]> {
 }
 
 test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
-  test('quest select, the Heroes popup and the Textures dialog', async ({ page }) => {
+  test('the start flow pages, the heroes page and the Textures dialog', async ({ page }) => {
     await page.goto('/?nosave=1');
-    expect(await violations(page)).toEqual([]);
-    await page.getByTestId('new-game').click();
-    expect(await violations(page)).toEqual([]);
-    await page.keyboard.press('Escape');
+    expect(await violations(page)).toEqual([]); // Home
+    await page.getByTestId('home-single').click();
+    expect(await violations(page)).toEqual([]); // single quest, packs
+    await page.getByTestId('pack-core').click();
+    expect(await violations(page)).toEqual([]); // the pack's quests
+    await page.locator('.qcard').first().click();
+    expect(await violations(page)).toEqual([]); // the heroes of a quest
+    await page.getByTestId('back').click();
+    await page.getByTestId('back').click();
+    await page.getByTestId('back').click();
+    await page.getByTestId('home-campaign').click();
+    expect(await violations(page)).toEqual([]); // campaign, packs
+    await page.getByTestId('pack-frozen-horror').click();
+    expect(await violations(page)).toEqual([]); // heroes for the campaign
+    await page.getByTestId('back').click();
+    await page.getByTestId('back').click();
+    await openSettings(page);
+    expect(await violations(page)).toEqual([]); // settings
     await page.getByTestId('textures-link').click();
+    expect(await violations(page)).toEqual([]);
+  });
+
+  test('the campaign overview', async ({ page }) => {
+    await page.goto('/?nosave=1');
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await newGame(page, ['Dwarf']);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Quests', exact: true }).click();
     expect(await violations(page)).toEqual([]);
   });
 
@@ -33,6 +57,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
     page,
   }) => {
     await page.goto('/?nosave=1');
+    await openQuest(page, 1);
     await newGame(page, ['Dwarf', 'Elf']);
     expect(await violations(page)).toEqual([]); // the start card
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -91,6 +116,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
       zipSync({ 'theme.json': strToU8(JSON.stringify(manifest)), 'orc.png': new Uint8Array(png) }),
     );
     await page.goto('/?nosave=1');
+    await openSettings(page);
     await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg

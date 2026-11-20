@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { gotoQuest } from './helpers';
+import { gotoQuest, openQuest, questCard } from './helpers';
 
 const URL = '/?quest=frozen&team=dwarf&nosave=1&seed=1';
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
@@ -89,12 +89,14 @@ test.describe('terrain and rule hints', () => {
     page,
   }) => {
     await page.goto('/?nosave=1');
+    await openQuest(page, 1);
     await page.getByTestId('quest-settings').click();
     await page.getByTestId('rule-hints').click();
     await expect(page.getByTestId('rule-hints')).toHaveAttribute('aria-checked', 'false');
     await page.getByRole('button', { name: 'Done' }).click();
     // another quest keeps its own setting
-    await page.getByRole('button', { name: /^Quest 2(?!\d)/ }).click();
+    await page.getByTestId('back').click();
+    await questCard(page, 2).click();
     await page.getByTestId('quest-settings').click();
     await expect(page.getByTestId('rule-hints')).toHaveAttribute('aria-checked', 'true');
   });

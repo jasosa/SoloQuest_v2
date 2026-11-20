@@ -286,6 +286,8 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('.fr-title')).toHaveText('The Trial, edited');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-single').click();
+    await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard .qtitle').first()).toHaveText('The Trial, edited');
   });
 
@@ -300,9 +302,11 @@ test.describe('editor: storage and files', () => {
     await title.blur();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-single').click();
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.locator('.qcard', { hasText: 'Trial by Ice, edited' })).toHaveCount(1);
     await expect(page.locator('.qcard')).toHaveCount(10);
+    await page.getByTestId('back').click();
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
   });
