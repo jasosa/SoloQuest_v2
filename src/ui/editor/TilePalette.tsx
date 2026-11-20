@@ -23,7 +23,7 @@ export function TilePalette({ store }: { store: EditorStore }) {
   const fp = spec?.footprints[opts.tileVariant];
   const canTurn = fp !== undefined && fp[0] !== fp[1];
 
-  const shapes = spec && (
+  const shapes = spec && (spec.footprints.length > 1 || canTurn) && (
     <div className="ed-palette-shapes" key="shapes">
       {spec.footprints.length > 1 && (
         <div className="ed-shapes" data-testid="tile-sizes">
