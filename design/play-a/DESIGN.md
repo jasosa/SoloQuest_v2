@@ -128,7 +128,7 @@ The Element tab shows the quest fields whenever nothing is selected (below Title
 - **Endings.** One row per custom ending (same paper-3 row): the id, a "Remove" chip, a "Label" field and a "Text for the players" text area (both save on blur, one undo step each; an empty label is refused). "Add an ending" adds one called "New ending". A short note says it shows in the End quest list and shows no reward.
 - **Author notes.** There is no Zargon info field any more (decision 66).
 - **Wandering monster.** Chips "None", "A monster" (then a monster dropdown), "Free text" (then a text field, which must not be empty).
-- **Rules.** "Falling block rule" (text) and "No equipment until note" (dropdown of the notes). The door teleport and bounty rules are not editable yet.
+- **Rules.** "Falling block rule" (text) and "No equipment until note" (dropdown of the notes). The door teleport rule is a pair of fields (see Rules panel below). There is no bounty rule: the players track it.
 
 All targets are 44 px or more, all changes are engine edits.
 
@@ -388,7 +388,7 @@ No new styles: only existing chips, panels, fields and buttons.
 - **Maps and links panel** (Quest tab, General column). One row per map: Name and Id fields, "Show on map" and "Delete map" chips. "New map" adds an empty one; a quest with one map has only this button (it makes the quest a double quest). Under the rows: the links (each as "Map A stairway to Map B stairway" with a Remove chip) and the link tool: two dropdowns (first stairway, second stairway, each "map: stairs id") and a "Join" button. The engine refuses a link when an end is not on stairs.
 - **Merged rooms panel** (Quest tab): the rooms that count as one in this quest, with "Split", and two room dropdowns with "Merge".
 - **Action form**: a "Map" dropdown in Extras, shown only for a double quest ("Every map" or one map).
-- **Rules panel**: a bounty row per monster type (gold) and the door teleport rule (dice and squares).
+- **Rules panel**: the door teleport rule. The label is "Door teleport (magic door)" with a help line: "When a hero crosses a magic door, the hero rolls these dice and moves to a marked square." Fields: "Dice to roll" and "Squares to move to". There is no bounty rule: the players track it.
 - **Monsters tab**: a "Size" dropdown (as its enemy, or Large 2 x 2).
 
 ## Translations (decision 92)

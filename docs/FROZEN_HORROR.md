@@ -215,7 +215,7 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Endings, end text, leave text | Q3, Q0, Q8 | `endings`, `endText`, `leave` | yes: `endText` is new in the Ending panel; `leave` is in Board features |
 | Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools. Merging rooms (`areaOverrides`): Merged rooms panel in the Quest tab (map on show) |
 | Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer, and per monster in the Monsters tab (Size) |
-| Quest rules `bounty`, `doorTeleport` | core only | `rules` | yes: Rules panel of the Quest tab |
+| Quest rule `doorTeleport` | core only | `rules` | yes: Rules panel of the Quest tab |
 
 Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a condition on a tile.
 

@@ -668,14 +668,10 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
   );
 }
 
-/** The rules `bounty` (gold per kind of monster) and `doorTeleport` (dice and squares). */
+/** The rule `doorTeleport` (dice and squares of the magic doors, quest 10). */
 function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
   const st = store.getState();
-  const bounty = quest.rules.bounty ?? {};
   const tele = quest.rules.doorTeleport;
-  const free = MONSTER_TYPES.filter((t) => bounty[t] === undefined);
-  const setBounty = (next: Partial<Record<MonsterType, number>>) =>
-    st.apply((q) => setRules(q, { bounty: Object.keys(next).length === 0 ? null : next }));
   const setTele = (patch: { dice?: string; squares?: string }) => {
     const dice = (patch.dice ?? tele?.dice ?? '').trim();
     const squares = (patch.squares ?? tele?.squares ?? '').trim();
@@ -694,68 +690,16 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
   return (
     <>
       <div className="lbl">
-        {t('editor.QuestPanel.bountyGoldForA', 'Bounty (gold for a kind of monster)')}
+        {t('editor.QuestPanel.doorTeleportMagicDoor', 'Door teleport (magic door)')}
       </div>
-      {(Object.entries(bounty) as [MonsterType, number][]).map(([type, gold]) => (
-        <div className="ed-row" key={type} data-testid="bounty-row" data-type={type}>
-          <div className="ed-row-head">
-            <span>{MONSTER_NAMES[type]}</span>
-            <button
-              className="chip"
-              aria-label={t('editor.QuestPanel.removeBounty', 'Remove bounty {type}', { type })}
-              onClick={() => {
-                const { [type]: _gone, ...rest } = bounty;
-                void _gone;
-                setBounty(rest);
-              }}
-            >
-              {t('editor.QuestPanel.remove', 'Remove')}
-            </button>
-          </div>
-          <label className="ed-field">
-            {t('editor.QuestPanel.gold', 'Gold')}
-            <input
-              key={`${type}:${gold}`}
-              inputMode="numeric"
-              defaultValue={String(gold)}
-              aria-label={t('editor.QuestPanel.bountyGold', 'Bounty {type} gold', { type })}
-              onBlur={(e) => {
-                const v = Number(e.target.value);
-                if (v === gold) return;
-                if (!Number.isInteger(v) || v < 0) {
-                  st.say(t('editor.QuestPanel.goldIsAWhole', 'Gold is a whole number, 0 or more.'));
-                  e.target.value = String(gold);
-                  return;
-                }
-                setBounty({ ...bounty, [type]: v });
-              }}
-            />
-          </label>
-        </div>
-      ))}
-      {free.length > 0 && (
-        <label className="ed-field">
-          {t('editor.QuestPanel.addABounty', 'Add a bounty')}
-          <select
-            className="es-select"
-            aria-label={t('editor.QuestPanel.addABounty', 'Add a bounty')}
-            value=""
-            onChange={(e) => {
-              if (e.target.value) setBounty({ ...bounty, [e.target.value]: 10 });
-            }}
-          >
-            <option value="">{t('editor.QuestPanel.pickAMonster', 'Pick a monster')}</option>
-            {free.map((t) => (
-              <option key={t} value={t}>
-                {MONSTER_NAMES[t]}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <div className="lbl">{t('editor.QuestPanel.doorTeleport', 'Door teleport')}</div>
+      <p className="ed-note">
+        {t(
+          'editor.QuestPanel.whenAHeroCrossesA',
+          'When a hero crosses a magic door, the hero rolls these dice and moves to a marked square. Leave both empty if the quest has no magic doors.',
+        )}
+      </p>
       <label className="ed-field">
-        {t('editor.QuestPanel.dice', 'Dice')}
+        {t('editor.QuestPanel.diceToRoll', 'Dice to roll')}
         <input
           key={`dice:${tele?.dice ?? ''}`}
           defaultValue={tele?.dice ?? ''}
@@ -767,7 +711,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
         />
       </label>
       <label className="ed-field">
-        {t('editor.QuestPanel.squares', 'Squares')}
+        {t('editor.QuestPanel.squaresToMoveTo', 'Squares to move to')}
         <input
           key={`squares:${tele?.squares ?? ''}`}
           defaultValue={tele?.squares ?? ''}

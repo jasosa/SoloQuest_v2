@@ -157,19 +157,9 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-row')).toHaveCount(0);
   });
 
-  test('rules: bounty and door teleport, and a large monster', async ({ page }) => {
+  test('rules: door teleport, and a large monster', async ({ page }) => {
     await newQuest(page);
     await tab(page, 'Quest').click();
-    await page.getByLabel('Add a bounty').selectOption('goblin');
-    const row = page.getByTestId('bounty-row');
-    await expect(row).toHaveCount(1);
-    const gold = row.getByLabel('Bounty goblin gold');
-    await gold.fill('25');
-    await gold.blur();
-    await expect(gold).toHaveValue('25');
-    await btn(page, 'Remove bounty goblin').click();
-    await expect(page.getByTestId('bounty-row')).toHaveCount(0);
-
     const dice = page.getByLabel('Door teleport dice');
     const squares = page.getByLabel('Door teleport squares');
     await dice.fill('1 red die');

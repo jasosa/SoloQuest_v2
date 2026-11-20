@@ -1,4 +1,4 @@
-/** Walk-through of quest 11, Bastion of Dread: bounty text, armory (A), trapped chest and gargoyle (B), Orc's Bane (C). */
+/** Walk-through of quest 11, Bastion of Dread: bounty reward text, armory (A), trapped chest and gargoyle (B), Orc's Bane (C). */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -80,8 +80,11 @@ describe('quest 11: data', () => {
     expect(count('gargoyle')).toBe(1);
   });
 
-  it('the bounty is shown as text per kill type, not tracked', () => {
-    expect(quest.rules.bounty).toEqual({ goblin: 10, orc: 20, abomination: 30, dreadWarrior: 50 });
+  it('the bounty is only reward text, the players track it (no bounty rule)', () => {
+    expect(quest.rules).toEqual({});
+    expect(
+      parseQuest({ ...JSON.parse(JSON.stringify(quest)), rules: { bounty: { goblin: 10 } } }).rules,
+    ).toEqual({});
     for (const amount of ['10', '20', '30', '50']) expect(quest.rewards).toContain(amount);
   });
 });

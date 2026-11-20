@@ -173,10 +173,11 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 "rules": {
   "fallingBlock": "q13",            // Q13: roll 1 red die on entering, not blocking
   "doorTeleport": { "dice": "2red", "squares": "markers" },   // Q10
-  "noEquipmentUntil": "n-A",        // Q6 banner
-  "bounty": { "goblin": 10, "orc": 20, "abomination": 30, "dreadWarrior": 50 }   // Q11, shown as text
+  "noEquipmentUntil": "n-A"         // Q6 banner
 }
 ```
+
+`doorTeleport` is a short text for the table: when a hero crosses a magic door, which dice to roll and which squares the hero can land on. The app shows it, it does not move anyone. The old `bounty` rule was removed (the players track it); quests that still carry it load without it.
 
 ## NPCs
 

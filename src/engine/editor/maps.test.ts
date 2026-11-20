@@ -198,15 +198,14 @@ describe('monster size and rules', () => {
     q = ok(updateMonster(q, id, { size: 1 }));
     expect(q.monsters[0]?.size).toBeUndefined();
   });
-  it('bounty and doorTeleport are set and cleared', () => {
+  it('doorTeleport is set and cleared', () => {
     let q = ok(
       setRules(blank(), {
-        bounty: { goblin: 10 },
         doorTeleport: { dice: '1 red die', squares: 'that many squares' },
       }),
     );
-    expect(q.rules.bounty).toEqual({ goblin: 10 });
-    q = ok(setRules(q, { bounty: null, doorTeleport: null }));
+    expect(q.rules.doorTeleport).toEqual({ dice: '1 red die', squares: 'that many squares' });
+    q = ok(setRules(q, { doorTeleport: null }));
     expect(q.rules).toEqual({});
   });
 });

@@ -508,12 +508,22 @@ const ObjectiveSchema = z.strictObject({
   confirmWhen: z.array(ConditionSchema).min(1).optional(),
 });
 
-const RulesSchema = z.strictObject({
-  fallingBlock: nonEmpty.optional(),
-  doorTeleport: z.strictObject({ dice: nonEmpty, squares: nonEmpty }).optional(),
-  noEquipmentUntil: id.optional(),
-  bounty: z.partialRecord(MonsterType, z.number().int().min(0)).optional(),
-});
+/** The old `bounty` rule was dropped (players track it): quests that still carry it load without it. */
+function dropBounty(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || !('bounty' in raw)) return raw;
+  const { bounty: _bounty, ...rest } = raw as Record<string, unknown>;
+  void _bounty;
+  return rest;
+}
+
+const RulesSchema = z.preprocess(
+  dropBounty,
+  z.strictObject({
+    fallingBlock: nonEmpty.optional(),
+    doorTeleport: z.strictObject({ dice: nonEmpty, squares: nonEmpty }).optional(),
+    noEquipmentUntil: id.optional(),
+  }),
+);
 
 const EndingSchema = z.strictObject({
   id,
