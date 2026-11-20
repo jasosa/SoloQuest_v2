@@ -31,7 +31,7 @@ import { deleteSelection, rotateSelection } from './selectionActions';
 import { anyModalOpen } from '../shared/useModal';
 import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
-import { boxArtTheme, boxOfQuest, isBoxArtOn, setQuestBox } from '../theme/boxArt';
+import { boxOfQuest, setQuestBox } from '../theme/questBox';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
 import { t } from '../../i18n/t';
@@ -102,7 +102,7 @@ export function EditorScreen({
   const { quest, tool, toast, warnings, saveErrors, tab } = s;
   // The map uses the texture pack in use unless the person turned that off (View > Textures).
   const mapTextures = useEditorTextures();
-  // the boards draw with the art layer of the quest's box (Frozen Horror)
+  // a pack made for one box dresses only the quests of that box
   const questBox = boxOfQuest(quest);
   useLayoutEffect(() => {
     setQuestBox(questBox);
@@ -334,11 +334,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
   const mine = new Set(quest.enemyDefs.map((e) => e.id));
   const libEnemies = library.addable.enemies.filter((e) => !mine.has(e.id));
   // the switch only means something when a texture pack is in use
-  const boxArt = (() => {
-    const box = boxOfQuest(quest);
-    return box !== undefined && boxArtTheme(box) !== undefined && isBoxArtOn(box);
-  })();
-  const packInUse = useActiveTheme().id !== CLASSIC_THEME.id || boxArt;
+  const packInUse = useActiveTheme().id !== CLASSIC_THEME.id;
   const mapTextures = useEditorTextures();
   const chip = (label: string, on: boolean, onClick: () => void) => (
     <button key={label} className="chip" aria-pressed={on} onClick={onClick}>

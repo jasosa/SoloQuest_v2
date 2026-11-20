@@ -2,7 +2,7 @@
   "format": "sqtextures",
   "version": 1,
   "id": "frozen-horror-art",
-  "name": "Frozen Horror art",
+  "name": "Frozen Horror",
   "origin": "official",
   "box": "frozen-horror",
   "block": { "single": "furniture/block.png" },

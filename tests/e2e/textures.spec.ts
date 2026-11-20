@@ -65,7 +65,7 @@ test.describe('texture packs (decision 78)', () => {
       .getByLabel('Texture pack file')
       .setInputFiles(file('bad.sqtextures', Buffer.from('nope')));
     await expect(dlg.getByRole('alert')).toContainText('not a texture pack');
-    await expect(dlg.locator('[data-pack]')).toHaveCount(0);
+    await expect(dlg.locator('[data-pack]:not([data-pack="frozen-horror-art"])')).toHaveCount(0);
   });
 
   test('delete asks twice, and deleting the pack in use goes back to Classic', async ({ page }) => {
@@ -81,7 +81,7 @@ test.describe('texture packs (decision 78)', () => {
     await row.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(row).toBeVisible(); // not deleted yet
     await row.getByRole('button', { name: 'Really delete' }).click();
-    await expect(dlg.locator('[data-pack]')).toHaveCount(0);
+    await expect(dlg.locator('[data-pack]:not([data-pack="frozen-horror-art"])')).toHaveCount(0);
     await expect(dlg.getByTestId('pack-list')).toContainText('In use');
   });
 

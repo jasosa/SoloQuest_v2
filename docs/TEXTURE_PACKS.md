@@ -121,11 +121,13 @@ picture shows in Zargon view only.
 - Tunnel pictures fill their square. Edge door pictures are drawn with the arrow pointing right: the picture sits inside the square next to the wall, turned so the arrow points into the board for `ironEntry` and out of it for `woodenExit`; an opened door is drawn at 45%.
 - Magic Ice has no slot: the app ignores blocks that spells place (decision 57).
 
-### Built-in art for a box (decision 96)
+### The Frozen Horror pack that ships with the app (decision 98)
 
-Frozen Horror ships its own pack, `src/content/art/frozen-horror.theme.json` (pictures in `public/assets/frozen-horror/`, kept once). It is used while a quest of that box is open (`pack: "frozen-horror"`, or a quest that uses Frozen Horror tiles, tunnels or doors), unless the switch **Frozen Horror pictures** in the Textures dialog is off. Order, bottom to top: the drawn look, the pack chosen for the core game, the Frozen Horror pictures, a pack chosen with `box: "frozen-horror"`. `npm run build:pack -- frozen-horror` writes the same pack as `dist-packs/frozen-horror.sqtextures` (git-ignored, about 3 MB), which can be imported like any pack.
+Frozen Horror pictures are a texture pack like any other, with one difference: it ships with the app, so it is in the list of the Textures dialog from the start (marked "Included with the app", for `frozen-horror`, official, about 3 MB). **It is not applied by itself.** The player taps **Use** (and **Stop using it** to go back to the built-in look). The source is `src/content/art/frozen-horror.theme.json`; the pictures stay once in `public/assets/frozen-horror/` (png, in the offline cache) and are read from there when the pack is used, previewed or exported. It is stand-alone (no `extends`).
 
-The pictures are served from the app (not copied into the code) and are in the offline cache.
+- **Export** in the dialog, and `npm run build:pack -- frozen-horror`, give the same file, `frozen-horror-art.sqtextures` / `dist-packs/frozen-horror.sqtextures` (git-ignored). It imports like any pack.
+- A pack with `box` dresses only the quests of that box. The Frozen Horror pack draws nothing in a core quest.
+- If the player saves an adjusted copy from Preview, the copy replaces the shipped row (Delete on the copy brings the shipped one back).
 
 ### Packs for an expansion: `box` and `extends` (decision 85)
 

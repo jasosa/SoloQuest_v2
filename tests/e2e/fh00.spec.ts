@@ -74,10 +74,7 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
   test('the cave entrance is drawn and the cage is not, Frozen Horror tokens are blue', async ({
     page,
   }) => {
-    // the drawn look: the Frozen Horror pictures would replace the blue coin
-    await page.addInitScript(() =>
-      localStorage.setItem('soloquest-box-art-off', JSON.stringify(['frozen-horror'])),
-    );
+    // the built-in drawn look is the default: no texture pack is applied
     await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3');
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);

@@ -1,19 +1,53 @@
+import { statSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { dismissStart, openSettings } from './helpers';
 
-// Frozen Horror pictures (decision 96): the built-in art layer of the Frozen Horror box.
-const OPEN = 'in,d1,look@9:9,d2,d3';
-const FH0 = `/?quest=0&team=dwarf&nosave=1&seed=1&open=${OPEN}`;
+// The Frozen Horror pictures are a texture pack that ships with the app (decision 98). Nothing is applied
+// by itself: the player picks it in the Textures dialog.
+const FH0 = '/?quest=fh00-into-the-northlands&team=dwarf&seed=1&open=in,d1,look@9:9,d2,d3';
+const FH_TUNNEL = `${FH0},d4,d5,d6,d7`;
+const PACK = '[data-pack="frozen-horror-art"]';
 
-const switchOff = (page: Page) =>
-  page.addInitScript(() =>
-    localStorage.setItem('soloquest-box-art-off', JSON.stringify(['frozen-horror'])),
-  );
+async function openTextures(page: Page) {
+  await page.goto('/');
+  await openSettings(page);
+  await page.getByRole('button', { name: /^Textures/ }).click();
+}
 
-test.describe('Frozen Horror art layer', () => {
-  test('on by default: the entrance tile, the iron door and a room tile are pictures', async ({
+/** The player applies the pack (the choice is kept on the device, so a reload keeps it). */
+async function usePack(page: Page) {
+  await openTextures(page);
+  await page.locator(PACK).getByRole('button', { name: 'Use', exact: true }).click();
+  await expect(page.locator(PACK).getByText('In use')).toBeVisible();
+}
+
+test.describe('Frozen Horror pack (explicit, decision 98)', () => {
+  test('by default a Frozen Horror quest uses the built-in drawn look', async ({ page }) => {
+    await page.goto(FH0);
+    await dismissStart(page);
+    await expect(page.locator('[data-edge-door="ironEntry"]')).toHaveCount(1);
+    await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
+    await expect(page.locator('[data-themed]')).toHaveCount(0);
+    await page.screenshot({ path: 'test-results/fh-pack-off.png' });
+  });
+
+  test('the Textures dialog lists it with its name, box and size, not applied', async ({
     page,
   }) => {
+    await openTextures(page);
+    const row = page.locator(PACK);
+    await expect(row.getByText('Frozen Horror', { exact: true })).toBeVisible();
+    await expect(row).toContainText('For frozen-horror');
+    await expect(row).toContainText('Official');
+    await expect(row).toContainText('Included with the app');
+    await expect(row).toContainText(/\d(\.\d)? MB/);
+    await expect(row.getByText('In use')).toHaveCount(0);
+    await expect(row.getByRole('button', { name: 'Delete' })).toHaveCount(0);
+    await page.screenshot({ path: 'test-results/fh-pack-dialog.png' });
+  });
+
+  test('using it draws the pictures; stopping it brings the drawn look back', async ({ page }) => {
+    await usePack(page);
     await page.goto(FH0);
     await dismissStart(page);
     await expect(
@@ -26,52 +60,46 @@ test.describe('Frozen Horror art layer', () => {
       page.locator('[data-room-tile="cageRoom"] image[data-tile-picture="cageRoom"]'),
     ).toHaveCount(1);
     await page.waitForTimeout(800);
-    await page.screenshot({ path: 'test-results/fh-art-on.png' });
+    await page.screenshot({ path: 'test-results/fh-pack-on.png' });
+
+    await openTextures(page);
+    await page.locator(PACK).getByRole('button', { name: 'Stop using it' }).click();
+    await expect(page.locator(PACK).getByText('In use')).toHaveCount(0);
+    await page.goto(FH0);
+    await dismissStart(page);
+    await expect(page.locator('[data-edge-door="ironEntry"]')).toHaveCount(1);
+    await expect(page.locator('[data-themed]')).toHaveCount(0);
   });
 
   test('ice tunnels use the picture of their design', async ({ page }) => {
-    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3,d4,d5,d6,d7');
+    await usePack(page);
+    await page.goto(FH_TUNNEL);
     await dismissStart(page);
     await expect(page.locator('[data-tunnel="tun3:b"] image[data-themed="tunnel"]')).toHaveCount(1);
   });
 
-  test('switched off: the drawn look, no pictures', async ({ page }) => {
-    await switchOff(page);
-    await page.goto(FH0);
-    await dismissStart(page);
-    await expect(page.locator('[data-edge-door="ironEntry"]')).toHaveCount(1);
-    await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
-    await expect(page.locator('[data-themed]')).toHaveCount(0);
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: 'test-results/fh-art-off.png' });
-  });
-
-  test('a core quest never gets the layer', async ({ page }) => {
-    await page.goto('/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
+  test('a core quest is not dressed by a pack made for Frozen Horror', async ({ page }) => {
+    await usePack(page);
+    await page.goto('/?quest=1&team=dwarf&seed=1&open=d1');
     await expect(page.locator('#board')).toBeVisible();
     await expect(page.locator('[data-themed]')).toHaveCount(0);
   });
 
-  test('the Textures dialog has a switch for it, kept on this device', async ({ page }) => {
-    await page.goto('/');
-    await openSettings(page);
-    await page.getByRole('button', { name: /^Textures/ }).click();
-    const sw = page.getByRole('switch', { name: 'Frozen Horror pictures' });
-    await expect(sw).toHaveAttribute('aria-checked', 'true');
-    await sw.click();
-    await expect(sw).toHaveAttribute('aria-checked', 'false');
-    expect(await page.evaluate(() => localStorage.getItem('soloquest-box-art-off'))).toContain(
-      'frozen-horror',
-    );
-    await page.screenshot({ path: 'test-results/fh-art-dialog.png' });
-    await sw.click();
-    expect(await page.evaluate(() => localStorage.getItem('soloquest-box-art-off'))).toBeNull();
+  test('it can be exported as a .sqtextures file', async ({ page }) => {
+    await openTextures(page);
+    const download = page.waitForEvent('download');
+    await page.locator(PACK).getByRole('button', { name: 'Export' }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toBe('frozen-horror-art.sqtextures');
+    const path = await file.path();
+    expect(statSync(path).size).toBeGreaterThan(1_000_000);
   });
 
-  test('editor: monster tokens, tiles and doors are pictures, and Textures off draws the built-in look', async ({
+  test('editor: tokens, tiles and doors are pictures once it is used, and Textures off draws the built-in look', async ({
     page,
   }) => {
-    await page.goto('/?editor=1&nosave=1');
+    await usePack(page);
+    await page.goto('/?editor=1');
     await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
     const sel = page.getByLabel('Bundled quest');
     const label = await sel
@@ -89,7 +117,6 @@ test.describe('Frozen Horror art layer', () => {
     await expect(
       page.locator('[data-edge-door] image[data-themed="edge-door"]').first(),
     ).toBeAttached();
-    await expect(page.locator('[data-tunnel] image[data-themed="tunnel"]').first()).toBeAttached();
     await page.getByRole('button', { name: /^Textures: on/ }).click();
     await expect(page.locator('image[data-themed]')).toHaveCount(0);
   });

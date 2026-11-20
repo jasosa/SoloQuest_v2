@@ -75,7 +75,7 @@ import {
 import { parseSelection, type Selection } from './selection';
 import { progressLabel } from './zargonView';
 import { useTheme } from '../theme/activeTheme';
-import { boxOfQuest, setQuestBox } from '../theme/boxArt';
+import { boxOfQuest, setQuestBox } from '../theme/questBox';
 import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { useWakeLock } from '../shared/useWakeLock';
 import { isThemeToken, monsterPicture } from '../theme/theme';
@@ -160,7 +160,7 @@ export function PlayScreen({
   } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
-  // the boards draw with the art layer of the quest's box (Frozen Horror)
+  // a pack made for one box dresses only the quests of that box
   const questBox = boxOfQuest(quest);
   useLayoutEffect(() => {
     setQuestBox(questBox);
