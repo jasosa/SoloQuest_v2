@@ -15,6 +15,10 @@ export const CAMPAIGN_VERSION = 1;
 
 export interface Campaign {
   readonly version: typeof CAMPAIGN_VERSION;
+  /** Unique on the device. The first campaign of a pack has the pack id, the next `<pack>-2`, and so on. */
+  readonly id: string;
+  /** What the player sees in the list of saved campaigns ("Campaign 2"). Empty in a campaign made before names. */
+  readonly name: string;
   readonly pack: string;
   /** Drawn when the campaign starts. Campaign draws (such as the Raiment artifacts) come from it. */
   readonly seed: number;
@@ -30,9 +34,26 @@ export interface Campaign {
   readonly settings: Readonly<Record<string, boolean>>;
 }
 
-export function newCampaign(pack: PackManifest, seed: number): Campaign {
+/** The id and the number of the next campaign of a pack, given the ids that are taken. */
+export function nextCampaignSlot(
+  pack: string,
+  taken: readonly string[],
+): { id: string; number: number } {
+  for (let number = 1; ; number++) {
+    const id = number === 1 ? pack : `${pack}-${number}`;
+    if (!taken.includes(id)) return { id, number };
+  }
+}
+
+export function newCampaign(
+  pack: PackManifest,
+  seed: number,
+  own: { id?: string; name?: string } = {},
+): Campaign {
   return {
     version: CAMPAIGN_VERSION,
+    id: own.id ?? pack.id,
+    name: own.name ?? pack.name,
     pack: pack.id,
     seed: seed >>> 0,
     finished: [],

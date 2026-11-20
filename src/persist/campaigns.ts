@@ -5,7 +5,7 @@ import type { TeamInput } from '../engine/data/team';
 
 /**
  * The campaign of each pack, kept on this device (decision 37). Small, so it lives in localStorage
- * like the quest settings. One campaign per pack; starting over replaces it.
+ * like the quest settings. Any number per pack, each with an id and a name; an older campaign (one per pack) keeps the pack id as its id.
  */
 
 const TeamEntry = z.union([
@@ -21,6 +21,9 @@ const TeamEntry = z.union([
 
 export const CampaignSchema = z.object({
   version: z.literal(CAMPAIGN_VERSION),
+  /** Missing in a campaign made before several campaigns per pack: the pack id is its id. */
+  id: z.string().optional(),
+  name: z.string().optional(),
   pack: z.string(),
   seed: z.number().int(),
   finished: z.array(z.string()),
@@ -30,24 +33,39 @@ export const CampaignSchema = z.object({
   settings: z.record(z.string(), z.boolean()),
 });
 
+/** Read one stored value; an older one (keyed by its pack) gets its id and an empty name. */
+function parseCampaign(key: string, raw: unknown): Campaign | undefined {
+  const r = CampaignSchema.safeParse(raw);
+  if (!r.success) return undefined;
+  return { ...r.data, id: r.data.id ?? key, name: r.data.name ?? '' } as {
+    team: TeamInput[];
+  } & Campaign;
+}
+
 export interface CampaignStore {
-  /** The campaign of a pack, or undefined (none, or one that cannot be read). */
-  get(pack: string): Campaign | undefined;
+  /** A campaign by id, or undefined (none, or one that cannot be read). */
+  get(id: string): Campaign | undefined;
+  /** Every campaign on this device, in the order they were made. */
+  list(): Campaign[];
+  /** Saves under `campaign.id`. */
   set(campaign: Campaign): void;
-  clear(pack: string): void;
+  clear(id: string): void;
 }
 
 export class MemoryCampaignStore implements CampaignStore {
   private readonly all = new Map<string, Campaign>();
-  get(pack: string): Campaign | undefined {
-    const c = this.all.get(pack);
+  get(id: string): Campaign | undefined {
+    const c = this.all.get(id);
     return c ? structuredClone(c) : undefined;
   }
-  set(campaign: Campaign): void {
-    this.all.set(campaign.pack, structuredClone(campaign));
+  list(): Campaign[] {
+    return [...this.all.values()].map((c) => structuredClone(c));
   }
-  clear(pack: string): void {
-    this.all.delete(pack);
+  set(campaign: Campaign): void {
+    this.all.set(campaign.id, structuredClone(campaign));
+  }
+  clear(id: string): void {
+    this.all.delete(id);
   }
 }
 
@@ -70,15 +88,20 @@ export class LocalCampaignStore implements CampaignStore {
       /* storage unavailable: the campaign lasts until the page closes */
     }
   }
-  get(pack: string): Campaign | undefined {
-    const r = CampaignSchema.safeParse(this.read()[pack]);
-    return r.success ? (r.data as { team: TeamInput[] } & Campaign) : undefined;
+  get(id: string): Campaign | undefined {
+    return parseCampaign(id, this.read()[id]);
+  }
+  list(): Campaign[] {
+    return Object.entries(this.read()).flatMap(([key, raw]) => {
+      const c = parseCampaign(key, raw);
+      return c ? [c] : [];
+    });
   }
   set(campaign: Campaign): void {
-    this.write({ ...this.read(), [campaign.pack]: campaign });
+    this.write({ ...this.read(), [campaign.id]: campaign });
   }
-  clear(pack: string): void {
-    const { [pack]: _gone, ...rest } = this.read();
+  clear(id: string): void {
+    const { [id]: _gone, ...rest } = this.read();
     void _gone;
     this.write(rest);
   }

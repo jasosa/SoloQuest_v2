@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { openSettings } from './helpers';
 
 const START = 'quest:q01-the-trial:notes.n-start.effects.0.text';
 
@@ -8,6 +9,7 @@ test.describe('translations (decision 92)', () => {
     page,
   }) => {
     await page.goto('/');
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
 
@@ -26,8 +28,8 @@ test.describe('translations (decision 92)', () => {
     const editor = page.getByRole('dialog', { name: 'Translate Espanol' });
 
     // a select screen text
-    await editor.getByRole('searchbox').fill('select.chooseAQuest');
-    await editor.getByLabel('Translation of select.chooseAQuest').fill('Elige una mision');
+    await editor.getByRole('searchbox').fill('select.home');
+    await editor.getByLabel('Translation of select.home').fill('Inicio');
     // a quest note text
     await editor.getByRole('searchbox').fill(START);
     await expect(editor.locator(`[data-key="${START}"]`)).toContainText('Not translated');
@@ -45,8 +47,13 @@ test.describe('translations (decision 92)', () => {
       page.waitForNavigation(),
       dlg.locator('[data-language="es"]').getByRole('button', { name: 'Use', exact: true }).click(),
     ]);
-    await expect(page.getByRole('heading', { name: 'Elige una mision' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Inicio' })).toBeVisible();
+    await page.getByTestId('home-single').click();
+    await page.getByTestId('pack-core').click();
     await expect(page.getByRole('button', { name: /La Prueba/ })).toBeVisible();
+    await page.getByTestId('back').click();
+    await page.getByTestId('back').click();
+    await openSettings(page);
     await expect(page.getByTestId('translations-link')).toContainText('Espanol');
 
     // the quest note shows in the language
@@ -57,6 +64,7 @@ test.describe('translations (decision 92)', () => {
 
     // export, delete, import the same file
     await page.goto('/');
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const list = page.getByRole('dialog', { name: 'Translations' });
     const download = page.waitForEvent('download');
@@ -68,7 +76,7 @@ test.describe('translations (decision 92)', () => {
       strings: Record<string, string>;
     };
     expect(exported.format).toBe('soloquest-language');
-    expect(exported.strings['select.chooseAQuest']).toBe('Elige una mision');
+    expect(exported.strings['select.home']).toBe('Inicio');
     expect(exported.strings[START]).toBe('Pon a los heroes en la escalera.');
 
     await Promise.all([
@@ -84,7 +92,8 @@ test.describe('translations (decision 92)', () => {
             .click(),
         ),
     ]);
-    await expect(page.getByRole('heading', { name: 'Choose a quest' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const again = page.getByRole('dialog', { name: 'Translations' });
     await expect(again.locator('[data-language="es"]')).toHaveCount(0);
@@ -101,7 +110,7 @@ test.describe('translations (decision 92)', () => {
         JSON.stringify({
           ...exported,
           language: { name: 'English (edited)', code: 'en' },
-          strings: { 'select.chooseAQuest': 'Pick one' },
+          strings: { 'select.home': 'Pick one' },
         }),
       ),
     });
@@ -122,6 +131,7 @@ test.describe('translations (decision 92)', () => {
 
   test('English can be changed and reset, never deleted', async ({ page }) => {
     await page.goto('/');
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
     const en = dlg.locator('[data-language="en"]');
@@ -131,11 +141,11 @@ test.describe('translations (decision 92)', () => {
     // change a text of English
     await en.getByRole('button', { name: 'Edit' }).click();
     const editor = page.getByRole('dialog', { name: 'Edit English' });
-    await editor.getByRole('searchbox').fill('select.chooseAQuest');
-    const field = editor.getByLabel('Translation of select.chooseAQuest');
-    await expect(field).toHaveValue('Choose a quest');
+    await editor.getByRole('searchbox').fill('select.home');
+    const field = editor.getByLabel('Translation of select.home');
+    await expect(field).toHaveValue('Home');
     await field.fill('Pick a quest');
-    await expect(editor.locator('[data-key="select.chooseAQuest"]')).toContainText('Changed');
+    await expect(editor.locator('[data-key="select.home"]')).toContainText('Changed');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(editor).toContainText('Saved.');
     await Promise.all([
@@ -145,6 +155,7 @@ test.describe('translations (decision 92)', () => {
     await expect(page.getByRole('heading', { name: 'Pick a quest' })).toBeVisible();
 
     // a language made now starts from the changed English, and falls back to it
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const again = page.getByRole('dialog', { name: 'Translations' });
     await expect(again.locator('[data-language="en"]')).toContainText('1 changed');
@@ -152,32 +163,32 @@ test.describe('translations (decision 92)', () => {
     // reset one text, then everything
     await again.locator('[data-language="en"]').getByRole('button', { name: 'Edit' }).click();
     const ed2 = page.getByRole('dialog', { name: 'Edit English' });
-    await ed2.getByRole('searchbox').fill('select.chooseAQuest');
-    await ed2.getByRole('button', { name: 'Reset select.chooseAQuest' }).click();
-    await expect(ed2.getByLabel('Translation of select.chooseAQuest')).toHaveValue(
-      'Choose a quest',
-    );
+    await ed2.getByRole('searchbox').fill('select.home');
+    await ed2.getByRole('button', { name: 'Reset select.home' }).click();
+    await expect(ed2.getByLabel('Translation of select.home')).toHaveValue('Home');
     await ed2.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),
       ed2.getByRole('button', { name: 'Back to the list' }).click(),
     ]);
-    await expect(page.getByRole('heading', { name: 'Choose a quest' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
 
     // reset all to the original
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const d3 = page.getByRole('dialog', { name: 'Translations' });
     const en3 = d3.locator('[data-language="en"]');
     await expect(en3.getByRole('button', { name: 'Reset all to the original' })).toBeDisabled();
     await en3.getByRole('button', { name: 'Edit' }).click();
     const ed3 = page.getByRole('dialog', { name: 'Edit English' });
-    await ed3.getByRole('searchbox').fill('select.newGame');
-    await ed3.getByLabel('Translation of select.newGame').fill('Begin');
+    await ed3.getByRole('searchbox').fill('select.singleQuest');
+    await ed3.getByLabel('Translation of select.singleQuest').fill('Begin');
     await ed3.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),
       ed3.getByRole('button', { name: 'Back to the list' }).click(),
     ]);
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const d4 = page.getByRole('dialog', { name: 'Translations' });
     await d4.getByRole('button', { name: 'Reset all to the original' }).click();
@@ -188,6 +199,7 @@ test.describe('translations (decision 92)', () => {
         .click()
         .then(() => d4.getByRole('button', { name: 'Close' }).click()),
     ]);
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     await expect(
       page.getByRole('dialog', { name: 'Translations' }).locator('[data-language="en"]'),
@@ -198,6 +210,7 @@ test.describe('translations (decision 92)', () => {
     page,
   }) => {
     await page.goto('/');
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
     // the development build is in owner mode
@@ -205,8 +218,8 @@ test.describe('translations (decision 92)', () => {
     await expect(owner).toContainText('The English file the app ships');
     await owner.getByRole('button', { name: 'Edit the built-in English' }).click();
     const editor = page.getByRole('dialog', { name: 'Edit the built-in English' });
-    await editor.getByRole('searchbox').fill('select.chooseAQuest');
-    await editor.getByLabel('Translation of select.chooseAQuest').fill('Pick a quest');
+    await editor.getByRole('searchbox').fill('select.home');
+    await editor.getByLabel('Translation of select.home').fill('Pick a quest');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),
@@ -215,6 +228,7 @@ test.describe('translations (decision 92)', () => {
     // it shows in the app at once
     await expect(page.getByRole('heading', { name: 'Pick a quest' })).toBeVisible();
 
+    await openSettings(page);
     await page.getByTestId('translations-link').click();
     const again = page.getByRole('dialog', { name: 'Translations' });
     await expect(again.getByTestId('owner-english')).toContainText('1 changed');
@@ -233,7 +247,7 @@ test.describe('translations (decision 92)', () => {
     expect(update.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(update.base).toMatch(/^en-/);
     // only the changed key
-    expect(update.strings).toEqual({ 'select.chooseAQuest': 'Pick a quest' });
+    expect(update.strings).toEqual({ 'select.home': 'Pick a quest' });
 
     // without owner mode the update cannot be brought in, and the owner row is gone
     await again.getByRole('switch', { name: /Owner mode/ }).click();
@@ -251,6 +265,6 @@ test.describe('translations (decision 92)', () => {
         .click()
         .then(() => again.getByRole('button', { name: 'Close' }).click()),
     ]);
-    await expect(page.getByRole('heading', { name: 'Choose a quest' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
   });
 });

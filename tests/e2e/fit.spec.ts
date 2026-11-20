@@ -8,16 +8,18 @@ test.describe('fit to the screen', () => {
     await page.goto('/?nosave=1');
     // quest select fills the width and does not shrink: it is readable on a short window
     expect(Number(await page.locator('[data-fit-scale]').getAttribute('data-fit-scale'))).toBe(1);
-    const newGameButton = page.getByTestId('new-game');
-    await expect(newGameButton).toBeVisible();
-    const box = (await newGameButton.boundingBox())!;
+    // the last button of Home is on screen
+    const settingsButton = page.getByTestId('home-settings');
+    await expect(settingsButton).toBeVisible();
+    const box = (await settingsButton.boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(640);
     expect(box.x + box.width).toBeLessThanOrEqual(1194);
-    // the Heroes popup fits too, with its Start button
-    await newGameButton.click();
-    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
-    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    const start = dialog.getByRole('button', { name: 'Start the quest' });
+    // the heroes page fits too, with its Start button
+    await page.getByTestId('home-single').click();
+    await page.getByTestId('pack-core').click();
+    await page.locator('.qcard').first().click();
+    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    const start = page.getByRole('button', { name: 'Start the quest' });
     const sb = (await start.boundingBox())!;
     expect(sb.y + sb.height).toBeLessThanOrEqual(640);
   });

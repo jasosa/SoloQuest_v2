@@ -45,6 +45,8 @@ function SwitchRow({
 export interface CampaignSettingsContext {
   readonly store: CampaignStore;
   readonly pack: PackManifest;
+  /** Which campaign of the pack. */
+  readonly campaignId: string;
   /** Called after a campaign setting changed (the play screen draws its cards again). */
   readonly onChange?: (() => void) | undefined;
 }
@@ -59,6 +61,7 @@ export function QuestSettingsCard({
   title,
   solo = false,
   campaign,
+  campaignOnly = false,
   onClose,
 }: {
   questId: string;
@@ -66,30 +69,38 @@ export function QuestSettingsCard({
   /** The quest is for one hero: "No Yeti hug in solo quests" applies (decision 59). */
   solo?: boolean;
   campaign?: CampaignSettingsContext | undefined;
+  /** Only the campaign switches ("Campaign settings"), no quest switches. */
+  campaignOnly?: boolean;
   onClose(): void;
 }) {
   const s = useQuestSettings(questId);
   const [stored, setStored] = useState<Campaign | undefined>(() =>
-    campaign?.store.get(campaign.pack.id),
+    campaign?.store.get(campaign.campaignId),
   );
   const listed = campaign?.pack.campaignSettings ?? [];
   return (
     <NoteCard
-      kind={t('shared.QuestSettingsCard.questSettings', 'Quest settings')}
+      kind={
+        campaignOnly
+          ? t('shared.QuestSettingsCard.campaignSettings', 'Campaign settings')
+          : t('shared.QuestSettingsCard.questSettings', 'Quest settings')
+      }
       title={title}
       onClose={onClose}
     >
-      <SwitchRow
-        label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
-        hint={t(
-          'shared.QuestSettingsCard.shortRemindersOfRules',
-          'Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake.',
-        )}
-        on={s.ruleHints}
-        testId="rule-hints"
-        onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
-      />
-      {solo && (
+      {!campaignOnly && (
+        <SwitchRow
+          label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
+          hint={t(
+            'shared.QuestSettingsCard.shortRemindersOfRules',
+            'Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake.',
+          )}
+          on={s.ruleHints}
+          testId="rule-hints"
+          onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
+        />
+      )}
+      {solo && !campaignOnly && (
         <SwitchRow
           label={t('shared.QuestSettingsCard.noYetiHugIn', 'No Yeti hug in solo quests')}
           hint={t(

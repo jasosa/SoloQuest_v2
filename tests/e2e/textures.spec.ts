@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import { expect, test } from '@playwright/test';
-import { newGame } from './helpers';
+import { newGame, openQuest, openSettings } from './helpers';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -30,7 +30,8 @@ const file = (name: string, buffer: Buffer) => ({ name, mimeType: 'application/z
 test.describe('texture packs (decision 78)', () => {
   test('import a pack, use it in a quest, go back to Classic', async ({ page }) => {
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await expect(dlg.getByTestId('pack-list')).toContainText('Classic');
     await expect(dlg).toContainText('In use');
@@ -48,6 +49,8 @@ test.describe('texture packs (decision 78)', () => {
     await dlg.getByRole('button', { name: 'Close', exact: true }).click();
 
     // play a quest: the floor uses the pack's picture
+    await page.getByTestId('back').click();
+    await openQuest(page, 1);
     await newGame(page, ['Dwarf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('[data-themed="floor"]').first()).toBeAttached();
@@ -55,7 +58,8 @@ test.describe('texture packs (decision 78)', () => {
 
   test('a bad file is refused with a sentence, and nothing is added', async ({ page }) => {
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg
       .getByLabel('Texture pack file')
@@ -66,7 +70,8 @@ test.describe('texture packs (decision 78)', () => {
 
   test('delete asks twice, and deleting the pack in use goes back to Classic', async ({ page }) => {
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg
       .getByLabel('Texture pack file')
@@ -82,7 +87,8 @@ test.describe('texture packs (decision 78)', () => {
 
   test('the dialog buttons are at least 44 px tall', async ({ page }) => {
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg
       .getByLabel('Texture pack file')
@@ -93,10 +99,11 @@ test.describe('texture packs (decision 78)', () => {
     }
   });
 
-  test('the quest select screen says which texture pack is in use', async ({ page }) => {
+  test('the settings page says which texture pack is in use', async ({ page }) => {
     await page.goto('/?nosave=1');
+    await openSettings(page);
     const link = page.getByTestId('textures-link');
-    await expect(link).toHaveText('Textures');
+    await expect(link.locator('.mb-cap')).toHaveText('Built-in look');
     await link.click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg
@@ -107,12 +114,12 @@ test.describe('texture packs (decision 78)', () => {
       .getByRole('button', { name: 'Use', exact: true })
       .click();
     await dlg.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(link).toHaveText('Textures: My stones');
+    await expect(link.locator('.mb-cap')).toHaveText('My stones');
     // back to Classic: the name goes away
     await link.click();
     await dlg.getByRole('button', { name: 'Use Classic' }).click();
     await dlg.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(link).toHaveText('Textures');
+    await expect(link.locator('.mb-cap')).toHaveText('Built-in look');
   });
 
   test('Preview shows a sample board, checks the pictures and lists the empty slots', async ({
@@ -132,7 +139,8 @@ test.describe('texture packs (decision 78)', () => {
       }),
     );
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg.getByLabel('Texture pack file').setInputFiles(file('tiny.sqtextures', tiny));
     await dlg.getByTestId('preview-tiny').click();
@@ -168,7 +176,8 @@ test.describe('texture packs (decision 78)', () => {
       }),
     );
     await page.goto('/?nosave=1');
-    await page.getByRole('button', { name: 'Textures', exact: true }).click();
+    await openSettings(page);
+    await page.getByTestId('textures-link').click();
     const dlg = page.getByRole('dialog', { name: 'Texture packs' });
     await dlg.getByLabel('Texture pack file').setInputFiles(file('tune.sqtextures', zipped));
     await dlg.getByTestId('preview-tune-me').click();

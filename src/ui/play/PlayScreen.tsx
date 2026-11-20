@@ -142,8 +142,20 @@ export function PlayScreen({
 }: PlayScreenProps) {
   useFitMode('fill');
   useWakeLock(true); // the tablet must not go dark between turns
-  const { level, root, state, events, fx, toast, team, prompts, promptsSeq, pack, campaign } =
-    useStore(store);
+  const {
+    level,
+    root,
+    state,
+    events,
+    fx,
+    toast,
+    team,
+    prompts,
+    promptsSeq,
+    pack,
+    campaign,
+    campaignId,
+  } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
   const codes = useMemo(
@@ -187,7 +199,7 @@ export function PlayScreen({
   const manifest = pack ? packs.byId.get(pack)?.manifest : undefined;
   const raiment =
     campaign && manifest
-      ? settingOn(manifest, campaigns?.get(manifest.id), RAIMENT_SETTING)
+      ? settingOn(manifest, campaignId ? campaigns?.get(campaignId) : undefined, RAIMENT_SETTING)
       : false;
   const orders = useMemo(
     () => ordersFor(level, state, team, undefined, { noHugInSolo: settings.soloNoHug, raiment }),
@@ -1359,10 +1371,11 @@ export function PlayScreen({
           title={quest.title}
           solo={quest.team?.solo === true}
           campaign={
-            campaign && campaigns && manifest
+            campaign && campaigns && manifest && campaignId
               ? {
                   store: campaigns,
                   pack: manifest,
+                  campaignId,
                   onChange: () => setCampaignTick((n) => n + 1),
                 }
               : undefined
