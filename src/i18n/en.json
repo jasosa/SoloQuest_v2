@@ -1137,6 +1137,7 @@
   "play.notes.youFoundATrap": "You found a trap",
   "play.notes.youFoundATrap2": "You found a trap on this chest. Try to disarm it, or a treasure search here springs it.",
   "play.notes.youLandSafely": "You land safely",
+  "play.PlayScreen.aConfirmButtonIsWaiting": "A confirm button is waiting.",
   "play.PlayScreen.actions": "Actions",
   "play.PlayScreen.addAMonster": "Add a monster",
   "play.PlayScreen.addedInPlay": "Added in play",

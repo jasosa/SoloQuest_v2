@@ -1128,7 +1128,12 @@ export function PlayScreen({
               <span className="gtext">
                 {goalLine || t('play.PlayScreen.endTheQuest', 'End the quest')}
               </span>
-              {' ›'}
+              <span aria-hidden="true">{' ›'}</span>
+              {confirms.length > 0 && (
+                <span className="sr">
+                  {t('play.PlayScreen.aConfirmButtonIsWaiting', 'A confirm button is waiting.')}
+                </span>
+              )}
             </button>
           </div>
         </div>
