@@ -1,4 +1,5 @@
 /** Texts of docs/ZARGON_AI.md: target rules and plans. */
+import { tr } from '../../i18n/translate';
 import type { Profile, RuleKey } from './weights';
 
 export const RULE_TEXT: Readonly<Record<RuleKey, string>> = {
@@ -36,16 +37,22 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
 export function thiefPlan(steals: boolean): string {
   // What stealing is (and the escape) is in the Thief ability; the plan only picks this turn's choice.
   return steals
-    ? 'Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry. Only a hero can be robbed: if the target is not a hero, attack it instead.'
-    : `Attack: ${PLAN_TEXT.skirmisher}`;
+    ? tr(
+        'zargon.thiefSteals',
+        'Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry. Only a hero can be robbed: if the target is not a hero, attack it instead.',
+      )
+    : tr('zargon.thiefAttacks', 'Attack: {plan}', { plan: PLAN_TEXT.skirmisher });
 }
 
 /** The grappler (Yeti, decision 49): the hug is in the card text, the app keeps no state for it. */
 export function grapplerPlan(hugs: boolean): string {
   // What the hug does is in the Bear hug ability.
   return hugs
-    ? 'Already hugging a hero: it does nothing else. Otherwise: move in and attack.'
-    : 'Move in and attack. (In a solo quest it does not hug.)';
+    ? tr(
+        'zargon.grapplerHugs',
+        'Already hugging a hero: it does nothing else. Otherwise: move in and attack.',
+      )
+    : tr('zargon.grapplerSolo', 'Move in and attack. (In a solo quest it does not hug.)');
 }
 
 /**
@@ -53,17 +60,29 @@ export function grapplerPlan(hugs: boolean): string {
  * starts next to a hero, then shoot; otherwise it fights where it stands.
  */
 export function shooterPlan(stepsBack: boolean): string {
-  const open =
-    'A hero in sight, not next to it: shoot, do not move. No hero in sight: move until one is, then shoot.';
+  const open = tr(
+    'zargon.shooterOpen',
+    'A hero in sight, not next to it: shoot, do not move. No hero in sight: move until one is, then shoot.',
+  );
   return stepsBack
-    ? `${open} Starts next to a hero: step back out of contact and shoot; if it cannot, melee and stay.`
-    : `${open} Starts next to a hero: melee and stay.`;
+    ? tr(
+        'zargon.shooterStepsBack',
+        '{open} Starts next to a hero: step back out of contact and shoot; if it cannot, melee and stay.',
+        { open },
+      )
+    : tr('zargon.shooterStays', '{open} Starts next to a hero: melee and stay.', { open });
 }
 
 /** A monster with several attacks moves once and draws a target rule for each attack (decision 49). */
 export function multiAttackLines(rules: readonly string[]): string {
-  const lines = rules.map((r, i) => `Attack ${i + 1}: ${r}.`).join(' ');
-  return `${lines} If the last target is out of reach, hit the first target again. It moves only once.`;
+  const lines = rules
+    .map((r, i) => tr('zargon.attackRule', 'Attack {number}: {rule}.', { number: i + 1, rule: r }))
+    .join(' ');
+  return tr(
+    'zargon.multiAttack',
+    '{lines} If the last target is out of reach, hit the first target again. It moves only once.',
+    { lines },
+  );
 }
 
 /**
@@ -74,20 +93,25 @@ export function multiAttackLines(rules: readonly string[]): string {
 /** The fighter plan of one turn: on 1 turn in 3 (seeded) it moves back after attacking. */
 export function fighterPlan(movesBack: boolean): string {
   return movesBack
-    ? 'Move in and attack. Already next to a hero: attack, then move back out of reach.'
-    : 'Move in and attack. Already next to a hero: attack and stay.';
+    ? tr(
+        'zargon.fighterMovesBack',
+        'Move in and attack. Already next to a hero: attack, then move back out of reach.',
+      )
+    : tr('zargon.fighterStays', 'Move in and attack. Already next to a hero: attack and stay.');
 }
 
 export function noTargetText(rule: RuleKey, grudgeName?: string): string | undefined {
   switch (rule) {
     case 'isolated':
-      return 'If no hero is cut off like that, use the tie list.';
+      return tr('zargon.noIsolated', 'If no hero is cut off like that, use the tie list.');
     case 'lastAttacker':
-      return 'If nobody has attacked it yet, use the tie list.';
+      return tr('zargon.noAttacker', 'If nobody has attacked it yet, use the tie list.');
     case 'caster':
-      return 'If no Wizard or Elf is in reach, use the tie list.';
+      return tr('zargon.noCaster', 'If no Wizard or Elf is in reach, use the tie list.');
     case 'grudge':
-      return `If the ${grudgeName ?? 'grudge hero'} is out of reach, use the tie list.`;
+      return tr('zargon.noGrudge', 'If the {hero} is out of reach, use the tie list.', {
+        hero: grudgeName ?? tr('zargon.grudgeHero', 'grudge hero'),
+      });
     default:
       return undefined;
   }
