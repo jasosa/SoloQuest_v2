@@ -656,8 +656,8 @@ export function PlayScreen({
         >
           {!(fv && fv.buttons.length > 0) && (
             <p className="hint">
-              {t('play.PlayScreen.thisHasNoSpecial', 'This {v1} has no special action.', {
-                v1: furnitureName(sel.furniture).toLowerCase(),
+              {t('play.PlayScreen.thisHasNoSpecial', 'This {furniture} has no special action.', {
+                furniture: furnitureName(sel.furniture).toLowerCase(),
               })}
             </p>
           )}
@@ -934,8 +934,8 @@ export function PlayScreen({
           {m.wandering && (
             <p className="warn">
               {m.fresh && m.wanderAt
-                ? t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
-                    v1: nameOf(m.wanderAt),
+                ? t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {hero}', {
+                    hero: nameOf(m.wanderAt),
                   })
                 : t('play.PlayScreen.wanderingMonster', 'Wandering monster')}
             </p>
@@ -947,8 +947,13 @@ export function PlayScreen({
           )}
           {m.state === 'stone' && (
             <p className="warn">
-              {t('play.PlayScreen.itDoesNotAct', '{v1}. It does not act.', {
-                v1: m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone',
+              {t('play.PlayScreen.itDoesNotAct', '{state}. It does not act.', {
+                state:
+                  m.stoneTurns !== undefined
+                    ? t('play.PlayScreen.stoneTurns', 'Stone: {turns} turns', {
+                        turns: m.stoneTurns,
+                      })
+                    : t('play.PlayScreen.stone', 'Stone'),
               })}
             </p>
           )}
@@ -1115,8 +1120,8 @@ export function PlayScreen({
                 onClose={nextSheet}
               >
                 <p>
-                  {t('play.PlayScreen.putTheOnThe', 'Put the {v1} on the marked square.', {
-                    v1: MONSTER_NAMES[sheet.p.monsterType],
+                  {t('play.PlayScreen.putTheOnThe', 'Put the {monster} on the marked square.', {
+                    monster: MONSTER_NAMES[sheet.p.monsterType],
                   })}
                 </p>
                 <button className="btn" onClick={nextSheet}>
@@ -1269,24 +1274,31 @@ export function PlayScreen({
       {(adding?.t === 'pick' || adding?.t === 'wander') && (
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
-            ? t('play.PlayScreen.tapTheSquareWhere', 'Tap the square where you put the {v1}.', {
-                v1: MONSTER_NAMES[adding.type],
-              })
+            ? t(
+                'play.PlayScreen.tapTheSquareWhere',
+                'Tap the square where you put the {monster}.',
+                {
+                  monster: MONSTER_NAMES[adding.type],
+                },
+              )
             : adding.total > 1
               ? t(
                   'play.PlayScreen.tapTheSquareWhere2',
-                  'Tap the square where you put wandering monster {v1} of {total}, {v2} the {v3}.',
+                  'Tap the square where you put wandering monster {number} of {total}, {where} the {hero}.',
                   {
-                    v1: adding.cells.length + 1,
+                    number: adding.cells.length + 1,
                     total: adding.total,
-                    v2: adding.cells.length === 0 ? 'next to' : 'as close as you can to',
-                    v3: nameOf(adding.hero),
+                    where:
+                      adding.cells.length === 0
+                        ? t('play.PlayScreen.nextTo', 'next to')
+                        : t('play.PlayScreen.asCloseAs', 'as close as you can to'),
+                    hero: nameOf(adding.hero),
                   },
                 )
               : t(
                   'play.PlayScreen.tapTheSquareWhere3',
-                  'Tap the square where you put the wandering monster, next to the {v1}.',
-                  { v1: nameOf(adding.hero) },
+                  'Tap the square where you put the wandering monster, next to the {hero}.',
+                  { hero: nameOf(adding.hero) },
                 )}
           <button className="link" onClick={() => setAdding(null)}>
             {t('play.PlayScreen.cancel', 'Cancel')}
@@ -1381,11 +1393,13 @@ export function PlayScreen({
             {sheet.all
               ? t(
                   'play.PlayScreen.allObjectivesAreDone',
-                  'All objectives are done. {v1}, then end the quest.',
+                  'All objectives are done. {next}, then end the quest.',
                   {
-                    v1: level.quest.leave
-                      ? `The heroes leave ${level.quest.leave}`
-                      : 'Bring the heroes back to the stairs',
+                    next: level.quest.leave
+                      ? t('play.PlayScreen.theHeroesLeave', 'The heroes leave {way}', {
+                          way: level.quest.leave,
+                        })
+                      : t('play.PlayScreen.bringHeroesBack', 'Bring the heroes back to the stairs'),
                   },
                 )
               : t(
@@ -1437,7 +1451,7 @@ export function PlayScreen({
               dispatch({ type: 'END_QUEST', outcome: 'stairs' });
             }}
           >
-            {t('play.PlayScreen.heroesLeft', 'Heroes left {v1}', { v1: leaveWay(level) })}
+            {t('play.PlayScreen.heroesLeft', 'Heroes left {way}', { way: leaveWay(level) })}
           </button>
           {endings.map((e) => (
             <button
@@ -1622,8 +1636,8 @@ function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
     return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
   if (m.added) return t('play.PlayScreen.addedInPlay', 'Added in play');
   if (m.wandering && m.fresh && m.wanderAt)
-    return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
-      v1: nameOf(m.wanderAt),
+    return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {hero}', {
+      hero: nameOf(m.wanderAt),
     });
   if (m.placeAt) return t('play.PlayScreen.placedByAQuest2', 'Placed by a quest note');
   return t('play.PlayScreen.moveAttDef', 'Move {move} · Att {att} · Def {def}', {
@@ -1687,10 +1701,10 @@ function RereadSheet({
       ))}
       {entry.choices.map((c, i) => (
         <p key={i} className="extra">
-          {t('play.PlayScreen.youChose', '{text} You chose: {picked}.{v1}', {
+          {t('play.PlayScreen.youChose', '{text} You chose: {picked}.{extra}', {
             text: c.text,
             picked: c.picked,
-            v1: c.texts.length > 0 ? ` ${c.texts.join(' ')}` : '',
+            extra: c.texts.length > 0 ? ` ${c.texts.join(' ')}` : '',
           })}
         </p>
       ))}

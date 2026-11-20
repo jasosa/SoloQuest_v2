@@ -157,8 +157,8 @@ export function TrapMenu(props: {
     <>
       <p>
         {props.sprung
-          ? t('play.notes.theIsStillHere', 'The {v1} is still here.', {
-              v1: props.kindName ?? 'trap',
+          ? t('play.notes.theIsStillHere', 'The {trap} is still here.', {
+              trap: props.kindName ?? t('play.notes.trap', 'trap'),
             })
           : t(
               'play.notes.theKindOfTrap',
@@ -315,7 +315,7 @@ export function headingOf(p: Prompt, nameOf: (id: string) => string = nameFromId
     case 'trapJumped':
       return t('play.notes.youLandSafely', 'You land safely');
     case 'trapDisarmed':
-      return t('play.notes.itWasA', 'It was a {v1}', { v1: TRAP_NAMES[p.trapKind] });
+      return t('play.notes.itWasA', 'It was a {trap}', { trap: TRAP_NAMES[p.trapKind] });
     case 'tunnelUsed':
       return t('play.notes.iceTunnel', 'Ice tunnel {design}', { design: p.design });
     case 'note':
@@ -325,7 +325,7 @@ export function headingOf(p: Prompt, nameOf: (id: string) => string = nameFromId
     case 'drawCard':
       return t('play.notes.drawATreasureCard', 'Draw a treasure card');
     case 'wanderingMonster':
-      return t('play.notes.itAttacksThe', 'It attacks the {v1}!', { v1: nameOf(p.hero) });
+      return t('play.notes.itAttacksThe', 'It attacks the {hero}!', { hero: nameOf(p.hero) });
     case 'wanderingText':
       return t('play.notes.wanderingMonster', 'Wandering monster');
     case 'secretDoorsFound':
@@ -496,8 +496,8 @@ export function ChestBody(props: {
       <p>{t('play.notes.anyoneCanLookFor', 'Anyone can look for traps on a chest, once.')}</p>
       {props.monsters.length > 0 && (
         <p className="warn">
-          {t('play.notes.stillHereASearch', '{v1} still here. A search needs a clear room.', {
-            v1: props.monsters.join(', '),
+          {t('play.notes.stillHereASearch', '{monsters} still here. A search needs a clear room.', {
+            monsters: props.monsters.join(', '),
           })}
         </p>
       )}

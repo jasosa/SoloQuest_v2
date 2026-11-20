@@ -573,8 +573,8 @@ export function PackPreview({
             <p className="fr-help" data-testid="pack-missing">
               {t(
                 'theme.PackPreview.notInThisPack',
-                'Not in this pack (the built-in drawing is used): {v1}.',
-                { v1: check.missing.join(', ') },
+                'Not in this pack (the built-in drawing is used): {names}.',
+                { names: check.missing.join(', ') },
               )}
             </p>
           )}
@@ -690,8 +690,8 @@ export function PackPreview({
           {pack.manifest.board && (
             <>
               <div className="lbl pv-gap">
-                {t('theme.PackPreview.boardPicture', 'Board picture{v1}', {
-                  v1: boardSize ? ` (${boardSize.w} x ${boardSize.h} px)` : '',
+                {t('theme.PackPreview.boardPicture', 'Board picture{size}', {
+                  size: boardSize ? ` (${boardSize.w} x ${boardSize.h} px)` : '',
                 })}
               </div>
               <img
