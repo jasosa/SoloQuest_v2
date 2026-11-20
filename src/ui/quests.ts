@@ -5,6 +5,7 @@
 import { buildLevel, type Level } from '../engine/board/level';
 import { parseQuest } from '../engine/quest/loader';
 import type { Quest } from '../engine/quest/schema';
+import '../i18n/boot';
 import { inActiveLanguage } from '../i18n/runtime';
 
 export const QUEST_COUNT = 14;
