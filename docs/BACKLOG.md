@@ -272,3 +272,32 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [ ] Editor map: draw and place tunnels, tiles and edge doors on the board (today they are typed in the Quest tab)
 - [x] Editor can model the Frozen Horror behaviors (audit table in `FROZEN_HORROR.md`, section 9): `attackOnly`, `passive`, attacks per turn, objective done rules and confirm buttons, wandering count and enemy, characters (NPCs), end text, entry and exit doors in door lists, the general `monsterLeft` trigger, enemy attacks and size in the Designer. The unused `surrendered` leave reason is gone: a surrender is an action
 - [ ] Editor, still without a form: merged rooms (`areaOverrides`), maps and links of a double quest (slice 7), monster-level `size`, the rules `bounty` and `doorTeleport`
+
+## Tile limits and fixed sizes (owner, 2026-11-20)
+
+Each Frozen Horror tile has a fixed size and a limit per quest. A tile may lie over two different rooms and over corridors (like the ice cave entrance). The editor (Tiles tool) and the validator should know these limits, warn when a quest has too many of a tile, and offer only the sizes below.
+
+- [ ] Ice Ledge: 1 per quest, 5 x 3 squares
+- [ ] Ice Tunnels: 3 pairs, 1 x 1 each
+- [ ] Ice Slide: 1 per quest, 1 x 8
+- [ ] Ice Vault (room tile): 1 of 3 x 2 and 1 of 4 x 3
+- [ ] Living Fog Room: 1, 4 x 4
+- [ ] Scepter Room: 1, 4 x 4
+- [ ] Bottomless Chasm Room: 1, 4 x 4
+- [ ] Icy River: 1 of 1 x 8 and 1 of 1 x 3
+- [ ] Frozen Crypt Room: 1, 5 x 3
+- [ ] Cage Room: 1, 4 x 4
+- [ ] Ice Gremlin Treasure Room: 1, 4 x 3
+- [ ] Frozen Horror Throne Room: 1, 6 x 5
+- [ ] Ice Cave Entrance: 1, 6 x 5
+- [ ] Check what the engine and the bundled quests do today against these sizes and limits (several quests use other footprints, for example slippery ice and the cage at 2 x 2); decide what changes in the data, in `roomTiles.ts` and in the validator. Room tiles may cover parts of two rooms and corridors, so a "tile of a room" may need to become a tile over squares.
+
+## Translations (owner, 2026-11-20)
+
+All the texts of the application can be translated or modified with a tool, for the interface and for the quest texts.
+
+- [ ] A translation mechanism: every interface text and every quest text (notes, intros, monster traits, spell and trap texts, rule texts) comes through a text key with a default
+- [ ] A translation file format (JSON), import, export, create a new one from the English file, edit in the app, a picker for the language of the app
+- [ ] The initial English file is supplied by the app and can never be deleted or changed (users make a copy to change texts)
+- [ ] Quest texts: a translation file covers the bundled quests and the quests of the user (by quest id and text key), and a missing text falls back to English
+- [ ] The editor writes the texts of a new quest as keys, so it can be translated like the bundled ones
