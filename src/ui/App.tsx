@@ -30,7 +30,7 @@ import { BoardView } from './board/BoardView';
 import { knownFor, parseState } from './board/boardStates';
 import { PlayScreen } from './play/PlayScreen';
 import { devTestLevel, levelOfId, levelOfSlot } from './quests';
-import { SelectScreen, type StartChoice } from './select/SelectScreen';
+import { HOME, SelectScreen, type Route, type StartChoice } from './select/SelectScreen';
 import { EditorScreen } from './editor/EditorScreen';
 import { EditorStart } from './editor/EditorStart';
 import { DesignerScreen, type QuestUpdater } from './designer/DesignerScreen';
@@ -159,6 +159,8 @@ function Game({ params }: { params: URLSearchParams }) {
   );
 
   const [notice, setNotice] = useState<string | undefined>();
+  /** The page of the start flow; kept here so a finished game returns to where it began. */
+  const [route, setRoute] = useState<Route>(HOME);
 
   // The quest editor: its own screens, quests kept in their own database.
   const userStore = useMemo<UserQuestStore>(
@@ -320,14 +322,15 @@ function Game({ params }: { params: URLSearchParams }) {
     stopTracking.current?.();
     stopTracking.current = null;
     if (choice.kind === 'resume') {
-      const { seed, team, events, startFlags, campaign: wasCampaign } = choice.resumed;
+      const { seed, team, events, startFlags, campaign: wasCampaign, campaignId } = choice.resumed;
       try {
         const store = openGame(saves, choice.level, seed, team, events, false, {
           pack: choice.pack,
           startFlags,
           campaign: wasCampaign,
+          campaignId,
         });
-        const c = choice.pack ? campaigns.get(choice.pack) : undefined;
+        const c = campaignId ? campaigns.get(campaignId) : undefined;
         if (wasCampaign && c) track(store, c, choice.questId);
         setGame(store);
       } catch {
@@ -336,9 +339,13 @@ function Game({ params }: { params: URLSearchParams }) {
     } else {
       const manifest = choice.pack ? packs.byId.get(choice.pack)?.manifest : undefined;
       let campaign: Campaign | undefined;
-      if (choice.mode === 'campaign' && manifest) {
+      if (choice.campaign && manifest) {
         // A new campaign gets its seed now; the team of this quest is what the next one starts from.
-        const c = campaigns.get(manifest.id) ?? newCampaign(manifest, freshSeed());
+        const { id, name, settings } = choice.campaign;
+        const c = campaigns.get(id) ?? {
+          ...newCampaign(manifest, freshSeed(), { id, name }),
+          settings: { ...settings },
+        };
         campaign = { ...c, team: choice.team.map(toStored), fallen: [] };
         campaigns.set(campaign);
       }
@@ -346,6 +353,7 @@ function Game({ params }: { params: URLSearchParams }) {
         pack: choice.pack,
         startFlags: startFlagsFor(choice.level.quest, campaign),
         campaign: campaign !== undefined,
+        campaignId: campaign?.id,
       });
       void store.getState().save(); // a new game replaces the old save at once
       if (campaign) track(store, campaign, choice.questId);
@@ -427,6 +435,8 @@ function Game({ params }: { params: URLSearchParams }) {
         saves={saves}
         campaigns={campaigns}
         onStart={start}
+        route={route}
+        onRoute={setRoute}
         notice={notice}
         onEditor={() => setEditor('start')}
         onTextures={() => setTextures(true)}

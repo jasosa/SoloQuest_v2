@@ -9,6 +9,7 @@ import {
   type PackRegistry,
 } from '../engine/pack/registry';
 import { parseQuest } from '../engine/quest/loader';
+import { t } from '../i18n/t';
 
 const manifests = import.meta.glob('../content/packs/*.json', {
   eager: true,
@@ -45,9 +46,13 @@ export function packTabs(
   if (withQuests.length < 2) return [];
   return withQuests.map((p) => ({
     id: p.manifest.id,
-    name: p.manifest.id === CORE_PACK ? 'Core game' : p.manifest.name,
+    name: packLabel(p.manifest),
   }));
 }
 
 /** The pack a quest belongs to (a quest of this device, made in the editor, is in none). */
 export const packOfQuest = (questId: string): string | undefined => packs.packOfQuest.get(questId);
+
+/** What the player reads for a pack: the base game is "Core game", an expansion is its name. */
+export const packLabel = (manifest: { id: string; name: string }): string =>
+  manifest.id === CORE_PACK ? t('select.coreGame', 'Core game') : manifest.name;

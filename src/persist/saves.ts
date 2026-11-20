@@ -141,6 +141,8 @@ export const SavedGameSchema = z.object({
   startFlags: z.record(z.string(), z.boolean()).optional(),
   /** Played as part of the pack's campaign (decision 37). Missing: a one-shot. */
   campaign: z.boolean().optional(),
+  /** Which campaign (several per pack). Missing with `campaign` set: the campaign that has the pack id. */
+  campaignId: z.string().optional(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
   /** The team at the table (decision 38): heroes, mercenaries and animal allies, all different. Not part of the engine state. */
@@ -225,6 +227,7 @@ export interface SaveExtra {
   readonly pack?: string | undefined;
   readonly startFlags?: Readonly<Record<string, boolean>> | undefined;
   readonly campaign?: boolean | undefined;
+  readonly campaignId?: string | undefined;
 }
 
 export async function autosave(
@@ -236,7 +239,7 @@ export async function autosave(
   now: number,
   extra: SaveExtra = {},
 ): Promise<boolean> {
-  const { pack, startFlags, campaign } = extra;
+  const { pack, startFlags, campaign, campaignId } = extra;
   try {
     await store.save({
       questId,
@@ -244,7 +247,8 @@ export async function autosave(
       ...(startFlags && Object.keys(startFlags).length > 0
         ? { startFlags: { ...startFlags } }
         : {}),
-      ...(campaign ? { campaign: true } : {}),
+      ...(campaign || campaignId ? { campaign: true } : {}),
+      ...(campaignId ? { campaignId } : {}),
       version: SAVE_VERSION,
       seed,
       team: normalizeTeam(team).map(toStored),
@@ -263,6 +267,8 @@ export type Resumed =
       pack?: string | undefined;
       startFlags?: Readonly<Record<string, boolean>> | undefined;
       campaign?: boolean | undefined;
+      /** The campaign it belongs to (an older save of a campaign game: the pack id). */
+      campaignId?: string | undefined;
       seed: number;
       team: readonly TeamMember[];
       events: readonly GameEvent[];
@@ -296,6 +302,7 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
       pack: parsed.data.pack,
       startFlags: parsed.data.startFlags,
       campaign: parsed.data.campaign,
+      campaignId: parsed.data.campaignId ?? (parsed.data.campaign ? parsed.data.pack : undefined),
       seed: parsed.data.seed,
       team: normalizeTeam(parsed.data.team as TeamInput[]),
       events: parsed.data.events,

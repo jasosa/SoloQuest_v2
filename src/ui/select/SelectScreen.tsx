@@ -1,54 +1,64 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
-import { labelOf, normalizeTeam, type TeamMember } from '../../engine/data/team';
+import { nextCampaignSlot } from '../../engine/pack/campaign';
 import type { CampaignStore } from '../../persist/campaigns';
-import type { TeamInput } from '../../engine/data/team';
-import { TeamPicker } from './TeamPicker';
-import {
-  orphanSaves,
-  resume,
-  type OrphanSave,
-  type Resumed,
-  type SaveStore,
-} from '../../persist/saves';
+import { orphanSaves, resume, type OrphanSave, type SaveStore } from '../../persist/saves';
 import { clearOverride, getOverrides } from '../../persist/questOverrides';
 import type { UserQuestStore } from '../../persist/userQuests';
 import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
-import { SAVED_GAME_FAILED } from '../store/openSaved';
-import { Dialog } from '../shared/Frame';
 import { inActiveLanguage } from '../../i18n/runtime';
-import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { CORE_PACK } from '../../engine/pack/registry';
-import { packOfQuest, packTabs, packs } from '../packs';
+import { packLabel, packOfQuest, packs } from '../packs';
 import { t } from '../../i18n/t';
+import { CampaignOverview } from './CampaignOverview';
+import { QuestStart } from './QuestStart';
+import { type Playable, type StartChoice } from './parts';
+import {
+  CampaignPacksPage,
+  HomePage,
+  SettingsPage,
+  SinglePacksPage,
+  SingleQuestsPage,
+  campaignCaption,
+  type LastGame,
+  type PackCard,
+  type QuestCardData,
+} from './StartPages';
 
-export type StartChoice =
-  | {
-      kind: 'new';
-      level: Level;
-      team: readonly TeamMember[];
-      /** One-shot: this quest alone. Campaign: it is kept in the pack's campaign (decision 37). */
-      mode: 'oneShot' | 'campaign';
-      /** The pack of the quest (an edited copy stays in the pack of the quest it copies). */
-      pack: string | undefined;
-      /** The id of the bundled quest, also for an edited copy. */
-      questId: string;
-    }
-  | {
-      kind: 'resume';
-      level: Level;
-      resumed: Extract<Resumed, { ok: true }>;
-      questId: string;
-      pack: string | undefined;
-    };
+export type { StartChoice } from './parts';
+
+/** The pages of the start flow (see DESIGN.md, "Start flow"). */
+export type Route =
+  | { page: 'home' }
+  | { page: 'settings' }
+  | { page: 'singlePacks' }
+  | { page: 'singleQuests'; pack: string }
+  /** A quest played alone: choose the heroes. `key` is the quest id. */
+  | { page: 'single'; key: string; back: Route }
+  | { page: 'campaignPacks' }
+  /** Heroes for a new campaign of a pack, with the first quest. */
+  | { page: 'campaignNew'; pack: string }
+  | { page: 'campaign'; id: string }
+  | { page: 'campaignQuest'; id: string; key: string };
+
+export const HOME: Route = { page: 'home' };
+
+/** A page whose quest or campaign is gone (deleted, not installed): go to a page that exists. */
+function Redirect({ to, go }: { to: Route; go(route: Route): void }) {
+  useEffect(() => go(to), [to, go]);
+  return null;
+}
 
 export interface SelectScreenProps {
   saves: SaveStore;
-  /** The campaign of each pack, kept on this device. */
+  /** The campaigns of this device. */
   campaigns: CampaignStore;
   onStart(choice: StartChoice): void;
+  /** The page shown. The app keeps it, so a finished game returns to the page it started from. */
+  route: Route;
+  onRoute(route: Route): void;
   /** A short message to show, for example when a saved game could not be opened. */
   notice?: string | undefined;
   /** Open the quest editor. */
@@ -84,6 +94,8 @@ export function SelectScreen({
   saves,
   campaigns,
   onStart,
+  route,
+  onRoute,
   notice,
   onEditor,
   onTextures,
@@ -95,521 +107,387 @@ export function SelectScreen({
   useFitMode('width');
   // Edited copies by bundled quest slot. Reload after "Use original".
   const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
+  // The quests made on this device (the editor), played as they were last saved.
+  const [mine, setMine] = useState<readonly Level[]>([]);
   useEffect(() => {
     if (!userStore) return;
     let live = true;
+    /** The newest version: the editor autosaves a draft and Save removes it. */
+    const newest = async (id: string): Promise<Level | undefined> => {
+      try {
+        const draft = await userStore.loadDraft(id);
+        if (draft) return buildLevel(inActiveLanguage(draft.quest));
+      } catch {
+        /* a draft that cannot be built is ignored: the saved copy is played */
+      }
+      const quest = await userStore.load(id);
+      return quest ? buildLevel(quest) : undefined;
+    };
     void (async () => {
       const map = new Map<number, Level>();
+      const overridden = new Set<string>();
       for (const [n, id] of Object.entries(getOverrides())) {
+        overridden.add(id);
         try {
-          // The editor autosaves a draft; Save removes it. A draft is the newest version, so play it.
-          let level: Level | undefined;
-          try {
-            const draft = await userStore.loadDraft(id);
-            if (draft) level = buildLevel(inActiveLanguage(draft.quest));
-          } catch {
-            /* a draft that cannot be built is ignored: the saved copy is played */
-          }
-          if (!level) {
-            const quest = await userStore.load(id);
-            if (quest) level = buildLevel(quest);
-          }
+          const level = await newest(id);
           if (level) map.set(Number(n), level);
         } catch {
           /* a broken copy is ignored: the original is played */
         }
       }
-      if (live) setEdited(map);
+      const own: Level[] = [];
+      try {
+        for (const r of await userStore.list()) {
+          if (overridden.has(r.id)) continue;
+          try {
+            const level = await newest(r.id);
+            if (level) own.push(level);
+          } catch {
+            /* a quest that cannot be built is not listed */
+          }
+        }
+      } catch {
+        /* the store cannot be read: no other missions */
+      }
+      if (live) {
+        setEdited(map);
+        setMine(own);
+      }
     })();
     return () => {
       live = false;
     };
   }, [userStore]);
-  const questEntries = bundledEntries.map((q) => {
-    const level = edited.get(q.slot);
-    return level ? { ...q, level } : q;
-  });
 
-  /** A quest of this device (made in the editor) is shown with the core game. */
-  const inPack = (questId: string) => packOfQuest(questId) ?? CORE_PACK;
-  /** The id of the bundled quest of an entry, also when its level is an edited copy. */
-  const baseId = (q: { slot: number; level?: Level | undefined }) =>
-    bundledEntries.find((b) => b.slot === q.slot)?.level?.quest.id ?? q.level?.quest.id ?? '';
-  /** The pack of an entry: an edited copy has a new id, so it stays in the pack of the quest it copies. */
-  const packOfEntry = (q: { slot: number; level?: Level | undefined }) => {
-    const original = bundledEntries.find((b) => b.slot === q.slot)?.level ?? q.level;
-    return original ? inPack(original.quest.id) : CORE_PACK;
-  };
-  const [packId, setPackId] = useState<string>(CORE_PACK);
-  const tabs = packTabs(packs, (id) => bundledEntries.some((q) => q.level?.quest.id === id));
-  // Saved games that no quest here matches (for example a pack that is not installed).
+  const playables = useMemo<Playable[]>(() => {
+    const bundled = bundledEntries.flatMap((q): Playable[] => {
+      if (!q.level) return [];
+      const copy = edited.get(q.slot);
+      return [
+        {
+          key: q.level.quest.id,
+          level: copy ?? q.level,
+          pack: packOfQuest(q.level.quest.id) ?? CORE_PACK,
+          number: q.number,
+          slot: q.slot,
+          edited: copy !== undefined,
+        },
+      ];
+    });
+    const own = mine.map((level): Playable => ({
+      key: level.quest.id,
+      level,
+      pack: undefined,
+      number: undefined,
+      slot: undefined,
+      edited: false,
+    }));
+    return [...bundled, ...own];
+  }, [edited, mine]);
+  const byKey = useMemo(() => new Map(playables.map((p) => [p.key, p])), [playables]);
+
+  // Saved games: the newest one that opens (Home), and those no quest here matches.
+  const [saveList, setSaveList] = useState<readonly { questId: string; campaignId?: string }[]>([]);
+  const [last, setLast] = useState<LastGame | null | undefined>();
   const [orphans, setOrphans] = useState<readonly OrphanSave[]>([]);
   useEffect(() => {
     let live = true;
     void (async () => {
-      const known = new Set(bundledEntries.flatMap((q) => (q.level ? [q.level.quest.id] : [])));
-      for (const id of Object.values(getOverrides())) known.add(id);
-      for (const r of (await userStore?.list()) ?? []) known.add(r.id);
+      let all: Awaited<ReturnType<SaveStore['list']>> = [];
+      try {
+        all = [...(await saves.list())].sort((a, b) => b.updatedAt - a.updatedAt);
+      } catch {
+        /* saved games cannot be read here */
+      }
       const found = await orphanSaves(
         saves,
-        (id) => known.has(id),
+        (id) => playables.some((p) => p.level.quest.id === id || p.key === id),
         (p) => packs.byId.has(p),
       );
-      if (live) setOrphans(found);
+      let newest: LastGame | null = null;
+      for (const g of all) {
+        const p = playables.find((x) => x.level.quest.id === g.questId);
+        if (!p) continue;
+        const r = await resume(saves, p.level);
+        if (r.ok) {
+          newest = { playable: p, resumed: r };
+          break;
+        }
+      }
+      if (!live) return;
+      setSaveList(
+        all.map((g) => ({
+          questId: g.questId,
+          ...((g.campaignId ?? (g.campaign ? g.pack : undefined)) !== undefined
+            ? { campaignId: (g.campaignId ?? g.pack)! }
+            : {}),
+        })),
+      );
+      setOrphans(found);
+      setLast(newest);
     })();
     return () => {
       live = false;
     };
-  }, [saves, userStore]);
-  const [slot, setSlot] = useState<number | undefined>(
-    () => questEntries.find((q) => q.level)?.slot,
-  );
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [team, setTeam] = useState<readonly TeamMember[]>([]);
-  const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
-  /** The Heroes popup of "New game". */
-  const [choosing, setChoosing] = useState(false);
+  }, [saves, playables]);
 
-  const shown = questEntries.filter((q) =>
-    tabs.length === 0 ? true : q.level ? packOfEntry(q) === packId : packId === CORE_PACK,
-  );
-  const entry = questEntries.find((q) => q.slot === slot);
-  const level = entry?.level;
-  const questId = level?.quest.id;
+  const [tick, setTick] = useState(0);
+  void tick; // the campaigns are read again after a change
+  const go = onRoute;
 
-  // Is there an autosave for the chosen quest?
-  useEffect(() => {
-    if (!level) return;
-    let live = true;
-    void resume(saves, level).then((r) => {
-      if (live) setSaved({ id: level.quest.id, r });
+  const encodedIn = (packId: string) =>
+    playables.filter((p) => p.pack === packId && p.level).length;
+  const packCards: PackCard[] = packs.packs.map((p) => ({
+    id: p.manifest.id,
+    name: packLabel(p.manifest),
+    total: p.manifest.quests.length,
+    encoded: encodedIn(p.manifest.id),
+  }));
+  const others = playables.filter((p) => p.pack === undefined);
+
+  const startChoice = (choice: StartChoice) => onStart(choice);
+
+  const publish = (p: Playable) => {
+    const orig = bundledEntries.find((b) => b.slot === p.slot)?.level;
+    if (orig) downloadForPublishing(p.level, orig.quest.id);
+  };
+  const restoreOriginal = (p: Playable) => {
+    if (p.slot !== undefined) clearOverride(p.slot);
+    setEdited((m) => {
+      const next = new Map(m);
+      if (p.slot !== undefined) next.delete(p.slot);
+      return next;
     });
-    return () => {
-      live = false;
-    };
-  }, [saves, level]);
-
-  const resumed = saved && saved.id === questId && saved.r.ok ? saved.r : undefined;
-  const unusable = saved && saved.id === questId && !saved.r.ok && saved.r.reason !== 'none';
-
-  // The packs whose heroes and allies the popup offers: the pack of the quest and the ones it needs.
-  const questPack = level ? packOfEntry({ slot: slot ?? 0, level }) : CORE_PACK;
-  const teamPacks = [...(packs.byId.get(questPack)?.requires ?? []), questPack]
-    .map((id) => packs.byId.get(id)?.manifest)
-    .filter((m) => m !== undefined);
-  const ready = team.some((m) => m.kind === 'hero');
-
-  // Play mode (decision 37): a campaign of this pack, or the quest alone.
-  const manifestOfPack = packs.byId.get(questPack)?.manifest;
-  const [campaignTick, setCampaignTick] = useState(0);
-  void campaignTick; // read again after a change
-  const campaign = campaigns.get(questPack);
-  const packName =
-    questPack === CORE_PACK
-      ? 'the core game'
-      : (packs.byId.get(questPack)?.manifest.name ?? questPack);
-  const packTotal = packs.byId.get(questPack)?.manifest.quests.length ?? 0;
-  const [mode, setMode] = useState<'oneShot' | 'campaign'>('oneShot');
-  const [confirmReset, setConfirmReset] = useState(false);
-  const openChoosing = () => {
-    const c = campaigns.get(questPack);
-    setMode(c ? 'campaign' : 'oneShot');
-    setTeam(c ? normalizeTeam(c.team as TeamInput[]).filter((m) => !c.fallen.includes(m.id)) : []);
-    setChoosing(true);
   };
-  const chooseMode = (next: 'oneShot' | 'campaign') => {
-    setMode(next);
-    const c = campaigns.get(questPack);
-    if (next === 'campaign' && c && team.length === 0)
-      setTeam(normalizeTeam(c.team as TeamInput[]).filter((m) => !c.fallen.includes(m.id)));
-  };
-  const fellLast = campaign
-    ? campaign.fallen.map((id) => labelOf(normalizeTeam(campaign.team as TeamInput[]), id))
-    : [];
 
-  return (
-    <div className="app select">
-      <header>
-        <span className="qn">{t('select.soloquest', 'SoloQuest')}</span>
-        <h1>{t('select.chooseAQuest', 'Choose a quest')}</h1>
-        <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          {level && (
-            <button
-              className="link"
-              data-testid="quest-settings"
-              onClick={() => setSettingsOpen(true)}
-            >
-              {t('select.questSettings', 'Quest settings')}
-            </button>
-          )}
-          {onTextures && (
-            <button
-              className="link"
-              onClick={onTextures}
-              data-testid="textures-link"
-              aria-label={
-                textureName
-                  ? t('select.texturesInUse', 'Textures: {textureName} in use', { textureName })
-                  : t('select.textures', 'Textures')
-              }
-            >
-              {textureName ? (
-                <>
-                  {t('select.texturesLabel', 'Textures:')} <b className="tex-name">{textureName}</b>
-                </>
-              ) : (
-                t('select.textures', 'Textures')
-              )}
-            </button>
-          )}
-          {onTranslations && (
-            <button
-              className="link"
-              onClick={onTranslations}
-              data-testid="translations-link"
-              aria-label={
-                languageName
-                  ? t('select.translationsInUse', 'Translations: {languageName} in use', {
-                      languageName,
-                    })
-                  : t('select.translations', 'Translations')
-              }
-            >
-              {languageName ? (
-                <>
-                  {t('select.translationsLabel', 'Translations:')}{' '}
-                  <b className="tex-name">{languageName}</b>
-                </>
-              ) : (
-                t('select.translations', 'Translations')
-              )}
-            </button>
-          )}
-          {onEditor && (
-            <button className="link" onClick={onEditor}>
-              {t('select.questEditor', 'Quest editor')}
-            </button>
-          )}
-        </span>
-      </header>
-
-      <div className="pickcol">
-        {tabs.length > 0 && (
-          <div
-            className="packtabs"
-            role="tablist"
-            aria-label={t('select.questPacks', 'Quest packs')}
-          >
-            {tabs.map((p) => (
-              <button
-                key={p.id}
-                role="tab"
-                className="chip"
-                aria-selected={p.id === packId}
-                data-testid={`pack-${p.id}`}
-                onClick={() => {
-                  setPackId(p.id);
-                  const first = questEntries.find((q) => q.level && packOfEntry(q) === p.id);
-                  if (first) setSlot(first.slot);
-                }}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-        )}
-        {orphans.map((o) => (
-          <p key={o.questId} className="hint orphan" role="status" data-testid="orphan-save">
-            {o.message}{' '}
-            <button
-              className="link"
-              onClick={() => {
-                void saves
-                  .remove(o.questId)
-                  .then(() => setOrphans((list) => list.filter((x) => x.questId !== o.questId)));
-              }}
-            >
-              {t('select.deleteTheSave', 'Delete the save')}
-            </button>
-          </p>
-        ))}
-
-        <div className="pick">
-          {shown.map((q) => (
-            <button
-              key={q.slot}
-              className="qcard"
-              aria-pressed={q.slot === slot}
-              disabled={!q.level}
-              onClick={() => {
-                setSlot(q.slot);
-              }}
-            >
-              <span className="qnum">
-                {t('select.quest', 'Quest {number}', { number: q.number })}
-              </span>
-              {q.level && <span className="qtitle">{q.level.quest.title}</span>}
-              {edited.has(q.slot) && <span className="qnote">{t('select.edited', 'Edited')}</span>}
-              {q.level && campaigns.get(packOfEntry(q))?.finished.includes(baseId(q)) && (
-                <span className="qnote" data-testid="quest-done">
-                  {t('select.done', 'Done')}
-                </span>
-              )}
-              {!q.level && (
-                <span className="qnote">{t('select.notEncodedYet', 'Not encoded yet')}</span>
-              )}
-            </button>
-          ))}
+  switch (route.page) {
+    case 'settings':
+      return (
+        <div className="app select page">
+          <SettingsPage
+            textureName={textureName}
+            languageName={languageName}
+            onTextures={onTextures}
+            onTranslations={onTranslations}
+            onBack={() => go(HOME)}
+          />
         </div>
-      </div>
+      );
 
-      <aside className="side">
-        {level && (
-          <>
-            <section>
-              <div className="lbl">
-                {t('select.quest', 'Quest {number}', { number: level.quest.number })}
-              </div>
-              <h2>{level.quest.title}</h2>
-              {/* the story comes right under the title */}
-              <p className="summary">{level.quest.intro.summary}</p>
-              {level.quest.suggestedPack && (
-                <p className="hint" data-testid="suggested-pack">
-                  {t(
-                    'select.looksBestWithThe',
-                    'Looks best with the texture pack {suggestedPack}.',
-                    { suggestedPack: level.quest.suggestedPack },
-                  )}
-                </p>
-              )}
-              {entry && edited.has(entry.slot) && (
-                <>
-                  <p className="hint">
-                    {t('select.thisIsYourEdited', 'This is your edited copy.')}
-                  </p>
-                  <button
-                    className="btn alt"
-                    onClick={() => {
-                      if (entry) clearOverride(entry.slot);
-                      setEdited((m) => {
-                        const next = new Map(m);
-                        if (entry) next.delete(entry.slot);
-                        return next;
-                      });
-                    }}
-                  >
-                    {t('select.useOriginal', 'Use original')}
-                  </button>
-                  <button
-                    className="btn alt"
-                    onClick={() => {
-                      const orig = bundledEntries.find((b) => b.slot === entry?.slot);
-                      if (orig?.level) downloadForPublishing(level, orig.level.quest.id);
-                    }}
-                  >
-                    {t('select.exportToPublishAdmin', 'Export to publish (admin)')}
-                  </button>
-                </>
-              )}
-            </section>
+    case 'singlePacks':
+      return (
+        <div className="app select page">
+          <SinglePacksPage
+            cards={packCards}
+            others={others}
+            onPack={(pack) => go({ page: 'singleQuests', pack })}
+            onOther={(key) => go({ page: 'single', key, back: route })}
+            onBack={() => go(HOME)}
+          />
+        </div>
+      );
 
-            {resumed && (
-              <section className="saved">
-                <div className="lbl">{t('select.savedGame', 'Saved game')}</div>
-                <p>
-                  {t('select.turn', 'Turn {turn} · {heroes}', {
-                    turn: resumed.state.turn,
-                    heroes: resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', '),
-                  })}
-                </p>
-                <button
-                  className="btn"
-                  onClick={() =>
-                    onStart({
-                      kind: 'resume',
-                      level,
-                      resumed,
-                      questId: baseId({ slot: slot ?? 0, level }),
-                      pack: questPack,
-                    })
-                  }
-                >
-                  {t('select.resume', 'Resume')}
-                </button>
-              </section>
-            )}
-            {notice && !unusable && (
-              <p className="hint" role="alert">
-                {notice}
-              </p>
-            )}
-            {unusable && (
-              <p className="hint" role="alert">
-                {SAVED_GAME_FAILED}
-              </p>
-            )}
+    case 'singleQuests': {
+      const manifest = packs.byId.get(route.pack)?.manifest;
+      const inThisPack = bundledEntries.filter((q) =>
+        q.level
+          ? (packOfQuest(q.level.quest.id) ?? CORE_PACK) === route.pack
+          : route.pack === CORE_PACK,
+      );
+      const cards: QuestCardData[] = inThisPack.map((q) => {
+        const p = q.level ? byKey.get(q.level.quest.id) : undefined;
+        const hasSave = p && saveList.some((g) => g.questId === p.level.quest.id);
+        return {
+          slot: q.slot,
+          number: q.number,
+          playable: p,
+          note: hasSave ? t('select.savedGame', 'Saved game') : undefined,
+        };
+      });
+      return (
+        <div className="app select page">
+          <SingleQuestsPage
+            title={manifest ? packLabel(manifest) : route.pack}
+            cards={cards}
+            onPick={(c) => c.playable && go({ page: 'single', key: c.playable.key, back: route })}
+            onBack={() => go({ page: 'singlePacks' })}
+          />
+        </div>
+      );
+    }
 
-            <div className="actions">
-              <button
-                className={resumed ? 'btn alt' : 'btn'}
-                data-testid="new-game"
-                onClick={openChoosing}
-              >
-                {t('select.newGame', 'New game')}
-              </button>
-            </div>
-            {campaign && (
-              <>
-                <p className="hint" data-testid="campaign-progress">
-                  {t(
-                    'select.campaignOfOfQuests',
-                    'Campaign of {packName}: {length} of {packTotal} quests done.',
-                    { packName, length: campaign.finished.length, packTotal },
-                  )}
-                </p>
-                <button className="link" onClick={() => setConfirmReset(true)}>
-                  {t('select.startANewCampaign', 'Start a new campaign')}
-                </button>
-              </>
-            )}
-          </>
-        )}
-      </aside>
+    case 'single': {
+      const playable = byKey.get(route.key);
+      if (!playable) return <Redirect to={HOME} go={go} />;
+      return (
+        <div className="app select page">
+          <QuestStart
+            key={route.key}
+            mode="single"
+            playable={playable}
+            saves={saves}
+            campaigns={campaigns}
+            campaign={undefined}
+            notice={notice}
+            onStart={startChoice}
+            onBack={() => go(route.back)}
+            onUseOriginal={() => restoreOriginal(playable)}
+            onExport={() => publish(playable)}
+          />
+        </div>
+      );
+    }
 
-      {settingsOpen && level && (
-        <QuestSettingsCard
-          questId={level.quest.id}
-          title={level.quest.title}
-          solo={level.quest.team?.solo === true}
-          campaign={manifestOfPack ? { store: campaigns, pack: manifestOfPack } : undefined}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
+    case 'campaignPacks': {
+      const saved = campaigns.list().map((c) => {
+        const manifest = packs.byId.get(c.pack)?.manifest;
+        return {
+          campaign: c,
+          usable: manifest !== undefined,
+          caption: manifest
+            ? campaignCaption(c, packLabel(manifest), manifest.quests.length)
+            : t('select.packNotInstalled', 'The pack {pack} is not installed.', { pack: c.pack }),
+        };
+      });
+      return (
+        <div className="app select page">
+          <CampaignPacksPage
+            cards={packCards}
+            saved={saved}
+            onPack={(pack) => go({ page: 'campaignNew', pack })}
+            onCampaign={(id) => go({ page: 'campaign', id })}
+            onBack={() => go(HOME)}
+          />
+        </div>
+      );
+    }
 
-      {confirmReset && (
-        <Dialog
-          title={t('select.startANewCampaign', 'Start a new campaign')}
-          onClose={() => setConfirmReset(false)}
-          foot={
-            <>
-              <button className="btn alt" autoFocus onClick={() => setConfirmReset(false)}>
-                {t('select.keepIt', 'Keep it')}
-              </button>
-              <button
-                className="btn"
-                onClick={() => {
-                  campaigns.clear(questPack);
-                  setConfirmReset(false);
-                  setCampaignTick((n) => n + 1);
-                }}
-              >
-                {t('select.startANewCampaign', 'Start a new campaign')}
-              </button>
-            </>
-          }
-        >
-          <p>
-            {t(
-              'select.thisForgetsTheFinished',
-              "This forgets the finished quests, the carried flags and the settings of this pack's campaign. The next campaign game starts a new one.",
-            )}
-          </p>
-        </Dialog>
-      )}
+    case 'campaignNew': {
+      const manifest = packs.byId.get(route.pack)?.manifest;
+      const first = manifest?.quests.map((id) => byKey.get(id)).find((p) => p !== undefined);
+      if (!manifest || !first) return <Redirect to={{ page: 'campaignPacks' }} go={go} />;
+      const slot = nextCampaignSlot(
+        route.pack,
+        campaigns.list().map((c) => c.id),
+      );
+      return (
+        <div className="app select page">
+          <QuestStart
+            key={`new-${slot.id}`}
+            mode="new"
+            playable={first}
+            saves={saves}
+            campaigns={campaigns}
+            campaign={{
+              id: slot.id,
+              name: t('select.campaignNumber', 'Campaign {number}', { number: slot.number }),
+            }}
+            notice={notice}
+            onStart={(choice) => {
+              if (choice.kind === 'new' && choice.campaign)
+                go({ page: 'campaign', id: choice.campaign.id });
+              startChoice(choice);
+            }}
+            onBack={() => go({ page: 'campaignPacks' })}
+          />
+        </div>
+      );
+    }
 
-      {choosing && level && (
-        <Dialog
-          title={t('select.chooseYourHeroes', 'Choose your heroes')}
-          onClose={() => setChoosing(false)}
-          foot={
-            <>
-              <button className="btn alt" autoFocus onClick={() => setChoosing(false)}>
-                {resumed
-                  ? t('select.keepTheSavedGame', 'Keep the saved game')
-                  : t('select.cancel', 'Cancel')}
-              </button>
-              <button
-                className="btn"
-                disabled={!ready}
-                aria-describedby={ready ? undefined : 'team-hint'}
-                onClick={() => {
-                  setChoosing(false);
-                  onStart({
-                    kind: 'new',
-                    level,
-                    team,
-                    mode,
-                    pack: questPack,
-                    questId: baseId({ slot: slot ?? 0, level }),
-                  });
-                }}
-              >
-                {resumed
-                  ? t('select.replaceItAndStart', 'Replace it and start')
-                  : t('select.startTheQuest', 'Start the quest')}
-              </button>
-            </>
-          }
-        >
-          {resumed && (
-            <p className="hint" role="alert">
-              {t(
-                'select.thisReplacesTheSaved',
-                'This replaces the saved game (turn {turn}). It cannot be brought back.',
-                { turn: resumed.state.turn },
-              )}
-            </p>
-          )}
-          <div className="lbl">{t('select.playMode', 'Play mode')}</div>
-          <div className="pick-heroes" role="group" aria-label={t('select.playMode', 'Play mode')}>
-            <button
-              className="chip"
-              aria-pressed={mode === 'oneShot'}
-              onClick={() => chooseMode('oneShot')}
-            >
-              {t('select.oneShot', 'One-shot')}
-            </button>
-            <button
-              className="chip"
-              aria-pressed={mode === 'campaign'}
-              onClick={() => chooseMode('campaign')}
-            >
-              {t('select.campaign', 'Campaign')}
-            </button>
-          </div>
-          <p className="hint" data-testid="mode-hint">
-            {mode === 'oneShot'
-              ? t(
-                  'select.thisQuestAloneCarried',
-                  'This quest alone. Carried flags take their one-shot values.',
-                )
-              : campaign
-                ? t(
-                    'select.campaignOfQuestsDone',
-                    'Campaign: {length} of {packTotal} quests done.',
-                    { length: campaign.finished.length, packTotal },
-                  )
-                : t('select.aNewCampaignStarts', 'A new campaign starts for {packName}.', {
-                    packName,
-                  })}
-          </p>
-          {mode === 'campaign' && fellLast.length > 0 && (
-            <p className="hint">
-              {t(
-                'select.fellInTheLast',
-                'Fell in the last quest: {heroes}. Tap a chip to bring them back.',
-                { heroes: fellLast.join(', ') },
-              )}
-            </p>
-          )}
-          <TeamPicker value={team} onChange={setTeam} packs={teamPacks} rule={level.quest.team} />
-          <p className="hint" id="team-hint">
-            {ready
-              ? t('select.pick1To4', 'Pick 1 to 4 heroes.')
-              : t('select.pick1To42', 'Pick 1 to 4 heroes to start the quest.')}
-          </p>
-        </Dialog>
-      )}
-    </div>
-  );
+    case 'campaign': {
+      const campaign = campaigns.get(route.id);
+      const manifest = campaign ? packs.byId.get(campaign.pack)?.manifest : undefined;
+      if (!campaign || !manifest) return <Redirect to={{ page: 'campaignPacks' }} go={go} />;
+      const inPack = new Map(
+        manifest.quests.flatMap((id) => {
+          const p = byKey.get(id);
+          return p ? [[id, p] as const] : [];
+        }),
+      );
+      const savedHere = new Set(
+        manifest.quests.filter((id) => {
+          const p = inPack.get(id);
+          return (
+            p &&
+            saveList.some((g) => g.questId === p.level.quest.id && g.campaignId === campaign.id)
+          );
+        }),
+      );
+      return (
+        <div className="app select page">
+          <CampaignOverview
+            campaign={campaign}
+            manifest={manifest}
+            playables={inPack}
+            savedHere={savedHere}
+            campaigns={campaigns}
+            onQuest={(key) => go({ page: 'campaignQuest', id: campaign.id, key })}
+            onNewCampaign={() => go({ page: 'campaignNew', pack: campaign.pack })}
+            onDelete={() => {
+              campaigns.clear(campaign.id);
+              setTick((n) => n + 1);
+              go({ page: 'campaignPacks' });
+            }}
+            onBack={() => go({ page: 'campaignPacks' })}
+          />
+        </div>
+      );
+    }
+
+    case 'campaignQuest': {
+      const campaign = campaigns.get(route.id);
+      const playable = byKey.get(route.key);
+      if (!campaign || !playable) return <Redirect to={{ page: 'campaignPacks' }} go={go} />;
+      return (
+        <div className="app select page">
+          <QuestStart
+            key={`${route.id}-${route.key}`}
+            mode="campaign"
+            playable={playable}
+            saves={saves}
+            campaigns={campaigns}
+            campaign={campaign}
+            notice={notice}
+            onStart={(choice) => {
+              go({ page: 'campaign', id: campaign.id });
+              startChoice(choice);
+            }}
+            onBack={() => go({ page: 'campaign', id: campaign.id })}
+          />
+        </div>
+      );
+    }
+
+    default:
+      return (
+        <div className="app select page">
+          <HomePage
+            last={last}
+            notice={notice}
+            orphans={orphans}
+            onSingle={() => go({ page: 'singlePacks' })}
+            onCampaign={() => go({ page: 'campaignPacks' })}
+            onContinue={() => {
+              if (!last) return;
+              const { playable, resumed } = last;
+              if (resumed.campaignId) go({ page: 'campaign', id: resumed.campaignId });
+              startChoice({
+                kind: 'resume',
+                level: playable.level,
+                resumed,
+                questId: playable.key,
+                pack: playable.pack,
+              });
+            }}
+            onSettings={() => go({ page: 'settings' })}
+            onEditor={onEditor}
+            onDeleteOrphan={(questId) => {
+              void saves
+                .remove(questId)
+                .then(() => setOrphans((list) => list.filter((x) => x.questId !== questId)));
+            }}
+          />
+        </div>
+      );
+  }
 }

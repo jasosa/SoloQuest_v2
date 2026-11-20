@@ -113,17 +113,47 @@ describe('the campaign while a quest is played', () => {
     expect(r.ok && r.startFlags).toEqual({ scepterDestroyed: true });
     expect(r.ok && r.state.flags.scepterDestroyed).toBe(true);
   });
+
+  it('the campaign id is saved with the game; an older campaign save resumes with the pack id', async () => {
+    const saves = new MemorySaveStore();
+    const game = createGameStore({
+      level,
+      seed: 5,
+      team: ['dwarf'],
+      saves,
+      pack: 'ice',
+      campaign: true,
+      campaignId: 'ice-2',
+      now: () => 1,
+    });
+    game.getState().dispatch({ type: 'ZARGON_TURN_END' });
+    await game.getState().flush();
+    const r = await resume(saves, level);
+    expect(r.ok && r.campaignId).toBe('ice-2');
+    expect(game.getState().campaignId).toBe('ice-2');
+    // a save made before several campaigns per pack: `campaign` and the pack, no id
+    const raw = await saves.load(level.quest.id);
+    const { campaignId: _gone, ...older } = raw!;
+    void _gone;
+    await saves.save(older);
+    const again = await resume(saves, level);
+    expect(again.ok && again.campaignId).toBe('ice');
+  });
 });
 
 describe('campaign stores', () => {
-  it('memory: keeps one campaign per pack, and clear removes it', () => {
+  it('memory: keeps campaigns by id, several per pack, and clear removes one', () => {
     const s = new MemoryCampaignStore();
     const c = newCampaign(pack, 9);
     s.set(c);
     expect(s.get('ice')).toEqual(c);
     expect(s.get('core')).toBeUndefined();
+    const second = newCampaign(pack, 10, { id: 'ice-2', name: 'Campaign 2' });
+    s.set(second);
+    expect(s.list().map((x) => x.id)).toEqual(['ice', 'ice-2']);
     s.clear('ice');
     expect(s.get('ice')).toBeUndefined();
+    expect(s.get('ice-2')).toEqual(second);
   });
 
   it('local storage: round trips with a team that has a mercenary, and ignores a damaged value', () => {
@@ -144,8 +174,24 @@ describe('campaign stores', () => {
       };
       s.set(c);
       expect(s.get('ice')).toEqual(c);
+      // a campaign saved before ids and names (keyed by its pack) gets the pack as its id
+      const { id: _id, name: _name, ...old } = c;
+      void _id;
+      void _name;
+      mem.set('soloquest-campaigns', JSON.stringify({ ice: old }));
+      expect(s.get('ice')).toEqual({ ...c, id: 'ice', name: '' });
+      expect(s.list()).toEqual([{ ...c, id: 'ice', name: '' }]);
+      // several campaigns of one pack, in the order they were made
+      mem.delete('soloquest-campaigns');
+      s.set(c);
+      const c2 = { ...c, id: 'ice-2', name: 'Campaign 2' };
+      s.set(c2);
+      expect(s.list()).toEqual([c, c2]);
+      s.clear('ice');
+      expect(s.list()).toEqual([c2]);
       mem.set('soloquest-campaigns', '{"ice": {"version": 7}}');
       expect(s.get('ice')).toBeUndefined();
+      expect(s.list()).toEqual([]);
       mem.set('soloquest-campaigns', 'not json');
       expect(s.get('ice')).toBeUndefined();
     } finally {

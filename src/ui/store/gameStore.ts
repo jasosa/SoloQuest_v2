@@ -60,6 +60,8 @@ export interface GameStoreState {
   /** The pack of the quest, and whether the game is part of its campaign (decision 37). */
   readonly pack: string | undefined;
   readonly campaign: boolean;
+  /** Which campaign of the pack (decision 37), when `campaign` is true. */
+  readonly campaignId: string | undefined;
   readonly team: readonly TeamMember[];
   readonly events: readonly GameEvent[];
   readonly state: GameState;
@@ -95,6 +97,8 @@ export interface GameStoreInit {
   saves: SaveStore;
   /** Played as part of the pack's campaign (decision 37). Kept in the save. */
   campaign?: boolean | undefined;
+  /** Which campaign it is (several per pack). With `campaign` alone, the campaign that has the pack id. */
+  campaignId?: string | undefined;
   /** The flags the quest begins with (a campaign carries them in, decision 37). Kept in the save. */
   startFlags?: Readonly<Record<string, boolean>> | undefined;
   /** The pack of the quest, kept in the save. Defaults to the pack that lists the quest. */
@@ -109,6 +113,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
   const startFlags = init.startFlags ?? {};
   const team = normalizeTeam(init.team);
   const pack = init.pack ?? packOfQuest(root.quest.id);
+  const campaignId = init.campaignId ?? (init.campaign && pack ? pack : undefined);
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];
   const start = init.fresh ? startGame(root, seed, startFlags) : undefined;
@@ -125,7 +130,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
         const ok = await autosave(saves, root.quest.id, seed, team, events, stamp, {
           pack,
           startFlags,
-          campaign: init.campaign,
+          campaign: campaignId !== undefined,
+          campaignId,
         });
         if (get().saved !== ok) set({ saved: ok });
       });
@@ -137,7 +143,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
       root,
       seed,
       pack,
-      campaign: init.campaign === true,
+      campaign: campaignId !== undefined,
+      campaignId,
       team,
       events: events0,
       state: state0,
