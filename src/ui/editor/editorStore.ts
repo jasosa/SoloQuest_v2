@@ -35,6 +35,7 @@ export type Tool =
   | 'traps'
   | 'markers'
   | 'zones'
+  | 'merge'
   | 'start';
 
 export type EditSelection =

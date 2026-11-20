@@ -7,7 +7,7 @@ import type { EditorStore } from './editorStore';
 import { ActionForm } from './NotesPanel';
 import { FeaturesPanel } from './FeaturesPanel';
 import { QuestPanel } from './QuestPanel';
-import { MapsPanel, MergesPanel } from './MapsPanel';
+import { MapsPanel } from './MapsPanel';
 import { t } from '../../i18n/t';
 
 /**
@@ -94,12 +94,6 @@ export function QuestTab({ store }: { store: EditorStore }) {
         </Panel>
         <Panel title={t('editor.QuestTabs.mapsAndLinks', 'Maps and links')} testId="quest-maps">
           <MapsPanel store={store} />
-        </Panel>
-        <Panel
-          title={t('editor.QuestTabs.mergedRoomsMapOn', 'Merged rooms (map on show)')}
-          testId="quest-merges"
-        >
-          <MergesPanel store={store} />
         </Panel>
         <Panel title={t('editor.QuestTabs.objectives', 'Objectives')} testId="quest-objectives">
           <QuestPanel store={store} only="objectives" />

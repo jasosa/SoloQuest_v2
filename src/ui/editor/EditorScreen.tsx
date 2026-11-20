@@ -31,7 +31,7 @@ import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
 import { MonstersTab } from './MonstersTab';
-import { MapChips } from './MapsPanel';
+import { MapChips, MergesPanel } from './MapsPanel';
 import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
@@ -64,6 +64,7 @@ const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'traps', label: 'Traps', key: 't' },
   { tool: 'markers', label: 'Markers', key: 'l' },
   { tool: 'zones', label: 'Zones', key: 'z' },
+  { tool: 'merge', label: t('editor.EditorScreen.mergeRooms', 'Merge rooms'), key: 'g' },
   { tool: 'start', label: 'Start', key: 'h' },
 ];
 
@@ -609,6 +610,20 @@ function ToolOptions({ store }: { store: EditorStore }) {
               opts.markerVisible === 'players',
               () => set({ markerVisible: 'players' }),
             )}
+          </div>
+        </>
+      )}
+      {tool === 'merge' && (
+        <>
+          <div className="lbl">{t('editor.EditorScreen.mergeRooms', 'Merge rooms')}</div>
+          <p className="ed-note">
+            {t(
+              'editor.EditorScreen.mergeHelp',
+              'A tile laid over two rooms makes them one room in this quest. This map only.',
+            )}
+          </p>
+          <div data-testid="map-merges">
+            <MergesPanel store={store} />
           </div>
         </>
       )}
