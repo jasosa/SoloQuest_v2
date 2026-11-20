@@ -114,6 +114,12 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
       return { turn, kind: 'door', text: tr('game.log.doorOpened', 'A door was opened') };
     case 'TUNNEL_USE':
       return { turn, kind: 'look', text: tr('game.log.tunnel', 'A hero used an ice tunnel') };
+    case 'REVEAL_AREA':
+      return {
+        turn,
+        kind: 'look',
+        text: tr('game.log.revealArea', 'The players revealed a hidden area'),
+      };
     case 'LOOK_FROM':
       return { turn, kind: 'look', text: tr('game.log.look', 'A hero looked along the corridor') };
     case 'MONSTER_KILL':

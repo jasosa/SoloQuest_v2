@@ -42,7 +42,6 @@ export function crossLink(level: Level, d: Draft, linkId: string): Arrival {
 
   // Fog: nothing is seen on the new map yet. Found secret doors stay found.
   d.seenCells = new Set();
-  d.layoutCells = new Set();
   d.revealedRooms = new Set();
   d.looked = new Set();
   d.seenBlocks = new Set();
