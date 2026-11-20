@@ -16,7 +16,7 @@ import type { Prompt } from './prompts';
 import { blockingSearchNotes, runTriggers, type TriggerEvent } from './notes';
 import { springTrap } from './traps';
 import { draftOf, type GameState } from './state';
-import { isDormant, liveMonstersInRoom } from './monstersIn';
+import { isDormant, liveMonstersInRoom, monsterStateOf } from './monstersIn';
 
 export { liveMonstersInRoom };
 
@@ -49,6 +49,8 @@ export function liveMonstersInSight(level: Level, state: GameState, from: Cell):
         m.cell !== undefined &&
         state.seenMonsters.has(m.id) &&
         !isDormant(m, state) &&
+        // a passive monster (a caged one) does nothing: it does not stop a search
+        monsterStateOf(m, state).state !== 'passive' &&
         state.monsters[m.id]?.dead === false &&
         lineOfSight(map, from, m.cell),
     )
