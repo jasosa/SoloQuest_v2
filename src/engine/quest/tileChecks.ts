@@ -121,6 +121,21 @@ export function tileLimitIssues(
       );
     }
   }
+  // The cage belongs to a Cage Room, and chasm squares were replaced by the 4 x 4 room (decision 93).
+  const cageRooms = items.filter((t) => t.group === 'room' && t.type === 'cageRoom');
+  for (const t of items) {
+    if (t.group !== 'board') continue;
+    if (
+      t.type === 'cage' &&
+      !cageRooms.some((r) => t.cells.every((c) => r.cells.some((x) => key(x) === key(c))))
+    )
+      warn(`${tileLabel(t)}: the cage is not inside a Cage Room tile`, ref(t));
+    if (t.type === 'chasm')
+      warn(
+        `${tileLabel(t)}: chasm squares are replaced by the Bottomless Chasm Room tile (4 x 4)`,
+        ref(t),
+      );
+  }
   // Room tiles are physical pieces: two of them never share a square.
   const owner = new Map<string, TileItem>();
   for (const t of items) {

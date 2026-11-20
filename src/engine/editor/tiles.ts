@@ -41,6 +41,23 @@ export function tileSizes(type: BoardTileType): Footprint[] {
   return out;
 }
 
+/**
+ * The size to lay when the author picks shape `variant` of a tile on a tile that is `box` big
+ * now: the same quarter turn as now (a tile that lies on its side stays on its side).
+ */
+export function sizeKeepingTurn(
+  footprints: readonly Footprint[],
+  variant: number,
+  box: { w: number; h: number },
+): Footprint {
+  const [w, h] = footprints[Math.min(Math.max(variant, 0), footprints.length - 1)]!;
+  const now = footprints.find(
+    ([fw, fh]) => (fw === box.w && fh === box.h) || (fw === box.h && fh === box.w),
+  );
+  const turned = now !== undefined && now[0] !== now[1] && now[0] !== box.w;
+  return turned ? [h, w] : [w, h];
+}
+
 /** The squares of a w x h rectangle whose top left square is `at`. */
 export function rectCells(at: readonly number[], w: number, h: number): Cell[] {
   const out: Cell[] = [];
@@ -486,4 +503,32 @@ export function roomTileIndexAt(q: Quest, cell: readonly number[]): number {
 /** True when the quest may not have one more ice tunnel pair (the box holds three). */
 export function tunnelsFull(q: Quest): boolean {
   return q.tunnels.length >= MAX_TUNNEL_PAIRS;
+}
+
+// ---- the cage of a Cage Room (decision 93)
+
+/** The cage (a `cage` board tile) that lies inside a Cage Room tile, or -1. */
+export function cageOfRoomTile(q: Quest, roomIndex: number): number {
+  const rt = q.roomTiles[roomIndex];
+  if (!rt || rt.type !== 'cageRoom') return -1;
+  const own = new Set(roomTileCells(q, rt).map(key));
+  return q.boardTiles.findIndex((t) => t.type === 'cage' && t.cells.every((c) => own.has(key(c))));
+}
+
+/**
+ * Put the 2 x 2 cage in the middle of a Cage Room tile. The cage blocks sight until its flag is
+ * set; the flag and the "blocks" switch are edited on the cage like on any board tile.
+ */
+export function addCageToRoomTile(q: Quest, roomIndex: number): EditResult {
+  const rt = q.roomTiles[roomIndex];
+  if (!rt) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
+  if (rt.type !== 'cageRoom')
+    return fail(tr('editor.tiles.onlyACageRoomHolds', 'Only a Cage Room holds a cage.'));
+  if (cageOfRoomTile(q, roomIndex) >= 0)
+    return fail(tr('editor.tiles.thisCageRoomHasACage', 'This Cage Room already has a cage.'));
+  const box = tileBox(roomTileCells(q, rt));
+  return placeBoardTile(q, {
+    type: 'cage',
+    at: [box.x + Math.floor((box.w - 2) / 2), box.y + Math.floor((box.h - 2) / 2)],
+  });
 }

@@ -154,6 +154,12 @@ export interface BoardTileDef {
   readonly terrain?: boolean;
   /** How many of each size one quest may use (none: no limit stated). */
   readonly maxPerSize?: number;
+  /**
+   * Not in the editor palette (decision 93): the cage is part of the Cage Room tile (added from
+   * that tile), and chasm squares were replaced by the Bottomless Chasm Room tile. Old files that
+   * have them still load and play.
+   */
+  readonly notInPalette?: boolean;
   readonly rule: readonly string[];
 }
 
@@ -203,6 +209,7 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     shape: 'laid',
     footprints: [[1, 1]],
     name: 'Chasm',
+    notInPalette: true,
     always: false,
     terrain: true,
     rule: ['A crevasse. It can be jumped over like a pit. A hero who falls in is lost for good.'],
@@ -229,6 +236,7 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     shape: 'fixed',
     footprints: [[2, 2]],
     name: 'Cage',
+    notInPalette: true,
     always: false,
     rule: ['Nobody can enter the cage and it blocks line of sight, until the quest opens it.'],
   },
@@ -303,3 +311,17 @@ export function limitText(spec: Pick<TileSpec, 'laid' | 'footprints' | 'maxPerSi
   if (spec.laid || spec.maxPerSize === undefined) return 'no limit';
   return spec.footprints.map(([w, h]) => `${spec.maxPerSize} of ${w} x ${h}`).join(' and ');
 }
+
+/** One entry of the editor palette "Board tiles": room tiles and board tiles together (decision 93). */
+export type PaletteTile =
+  | { readonly group: 'board'; readonly type: BoardTileType }
+  | { readonly group: 'room'; readonly type: RoomTileType };
+
+/** Every tile an author can place, in palette order: the map tiles first, then the room tiles. */
+export const TILE_PALETTE: readonly PaletteTile[] = [
+  ...BOARD_TILE_TYPES.filter((t) => !BOARD_TILES[t].notInPalette).map((type): PaletteTile => ({
+    group: 'board',
+    type,
+  })),
+  ...ROOM_TILE_TYPES.map((type): PaletteTile => ({ group: 'room', type })),
+];
