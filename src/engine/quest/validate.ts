@@ -18,7 +18,7 @@ import {
 import { footprintShapeProblem } from './footprint';
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
-import { BOARD_TILES, footprintText } from '../data/roomTiles';
+import { tileLimitIssues } from './tileChecks';
 import { forEachEffect } from './effects';
 import { isMultiMap, noteOnMap, questMaps } from './maps';
 import type { Condition, Effect, Note, Quest } from './schema';
@@ -149,10 +149,12 @@ export function validateQuestIssues(
   }
   for (const r of absorbed) rooms.delete(r);
   const areas = new Set<string>([...rooms, 'C']);
-  // Room tiles: one per room, in a room of this quest.
+  // Room tiles that fill a room (`area`): one per room, in a room of this quest. Tiles over squares
+  // (`cells`) are checked with the other tiles.
   {
     const tiled = new Set<string>();
     for (const t of quest.roomTiles) {
+      if (t.area === undefined) continue;
       const ref: IssueRef = { kind: 'area', area: t.area };
       if (!rooms.has(t.area))
         err(
@@ -541,7 +543,6 @@ export function validateQuestIssues(
   {
     const owner = new Map<string, number>();
     quest.boardTiles.forEach((t, i) => {
-      const def = BOARD_TILES[t.type];
       t.cells.forEach((c) => {
         const ref = tileRef(i, c);
         inside(`board tile ${i + 1} (${t.type})`, c, ref, true);
@@ -552,20 +553,6 @@ export function validateQuestIssues(
           err(`board tile ${i + 1} (${t.type}) overlaps board tile ${other + 1} at ${key(c)}`, ref);
         else owner.set(key(c), i);
       });
-      if (editor && def.shape === 'fixed' && t.cells.length > 0) {
-        const xs = t.cells.map((c) => c[0]);
-        const ys = t.cells.map((c) => c[1]);
-        const w = Math.max(...xs) - Math.min(...xs) + 1;
-        const h = Math.max(...ys) - Math.min(...ys) + 1;
-        const fits =
-          w * h === new Set(t.cells.map(key)).size &&
-          def.footprints.some(([fw, fh]) => (fw === w && fh === h) || (fw === h && fh === w));
-        if (!fits)
-          warn(
-            `board tile ${i + 1} (${t.type}): ${def.name} comes as ${footprintText(def)}, these squares are not that shape`,
-            tileRef(i, t.cells[0]),
-          );
-      }
     });
     // A tile that blocks must not sit where the heroes start.
     const startCells = new Set<string>();
@@ -581,6 +568,9 @@ export function validateQuestIssues(
           tileRef(i, hit),
         );
     });
+    // Sizes, limits per quest, room tile squares, tunnels and slides (decision 88).
+    for (const i of tileLimitIssues(quest, board, isRock))
+      if (i.severity === 'error' || editor) issues.push(i);
   }
   // Ice tunnels: both ends on bare floor, two different squares, one pair per design.
   {

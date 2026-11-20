@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
-import { lettersMissingNotes, validateQuestIssues, type MonsterKind } from '../../engine/editor';
+import {
+  lettersMissingNotes,
+  tileSizeUsed,
+  tileUsage,
+  validateQuestIssues,
+  type MonsterKind,
+} from '../../engine/editor';
 import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
@@ -15,6 +21,9 @@ import {
   BOARD_TILE_TYPES,
   ROOM_TILES,
   ROOM_TILE_TYPES,
+  MAX_TUNNEL_PAIRS,
+  limitText,
+  tileSpec,
 } from '../../engine/data/roomTiles';
 import { EDITOR_TABS, TopBar } from '../shared/Frame';
 import { DesignerBody, type QuestSource, type QuestUpdater } from '../designer/DesignerScreen';
@@ -36,6 +45,11 @@ import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
+
+/** "Ice Vault 1 of 2": a tile chip with how many the quest has and the limit of the box. */
+function tileChipName(name: string, u: { used: number; max: number | undefined }): string {
+  return u.max === undefined ? name : `${name} ${u.used} of ${u.max}`;
+}
 
 const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'select', label: 'Select', key: 's' },
@@ -346,7 +360,10 @@ function ToolOptions({ store }: { store: EditorStore }) {
                   </button>
                 ))}
               </div>
-              <p className="ed-note">Tap end A, then end B.</p>
+              <p className="ed-note" data-testid="tunnel-limit">
+                Ice tunnel {quest.tunnels.length} of {MAX_TUNNEL_PAIRS} pairs. Tap end A, then end
+                B.
+              </p>
             </>
           )}
           {(opts.doorKind === 'ironEntry' || opts.doorKind === 'woodenExit') && (
@@ -386,48 +403,72 @@ function ToolOptions({ store }: { store: EditorStore }) {
         <>
           <div className="lbl">Board tiles</div>
           <div className="ed-chips ed-small" data-testid="board-tile-chips">
-            {BOARD_TILE_TYPES.map((t) =>
-              chip(BOARD_TILES[t].name, opts.tile.group === 'board' && opts.tile.type === t, () =>
-                set({ tile: { group: 'board', type: t }, tileVariant: 0, tileTurned: false }),
-              ),
-            )}
+            {BOARD_TILE_TYPES.map((t) => {
+              const u = tileUsage(quest, 'board', t);
+              return chip(
+                tileChipName(BOARD_TILES[t].name, u),
+                opts.tile.group === 'board' && opts.tile.type === t,
+                () => set({ tile: { group: 'board', type: t }, tileVariant: 0, tileTurned: false }),
+              );
+            })}
           </div>
           <div className="lbl">Room tiles</div>
           <div className="ed-chips ed-small" data-testid="room-tile-chips">
-            {ROOM_TILE_TYPES.map((t) =>
-              chip(ROOM_TILES[t].name, opts.tile.group === 'room' && opts.tile.type === t, () =>
-                set({ tile: { group: 'room', type: t } }),
-              ),
-            )}
+            {ROOM_TILE_TYPES.map((t) => {
+              const u = tileUsage(quest, 'room', t);
+              return chip(
+                tileChipName(ROOM_TILES[t].name, u),
+                opts.tile.group === 'room' && opts.tile.type === t,
+                () => set({ tile: { group: 'room', type: t }, tileVariant: 0, tileTurned: false }),
+              );
+            })}
           </div>
-          {opts.tile.group === 'board' && BOARD_TILES[opts.tile.type].shape === 'fixed' && (
-            <>
-              {BOARD_TILES[opts.tile.type].footprints.length > 1 && (
-                <>
-                  <div className="lbl">Size</div>
-                  <div className="ed-chips" data-testid="tile-sizes">
-                    {BOARD_TILES[opts.tile.type].footprints.map(([w, h], i) =>
-                      chip(`${w} x ${h}`, opts.tileVariant === i, () => set({ tileVariant: i })),
-                    )}
-                  </div>
-                </>
-              )}
-              <button
-                className="btn alt"
-                onClick={() => set({ tileTurned: !opts.tileTurned })}
-                aria-pressed={opts.tileTurned}
-              >
-                Turn (R)
-              </button>
-              <p className="ed-note">Tap a square for the top left of the tile.</p>
-            </>
-          )}
-          {opts.tile.group === 'board' && BOARD_TILES[opts.tile.type].shape === 'laid' && (
-            <p className="ed-note">Tap squares to lay it. Squares that touch make one tile.</p>
-          )}
-          {opts.tile.group === 'room' && (
-            <p className="ed-note">Tap a room to put the tile in it.</p>
-          )}
+          {(() => {
+            const pick = opts.tile;
+            const spec = tileSpec(pick.group, pick.type);
+            if (!spec || spec.laid)
+              return (
+                <p className="ed-note">Tap squares to lay it. Squares that touch make one tile.</p>
+              );
+            return (
+              <>
+                {spec.footprints.length > 1 && (
+                  <>
+                    <div className="lbl">Size</div>
+                    <div className="ed-chips" data-testid="tile-sizes">
+                      {spec.footprints.map(([w, h], i) => {
+                        const full =
+                          spec.maxPerSize !== undefined &&
+                          tileSizeUsed(quest, pick.group, pick.type, [w, h]) >= spec.maxPerSize;
+                        return (
+                          <button
+                            key={`${w}x${h}`}
+                            className="chip"
+                            aria-pressed={opts.tileVariant === i}
+                            disabled={full}
+                            title={full ? `Used up: the box has ${limitText(spec)}` : undefined}
+                            onClick={() => set({ tileVariant: i })}
+                          >
+                            {w} x {h}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+                <button
+                  className="btn alt"
+                  onClick={() => set({ tileTurned: !opts.tileTurned })}
+                  aria-pressed={opts.tileTurned}
+                >
+                  Turn (R)
+                </button>
+                <p className="ed-note" data-testid="tile-limit">
+                  {spec.name}: {limitText(spec)}. Tap a square for the top left of the tile.
+                </p>
+              </>
+            );
+          })()}
         </>
       )}
       {tool === 'monsters' && (

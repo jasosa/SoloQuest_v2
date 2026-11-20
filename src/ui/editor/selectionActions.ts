@@ -4,8 +4,9 @@ import {
   removeBoardTile,
   removeEdgeDoor,
   removeTunnel,
+  removeRoomTile,
   rotateBoardTile,
-  setRoomTile,
+  rotateRoomTile,
   removeDoor,
   removeFurniture,
   removeMarker,
@@ -24,6 +25,9 @@ export function rotateSelection(store: EditorStore) {
   } else if (st.selection?.kind === 'tile') {
     const index = st.selection.index;
     st.apply((q) => rotateBoardTile(q, index));
+  } else if (st.selection?.kind === 'roomTile') {
+    const index = st.selection.index;
+    st.apply((q) => rotateRoomTile(q, index));
   } else if (st.tool === 'furniture') st.setOpts({ furnitureTurned: !st.opts.furnitureTurned });
   else if (st.tool === 'tiles') st.setOpts({ tileTurned: !st.opts.tileTurned });
 }
@@ -41,7 +45,7 @@ export function deleteSelection(store: EditorStore) {
       case 'tile':
         return removeBoardTile(q, sel.index);
       case 'roomTile':
-        return setRoomTile(q, sel.area, null);
+        return removeRoomTile(q, sel.index);
       case 'tunnel':
         return removeTunnel(q, sel.id);
       case 'block':

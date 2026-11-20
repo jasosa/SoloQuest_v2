@@ -1,8 +1,18 @@
 /**
- * Room tiles of the Frozen Horror (decision 55): a room with its own look and its own rule. A quest
- * says which room holds which tile (`roomTiles`). The engine only keeps the rule text for the room
- * note: hero hits and rolls stay with the players. Texts are our own words.
+ * Tiles of the Frozen Horror (decisions 55 and 88). Every tile is a physical piece of a fixed size,
+ * and the box holds a limited number of each: `footprints` are the sizes it comes in (laid turned
+ * too) and `maxPerSize` how many of each size one quest may use. A room tile lies over squares, not
+ * over one room: it may cover parts of two rooms and corridor squares. The engine only keeps the
+ * rule text: hero hits and rolls stay with the players. Texts are our own words.
  */
+
+/** Width and height in squares of a tile as it comes in the box (it can be laid turned). */
+export type Footprint = readonly [number, number];
+
+/** Ice tunnels in the box: three pairs, one square each end. */
+export const MAX_TUNNEL_PAIRS = 3;
+/** An ice slide is a straight run of this many squares. */
+export const ICE_SLIDE_LENGTH = 8;
 
 export const ROOM_TILE_TYPES = [
   'iceVault',
@@ -21,6 +31,10 @@ export interface RoomTileDef {
   readonly name: string;
   /** The box it comes from. */
   readonly box: string;
+  /** The sizes it comes in (width x height). A turned tile swaps the two. */
+  readonly footprints: readonly Footprint[];
+  /** How many of each size one quest may use. */
+  readonly maxPerSize: number;
   /** What the players should remember about this room. */
   readonly rule: readonly string[];
 }
@@ -28,6 +42,11 @@ export interface RoomTileDef {
 export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
   iceVault: {
     id: 'iceVault',
+    footprints: [
+      [3, 2],
+      [4, 3],
+    ],
+    maxPerSize: 1,
     name: 'Ice Vault',
     box: 'Frozen Horror',
     rule: [
@@ -37,12 +56,16 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
   },
   scepterRoom: {
     id: 'scepterRoom',
+    footprints: [[4, 4]],
+    maxPerSize: 1,
     name: 'Scepter Room',
     box: 'Frozen Horror',
     rule: ['The Frozen Horror hid the Scepter of Glacial Majesty in this room.'],
   },
   livingFog: {
     id: 'livingFog',
+    footprints: [[4, 4]],
+    maxPerSize: 1,
     name: 'Living Fog Room',
     box: 'Frozen Horror',
     rule: [
@@ -52,6 +75,8 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
   },
   chasmRoom: {
     id: 'chasmRoom',
+    footprints: [[4, 4]],
+    maxPerSize: 1,
     name: 'Bottomless Chasm Room',
     box: 'Frozen Horror',
     rule: [
@@ -61,6 +86,8 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
   },
   frozenCrypt: {
     id: 'frozenCrypt',
+    footprints: [[5, 3]],
+    maxPerSize: 1,
     name: 'Frozen Crypt Room',
     box: 'Frozen Horror',
     rule: [
@@ -69,18 +96,24 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
   },
   seatOfPower: {
     id: 'seatOfPower',
+    footprints: [[6, 5]],
+    maxPerSize: 1,
     name: 'Seat of Power Room',
     box: 'Frozen Horror',
     rule: ['The Frozen Horror rules from this room.'],
   },
   cageRoom: {
     id: 'cageRoom',
+    footprints: [[4, 4]],
+    maxPerSize: 1,
     name: 'Cage Room',
     box: 'Frozen Horror',
     rule: ['A prison for servants who displeased the Frozen Horror.'],
   },
   gremlinTreasure: {
     id: 'gremlinTreasure',
+    footprints: [[4, 3]],
+    maxPerSize: 1,
     name: 'Ice Gremlin Treasure Room',
     box: 'Frozen Horror',
     rule: [
@@ -88,15 +121,6 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
     ],
   },
 };
-
-/** The tile of a room in a quest (the room after merges), or undefined. */
-export function roomTileOf(
-  quest: { readonly roomTiles: readonly { readonly type: RoomTileType; readonly area: string }[] },
-  area: string,
-): RoomTileDef | undefined {
-  const t = quest.roomTiles.find((x) => x.area === area);
-  return t ? ROOM_TILES[t.type] : undefined;
-}
 
 /**
  * Tiles that are drawn on squares, not tied to one room (Frozen Horror): the ice cave entrance
@@ -113,9 +137,6 @@ export const BOARD_TILE_TYPES = [
 ] as const;
 export type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
 
-/** Width and height in squares of a tile as it comes in the box (it can be laid turned). */
-export type Footprint = readonly [number, number];
-
 export interface BoardTileDef {
   readonly id: BoardTileType;
   readonly name: string;
@@ -131,6 +152,8 @@ export interface BoardTileDef {
   readonly always: boolean;
   /** Terrain: it changes no sight, but its rule is a reminder the players may want (decision 57). */
   readonly terrain?: boolean;
+  /** How many of each size one quest may use (none: no limit stated). */
+  readonly maxPerSize?: number;
   readonly rule: readonly string[];
 }
 
@@ -139,14 +162,19 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     id: 'iceCaveEntrance',
     shape: 'fixed',
     footprints: [[6, 5]],
+    maxPerSize: 1,
     name: 'Ice cave entrance',
     always: true,
     rule: ['The heroes start here, outside the iron door, and leave here when the quest says so.'],
   },
   icyRiver: {
     id: 'icyRiver',
-    shape: 'laid',
-    footprints: [[1, 1]],
+    shape: 'fixed',
+    footprints: [
+      [1, 8],
+      [1, 3],
+    ],
+    maxPerSize: 1,
     name: 'Icy river',
     always: false,
     terrain: true,
@@ -158,8 +186,9 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   },
   iceLedge: {
     id: 'iceLedge',
-    shape: 'laid',
-    footprints: [[1, 1]],
+    shape: 'fixed',
+    footprints: [[5, 3]],
+    maxPerSize: 1,
     name: 'Ice ledge',
     always: false,
     terrain: true,
@@ -209,4 +238,68 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
 export function footprintText(def: BoardTileDef): string {
   if (def.shape === 'laid') return 'square by square';
   return def.footprints.map(([w, h]) => `${w} x ${h}`).join(' or ');
+}
+
+/** The index of the footprint a w x h rectangle matches (turned or not), or -1. */
+export function footprintIndex(footprints: readonly Footprint[], w: number, h: number): number {
+  return footprints.findIndex(([fw, fh]) => (fw === w && fh === h) || (fw === h && fh === w));
+}
+
+/** What a tile type looks like to the limit checks: board tiles and room tiles alike. */
+export interface TileSpec {
+  readonly group: 'board' | 'room';
+  readonly type: string;
+  readonly name: string;
+  /** `laid` terrain has no size and no limit. */
+  readonly laid: boolean;
+  readonly footprints: readonly Footprint[];
+  readonly maxPerSize: number | undefined;
+}
+
+export function tileSpec(group: 'board' | 'room', type: string): TileSpec | undefined {
+  if (group === 'room') {
+    const d = ROOM_TILES[type as RoomTileType];
+    return (
+      d && {
+        group,
+        type,
+        name: d.name,
+        laid: false,
+        footprints: d.footprints,
+        maxPerSize: d.maxPerSize,
+      }
+    );
+  }
+  const d = BOARD_TILES[type as BoardTileType];
+  return (
+    d && {
+      group,
+      type,
+      name: d.name,
+      laid: d.shape === 'laid',
+      footprints: d.footprints,
+      maxPerSize: d.maxPerSize,
+    }
+  );
+}
+
+/** "6 x 5" or "3 x 2 and 4 x 3": the sizes of a tile type, for texts. */
+export function sizesText(spec: Pick<TileSpec, 'laid' | 'footprints'>): string {
+  if (spec.laid) return 'square by square';
+  return spec.footprints.map(([w, h]) => `${w} x ${h}`).join(' or ');
+}
+
+/** The most of this type one quest may use (undefined: no limit). */
+export function tileMax(
+  spec: Pick<TileSpec, 'laid' | 'footprints' | 'maxPerSize'>,
+): number | undefined {
+  return spec.laid || spec.maxPerSize === undefined
+    ? undefined
+    : spec.maxPerSize * spec.footprints.length;
+}
+
+/** "1 of 3 x 2 and 1 of 4 x 3" or "1 of 5 x 3": the limit as the editor and the messages say it. */
+export function limitText(spec: Pick<TileSpec, 'laid' | 'footprints' | 'maxPerSize'>): string {
+  if (spec.laid || spec.maxPerSize === undefined) return 'no limit';
+  return spec.footprints.map(([w, h]) => `${spec.maxPerSize} of ${w} x ${h}`).join(' and ');
 }

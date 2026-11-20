@@ -42,8 +42,8 @@ export type EditSelection =
   | { readonly kind: 'block'; readonly cell: Cell }
   /** A board tile, by its place in the quest's `boardTiles`. */
   | { readonly kind: 'tile'; readonly index: number }
-  /** The tile of a room. */
-  | { readonly kind: 'roomTile'; readonly area: string }
+  /** A room tile, by its place in the quest's `roomTiles`. */
+  | { readonly kind: 'roomTile'; readonly index: number }
   /** One end of an ice tunnel. */
   | { readonly kind: 'tunnel'; readonly id: string; readonly end: 'a' | 'b' }
   | null;

@@ -790,7 +790,7 @@ export function PlayBoard({
       Math.hypot(c[0] - mx, c[1] - my) < Math.hypot(best[0] - mx, best[1] - my) ? c : best,
     );
     layer.push(
-      <g key={`rt${rt.area}`} data-room-tile={rt.tile.id} pointerEvents="none">
+      <g key={`rt${rt.index}`} data-room-tile={rt.tile.id} pointerEvents="none">
         {rt.cells.map(([cx0, cy0]) => (
           <rect
             key={`${cx0},${cy0}`}
