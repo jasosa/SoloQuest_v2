@@ -6,6 +6,9 @@
 import { BOARD_TILES, ROOM_TILES, type RoomTileType } from '../../engine/data/roomTiles';
 import type { Quest } from '../../engine/quest/schema';
 import { color } from '../shared/tokens';
+import { useTheme } from '../theme/activeTheme';
+import { edgeDoorPiece, tilePiece, tunnelPiece } from '../theme/draw';
+import type { TileKey } from '../theme/theme';
 
 type Cell = readonly [number, number];
 type Tile = Quest['boardTiles'][number];
@@ -30,6 +33,7 @@ export function BoardTileArt({
   selected: boolean;
   U: number;
 }) {
+  const theme = useTheme();
   const def = BOARD_TILES[tile.type];
   const xs = tile.cells.map((c) => c[0]);
   const ys = tile.cells.map((c) => c[1]);
@@ -50,6 +54,16 @@ export function BoardTileArt({
         />
       ))
     : null;
+
+  // a texture pack's picture of the tile, over its squares
+  const art = tile.type === 'chasm' ? null : tilePiece(theme, tile.type as TileKey, tile.cells, U);
+  if (art)
+    return (
+      <g data-board-tile={tile.type} data-tile-index={index}>
+        {ring}
+        <g pointerEvents="none">{art}</g>
+      </g>
+    );
 
   if (tile.type === 'icyRiver' || tile.type === 'iceLedge' || tile.type === 'chasm') {
     return (
@@ -161,6 +175,27 @@ export function RoomTileArt({
   selected: boolean;
   U: number;
 }) {
+  const theme = useTheme();
+  const art = tilePiece(theme, type, cells, U);
+  if (art)
+    return (
+      <g data-room-tile={type} data-room-tile-index={index}>
+        {selected &&
+          cells.map(([cx, cy]) => (
+            <rect
+              key={`${cx},${cy}`}
+              x={cx * U}
+              y={cy * U}
+              width={U}
+              height={U}
+              fill={color.sel}
+              className="selring"
+              pointerEvents="none"
+            />
+          ))}
+        <g pointerEvents="none">{art}</g>
+      </g>
+    );
   const mx = cells.reduce((a, c) => a + c[0], 0) / cells.length;
   const my = cells.reduce((a, c) => a + c[1], 0) / cells.length;
   const mid = cells.reduce((best, c) =>
@@ -222,8 +257,31 @@ export function TunnelEndArt({
   selected: boolean;
   U: number;
 }) {
+  const theme = useTheme();
   const cx = (cell[0] + 0.5) * U;
   const cy = (cell[1] + 0.5) * U;
+  const art = tunnelPiece(theme, design, cell[0], cell[1], U);
+  if (art)
+    return (
+      <g data-tunnel={`${tunnel}:${end}`} data-design={design}>
+        {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
+        {art}
+        <text
+          x={cell[0] * U + U - 4}
+          y={cell[1] * U + 10}
+          textAnchor="end"
+          fill={color.ink}
+          stroke={color.paper}
+          strokeWidth={3}
+          paintOrder="stroke"
+          fontFamily="Bonum"
+          fontWeight={700}
+          fontSize={9}
+        >
+          {design + end.toUpperCase()}
+        </text>
+      </g>
+    );
   return (
     <g data-tunnel={`${tunnel}:${end}`} data-design={design}>
       {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -297,7 +355,36 @@ export function ExteriorDoorArt({
   start: boolean;
   U: number;
 }) {
+  const theme = useTheme();
   const [vx, vy] = SIDE_VECTOR[side];
+  const wallArt = edgeDoorPiece(
+    theme,
+    kind,
+    false,
+    (cell[0] + 0.5 + vx * 0.5) * U,
+    (cell[1] + 0.5 + vy * 0.5) * U,
+    -vx,
+    -vy,
+    U,
+  );
+  if (wallArt)
+    return (
+      <g data-edge-door={id} data-edge-kind={kind}>
+        {(selected || start) && (
+          <circle
+            cx={(cell[0] + 0.5) * U}
+            cy={(cell[1] + 0.5) * U}
+            r={selected ? 21 : 19}
+            fill={selected ? color.sel : 'none'}
+            stroke={start ? color.ink : 'none'}
+            strokeWidth={start ? 2.5 : 0}
+            strokeDasharray={start ? '4 3' : undefined}
+            className={selected ? 'selring' : undefined}
+          />
+        )}
+        {wallArt}
+      </g>
+    );
   // the middle of the edge, moved 6 px into the board so the slab stays inside the picture
   const ex = (cell[0] + 0.5 + vx * 0.5) * U - vx * 6;
   const ey = (cell[1] + 0.5 + vy * 0.5) * U - vy * 6;

@@ -932,7 +932,7 @@ export function EditorBoard({
     things.push(
       <g key={`m${m.id}`} data-monster={m.id}>
         {sel && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        {!isThemeToken(theme, shownImage(quest, m), pt) && (
+        {!isThemeToken(theme, shownImage(quest, m), pt, m.enemy) && (
           <circle
             cx={cx}
             cy={cy}
@@ -943,22 +943,22 @@ export function EditorBoard({
             opacity={m.state === 'dormant' ? 0.55 : 1}
           />
         )}
-        {isThemeToken(theme, shownImage(quest, m), pt) ? (
+        {isThemeToken(theme, shownImage(quest, m), pt, m.enemy) ? (
           <image
-            href={monsterPicture(theme, shownImage(quest, m), pt)}
-            {...tokenBox(theme, m.type, cx, cy, U)}
+            href={monsterPicture(theme, shownImage(quest, m), pt, m.enemy)}
+            {...tokenBox(theme, m.type, cx, cy, U, m.enemy)}
             preserveAspectRatio="xMidYMid meet"
             opacity={m.state === 'dormant' ? 0.55 : 1}
             data-token-image={m.id}
             data-themed="token"
           />
-        ) : monsterPicture(theme, shownImage(quest, m), pt) ? (
+        ) : monsterPicture(theme, shownImage(quest, m), pt, m.enemy) ? (
           <>
             <clipPath id={`eclip-${m.id}`}>
               <circle cx={cx} cy={cy} r={12.5} />
             </clipPath>
             <image
-              href={monsterPicture(theme, shownImage(quest, m), pt)}
+              href={monsterPicture(theme, shownImage(quest, m), pt, m.enemy)}
               x={cx - 12.5}
               y={cy - 12.5}
               width={25}

@@ -242,6 +242,7 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [x] A quest can suggest a texture pack (decision 78, point 4): a `suggestedPack` id in the quest format, set in the editor Quest tab, shown as a line on the quest card, never forced. Not built: the offer to switch to the pack (needs the pack to be installed and a button)
 - [x] Whole-picture packs (decision 79): `board`, whole monster tokens, furniture proportions and stairs corner, single and double blocks, trap kinds, secret door
 - [x] Pack authoring help: `docs/TEXTURE_PACKS.md` (format, slots, picture sizes). The owner's personal example pack, cut from the Quest Book, is built by `reference/texture-pack/build.py` and stays in the git-ignored `reference/` folder (never committed or shared)
+- [x] Frozen Horror pictures (decision 96): slots `enemy`, `edgeDoor`, `tunnel`, `tile` in the pack format, drawn in play, Zargon view and the editor map; built-in layer `src/content/art/frozen-horror.theme.json` over `public/assets/frozen-horror/` (png, precached), switch in the Textures dialog, `npm run build:pack -- frozen-horror`. Not built: preview sample and Adjust for the new slots, a picture for tunnel designs 4 to 9, Magic Ice
 - [ ] Monster, hero and companion pictures from the pack (the Library already has a per-enemy `image`; the pack gives the default per type)
 - [ ] UI chrome from the pack (parchment panels, wood buttons, gear icon) is a later, separate step: it needs the token colors and sizes to stay readable (contrast, 44 px targets)
 - [ ] Performance and offline: images in the PWA cache or IndexedDB, small formats (webp), lazy load, sprite sheets for large packs
@@ -319,4 +320,4 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] Merge rooms is a tool of the Map tab (map on show), not a panel of the Quest tab
 - [x] Tiles: one Board Tiles palette (room tiles and board tiles), the shapes of the picked tile right under it (each shape once), Turn (R), drag and drop to move a placed tile (decision 94)
 - [x] Cage Room and Bottomless Chasm Room are the 4 x 4 tiles. No cage piece and no sight-blocking tile (owner: the cage blocking sight is fine with a message): the cage type, `blocks` and `hiddenWhen` are dropped on load, quests 0 and 4 say it in their notes; the laid chasm is out of the palette and chasm squares migrate (decision 94)
-
+- [x] One end flow (decision 97): the goal line opens the end sheet (checklist, inline confirms, ways to end), "Finish the quest" when the goal is done, one confirmation

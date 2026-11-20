@@ -3,11 +3,15 @@ import { z } from 'zod';
 import { FURNITURE_TYPES, MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
 import {
   CORNERS,
+  EDGE_DOOR_SLOTS,
   OFFSET_MAX,
   SCALE_MAX,
   SCALE_MIN,
+  TILE_KEYS,
+  TUNNEL_DESIGNS,
   type Theme,
   type ThemeTune,
+  type TilePicture,
   type Tune,
 } from './theme';
 
@@ -53,6 +57,24 @@ const SlotSchema = z.union([
 type Slot = z.infer<typeof SlotSchema>;
 const fileOf = (s: Slot): string => (typeof s === 'string' ? s : s.file);
 
+/** One picture of a tile: the file, and its footprint in squares as the picture is drawn. */
+const TilePictureSchema = z
+  .object({
+    file: FileName,
+    cells: z.tuple([z.number().int().min(1).max(8), z.number().int().min(1).max(8)]),
+    scale: ScaleSchema.optional(),
+    offset: OffsetSchema.optional(),
+  })
+  .strict();
+type TileEntry = z.infer<typeof TilePictureSchema>;
+/** A tile slot is one picture, or a list (a tile that comes in two sizes has a picture of each). */
+const TileSlotSchema = z.union([TilePictureSchema, z.array(TilePictureSchema).min(1).max(4)]);
+export const tileEntries = (v: TileEntry | TileEntry[]): TileEntry[] =>
+  Array.isArray(v) ? v : [v];
+
+/** An enemy id as quests write it (`iceGremlin`). */
+const EnemyKey = z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,40}$/);
+
 export const PackManifestSchema = z
   .object({
     format: z.literal('sqtextures'),
@@ -86,6 +108,14 @@ export const PackManifestSchema = z
     block: z.object({ single: SlotSchema.optional(), double: SlotSchema.optional() }).optional(),
     trap: z.partialRecord(z.enum(['armed', ...TRAP_KINDS]), SlotSchema).optional(),
     monster: z.partialRecord(z.enum(MONSTER_TYPES), SlotSchema).optional(),
+    /** A whole token by enemy id (an enemy of its own kind has no core type). Wins over `monster`. */
+    enemy: z.record(EnemyKey, SlotSchema).optional(),
+    /** The doors in the outer wall of the board: the iron entry and the wooden exit. */
+    edgeDoor: z.partialRecord(z.enum(EDGE_DOOR_SLOTS), SlotSchema).optional(),
+    /** An ice tunnel end by design number (`"1"`). */
+    tunnel: z.partialRecord(z.enum(TUNNEL_DESIGNS), SlotSchema).optional(),
+    /** Pictures of tiles, drawn once over their squares. */
+    tile: z.partialRecord(z.enum(TILE_KEYS), TileSlotSchema).optional(),
     furniture: z
       .partialRecord(
         z.enum(FURNITURE_TYPES),
@@ -147,6 +177,10 @@ export function manifestFiles(m: PackManifest): string[] {
     ),
     ...Object.values(m.trap ?? {}).map((s) => s && fileOf(s)),
     ...Object.values(m.monster ?? {}).map((s) => s && fileOf(s)),
+    ...Object.values(m.enemy ?? {}).map((s) => s && fileOf(s)),
+    ...Object.values(m.edgeDoor ?? {}).map((s) => s && fileOf(s)),
+    ...Object.values(m.tunnel ?? {}).map((s) => s && fileOf(s)),
+    ...Object.values(m.tile ?? {}).flatMap((v) => (v ? tileEntries(v).map((e) => e.file) : [])),
     ...Object.values(m.furniture ?? {}).map((f) => f?.file),
   ];
   return [...new Set(out.filter((n): n is string => n !== undefined))];
@@ -245,11 +279,30 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
   const block = group(m.block);
   const trap = group(m.trap);
   const monster = group(m.monster);
+  const enemy = group(m.enemy);
+  const edgeDoor = group(m.edgeDoor);
+  const tunnel = group(m.tunnel);
+  const tile = some(
+    Object.fromEntries(
+      Object.entries(m.tile ?? {}).map(([k, v]) => [
+        k,
+        tileEntries(v as TileEntry | TileEntry[]).map((e): TilePicture => ({
+          href: url(e.file),
+          cells: e.cells,
+          ...(e.scale !== undefined ? { scale: e.scale } : {}),
+          ...(e.offset ? { offset: e.offset } : {}),
+        })),
+      ]),
+    ),
+  );
   const tune: ThemeTune = {
     ...(monster.tunes ? { monster: monster.tunes } : {}),
     ...(door.tunes ? { door: door.tunes } : {}),
     ...(block.tunes ? { block: block.tunes } : {}),
     ...(trap.tunes ? { trap: trap.tunes } : {}),
+    ...(enemy.tunes ? { enemy: enemy.tunes } : {}),
+    ...(edgeDoor.tunes ? { edgeDoor: edgeDoor.tunes } : {}),
+    ...(tunnel.tunes ? { tunnel: tunnel.tunes } : {}),
   };
   const furniture = some(
     Object.fromEntries(
@@ -268,6 +321,7 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
   return {
     id: m.id,
     name: m.name,
+    ...(m.box ? { box: m.box } : {}),
     ...(board ? { board } : {}),
     ...(m.floor ? { floor: m.floor.map(url) } : {}),
     ...(m.corridor ? { corridor: m.corridor.map(url) } : {}),
@@ -277,6 +331,10 @@ export function themeFromPack(pack: StoredPack, url: (file: string) => string): 
     ...(block.hrefs ? { block: block.hrefs } : {}),
     ...(trap.hrefs ? { trap: trap.hrefs } : {}),
     ...(monster.hrefs ? { monster: monster.hrefs } : {}),
+    ...(enemy.hrefs ? { enemy: enemy.hrefs } : {}),
+    ...(edgeDoor.hrefs ? { edgeDoor: edgeDoor.hrefs } : {}),
+    ...(tunnel.hrefs ? { tunnel: tunnel.hrefs } : {}),
+    ...(tile ? { tile } : {}),
     ...(furniture ? { furniture } : {}),
     ...(some(tune) ? { tune } : {}),
   };

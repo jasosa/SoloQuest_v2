@@ -451,3 +451,13 @@ One control and one sheet end a quest. There is no End quest chip and no chain Q
 **All heroes fallen.** The card "All heroes have fallen" and Zargon's turn card keep their "End quest" button; it opens the end sheet.
 
 **Quest info** keeps the story, At the start, the objectives (read only), Quest actions, Notes read and the log.
+
+## Frozen Horror pictures (decision 96)
+
+The Frozen Horror box has its own picture layer, built on the core look (decision 85). It is a texture pack that ships with the app (`src/content/art/frozen-horror.theme.json`, pictures in `public/assets/frozen-horror/`). It is used while a quest of the Frozen Horror pack is open: play, Zargon view and the editor map (View: Textures on). Order, from the bottom: the drawn look, the pack the player chose for the core game, the Frozen Horror pictures, a pack the player chose for this box (`box: "frozen-horror"`). A quest with `pack: "frozen-horror"` gets the layer, and so does a quest with no pack that uses Frozen Horror tiles, tunnels or edge doors (an editor quest); core quests never do.
+
+**What it draws.** Pictures of whole things at their natural footprint, never stretched past it: room tiles (Ice Vault 3 x 2 and 4 x 3, Scepter, Living Fog, Chasm, Frozen Crypt, Seat of Power, Cage, Gremlin treasure), the ice cave entrance, the icy river (1 x 3 and 1 x 8), the ice ledge and the ice slide, each drawn once over its squares and turned a quarter turn when the tile lies the other way. Slippery ice is built from its four pieces (1 x 1, 2 x 1, 3 x 1, 2 x 3), the largest first. Ice tunnels have one picture per design (1 to 3; the other designs keep the drawn look). The iron entry door and the wooden exit have one picture each, turned to the wall. Blocks use the Frozen Horror block. Monster tokens are one picture per enemy (Ice Gremlin, Yeti, Polar Warbear, Frozen Horror, Crossbowman, Swordsman, Halberdier, Scout). A tile picture is drawn under the walls, doors and tokens and over the floor. Where a tile is drawn with a picture, its dashed outline and name label are not drawn.
+
+**Setting.** The Textures dialog has one switch row above the list of packs: **Frozen Horror pictures**, hint "Used in Frozen Horror quests. A pack of your own for Frozen Horror is drawn on top of them." It is the `Toggle` switch of the toggle section, on by default, kept on this device. Off: the drawn look (and any pack the player chose).
+
+**What is not covered.** Magic Ice has a picture in the folder but no place on the board (the app ignores blocks placed by spells, decision 57), so the layer does not use it. The picture of the Frozen Horror is one token, one square, like every other monster: the app does not track the 2 x 2 body.

@@ -1,6 +1,16 @@
 import type { ReactNode } from 'react';
 import { color } from '../shared/tokens';
-import { TOKEN_SIZE, tileFor, tuned, type Theme, type TrapSlot } from './theme';
+import {
+  TOKEN_SIZE,
+  tileFor,
+  tilePictureFor,
+  tuned,
+  type EdgeDoorSlot,
+  type Theme,
+  type TileKey,
+  type TrapSlot,
+  type TunnelDesign,
+} from './theme';
 import type { MonsterType } from '../../engine/quest/schema';
 
 /**
@@ -216,9 +226,180 @@ export function squarePiece(
   );
 }
 
-/** The box of a monster token (one picture, about a square wide) with the pack's scale and shift. */
-export function tokenBox(theme: Theme, type: MonsterType, cx: number, cy: number, unit: number) {
-  return tuned(cx, cy, TOKEN_SIZE, TOKEN_SIZE, unit, theme.tune?.monster?.[type]);
+/**
+ * The box of a monster token (one picture, about a square wide) with the pack's scale and shift. A
+ * picture made for an enemy (`enemy`) has its own tune, otherwise the one of the monster type.
+ */
+export function tokenBox(
+  theme: Theme,
+  type: MonsterType,
+  cx: number,
+  cy: number,
+  unit: number,
+  enemy?: string,
+) {
+  const tune =
+    enemy !== undefined && theme.enemy?.[enemy] !== undefined
+      ? theme.tune?.enemy?.[enemy]
+      : theme.tune?.monster?.[type];
+  return tuned(cx, cy, TOKEN_SIZE, TOKEN_SIZE, unit, tune);
+}
+
+type Sq = readonly [number, number];
+
+/** The rectangle of squares a tile covers, or null when the squares are not a full rectangle. */
+export function tileRect(
+  cells: readonly Sq[],
+): { x: number; y: number; w: number; h: number } | null {
+  if (cells.length === 0) return null;
+  const xs = cells.map((c) => c[0]);
+  const ys = cells.map((c) => c[1]);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  const w = Math.max(...xs) - x + 1;
+  const h = Math.max(...ys) - y + 1;
+  return cells.length === w * h ? { x, y, w, h } : null;
+}
+
+/**
+ * A tile picture drawn once over the squares of a tile (a full rectangle), exactly on them, turned
+ * a quarter turn when the tile lies the other way than the picture. Null when the theme has no
+ * picture of that tile and size: the tile keeps its built-in outline.
+ */
+export function tilePiece(
+  theme: Theme,
+  key: TileKey,
+  cells: readonly Sq[],
+  size: number,
+  turn = 0,
+): ReactNode {
+  const r = tileRect(cells);
+  if (!r) return null;
+  const found = tilePictureFor(theme, key, r.w, r.h);
+  if (!found) return null;
+  const { picture, turned } = found;
+  // the box the picture has before it is turned: its own width and height in squares
+  const [pw, ph] = picture.cells;
+  const cx = (r.x + r.w / 2) * size;
+  const cy = (r.y + r.h / 2) * size;
+  const box = tuned(cx, cy, pw * size, ph * size, size, picture);
+  const mx = box.x + box.width / 2;
+  const my = box.y + box.height / 2;
+  const angle = (turned ? 90 : 0) + turn;
+  return (
+    <image
+      href={picture.href}
+      {...box}
+      preserveAspectRatio="none"
+      transform={angle ? `rotate(${angle} ${mx} ${my})` : undefined}
+      data-themed="tile"
+      data-tile-picture={key}
+    />
+  );
+}
+
+/**
+ * The ice slide picture along its squares: a straight run (the picture is `cells` long), with the
+ * picture's arrow, which points down, turned to the way the slide goes. Null when the path is not
+ * a straight run of the picture's length.
+ */
+export function slidePiece(theme: Theme, path: readonly Sq[], size: number): ReactNode {
+  const first = path[0];
+  const last = path[path.length - 1];
+  if (!first || !last) return null;
+  const dx = Math.sign(last[0] - first[0]);
+  const dy = Math.sign(last[1] - first[1]);
+  const straight =
+    (dx === 0) !== (dy === 0) &&
+    path.every((c, i) => c[0] === first[0] + dx * i && c[1] === first[1] + dy * i);
+  if (!straight) return null;
+  // down is 0 degrees; clockwise from there: left 90, up 180, right 270
+  const angle = dy > 0 ? 0 : dx < 0 ? 90 : dy < 0 ? 180 : 270;
+  const found = tilePictureFor(
+    theme,
+    'iceSlide',
+    dx === 0 ? 1 : path.length,
+    dx === 0 ? path.length : 1,
+  );
+  if (!found) return null;
+  const { picture } = found;
+  const [pw, ph] = picture.cells;
+  if (Math.max(pw, ph) !== path.length) return null;
+  const cx = ((first[0] + last[0]) / 2 + 0.5) * size;
+  const cy = ((first[1] + last[1]) / 2 + 0.5) * size;
+  const box = tuned(cx, cy, pw * size, ph * size, size, picture);
+  const mx = box.x + box.width / 2;
+  const my = box.y + box.height / 2;
+  return (
+    <image
+      href={picture.href}
+      {...box}
+      preserveAspectRatio="none"
+      transform={angle ? `rotate(${angle} ${mx} ${my})` : undefined}
+      data-themed="tile"
+      data-tile-picture="iceSlide"
+    />
+  );
+}
+
+/** One end of an ice tunnel at square (x, y): the picture of its design, or null (the drawn look). */
+export function tunnelPiece(
+  theme: Theme,
+  design: number,
+  x: number,
+  y: number,
+  size: number,
+): ReactNode {
+  const key = String(design) as TunnelDesign;
+  const href = theme.tunnel?.[key];
+  if (!href) return null;
+  return (
+    <image
+      href={href}
+      {...tuned((x + 0.5) * size, (y + 0.5) * size, size, size, size, theme.tune?.tunnel?.[key])}
+      preserveAspectRatio="xMidYMid meet"
+      data-themed="tunnel"
+    />
+  );
+}
+
+/**
+ * A door in the outer wall of the board: the picture of its kind inside the square next to the wall,
+ * turned so its arrow points into the board for the entry and out of it for the exit. (dx, dy) points
+ * from outside into the board. Null for the drawn look.
+ */
+export function edgeDoorPiece(
+  theme: Theme,
+  kind: EdgeDoorSlot,
+  open: boolean,
+  cx: number,
+  cy: number,
+  dx: number,
+  dy: number,
+  size: number,
+): ReactNode {
+  const href = theme.edgeDoor?.[kind];
+  if (!href) return null;
+  // the pictures are drawn with the arrow pointing right
+  const ax = kind === 'ironEntry' ? dx : -dx;
+  const ay = kind === 'ironEntry' ? dy : -dy;
+  const angle = (Math.atan2(ay, ax) * 180) / Math.PI;
+  // the whole picture sits in the square next to the wall: half a square in from the wall line
+  const mx = cx + dx * size * 0.5;
+  const my = cy + dy * size * 0.5;
+  const box = tuned(mx, my, size, size, size, theme.tune?.edgeDoor?.[kind]);
+  return (
+    <image
+      href={href}
+      {...box}
+      preserveAspectRatio="xMidYMid meet"
+      transform={
+        angle ? `rotate(${angle} ${box.x + box.width / 2} ${box.y + box.height / 2})` : undefined
+      }
+      opacity={open ? 0.45 : 1}
+      data-themed="edge-door"
+    />
+  );
 }
 
 /**
