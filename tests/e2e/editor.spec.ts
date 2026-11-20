@@ -1327,7 +1327,12 @@ test.describe('editor: Frozen Horror features', () => {
     await newQuest(page);
     await tool(page, 'Tiles').click();
     await tool(page, 'Slippery ice').click();
-    await expect(page.getByTestId('tile-sizes').getByRole('button')).toHaveText(['2 x 1', '2 x 3']);
+    await expect(page.getByTestId('tile-sizes').getByRole('button')).toHaveText([
+      '1 x 1',
+      '2 x 1',
+      '3 x 1',
+      '3 x 2',
+    ]);
     await page.getByTestId('tile-sizes').getByRole('button', { name: '2 x 1' }).click();
     // the ghost shows the footprint before the click
     const at = await pointAt(page, 10, 13);

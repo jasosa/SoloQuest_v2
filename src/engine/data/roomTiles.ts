@@ -182,8 +182,10 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
     id: 'slipperyIce',
     shape: 'fixed',
     footprints: [
+      [1, 1],
       [2, 1],
-      [2, 3],
+      [3, 1],
+      [3, 2],
     ],
     name: 'Slippery ice',
     always: false,

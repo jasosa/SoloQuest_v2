@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BOARD_TILES, BOARD_TILE_TYPES, footprintText } from '../data/roomTiles';
 import { parseQuest } from '../quest/loader';
@@ -42,7 +44,7 @@ const good = (r: EditResult) => {
 
 describe('tile footprints in the data', () => {
   it('says what size every tile comes in', () => {
-    expect(footprintText(BOARD_TILES.slipperyIce)).toBe('2 x 1 or 2 x 3');
+    expect(footprintText(BOARD_TILES.slipperyIce)).toBe('1 x 1 or 2 x 1 or 3 x 1 or 3 x 2');
     expect(footprintText(BOARD_TILES.cage)).toBe('2 x 2');
     expect(footprintText(BOARD_TILES.iceCaveEntrance)).toBe('6 x 5');
     expect(footprintText(BOARD_TILES.icyRiver)).toBe('square by square');
@@ -51,28 +53,35 @@ describe('tile footprints in the data', () => {
 
   it('a tile can be laid turned', () => {
     expect(tileSizes('slipperyIce')).toEqual([
+      [1, 1],
       [2, 1],
       [1, 2],
-      [2, 3],
+      [3, 1],
+      [1, 3],
       [3, 2],
+      [2, 3],
     ]);
     expect(tileSizes('cage')).toEqual([[2, 2]]);
   });
 });
 
 describe('placing a board tile', () => {
-  it('slippery ice comes as 2 x 1 and 2 x 3, with the top left square on the tap', () => {
-    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 0 }));
+  it('slippery ice comes as 1 x 1, 2 x 1, 3 x 1 and 3 x 2, with the top left square on the tap', () => {
+    const one = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 0 }));
+    expect(one.boardTiles[0]!.cells).toEqual([[10, 13]]);
+    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1 }));
     expect(a.boardTiles[0]!.cells).toEqual([
       [10, 13],
       [11, 13],
     ]);
-    const b = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1 }));
-    expect(tileBox(b.boardTiles[0]!.cells)).toMatchObject({ w: 2, h: 3, full: true });
+    const three = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 2 }));
+    expect(tileBox(three.boardTiles[0]!.cells)).toMatchObject({ w: 3, h: 1, full: true });
+    const b = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 3 }));
+    expect(tileBox(b.boardTiles[0]!.cells)).toMatchObject({ w: 3, h: 2, full: true });
     const c = good(
-      placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1, turned: true }),
+      placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 3, turned: true }),
     );
-    expect(tileBox(c.boardTiles[0]!.cells)).toMatchObject({ w: 3, h: 2 });
+    expect(tileBox(c.boardTiles[0]!.cells)).toMatchObject({ w: 2, h: 3 });
     expect(tileCellsFor('cage', [6, 2], 0, true)).toHaveLength(4);
   });
 
@@ -101,7 +110,7 @@ describe('placing a board tile', () => {
   });
 
   it('turn and resize keep the top left square and respect the sizes', () => {
-    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 0 }));
+    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1 }));
     const turned = good(rotateBoardTile(a, 0));
     expect(tileBox(turned.boardTiles[0]!.cells)).toMatchObject({ x: 10, y: 13, w: 1, h: 2 });
     expect(resizeBoardTile(a, 0, [5, 5]).ok).toBe(false);
@@ -228,6 +237,25 @@ describe('door flags on every kind of door', () => {
   });
 });
 
+describe('the bundled quests have no tile of the wrong size', () => {
+  it('quest 1 (2 x 3), quest 5 (2 x 1) and the double quest 9 (3 x 1, 3 x 2, 2 x 1) are valid shapes', () => {
+    for (const f of [
+      'fh01-xanon-pass.json',
+      'fh05-the-deadly-depths.json',
+      'fh09-the-heart-of-ice.json',
+    ]) {
+      const quest = parseQuest(
+        JSON.parse(readFileSync(resolve(import.meta.dirname, '../../content/quests', f), 'utf8')),
+      );
+      const all = validateQuestIssues(quest, board).map((i) => i.message);
+      expect(
+        all.filter((m) => /comes as/.test(m)),
+        f,
+      ).toEqual([]);
+    }
+  });
+});
+
 describe('problems the validator reports for the new features', () => {
   const messages = (quest: ReturnType<typeof parseQuest>) =>
     validateQuestIssues(quest, board).map((i) => i.message);
@@ -266,7 +294,9 @@ describe('problems the validator reports for the new features', () => {
     const all = messages(bad).join(' | ');
     expect(all).toMatch(/board tile 2 \(icyRiver\) overlaps board tile 1/);
     expect(all).toMatch(/board tile 3 \(icyRiver\): cell 13,0 is in rock/);
-    expect(all).toMatch(/board tile 4 \(slipperyIce\): Slippery ice comes as 2 x 1 or 2 x 3/);
+    expect(all).toMatch(
+      /board tile 4 \(slipperyIce\): Slippery ice comes as 1 x 1 or 2 x 1 or 3 x 1 or 3 x 2/,
+    );
   });
 
   it('a blocking tile on the start room, and a tile issue jumps to the tile', () => {
