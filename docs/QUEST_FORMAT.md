@@ -240,3 +240,8 @@ One quest can have more than one map. The board fields at the top of the quest (
 ## Pack
 
 A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose manifest lists it (`PACKS.md`); a quest made in the editor is in no pack. `number` is 1 to 14 in the core book and may be 0 (a prelude).
+
+
+## Editing a double quest
+
+The editor shows one map at a time (a chip per map on the Map tab). Inside, the map on show is swapped into the top-level fields, so every single-map edit works on it, and the saved draft, undo and the exported file always keep map 1 on top. New ids skip the ids of the other maps. A new note about a letter, a square or a room names the map on show (`map`); a quest-wide note names none. The link tool refuses a link unless both ends are on stairs furniture of two different maps. Deleting a map also deletes the notes that name it and the links that end on it; a quest left with one map has no `maps`, `links`, `mapId` or note `map` any more.

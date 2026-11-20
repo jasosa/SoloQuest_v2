@@ -38,3 +38,16 @@ describe('what the manifests promise', () => {
       for (const id of p.manifest.quests) expect(levelOfId(id), id).toBeDefined();
   });
 });
+
+describe('the source of a bundled quest (what the editor copies)', () => {
+  it('a double quest keeps all its maps and links; the level shows map 1 only', () => {
+    const e = questEntries.find((q) => q.level?.quest.id === 'fh09-the-heart-of-ice');
+    expect(e?.source?.maps).toHaveLength(1);
+    expect(e?.source?.links).toHaveLength(1);
+    expect(e?.level?.quest.maps).toBeUndefined();
+  });
+  it('every entry with a level has its source', () => {
+    for (const e of questEntries.filter((q) => q.level))
+      expect(e.source?.id).toBe(e.level?.quest.id);
+  });
+});

@@ -4,6 +4,7 @@
  */
 import { buildLevel, type Level } from '../engine/board/level';
 import { parseQuest } from '../engine/quest/loader';
+import type { Quest } from '../engine/quest/schema';
 
 export const QUEST_COUNT = 14;
 
@@ -18,6 +19,11 @@ export interface QuestEntry {
   readonly slot: number;
   /** Undefined while the quest is not encoded. */
   readonly level: Level | undefined;
+  /**
+   * The quest as the file has it: all maps of a double quest and no enemy defaults filled in (the
+   * level's quest is the view of map 1). The editor copies this one.
+   */
+  readonly source?: Quest;
 }
 
 const files = import.meta.glob('../content/quests/*.json', {
@@ -26,28 +32,30 @@ const files = import.meta.glob('../content/quests/*.json', {
 }) as Record<string, unknown>;
 
 export function loadQuestEntries(data: Record<string, unknown> = files): QuestEntry[] {
-  const coreByNumber = new Map<number, Level>();
-  const others: { pack: string; level: Level }[] = [];
+  const coreByNumber = new Map<number, { level: Level; source: Quest }>();
+  const others: { pack: string; level: Level; source: Quest }[] = [];
   for (const raw of Object.values(data)) {
     const quest = parseQuest(raw);
-    if (quest.pack === undefined) coreByNumber.set(quest.number, buildLevel(quest));
-    else others.push({ pack: quest.pack, level: buildLevel(quest) });
+    if (quest.pack === undefined)
+      coreByNumber.set(quest.number, { level: buildLevel(quest), source: quest });
+    else others.push({ pack: quest.pack, level: buildLevel(quest), source: quest });
   }
   const core: QuestEntry[] = Array.from({ length: QUEST_COUNT }, (_, i) => ({
     number: i + 1,
     slot: i + 1,
-    level: coreByNumber.get(i + 1),
+    level: coreByNumber.get(i + 1)?.level,
+    ...(coreByNumber.has(i + 1) ? { source: coreByNumber.get(i + 1)!.source } : {}),
   }));
   const used = new Set(core.map((e) => e.slot));
   const packIds = [...new Set(others.map((o) => o.pack))].sort();
   const rest = others
     .sort((a, b) => a.pack.localeCompare(b.pack) || a.level.quest.number - b.level.quest.number)
-    .map(({ pack, level }): QuestEntry => {
+    .map(({ pack, level, source }): QuestEntry => {
       const number = level.quest.number;
       let slot = used.has(number) ? (packIds.indexOf(pack) + 1) * 100 + number : number;
       while (used.has(slot)) slot += 1000;
       used.add(slot);
-      return { number, slot, level };
+      return { number, slot, level, source };
     });
   return [...core, ...rest];
 }
