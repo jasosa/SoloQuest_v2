@@ -104,6 +104,7 @@ Source PDFs (owner's copy, read-only, outside the repo):
 - **Rules questions:** tag each as `[book]` (cite the page) or `[proposal]` (an edge case the book does not cover). Never present an invented rule as a game rule.
 - **Formatting:** Prettier covers code and data (`.prettierignore` skips `docs/`, `design/` and `*.md`). The edit hook formats each file you write, and `verify` fails on unformatted files, so run `npx prettier --write <file>` on what you touched, never on whole folders.
 - **Tests must not get weaker:** do not loosen an assertion to make a test pass (no `>= 1` for an exact count, no `.skip` or `.only`). `verify` flags these; a deliberate one needs `// verify-ok` with the reason.
+- **App texts: no AI slop.** Texts the app shows (labels, messages, quest notes, settings, errors) are plain, short and concrete. No filler openers, hype words, cheerful padding or vague reassurance. One plain sentence, or a label, in the words the game uses. Cut every word that carries no information.
 - **Review by size:** see `/ship`. Engine, schema or large changes get the `reviewer` agent; docs-only changes do not.
 
 ## Domain gotchas
