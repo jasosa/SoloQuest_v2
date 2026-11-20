@@ -967,14 +967,14 @@ export function EditorBoard({
   // With the Select tool a tap on one opens the Notes tab (its own hit square, 44 units, 18 in the corner of a piece).
   const letterMarks: ReactNode[] = [];
   const tappable = tool === 'select' && !picking;
-  for (const l of editorLetters(quest)) {
+  for (const [li, l] of editorLetters(quest).entries()) {
     // A letter on its furniture or marker sits in the corner, so the piece can still be tapped.
     const cx = (l.at[0] + 0.5) * U + (l.onThing ? 11 : 0);
     const cy = (l.at[1] + 0.5) * U - (l.onThing ? 11 : 0);
     const missing = l.note === undefined;
     letterMarks.push(
       <g
-        key={`lt${l.letter}`}
+        key={`lt${li}${l.letter}`}
         data-letter={l.letter}
         data-note={l.note}
         data-missing={missing ? 'true' : undefined}
@@ -1111,10 +1111,11 @@ export function EditorBoard({
       <line x1={0} y1={0} x2={0} y2={6} stroke={color.ink} strokeWidth={2} />
     </pattern>
   );
+  let ghostSeq = 0; // one key per ghost square: two ghosts can cover the same square
   const ghostCells = (cs: readonly Cell[], valid: boolean) =>
     cs.map((c) => (
       <rect
-        key={`g${c[0]},${c[1]}`}
+        key={`g${ghostSeq++}`}
         x={c[0] * U + 1}
         y={c[1] * U + 1}
         width={U - 2}
