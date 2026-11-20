@@ -46,6 +46,8 @@ describe('the installed packs', () => {
     });
     expect(levelOfId('fh01-xanon-pass')?.quest.team).toEqual({ solo: true, only: ['barbarian'] });
     expect(levelOfId('fh04-the-glacial-gate')?.quest.team).toBeUndefined();
+    // monsters ignore Gothar in the rescue (decision 39)
+    expect(levelOfId('fh03-the-rescue')?.quest.excludeTargets).toEqual(['gothar']);
   });
   it('refuses a quest that no pack lists', () => {
     const quest = Object.values(

@@ -649,6 +649,8 @@ export const QuestSchema = z.strictObject({
       grantsAlly: id.optional(),
     })
     .optional(),
+  /** NPC ids that Zargon's monsters ignore: they are left out of the tie list (decision 39). */
+  excludeTargets: z.array(id).optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */

@@ -223,3 +223,55 @@ describe('the free team list (decision 38)', () => {
     expect(ordersFor(l, s, [brute]).map((o) => o.rule)).toEqual(['closest']);
   });
 });
+
+describe('NPCs as targets (decision 39)', () => {
+  const npc = {
+    id: 'n1',
+    name: 'Sir Test',
+    cell: [2, 16],
+    defend: 2,
+    body: 3,
+    text: 'An escort.',
+  };
+  const withNpc = (patch: Record<string, unknown> = {}) =>
+    buildLevel(testQuest({ npcs: [npc], ...patch }));
+  const opened = [open('d1'), open('d2')];
+  const tieOf = (l: ReturnType<typeof withNpc>, events: GameEvent[], seed = SEED) =>
+    ordersFor(l, replay(l, seed, events), TEAM)[0]!;
+
+  it('an NPC whose square is seen is in the tie list, with its name', () => {
+    const l = withNpc();
+    const o = tieOf(l, opened);
+    expect(o.tie).toContain('npc:n1');
+    expect(o.tieNames[o.tie.indexOf('npc:n1')]).toBe('Sir Test');
+    expect(o.tie).toHaveLength(5);
+  });
+
+  it('an NPC that is not in play yet is not in the list', () => {
+    const l = withNpc({ npcs: [{ ...npc, cell: [20, 2] }] });
+    expect(tieOf(l, opened).tie).not.toContain('npc:n1');
+  });
+
+  it('a quest can exclude an NPC: it is never in a tie list', () => {
+    const l = withNpc({ excludeTargets: ['n1'] });
+    for (let seed = 1; seed <= 20; seed++)
+      expect(tieOf(l, opened, seed).tie).toEqual(expect.not.arrayContaining(['npc:n1']));
+  });
+
+  it('the team is all still in the list when an NPC is added to the quest', () => {
+    const plain = tieOf(buildLevel(testQuest()), opened).tie;
+    const l = withNpc();
+    const withIt = tieOf(l, opened).tie.filter((t) => t !== 'npc:n1');
+    expect(plain.length).toBe(4);
+    expect(withIt.length).toBe(4);
+    expect(new Set(withIt)).toEqual(new Set(plain));
+  });
+
+  it('a grudge and the caster rule never name an NPC', () => {
+    const l = withNpc();
+    for (let seed = 1; seed <= 60; seed++) {
+      const o = tieOf(l, opened, seed);
+      if (o.grudgeHero) expect(o.grudgeHero.startsWith('npc:')).toBe(false);
+    }
+  });
+});

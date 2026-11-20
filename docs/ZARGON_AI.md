@@ -11,7 +11,7 @@ How players use it: the monster goes for the first hero that fits the rule **and
 ## Targets (decisions 38, 39)
 
 - The team is a free list of named entries: heroes, mercenaries (named with their owner, "Scout (Dwarf)") and animal allies ("Snowdasher (Elf)"). NPCs (decision 27, e.g. Sir Ragnar) are targets too. All of them are in the tie list.
-- A quest can exclude a target (Frozen Horror Q3: Gothar is never a target).
+- A quest can exclude a target (`excludeTargets`, a list of NPC ids; Frozen Horror Q3: Gothar is never a target). An NPC is in the tie list only once it is in play (its square was seen, or a note brought it in). The shuffle covers the team and the quest's NPCs that are not excluded, so an NPC that appears later does not move the others.
 - `caster`, `grudge` and Gremlin theft pick heroes only. The other rules can name any target ("the one with the fewest defend dice").
 - `HERO_DIED` works for any team entry: a dead mercenary or ally leaves the tie list like a dead hero.
 

@@ -16,6 +16,7 @@ import {
 } from '../data/team';
 import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
+import { npcsInPlay } from '../game/noteView';
 import type { MonsterDef, MonsterType } from '../quest/schema';
 import { next } from '../game/rng';
 import { wandererDef } from '../game/roster';
@@ -350,10 +351,16 @@ function buildOrder(
   const rule = drawRule(caps, living, grudgeOk, seed, turn, id);
   const grudge = rule === 'grudge' ? grudgeHeroOfMonster : undefined;
   const grudgeName = grudge ? nameOf(grudge) : undefined;
+  // The team and the NPCs of the quest that are not excluded (decision 39). The shuffle is of the fixed
+  // list, so an NPC that appears later does not move the others; one that is not in play is dropped.
+  const excluded = level.quest.excludeTargets ?? [];
+  const npcs = level.quest.npcs.filter((n) => !excluded.includes(n.id));
+  const npcsHere = new Set(npcsInPlay(level, state).map((n) => `npc:${n.id}`));
+  const npcNames = new Map(npcs.map((n) => [`npc:${n.id}`, n.name]));
   const tie = shuffled(
-    full.map((m) => m.id),
+    [...full.map((m) => m.id), ...npcs.map((n) => `npc:${n.id}`)],
     rngFor(seed, turn, id, 'tie'),
-  ).filter((m) => alive.some((a) => a.id === m));
+  ).filter((m) => (npcNames.has(m) ? npcsHere.has(m) : alive.some((a) => a.id === m)));
   const order: Order = {
     ...base,
     status: fresh ? 'fresh' : 'act',
@@ -363,7 +370,7 @@ function buildOrder(
     ...(grudge ? { grudgeHero: grudge, grudgeName: grudgeName! } : {}),
     // The shuffle is of the full team, so the relative order stays the same after a death.
     tie,
-    tieNames: tie.map(nameOf),
+    tieNames: tie.map((m) => npcNames.get(m) ?? nameOf(m)),
     plan: planOf(profile, seed, turn, id, def?.attacks ?? 1, caps, living, grudgeOk),
     ...(fresh || noTargetText(rule, grudgeName) === undefined
       ? {}
