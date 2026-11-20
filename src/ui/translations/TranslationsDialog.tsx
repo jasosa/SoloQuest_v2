@@ -4,6 +4,7 @@ import {
   LANGUAGE_EXTENSION,
   LANGUAGE_MAX_BYTES,
   copyOfEnglish,
+  englishEditsFile,
   languageToText,
   parseLanguageFile,
 } from '../../i18n/file';
@@ -51,12 +52,22 @@ export function TranslationsDialog({
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: '', code: '', author: '' });
   const [englishTexts, setEnglishTexts] = useState<Record<string, string>>({});
+  /** The built-in English (never changed), the texts the user changed in it, and the two together. */
+  const [builtin, setBuiltin] = useState<Record<string, string>>({});
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [resetting, setResetting] = useState(false);
+  /** Something that shows only after the page loads again was changed. */
+  const [pending, setPending] = useState(false);
   const [done, setDone] = useState<Record<string, number>>({});
   const input = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     const list = await store.list();
-    const eng = await english();
+    const base = await english();
+    const own = (await store.load(ENGLISH_CODE))?.strings ?? {};
+    const eng = { ...base, ...own };
+    setBuiltin(base);
+    setEdits(own);
     setLanguages(list);
     setActive(await store.getActive());
     setEnglishTexts(eng);
@@ -78,6 +89,7 @@ export function TranslationsDialog({
   }, [refresh]);
 
   const total = Object.keys(englishTexts).length;
+  const editedCount = Object.keys(edits).length;
 
   const choose = async (code: string | null) => {
     await store.setActive(code);
@@ -96,15 +108,24 @@ export function TranslationsDialog({
       setMessage({ text: r.message, bad: true });
       return;
     }
+    const isEnglish = r.file.language.code === ENGLISH_CODE;
     const replaced = languages.some((l) => l.code === r.file.language.code);
     try {
-      await store.save(r.file);
+      // a file of English texts is merged into the edited English: English is never replaced or deleted
+      await store.save(
+        isEnglish ? englishEditsFile(builtin, { ...edits, ...r.file.strings }) : r.file,
+      );
     } catch {
       setMessage({ text: 'The translation could not be stored on this device.', bad: true });
       return;
     }
+    if (isEnglish || active === r.file.language.code) setPending(true);
     setMessage({
-      text: `${replaced ? 'Updated' : 'Added'} ${r.file.language.name}.`,
+      text: isEnglish
+        ? t('translations.mergedEnglish', 'Merged {count} texts into English.', {
+            count: Object.keys(r.file.strings).length,
+          })
+        : `${replaced ? 'Updated' : 'Added'} ${r.file.language.name}.`,
       bad: false,
     });
     await refresh();
@@ -132,13 +153,18 @@ export function TranslationsDialog({
     setEditing(code);
   };
 
+  /** Closing after a change that shows only on the next load reloads the page. */
+  const close = () => (pending ? reload() : onClose());
+
   if (editing)
     return (
       <TranslationEditor
         store={store}
         code={editing}
         english={englishTexts}
-        onBack={() => {
+        builtin={builtin}
+        onBack={(saved) => {
+          if (saved && (editing === ENGLISH_CODE || editing === active)) return reload();
           setEditing(null);
           void refresh();
         }}
@@ -149,7 +175,7 @@ export function TranslationsDialog({
     <Dialog
       title={t('translations.translations', 'Translations')}
       wide
-      onClose={onClose}
+      onClose={close}
       foot={
         <>
           <button className="btn alt" onClick={() => setCreating(true)}>
@@ -158,7 +184,7 @@ export function TranslationsDialog({
           <button className="btn alt" onClick={() => input.current?.click()}>
             {t('translations.importAFile', 'Import a file')}
           </button>
-          <button className="btn" onClick={onClose}>
+          <button className="btn" onClick={close}>
             {t('translations.close', 'Close')}
           </button>
         </>
@@ -239,9 +265,9 @@ export function TranslationsDialog({
           <div className="fr-open-static">
             <span className="fr-qnum">
               {t(
-                'translations.builtInSuppliedBy',
-                'Built in · Supplied by the app · {total} texts',
-                { total },
+                'translations.builtInEnglish',
+                'Built in · Can be changed, never deleted · {total} texts · {edited} changed',
+                { total, edited: editedCount },
               )}
             </span>
             <span className="fr-qtitle">{t('translations.english', 'English')}</span>
@@ -251,6 +277,45 @@ export function TranslationsDialog({
           ) : (
             <button className="chip" onClick={() => void choose(null)}>
               {t('translations.useEnglish', 'Use English')}
+            </button>
+          )}
+          <button className="chip" onClick={() => setEditing(ENGLISH_CODE)}>
+            {t('translations.edit', 'Edit')}
+          </button>
+          <button
+            className="chip"
+            onClick={() =>
+              download(
+                `${ENGLISH_CODE}${LANGUAGE_EXTENSION}`,
+                languageToText(englishEditsFile(builtin, edits)),
+              )
+            }
+          >
+            {t('translations.export', 'Export')}
+          </button>
+          {resetting ? (
+            <button
+              className="chip main"
+              onClick={async () => {
+                await store.save(englishEditsFile(builtin, {}));
+                setResetting(false);
+                setPending(true);
+                setMessage({
+                  text: t('translations.resetDone', 'English is back to the original texts.'),
+                  bad: false,
+                });
+                await refresh();
+              }}
+            >
+              {t('translations.reallyReset', 'Really reset all')}
+            </button>
+          ) : (
+            <button
+              className="chip"
+              disabled={editedCount === 0}
+              onClick={() => setResetting(true)}
+            >
+              {t('translations.resetAll', 'Reset all to the original')}
             </button>
           )}
         </li>

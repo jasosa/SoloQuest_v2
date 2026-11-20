@@ -8,6 +8,8 @@ import {
   baseOf,
   compare,
   copyOfEnglish,
+  effectiveStrings,
+  englishEditsFile,
   languageToText,
   parseLanguageFile,
   placeholderProblem,
@@ -202,9 +204,6 @@ describe('language file', () => {
       /language code/,
     );
     expect(bad(JSON.stringify({ ...good, strings: { a: 3 } }))).toMatch(/\S/);
-    expect(bad(JSON.stringify({ ...good, language: { name: 'English', code: 'en' } }))).toMatch(
-      /supplied by the app/,
-    );
     expect(bad('x'.repeat(6 * 1024 * 1024))).toMatch(/too big/);
   });
   it('compares with English: extra, missing and untouched keys', () => {
@@ -222,6 +221,33 @@ describe('language file', () => {
   it('the base changes when the English changes', () => {
     expect(baseOf({ a: '1' })).not.toBe(baseOf({ a: '2' }));
     expect(baseOf({ a: '1', b: '2' })).toBe(baseOf({ b: '2', a: '1' }));
+  });
+});
+
+describe('edited English', () => {
+  const builtin = { 'a.one': 'One', 'a.two': 'Two {n}' };
+  it('keeps only the texts that differ from the built-in English, under the code en', () => {
+    const f = englishEditsFile(builtin, { 'a.one': 'First', 'a.two': 'Two {n}', 'a.x': '' });
+    expect(f.language.code).toBe('en');
+    expect(f.language.name).toBe('English (edited)');
+    expect(f.strings).toEqual({ 'a.one': 'First' });
+    expect(englishEditsFile(builtin, {}).strings).toEqual({});
+  });
+  it('is a file the importer accepts', () => {
+    const f = englishEditsFile(builtin, { 'a.one': 'First' });
+    expect(parseLanguageFile(languageToText(f))).toEqual({ ok: true, file: f });
+  });
+  it('falls back from the language, to the edited English, to the built-in English', () => {
+    const strings = effectiveStrings(
+      { 'a.one': 'First', 'a.two': 'Two!' },
+      { 'a.two': 'Dos', 'a.x': '' },
+    );
+    setActiveStrings(strings);
+    expect(tr('a.two', 'Two {n}')).toBe('Dos');
+    expect(tr('a.one', 'One')).toBe('First');
+    expect(tr('a.three', 'Three')).toBe('Three');
+    setActiveStrings({});
+    expect(effectiveStrings(undefined, undefined)).toEqual({});
   });
 });
 

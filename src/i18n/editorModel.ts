@@ -43,7 +43,7 @@ export function progressByArea(english: Texts, strings: Texts): AreaProgress[] {
   return areasOf(english).map((area) => ({ area, ...rows.get(area)! }));
 }
 
-export type RowFilter = 'all' | 'todo' | 'problems';
+export type RowFilter = 'all' | 'todo' | 'done' | 'problems';
 
 export interface RowQuery {
   readonly area: string;
@@ -57,6 +57,7 @@ export function rowsFor(english: Texts, strings: Texts, q: RowQuery): string[] {
   return Object.keys(english).filter((key) => {
     if (q.area !== AREA_ALL && areaOf(key) !== q.area) return false;
     if (q.filter === 'todo' && isTranslated(english, strings, key)) return false;
+    if (q.filter === 'done' && !isTranslated(english, strings, key)) return false;
     if (q.filter === 'problems' && !placeholderProblem(english[key]!, strings[key] ?? ''))
       return false;
     if (!needle) return true;

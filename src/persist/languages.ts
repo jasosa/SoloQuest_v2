@@ -3,8 +3,9 @@ import { ENGLISH_CODE, type LanguageFile } from '../i18n/file';
 
 /**
  * Translations kept on this device (decision 92): the files the user made or imported, in IndexedDB,
- * and the code of the one in use. English is supplied by the app and is never stored here: it
- * cannot be saved over, removed or chosen as a stored language.
+ * and the code of the one in use. English is supplied by the app and is built in. The texts the user
+ * changed in English are kept here too, as a file with the code `en` that holds only those texts:
+ * it can be saved (edited, reset, merged) but never removed, and it is not in `list()`.
  */
 
 export interface LanguageSummary {
@@ -19,19 +20,21 @@ export interface LanguageSummary {
 export interface LanguageStore {
   list(): Promise<LanguageSummary[]>;
   load(code: string): Promise<LanguageFile | undefined>;
-  /** Adds the language, or replaces the one with the same code. English is refused. */
+  /** Adds the language, or replaces the one with the same code. Code `en`: the edited English. */
   save(file: LanguageFile): Promise<void>;
-  /** English cannot be removed: it is refused. */
+  /** Removes a language. English (`en`) can never be removed: it is refused. */
   remove(code: string): Promise<void>;
+  /** Is there a file of edited English texts? Quick: read at every start. */
+  englishEdited(): Promise<boolean>;
   /** The code of the language in use, or null for English. */
   getActive(): Promise<string | null>;
   setActive(code: string | null): Promise<void>;
 }
 
-export class EnglishIsFixedError extends Error {
+export class EnglishCannotBeDeletedError extends Error {
   constructor() {
-    super('The English file is supplied by the app and cannot be changed or deleted.');
-    this.name = 'EnglishIsFixedError';
+    super('The English file can be changed but never deleted.');
+    this.name = 'EnglishCannotBeDeletedError';
   }
 }
 
@@ -46,20 +49,25 @@ export function summaryOfLanguage(file: LanguageFile): LanguageSummary {
 }
 
 const refuseEnglish = (code: string) => {
-  if (code === ENGLISH_CODE) throw new EnglishIsFixedError();
+  if (code === ENGLISH_CODE) throw new EnglishCannotBeDeletedError();
 };
+const hasTexts = (f: LanguageFile | undefined) => !!f && Object.keys(f.strings).length > 0;
 
 export class MemoryLanguageStore implements LanguageStore {
   private files = new Map<string, LanguageFile>();
   private active: string | null = null;
   async list() {
-    return [...this.files.values()].map(summaryOfLanguage);
+    return [...this.files.values()]
+      .filter((f) => f.language.code !== ENGLISH_CODE)
+      .map(summaryOfLanguage);
+  }
+  async englishEdited() {
+    return hasTexts(this.files.get(ENGLISH_CODE));
   }
   async load(code: string) {
     return this.files.get(code);
   }
   async save(file: LanguageFile) {
-    refuseEnglish(file.language.code);
     this.files.set(file.language.code, file);
   }
   async remove(code: string) {
@@ -90,6 +98,7 @@ class LanguageDb extends Dexie {
 }
 
 const ACTIVE_KEY = 'soloquest-active-language';
+const EDITED_KEY = 'soloquest-english-edited';
 
 export class DexieLanguageStore implements LanguageStore {
   private db: LanguageDb;
@@ -98,7 +107,9 @@ export class DexieLanguageStore implements LanguageStore {
   }
   async list() {
     try {
-      return (await this.db.languages.toArray()).map((r) => summaryOfLanguage(r.file));
+      return (await this.db.languages.toArray())
+        .filter((r) => r.code !== ENGLISH_CODE)
+        .map((r) => summaryOfLanguage(r.file));
     } catch {
       return [];
     }
@@ -111,12 +122,26 @@ export class DexieLanguageStore implements LanguageStore {
     }
   }
   async save(file: LanguageFile) {
-    refuseEnglish(file.language.code);
     await this.db.languages.put({
       code: file.language.code,
       updatedAt: Date.now(),
       file,
     });
+    if (file.language.code === ENGLISH_CODE) {
+      try {
+        if (hasTexts(file)) localStorage.setItem(EDITED_KEY, '1');
+        else localStorage.removeItem(EDITED_KEY);
+      } catch {
+        /* the edited English is read from the database at the next start only if this flag is set */
+      }
+    }
+  }
+  async englishEdited() {
+    try {
+      return localStorage.getItem(EDITED_KEY) === '1';
+    } catch {
+      return false;
+    }
   }
   async remove(code: string) {
     refuseEnglish(code);

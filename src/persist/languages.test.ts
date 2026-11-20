@@ -1,9 +1,9 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
-import { copyOfEnglish } from '../i18n/file';
+import { copyOfEnglish, englishEditsFile } from '../i18n/file';
 import {
   DexieLanguageStore,
-  EnglishIsFixedError,
+  EnglishCannotBeDeletedError,
   MemoryLanguageStore,
   type LanguageStore,
 } from './languages';
@@ -49,14 +49,23 @@ function suite(name: string, make: () => LanguageStore) {
       await s.remove('es');
       expect(await s.getActive()).toBeNull();
     });
-    it('can never save over, remove or choose English', async () => {
+    it('keeps edited English as a file that can change but never be deleted', async () => {
       const s = make();
-      const fake = { ...es, language: { name: 'English', code: 'en' } };
-      await expect(s.save(fake)).rejects.toBeInstanceOf(EnglishIsFixedError);
-      await expect(s.remove('en')).rejects.toBeInstanceOf(EnglishIsFixedError);
+      expect(await s.englishEdited()).toBe(false);
+      await s.save(englishEditsFile(english, { 'a.one': 'First' }));
+      expect(await s.englishEdited()).toBe(true);
+      expect((await s.load('en'))?.strings).toEqual({ 'a.one': 'First' });
+      // it is not one of the languages of the list
+      expect(await s.list()).toEqual([]);
+      await expect(s.remove('en')).rejects.toBeInstanceOf(EnglishCannotBeDeletedError);
+      expect((await s.load('en'))?.strings).toEqual({ 'a.one': 'First' });
+      // resetting everything is a save of no edits
+      await s.save(englishEditsFile(english, {}));
+      expect(await s.englishEdited()).toBe(false);
+      expect(await s.load('en')).toBeDefined();
+      // English is never the language in use as a stored language
       await s.setActive('en');
       expect(await s.getActive()).toBeNull();
-      expect(await s.list()).toEqual([]);
     });
   });
 }

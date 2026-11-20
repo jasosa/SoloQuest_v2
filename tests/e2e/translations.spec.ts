@@ -14,9 +14,9 @@ test.describe('translations (decision 92)', () => {
     // English is built in and has no edit, export or delete
     const en = dlg.locator('[data-language="en"]');
     await expect(en).toContainText('Built in');
+    await expect(en).toContainText('never deleted');
     await expect(en).toContainText('In use');
     await expect(en.getByRole('button', { name: 'Delete' })).toHaveCount(0);
-    await expect(en.getByRole('button', { name: 'Edit' })).toHaveCount(0);
 
     // a new language is a copy of English
     await dlg.getByRole('button', { name: 'New language' }).click();
@@ -93,18 +93,23 @@ test.describe('translations (decision 92)', () => {
     await expect(again.locator('[data-language="es"]')).toContainText('Espanol');
     await expect(again).toContainText('Added Espanol');
 
-    // English can be neither imported over nor deleted
+    // a file of English texts is merged into English; English is never replaced or deleted
     await again.getByLabel('Translation file').setInputFiles({
       name: 'en.json',
       mimeType: 'application/json',
       buffer: Buffer.from(
-        JSON.stringify({ ...exported, language: { name: 'English', code: 'en' } }),
+        JSON.stringify({
+          ...exported,
+          language: { name: 'English (edited)', code: 'en' },
+          strings: { 'select.chooseAQuest': 'Pick one' },
+        }),
       ),
     });
-    await expect(again.getByRole('alert')).toContainText('supplied by the app');
+    await expect(again).toContainText('Merged 1 texts into English');
     await expect(
       again.locator('[data-language="en"]').getByRole('button', { name: 'Delete' }),
     ).toHaveCount(0);
+    await expect(again.locator('[data-language="en"]')).toContainText('1 changed');
 
     // a broken file gives a friendly message
     await again.getByLabel('Translation file').setInputFiles({
@@ -113,5 +118,79 @@ test.describe('translations (decision 92)', () => {
       buffer: Buffer.from('not json'),
     });
     await expect(again.getByRole('alert')).toContainText('not valid JSON');
+  });
+
+  test('English can be changed and reset, never deleted', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('translations-link').click();
+    const dlg = page.getByRole('dialog', { name: 'Translations' });
+    const en = dlg.locator('[data-language="en"]');
+    await expect(en).toContainText('never deleted');
+    await expect(en.getByRole('button', { name: 'Delete' })).toHaveCount(0);
+
+    // change a text of English
+    await en.getByRole('button', { name: 'Edit' }).click();
+    const editor = page.getByRole('dialog', { name: 'Edit English' });
+    await editor.getByRole('searchbox').fill('select.chooseAQuest');
+    const field = editor.getByLabel('Translation of select.chooseAQuest');
+    await expect(field).toHaveValue('Choose a quest');
+    await field.fill('Pick a quest');
+    await expect(editor.locator('[data-key="select.chooseAQuest"]')).toContainText('Changed');
+    await editor.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(editor).toContainText('Saved.');
+    await Promise.all([
+      page.waitForNavigation(),
+      editor.getByRole('button', { name: 'Back to the list' }).click(),
+    ]);
+    await expect(page.getByRole('heading', { name: 'Pick a quest' })).toBeVisible();
+
+    // a language made now starts from the changed English, and falls back to it
+    await page.getByTestId('translations-link').click();
+    const again = page.getByRole('dialog', { name: 'Translations' });
+    await expect(again.locator('[data-language="en"]')).toContainText('1 changed');
+
+    // reset one text, then everything
+    await again.locator('[data-language="en"]').getByRole('button', { name: 'Edit' }).click();
+    const ed2 = page.getByRole('dialog', { name: 'Edit English' });
+    await ed2.getByRole('searchbox').fill('select.chooseAQuest');
+    await ed2.getByRole('button', { name: 'Reset select.chooseAQuest' }).click();
+    await expect(ed2.getByLabel('Translation of select.chooseAQuest')).toHaveValue(
+      'Choose a quest',
+    );
+    await ed2.getByRole('button', { name: 'Save', exact: true }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      ed2.getByRole('button', { name: 'Back to the list' }).click(),
+    ]);
+    await expect(page.getByRole('heading', { name: 'Choose a quest' })).toBeVisible();
+
+    // reset all to the original
+    await page.getByTestId('translations-link').click();
+    const d3 = page.getByRole('dialog', { name: 'Translations' });
+    const en3 = d3.locator('[data-language="en"]');
+    await expect(en3.getByRole('button', { name: 'Reset all to the original' })).toBeDisabled();
+    await en3.getByRole('button', { name: 'Edit' }).click();
+    const ed3 = page.getByRole('dialog', { name: 'Edit English' });
+    await ed3.getByRole('searchbox').fill('select.newGame');
+    await ed3.getByLabel('Translation of select.newGame').fill('Begin');
+    await ed3.getByRole('button', { name: 'Save', exact: true }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      ed3.getByRole('button', { name: 'Back to the list' }).click(),
+    ]);
+    await page.getByTestId('translations-link').click();
+    const d4 = page.getByRole('dialog', { name: 'Translations' });
+    await d4.getByRole('button', { name: 'Reset all to the original' }).click();
+    await Promise.all([
+      page.waitForNavigation(),
+      d4
+        .getByRole('button', { name: 'Really reset all' })
+        .click()
+        .then(() => d4.getByRole('button', { name: 'Close' }).click()),
+    ]);
+    await page.getByTestId('translations-link').click();
+    await expect(
+      page.getByRole('dialog', { name: 'Translations' }).locator('[data-language="en"]'),
+    ).toContainText('0 changed');
   });
 });

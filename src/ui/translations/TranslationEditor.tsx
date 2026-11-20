@@ -9,7 +9,14 @@ import {
   rowsFor,
   type RowFilter,
 } from '../../i18n/editorModel';
-import { baseOf, compare, placeholderProblem, type LanguageFile } from '../../i18n/file';
+import {
+  ENGLISH_CODE,
+  baseOf,
+  compare,
+  englishEditsFile,
+  placeholderProblem,
+  type LanguageFile,
+} from '../../i18n/file';
 import type { LanguageStore } from '../../persist/languages';
 import { t } from '../../i18n/t';
 import { Dialog } from '../shared/Frame';
@@ -20,14 +27,23 @@ const PAGE = 50;
 export function TranslationEditor({
   store,
   code,
-  english,
+  english: effective,
+  builtin,
   onBack,
 }: {
   store: LanguageStore;
   code: string;
+  /** English with the user's changes: what a copy of English starts from. */
   english: Readonly<Record<string, string>>;
-  onBack(): void;
+  /** The built-in English, which the editor of English changes by an overlay and never overwrites. */
+  builtin: Readonly<Record<string, string>>;
+  /** `saved`: something was saved, so the page may need to load again. */
+  onBack(saved: boolean): void;
 }) {
+  const isEnglish = code === ENGLISH_CODE;
+  /** The texts the rows are compared with: the built-in English when editing English itself. */
+  const english = isEnglish ? builtin : effective;
+  const [everSaved, setEverSaved] = useState(false);
   const [file, setFile] = useState<LanguageFile | null>(null);
   const [strings, setStrings] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
@@ -39,7 +55,8 @@ export function TranslationEditor({
 
   useEffect(() => {
     let live = true;
-    void store.load(code).then((f) => {
+    void store.load(code).then((loaded) => {
+      const f = loaded ?? (code === ENGLISH_CODE ? englishEditsFile(builtin, {}) : undefined);
       if (!live || !f) return;
       setFile(f);
       setStrings(f.strings);
@@ -47,7 +64,7 @@ export function TranslationEditor({
     return () => {
       live = false;
     };
-  }, [store, code]);
+  }, [store, code, builtin]);
 
   const areas = useMemo(() => areasOf(english), [english]);
   const progress = useMemo(() => progressByArea(english, strings), [english, strings]);
@@ -61,15 +78,23 @@ export function TranslationEditor({
   if (!file) return null;
 
   const change = (key: string, text: string) => {
-    setStrings((s) => ({ ...s, [key]: text }));
+    setStrings((s) => {
+      const next = { ...s, [key]: text };
+      // English keeps only the texts that differ from the built-in ones
+      if (isEnglish && (text === '' || text === builtin[key])) delete next[key];
+      return next;
+    });
     setDirty(true);
     setSaved(null);
   };
   const save = async () => {
-    const next: LanguageFile = { ...file, base: currentBase, strings };
+    const next: LanguageFile = isEnglish
+      ? englishEditsFile(builtin, strings)
+      : { ...file, base: currentBase, strings };
     await store.save(next);
     setFile(next);
     setDirty(false);
+    setEverSaved(true);
     setSaved(t('translations.saved', 'Saved.'));
   };
   const areaName = (a: string) =>
@@ -78,19 +103,24 @@ export function TranslationEditor({
       : a === 'library'
         ? t('translations.library', 'Library')
         : (english[`quest:${a}:title`] ?? a);
-  const olderBase = file.base !== currentBase || diff.extra.length > 0 || diff.missing.length > 0;
+  const olderBase =
+    !isEnglish && (file.base !== currentBase || diff.extra.length > 0 || diff.missing.length > 0);
 
   return (
     <Dialog
-      title={t('translations.translate', 'Translate {name}', { name: file.language.name })}
+      title={
+        isEnglish
+          ? t('translations.editEnglish', 'Edit English')
+          : t('translations.translate', 'Translate {name}', { name: file.language.name })
+      }
       wide
-      onClose={onBack}
+      onClose={() => onBack(everSaved)}
       foot={
         <>
           <button className="btn" disabled={!dirty} onClick={() => void save()}>
             {t('translations.save', 'Save')}
           </button>
-          <button className="btn alt" onClick={onBack}>
+          <button className="btn alt" onClick={() => onBack(everSaved)}>
             {t('translations.backToTheList', 'Back to the list')}
           </button>
         </>
@@ -173,7 +203,13 @@ export function TranslationEditor({
             }}
           >
             <option value="all">{t('translations.all', 'All')}</option>
-            <option value="todo">{t('translations.notTranslatedYet', 'Not translated yet')}</option>
+            {isEnglish ? (
+              <option value="done">{t('translations.changedOnly', 'Changed')}</option>
+            ) : (
+              <option value="todo">
+                {t('translations.notTranslatedYet', 'Not translated yet')}
+              </option>
+            )}
             <option value="problems">{t('translations.problems', 'Problems')}</option>
           </select>
         </label>
@@ -204,19 +240,30 @@ export function TranslationEditor({
       </p>
       <ul className="fr-recent" data-testid="translation-rows">
         {keys.slice(0, shown).map((key) => {
-          const own = strings[key] ?? '';
+          const own = isEnglish ? (strings[key] ?? builtin[key]!) : (strings[key] ?? '');
           const problem = placeholderProblem(english[key]!, own);
+          const changed = isTranslated(english, strings, key);
           return (
             <li key={key} data-key={key} style={{ display: 'block' }}>
               <div className="fr-qnum">
                 {key}
-                {!isTranslated(english, strings, key) &&
-                  t('translations.notTranslated', ' · Not translated')}
+                {isEnglish
+                  ? changed && t('translations.changedTag', ' · Changed')
+                  : !changed && t('translations.notTranslated', ' · Not translated')}
                 {problem && t('translations.check', ' · Check: {problem}', { problem })}
               </div>
               <div className="fr-open-static" style={{ background: 'var(--paper-2)' }}>
                 {english[key]}
               </div>
+              {isEnglish && changed && (
+                <button
+                  className="chip"
+                  aria-label={t('translations.resetKey', 'Reset {key}', { key })}
+                  onClick={() => change(key, '')}
+                >
+                  {t('translations.reset', 'Reset')}
+                </button>
+              )}
               <textarea
                 className="fr-ta"
                 aria-label={t('translations.translationOf', 'Translation of {key}', { key })}

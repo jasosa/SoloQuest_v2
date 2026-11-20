@@ -6,6 +6,7 @@
  */
 import { DexieLanguageStore, MemoryLanguageStore, type LanguageStore } from '../persist/languages';
 import { applyDataStrings, dataStrings } from './dataText';
+import { effectiveStrings } from './file';
 import { setActiveStrings, activeStrings } from './translate';
 import { translateQuest } from './questText';
 
@@ -27,12 +28,14 @@ export async function initI18n(store: LanguageStore = languageStore): Promise<vo
   if (started) return;
   started = true;
   try {
+    const edited = (await store.englishEdited()) ? await store.load('en') : undefined;
     const code = await store.getActive();
     const file = code ? await store.load(code) : undefined;
-    if (!file) return;
+    const strings = effectiveStrings(edited?.strings, file?.strings);
+    if (Object.keys(strings).length === 0) return;
     englishData = dataStrings();
-    setActiveStrings(file.strings);
-    applyDataStrings(file.strings);
+    setActiveStrings(strings);
+    applyDataStrings(strings);
   } catch {
     /* a language that cannot be read: the app starts in English */
   }

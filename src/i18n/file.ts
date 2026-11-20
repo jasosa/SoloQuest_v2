@@ -13,6 +13,8 @@ export const MAX_STRINGS = 60_000;
 export const MAX_TEXT_LENGTH = 4000;
 
 export const ENGLISH_CODE = 'en';
+/** The name in the header of an English file that holds edited texts. */
+export const ENGLISH_EDITED_NAME = 'English (edited)';
 
 const CODE = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
 
@@ -55,11 +57,6 @@ export function parseLanguageFile(text: string): ParsedLanguage {
   }
   if (Object.keys(r.data.strings).length > MAX_STRINGS)
     return { ok: false, message: 'This translation has too many texts.' };
-  if (r.data.language.code === ENGLISH_CODE)
-    return {
-      ok: false,
-      message: 'The English file is supplied by the app. Change the language code to add a copy.',
-    };
   return { ok: true, file: r.data };
 }
 
@@ -79,6 +76,39 @@ export function languageToText(file: LanguageFile): string {
   const sorted: Record<string, string> = {};
   for (const k of Object.keys(file.strings).sort()) sorted[k] = file.strings[k]!;
   return JSON.stringify({ ...file, strings: sorted }, null, 2) + '\n';
+}
+
+/**
+ * The file of the edited English (decision 92): only the texts the user changed, under the code `en`.
+ * Texts equal to the built-in English or empty are left out.
+ */
+export function englishEditsFile(
+  builtin: Readonly<Record<string, string>>,
+  edits: Readonly<Record<string, string>>,
+): LanguageFile {
+  const strings: Record<string, string> = {};
+  for (const [k, v] of Object.entries(edits)) if (v && v !== builtin[k]) strings[k] = v;
+  return {
+    format: LANGUAGE_FORMAT,
+    version: 1,
+    language: { name: ENGLISH_EDITED_NAME, code: ENGLISH_CODE },
+    base: baseOf(builtin),
+    strings,
+  };
+}
+
+/**
+ * The texts the app uses: the active language over the edited English. A key that is empty or
+ * missing in the language falls to the edited English, then (in `tr`) to the built-in English.
+ */
+export function effectiveStrings(
+  englishEdits: Readonly<Record<string, string>> | undefined,
+  language: Readonly<Record<string, string>> | undefined,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const src of [englishEdits, language])
+    for (const [k, v] of Object.entries(src ?? {})) if (v) out[k] = v;
+  return out;
 }
 
 /** A new language made from English: every key present, holding the English text to change. */
