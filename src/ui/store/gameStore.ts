@@ -8,8 +8,9 @@
  * The save store is injected, so tests run with a MemorySaveStore and the clock is a parameter.
  */
 import { createStore, type StoreApi } from 'zustand/vanilla';
+import { packOfQuest } from '../packs';
 import { activeLevel, keyOf, type CellKey, type Level } from '../../engine/board/level';
-import type { Hero } from '../../engine/data/heroes';
+import { normalizeTeam, type TeamInput, type TeamMember } from '../../engine/data/team';
 import type { GameEvent } from '../../engine/game/events';
 import {
   EventError,
@@ -54,7 +55,10 @@ export interface GameStoreState {
   /** The level the quest was built as: in a multi-map quest it holds all the maps. */
   readonly root: Level;
   readonly seed: number;
-  readonly team: readonly Hero[];
+  /** The pack of the quest, and whether the game is part of its campaign (decision 37). */
+  readonly pack: string | undefined;
+  readonly campaign: boolean;
+  readonly team: readonly TeamMember[];
   readonly events: readonly GameEvent[];
   readonly state: GameState;
   readonly fx: Fx | null;
@@ -80,26 +84,35 @@ export interface GameStoreState {
 export interface GameStoreInit {
   level: Level;
   seed: number;
-  team: readonly Hero[];
+  team: readonly TeamInput[];
   /** A log to replay (resume). Throws if it does not replay on this quest. */
   events?: readonly GameEvent[];
   /** A new game: the notes that fire at the start of the quest are shown once. A resumed game
    *  is not fresh, so they are not replayed. */
   fresh?: boolean;
   saves: SaveStore;
+  /** Played as part of the pack's campaign (decision 37). Kept in the save. */
+  campaign?: boolean | undefined;
+  /** The flags the quest begins with (a campaign carries them in, decision 37). Kept in the save. */
+  startFlags?: Readonly<Record<string, boolean>> | undefined;
+  /** The pack of the quest, kept in the save. Defaults to the pack that lists the quest. */
+  pack?: string | undefined;
   now?: () => number;
 }
 
 export type GameStore = StoreApi<GameStoreState>;
 
 export function createGameStore(init: GameStoreInit): GameStore {
-  const { level: root, seed, team, saves } = init;
+  const { level: root, seed, saves } = init;
+  const startFlags = init.startFlags ?? {};
+  const team = normalizeTeam(init.team);
+  const pack = init.pack ?? packOfQuest(root.quest.id);
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];
-  const start = init.fresh ? startGame(root, seed) : undefined;
+  const start = init.fresh ? startGame(root, seed, startFlags) : undefined;
   const state0 = events0.length
-    ? replay(root, seed, events0)
-    : (start ?? startGame(root, seed)).state;
+    ? replay(root, seed, events0, startFlags)
+    : (start ?? startGame(root, seed, startFlags)).state;
   let counter = 0;
   let queue: Promise<void> = Promise.resolve();
 
@@ -107,7 +120,11 @@ export function createGameStore(init: GameStoreInit): GameStore {
     const persist = (events: readonly GameEvent[]) => {
       const stamp = now();
       queue = queue.then(async () => {
-        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp);
+        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp, {
+          pack,
+          startFlags,
+          campaign: init.campaign,
+        });
         if (get().saved !== ok) set({ saved: ok });
       });
     };
@@ -117,6 +134,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
       level: activeLevel(root, state0),
       root,
       seed,
+      pack,
+      campaign: init.campaign === true,
       team,
       events: events0,
       state: state0,
@@ -209,7 +228,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
       undo() {
         const { events } = get();
         if (events.length === 0) return;
-        const r = engineUndo(root, seed, events);
+        const r = engineUndo(root, seed, events, startFlags);
         set({
           level: activeLevel(root, r.state),
           events: r.events,

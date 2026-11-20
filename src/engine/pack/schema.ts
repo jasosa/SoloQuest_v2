@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HEROES } from '../data/heroes';
 
 /**
  * The manifest of a quest pack (decision 36): `core` is the base game, and every expansion is a pack that
@@ -20,6 +21,18 @@ export const CampaignSettingSchema = z.strictObject({
   default: z.boolean().default(false),
 });
 
+/** A choice the New game popup offers for the pack (decision 38). */
+const TeamPresetSchema = z.strictObject({ id: slug, name: nonEmpty });
+
+export const PackTeamSchema = z.strictObject({
+  /** Heroes of the pack (the alternate Barbarian) and the core hero each one plays as. */
+  heroes: z.array(TeamPresetSchema.extend({ as: z.enum(HEROES) })).default([]),
+  /** Mercenary types of the pack. Any name can also be typed in. */
+  mercenaries: z.array(TeamPresetSchema).default([]),
+  /** Animal allies of the pack (the wolf Snowdasher). */
+  allies: z.array(TeamPresetSchema).default([]),
+});
+
 export const PackManifestSchema = z.strictObject({
   schemaVersion: z.literal(PACK_SCHEMA_VERSION),
   id: slug,
@@ -30,6 +43,8 @@ export const PackManifestSchema = z.strictObject({
   /** Quest ids (the `id` of the quest files) in campaign order. Extra quests are allowed (Frozen Horror Q0). */
   quests: z.array(nonEmpty).default([]),
   campaignSettings: z.array(CampaignSettingSchema).default([]),
+  /** Team choices of the pack for the New game popup. */
+  team: PackTeamSchema.default({ heroes: [], mercenaries: [], allies: [] }),
 });
 
 export type PackManifest = z.infer<typeof PackManifestSchema>;

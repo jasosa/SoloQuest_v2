@@ -17,6 +17,9 @@ export async function openSaved(
       seed: r.seed,
       team: r.team,
       events: r.events,
+      startFlags: r.startFlags,
+      campaign: r.campaign,
+      pack: r.pack,
       saves,
     });
     return { ok: true, store };

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { namer } from '../../engine/data/team';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { MONSTER_TYPES, type MonsterType } from '../../engine/quest/schema';
 import type { GameEvent } from '../../engine/game/events';
@@ -79,6 +79,9 @@ import { isThemeToken, monsterPicture } from '../theme/theme';
 import { ZargonDialog } from './ZargonDialog';
 import { turnSequence } from './zargonView';
 import { ordersFor, turnProgress } from '../../engine/zargon';
+import { RAIMENT_SETTING, settingOn } from '../../engine/pack/campaign';
+import type { CampaignStore } from '../../persist/campaigns';
+import { packs } from '../packs';
 
 const MAP_PAD_X = 28;
 const MAP_PAD_Y = 18;
@@ -97,7 +100,7 @@ type Step =
 interface Result {
   prompts: readonly Prompt[];
   anchor: Anchor;
-  hero?: Hero;
+  hero?: string;
   room?: string;
   /** Which part of the result is shown: a trap first, then the rest of the search. */
   stage?: number;
@@ -117,6 +120,8 @@ function resultKind(prompts: readonly Prompt[]): string {
 
 export interface PlayScreenProps {
   store: GameStore;
+  /** The campaigns of this device, for the campaign settings of the pack (decision 61). */
+  campaigns?: CampaignStore | undefined;
   onLeave(): void;
   /** Initial selection, for screenshots (`?select=`). */
   initialSelect?: string | null;
@@ -124,10 +129,17 @@ export interface PlayScreenProps {
   playtest?: { onBack(): void };
 }
 
-export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
+export function PlayScreen({
+  store,
+  campaigns,
+  onLeave,
+  initialSelect = null,
+  playtest,
+}: PlayScreenProps) {
   useFitMode('fill');
   useWakeLock(true); // the tablet must not go dark between turns
-  const { level, root, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
+  const { level, root, state, events, fx, toast, team, prompts, promptsSeq, pack, campaign } =
+    useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
   const codes = useMemo(
@@ -141,6 +153,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const ruleHintsOn = useQuestSettings(level.quest.id).ruleHints;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const living = useMemo(() => livingHeroes(team, state), [team, state]);
+  const nameOf = useMemo(() => namer(team), [team]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
@@ -164,7 +177,20 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     () => new Set(read.turn === state.turn ? read.ids : []),
     [read, state.turn],
   );
-  const orders = useMemo(() => ordersFor(level, state, team), [level, state, team]);
+  const settings = useQuestSettings(level.quest.id);
+  // Campaign settings are kept in the campaign; a change in the popup draws the cards again.
+  const [campaignTick, setCampaignTick] = useState(0);
+  const manifest = pack ? packs.byId.get(pack)?.manifest : undefined;
+  const raiment =
+    campaign && manifest
+      ? settingOn(manifest, campaigns?.get(manifest.id), RAIMENT_SETTING)
+      : false;
+  const orders = useMemo(
+    () => ordersFor(level, state, team, undefined, { noHugInSolo: settings.soloNoHug, raiment }),
+    // campaignTick: the Raiment switch was changed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [level, state, team, settings.soloNoHug, raiment, campaignTick],
+  );
   const seq = useMemo(() => turnSequence(orders, readIds), [orders, readIds]);
   // Every hero fell (decision 32).
   const allFallen = team.length > 0 && livingHeroes(team, state).length === 0;
@@ -204,7 +230,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     );
     return journalEntries.filter((e) => !starts.has(e.id));
   }, [level, journalEntries]);
-  const log = useMemo(() => eventLog(root, state.seed, events), [root, state.seed, events]);
+  const log = useMemo(
+    () => eventLog(root, state.seed, events, state.startFlags),
+    [root, state.seed, events, state.startFlags],
+  );
   const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
   const goalLine = objectives.goalDone
@@ -315,7 +344,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   };
 
   /** Run an event whose prompts are shown as a result sheet at `anchor`. */
-  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: Hero; room?: string } = {}) => {
+  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: string; room?: string } = {}) => {
     const ok = dispatch(event);
     if (!ok) return false;
     setSel(null);
@@ -346,7 +375,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     | {
         t: 'wander';
         room: string;
-        hero: Hero;
+        hero: string;
         anchor: Anchor;
         total: number;
         cells: [number, number][];
@@ -405,10 +434,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <MarginNote
         anchor={res.anchor}
         kind={resultKind(current)}
-        title={current.map(headingOf)[0] ?? 'Done'}
+        title={current.map((p) => headingOf(p, nameOf))[0] ?? 'Done'}
         onClose={closeNote}
       >
         <ResultBody
+          nameOf={nameOf}
           prompts={current}
           onDone={at + 1 < stages.length ? () => setRes({ ...res, stage: at + 1 }) : closeNote}
           onWandering={askWandering}
@@ -536,6 +566,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           onClose={closeNote}
         >
           <PickHero
+            nameOf={nameOf}
             team={living}
             searched={ss.searchedBy}
             monsters={roomCodes}
@@ -628,10 +659,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <MarginNote
         anchor={{ x: 880, y: 420 }}
         kind="Heroes"
-        title={`${HERO_NAMES[sel.hero]} fell?`}
+        title={`${nameOf(sel.hero)} fell?`}
         onClose={closeNote}
       >
-        <p>Only the fact is kept. The hero leaves every tie list.</p>
+        <p>Only the fact is kept. It leaves every tie list.</p>
         <button className="btn" onClick={() => act({ type: 'HERO_DIED', hero: sel.hero })}>
           Yes, fell
         </button>
@@ -837,7 +868,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           {m.wandering && (
             <p className="warn">
               {m.fresh && m.wanderAt
-                ? `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`
+                ? `Wandering · next to the ${nameOf(m.wanderAt)}`
                 : 'Wandering monster'}
             </p>
           )}
@@ -1050,6 +1081,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
                     (sel?.kind === 'monster' && sel.id === m.id) || (zActive && zMonster === m.id)
                   }
                   focus={zActive && zMonster === m.id}
+                  nameOf={nameOf}
                   onTap={() => choose({ kind: 'monster', id: m.id })}
                 />
               ))}
@@ -1118,8 +1150,8 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           {adding.t === 'pick'
             ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
             : adding.total > 1
-              ? `Tap the square where you put wandering monster ${adding.cells.length + 1} of ${adding.total}, ${adding.cells.length === 0 ? 'next to' : 'as close as you can to'} the ${HERO_NAMES[adding.hero]}.`
-              : `Tap the square where you put the wandering monster, next to the ${HERO_NAMES[adding.hero]}.`}
+              ? `Tap the square where you put wandering monster ${adding.cells.length + 1} of ${adding.total}, ${adding.cells.length === 0 ? 'next to' : 'as close as you can to'} the ${nameOf(adding.hero)}.`
+              : `Tap the square where you put the wandering monster, next to the ${nameOf(adding.hero)}.`}
           <button className="link" onClick={() => setAdding(null)}>
             Cancel
           </button>
@@ -1162,6 +1194,16 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <QuestSettingsCard
           questId={level.quest.id}
           title={quest.title}
+          solo={quest.team?.solo === true}
+          campaign={
+            campaign && campaigns && manifest
+              ? {
+                  store: campaigns,
+                  pack: manifest,
+                  onChange: () => setCampaignTick((n) => n + 1),
+                }
+              : undefined
+          }
           onClose={() => setSettingsOpen(false)}
         />
       )}
@@ -1309,8 +1351,10 @@ function RosterRow({
   acted,
   selected,
   focus,
+  nameOf,
   onTap,
 }: {
+  nameOf: (id: string) => string;
   m: MonsterView;
   code: string;
   fresh: boolean;
@@ -1365,7 +1409,7 @@ function RosterRow({
             )}
           </span>
           <br />
-          <span className="st">{rosterLine(m)}</span>
+          <span className="st">{rosterLine(m, nameOf)}</span>
           {m.abilities.length > 0 && (
             <>
               <br />
@@ -1386,12 +1430,11 @@ function RosterRow({
   );
 }
 
-function rosterLine(m: MonsterView): string {
+function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
   if (m.state === 'stone')
     return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
   if (m.added) return 'Added in play';
-  if (m.wandering && m.fresh && m.wanderAt)
-    return `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`;
+  if (m.wandering && m.fresh && m.wanderAt) return `Wandering · next to the ${nameOf(m.wanderAt)}`;
   if (m.placeAt) return 'Placed by a quest note';
   return `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`;
 }

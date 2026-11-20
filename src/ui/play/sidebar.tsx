@@ -1,5 +1,5 @@
 /** Pieces of the right column for the notes engine. Presentational. */
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { labelOf, type TeamMember } from '../../engine/data/team';
 import type { JournalEntry, NpcView, ObjectivesView } from '../../engine/game/view';
 
 export function Objectives({
@@ -92,21 +92,23 @@ export function Journal({
   );
 }
 
-/** One chip per hero of the team. A tap asks "fell?". Only dead or alive is kept (decision 32). */
+/** One chip per entry of the team (decision 38). A tap asks "fell?". Only dead or alive is kept (decision 32). */
 export function Heroes({
   team,
   dead,
   onTap,
 }: {
-  team: readonly Hero[];
-  dead: readonly Hero[];
-  onTap(hero: Hero): void;
+  team: readonly TeamMember[];
+  dead: readonly string[];
+  onTap(id: string): void;
 }) {
   return (
     <section>
-      <div className="lbl">Heroes</div>
+      <div className="lbl">{team.every((m) => m.kind === 'hero') ? 'Heroes' : 'Team'}</div>
       <div className="hero-chips">
-        {team.map((h) => {
+        {team.map((m) => {
+          const h = m.id;
+          const name = labelOf(team, h);
           const gone = dead.includes(h);
           return (
             <button
@@ -115,9 +117,9 @@ export function Heroes({
               className={'chip' + (gone ? ' fallen' : '')}
               disabled={gone}
               onClick={() => onTap(h)}
-              aria-label={gone ? `${HERO_NAMES[h]} fell` : `${HERO_NAMES[h]}, tap if the hero fell`}
+              aria-label={gone ? `${name} fell` : `${name}, tap if it fell`}
             >
-              {HERO_NAMES[h]}
+              {name}
             </button>
           );
         })}

@@ -9,7 +9,6 @@ import { noTargetText } from './texts';
 import { RULE_KEYS } from './weights';
 
 const TEAM: Hero[] = ['barbarian', 'dwarf', 'elf', 'wizard'];
-const NAMES = { barbarian: 'Barbarian', dwarf: 'Dwarf', elf: 'Elf', wizard: 'Wizard' };
 
 describe('noTargetText (decision 35)', () => {
   it('has a line only for isolated, lastAttacker, caster and grudge', () => {
@@ -47,9 +46,9 @@ describe('Order.noTarget', () => {
     for (let seed = 1; seed <= 200; seed++) {
       for (const o of ordersFor(lv, replay(lv, seed, []), TEAM)) {
         seen.add(o.rule!);
-        const expected = noTargetText(o.rule!, o.grudgeHero ? NAMES[o.grudgeHero] : undefined);
+        const expected = noTargetText(o.rule!, o.grudgeName);
         expect(o.noTarget).toBe(expected);
-        if (o.rule === 'grudge') expect(o.noTarget).toContain(NAMES[o.grudgeHero!]);
+        if (o.rule === 'grudge') expect(o.noTarget).toContain(o.grudgeName!);
         expect('fallbacks' in o).toBe(false);
       }
     }

@@ -36,7 +36,7 @@ export const PLAN_TEXT: Readonly<Record<Profile, string>> = {
 export function thiefPlan(steals: boolean): string {
   // What stealing is (and the escape) is in the Thief ability; the plan only picks this turn's choice.
   return steals
-    ? 'Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry.'
+    ? 'Steal: move next to the target and steal instead of attacking. Suggested item: a potion if the hero has one, otherwise the most valuable item they carry. Only a hero can be robbed: if the target is not a hero, attack it instead.'
     : `Attack: ${PLAN_TEXT.skirmisher}`;
 }
 

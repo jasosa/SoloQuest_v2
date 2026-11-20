@@ -1,16 +1,19 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Settings kept on this device (localStorage, per viewer), one set for each quest. For now one
- * setting: Rule hints (decision 60), short reminders of rules the app does not enforce (the rule of a
- * terrain the first time it is seen, moving without rolling when no monster is awake). On by default.
+ * Settings kept on this device (localStorage, per viewer), one set for each quest. Rule hints (decision
+ * 60): short reminders of rules the app does not enforce (the rule of a terrain the first time it is
+ * seen, moving without rolling when no monster is awake). No Yeti hug in solo quests (decision 59).
+ * Both are on by default.
  */
 
 export interface QuestSettings {
   readonly ruleHints: boolean;
+  /** "No Yeti hug in solo quests" (decision 59). Only matters in a quest for one hero. */
+  readonly soloNoHug: boolean;
 }
 
-const DEFAULTS: QuestSettings = { ruleHints: true };
+const DEFAULTS: QuestSettings = { ruleHints: true, soloNoHug: true };
 const KEY = 'soloquest-quest-settings';
 const listeners = new Set<() => void>();
 
@@ -34,7 +37,10 @@ export function getQuestSettings(questId: string): QuestSettings {
   let s = cache.get(questId);
   if (!s) {
     const own = stored[questId];
-    s = { ruleHints: typeof own?.ruleHints === 'boolean' ? own.ruleHints : DEFAULTS.ruleHints };
+    s = {
+      ruleHints: typeof own?.ruleHints === 'boolean' ? own.ruleHints : DEFAULTS.ruleHints,
+      soloNoHug: typeof own?.soloNoHug === 'boolean' ? own.soloNoHug : DEFAULTS.soloNoHug,
+    };
     cache.set(questId, s);
   }
   return s;

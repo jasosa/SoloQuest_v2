@@ -653,6 +653,28 @@ export const QuestSchema = z.strictObject({
   leave: nonEmpty.optional(),
   /** A texture pack id the quest looks best with (decision 78). Only a hint: never applied for the player. */
   suggestedPack: nonEmpty.optional(),
+  /**
+   * The quest's rule for the team (decision 38). Words for warnings only: it never blocks a game.
+   * `solo`: one hero. `only`: these heroes (left out: any hero). `grantsAlly`: the id of a pack ally that
+   * joins the hero (the wolf Snowdasher).
+   */
+  team: z
+    .strictObject({
+      solo: z.boolean().optional(),
+      only: z.array(z.enum(['barbarian', 'dwarf', 'elf', 'wizard'])).optional(),
+      grantsAlly: id.optional(),
+    })
+    .optional(),
+  /**
+   * Flags this quest starts with, taken from the campaign (decision 37). `oneShot` is the value when the
+   * quest is played alone: Frozen Horror quest 9 counts the Scepter as destroyed. In a campaign the value
+   * is what an earlier quest carried out (`flagsOut`), false if none did.
+   */
+  flagsIn: z.array(z.strictObject({ flag: id, oneShot: z.boolean() })).optional(),
+  /** Flags this quest hands on to the quests after it, in a campaign (decision 37). */
+  flagsOut: z.array(id).optional(),
+  /** NPC ids that Zargon's monsters ignore: they are left out of the tie list (decision 39). */
+  excludeTargets: z.array(id).optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */

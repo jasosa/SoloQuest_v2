@@ -1,6 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { z } from 'zod';
-import { HEROES, type Hero } from '../engine/data/heroes';
+import { HEROES } from '../engine/data/heroes';
+import {
+  isMemberId,
+  normalizeTeam,
+  toStored,
+  type TeamInput,
+  type TeamMember,
+} from '../engine/data/team';
 import { MONSTER_TYPES } from '../engine/quest/schema';
 import type { Level } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
@@ -15,6 +22,20 @@ import type { GameState } from '../engine/game/state';
 export const SAVE_VERSION = 1;
 
 const CellSchema = z.tuple([z.number().int(), z.number().int()]);
+const MemberIdSchema = z.string().refine(isMemberId, { message: 'not a team member id' });
+
+/**
+ * One entry of the team in a save. A plain core hero is a plain id, as before the free team list
+ * (decision 38), so older saves still read; the other entries are small objects.
+ */
+const TeamMemberSchema = z.object({
+  id: MemberIdSchema,
+  name: z.string().trim().min(1).max(60),
+  kind: z.enum(['hero', 'mercenary', 'ally']),
+  owner: MemberIdSchema.optional(),
+  as: z.enum(HEROES).optional(),
+});
+
 export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
   z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
@@ -41,7 +62,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('SEARCH_TREASURE'),
     room: z.string(),
-    hero: z.enum(HEROES),
+    hero: MemberIdSchema,
     override: z.boolean().optional(),
   }),
   // An old save may carry `adjacent`: z.object drops unknown keys, so it still parses.
@@ -82,7 +103,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CONFIRM_OBJECTIVE'), objective: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
-  z.object({ type: z.literal('HERO_DIED'), hero: z.enum(HEROES) }),
+  z.object({ type: z.literal('HERO_DIED'), hero: MemberIdSchema }),
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('SPELL_FAILED'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),
@@ -113,20 +134,31 @@ void _eventSchemaCoversAllEvents;
 
 export const SavedGameSchema = z.object({
   questId: z.string(),
+  /** The pack of the quest when it was saved (decision 36). Quest numbers overlap between packs, so the id and the pack go together. Missing: an older save, or a quest of this device. */
+  pack: z.string().optional(),
+  /** The flags the quest began with, when a campaign carried some in (decision 37). */
+  startFlags: z.record(z.string(), z.boolean()).optional(),
+  /** Played as part of the pack's campaign (decision 37). Missing: a one-shot. */
+  campaign: z.boolean().optional(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
-  /** The heroes at the table: 1 to 4, all different. Not part of the engine state. */
+  /** The team at the table (decision 38): heroes, mercenaries and animal allies, all different. Not part of the engine state. */
   team: z
-    .array(z.enum(HEROES))
+    .array(z.union([z.enum(HEROES), TeamMemberSchema]))
     .min(1)
-    .max(4)
-    .refine((t) => new Set(t).size === t.length, { message: 'heroes must be different' }),
+    .max(16)
+    .refine((t) => new Set(normalizeTeam(t as TeamInput[]).map((m) => m.id)).size === t.length, {
+      message: 'team entries must be different',
+    })
+    .refine((t) => normalizeTeam(t as TeamInput[]).some((m) => m.kind === 'hero'), {
+      message: 'the team needs a hero',
+    }),
   events: z.array(EventSchema),
   /** Milliseconds since the epoch, given by the caller. */
   updatedAt: z.number(),
 });
 export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events' | 'team'> & {
-  team: Hero[];
+  team: TeamInput[];
   events: GameEvent[];
 };
 
@@ -187,20 +219,34 @@ export class DexieSaveStore implements SaveStore {
  * Write the whole log after every event (a log is a few hundred small events at most).
  * Returns false when the store is unavailable: play goes on, the game is just not saved.
  */
+/** What a save keeps besides the log: the pack, the flags the quest began with, and whether it is a campaign game. */
+export interface SaveExtra {
+  readonly pack?: string | undefined;
+  readonly startFlags?: Readonly<Record<string, boolean>> | undefined;
+  readonly campaign?: boolean | undefined;
+}
+
 export async function autosave(
   store: SaveStore,
   questId: string,
   seed: number,
-  team: readonly Hero[],
+  team: readonly TeamInput[],
   events: readonly GameEvent[],
   now: number,
+  extra: SaveExtra = {},
 ): Promise<boolean> {
+  const { pack, startFlags, campaign } = extra;
   try {
     await store.save({
       questId,
+      ...(pack === undefined ? {} : { pack }),
+      ...(startFlags && Object.keys(startFlags).length > 0
+        ? { startFlags: { ...startFlags } }
+        : {}),
+      ...(campaign ? { campaign: true } : {}),
       version: SAVE_VERSION,
       seed,
-      team: [...team],
+      team: normalizeTeam(team).map(toStored),
       events: [...events],
       updatedAt: now,
     });
@@ -213,8 +259,11 @@ export async function autosave(
 export type Resumed =
   | {
       ok: true;
+      pack?: string | undefined;
+      startFlags?: Readonly<Record<string, boolean>> | undefined;
+      campaign?: boolean | undefined;
       seed: number;
-      team: readonly Hero[];
+      team: readonly TeamMember[];
       events: readonly GameEvent[];
       state: GameState;
     }
@@ -240,11 +289,14 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
   if (!parsed.success)
     return { ok: false, reason: 'corrupt', message: 'The saved game could not be read.' };
   try {
-    const state = replay(level, parsed.data.seed, parsed.data.events);
+    const state = replay(level, parsed.data.seed, parsed.data.events, parsed.data.startFlags);
     return {
       ok: true,
+      pack: parsed.data.pack,
+      startFlags: parsed.data.startFlags,
+      campaign: parsed.data.campaign,
       seed: parsed.data.seed,
-      team: parsed.data.team,
+      team: normalizeTeam(parsed.data.team as TeamInput[]),
       events: parsed.data.events,
       state,
     };
@@ -255,4 +307,40 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
       message: `The saved game does not match this quest: ${(e as Error).message}`,
     };
   }
+}
+
+/** A saved game whose quest is not on this device any more. */
+export interface OrphanSave {
+  readonly questId: string;
+  readonly pack: string | undefined;
+  /** What to tell the player. */
+  readonly message: string;
+}
+
+/**
+ * The saved games that no quest on this device matches (for example a pack that is not installed).
+ * `hasQuest` says whether a quest id exists here; `hasPack` whether a pack is installed. Nothing is
+ * deleted: the player decides.
+ */
+export async function orphanSaves(
+  store: SaveStore,
+  hasQuest: (questId: string) => boolean,
+  hasPack: (pack: string) => boolean,
+): Promise<OrphanSave[]> {
+  let all: SavedGame[];
+  try {
+    all = await store.list();
+  } catch {
+    return [];
+  }
+  return all
+    .filter((g) => !hasQuest(g.questId))
+    .map((g) => ({
+      questId: g.questId,
+      pack: g.pack,
+      message:
+        g.pack !== undefined && !hasPack(g.pack)
+          ? `A saved game of the quest "${g.questId}" belongs to the pack "${g.pack}", which is not installed here. Install the pack to play it again, or delete the save.`
+          : `A saved game of the quest "${g.questId}" has no quest on this device any more. Delete the save, or bring the quest back.`,
+    }));
 }

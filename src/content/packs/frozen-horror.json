@@ -16,11 +16,27 @@
     "fh08-the-search-for-the-scepter",
     "fh09-the-heart-of-ice"
   ],
+  "team": {
+    "heroes": [
+      {
+        "id": "alternate-barbarian",
+        "name": "Barbarian (alternate)",
+        "as": "barbarian"
+      }
+    ],
+    "mercenaries": [],
+    "allies": [
+      {
+        "id": "snowdasher",
+        "name": "Snowdasher"
+      }
+    ]
+  },
   "campaignSettings": [
     {
       "id": "raiment-of-the-frozen-champion",
       "name": "Raiment of the Frozen Champion",
-      "text": "Four artifacts are hidden with the strongest monster of four quests, drawn when the campaign starts. The Gremlin and Yeti cards then show the matching warnings.",
+      "text": "Adds two warning lines to the monster cards: a Gremlin cannot steal from a hero wearing the Cold Iron Plate Mail, and a Yeti cannot hug a hero carrying the Spiked Shield. Hiding the four artifacts in the quests is not part of the app yet: place them yourself.",
       "default": false
     }
   ]

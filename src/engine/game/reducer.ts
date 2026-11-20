@@ -26,7 +26,7 @@ import {
 } from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
-import { HEROES } from '../data/heroes';
+import { isMemberId, nameFromId } from '../data/team';
 import { lookHintCells } from './hints';
 import type { MonsterDef } from '../quest/schema';
 import { isDormant, monsterStateOf } from './monstersIn';
@@ -57,9 +57,13 @@ export interface Reduced {
  * The start of the quest: the start room is revealed, then the `questStart` notes and the
  * `areaRevealed` notes of the start room fire. The prompts are the ones to show at the start.
  */
-export function startGame(root: Level, seed: number): Reduced {
+export function startGame(
+  root: Level,
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): Reduced {
   const level = activeLevel(root, {});
-  const d = draftOf(emptyState(seed));
+  const d = draftOf(emptyState(seed, startFlags));
   // Multi-map quests begin on map 1.
   if (root.maps) d.map = firstMapId(root.quest);
   syncBlockers(level, d);
@@ -80,8 +84,12 @@ export function startGame(root: Level, seed: number): Reduced {
  * State at the start of the quest (see `startGame`). The UI must call `startGame` to also get
  * the questStart and start-room prompts; this only gives the state.
  */
-export function initialState(root: Level, seed: number): GameState {
-  return startGame(root, seed).state;
+export function initialState(
+  root: Level,
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
+  return startGame(root, seed, startFlags).state;
 }
 
 /**
@@ -239,10 +247,11 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       return { state: d, prompts: choose(level, state, d, event.note, event.option).prompts };
     }
     case 'HERO_DIED': {
-      if (!(HEROES as readonly string[]).includes(event.hero))
-        throw new EventError('UNKNOWN_HERO', `Unknown hero ${String(event.hero)}`);
+      // Any team entry can die (decision 38): a hero, a mercenary or an animal ally.
+      if (!isMemberId(event.hero))
+        throw new EventError('UNKNOWN_HERO', `Unknown team member ${String(event.hero)}`);
       if (state.deadHeroes.includes(event.hero))
-        throw new EventError('ALREADY_DEAD', `The ${event.hero} is already dead`);
+        throw new EventError('ALREADY_DEAD', `${nameFromId(event.hero)} is already dead`);
       const d = draftOf(state);
       d.deadHeroes = [...state.deadHeroes, event.hero];
       return { state: d, prompts: [{ kind: 'heroDied', hero: event.hero }] };
@@ -293,8 +302,13 @@ function endNotes(
 }
 
 /** Rebuild the state from the start. Throws if an event is invalid. */
-export function replay(root: Level, seed: number, events: readonly GameEvent[]): GameState {
-  let state = initialState(root, seed);
+export function replay(
+  root: Level,
+  seed: number,
+  events: readonly GameEvent[],
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
+  let state = initialState(root, seed, startFlags);
   for (const e of events) state = reduce(root, state, e).state;
   return state;
 }
@@ -304,9 +318,10 @@ export function undo(
   root: Level,
   seed: number,
   events: readonly GameEvent[],
+  startFlags: Readonly<Record<string, boolean>> = {},
 ): { events: readonly GameEvent[]; state: GameState } {
   const rest = events.slice(0, -1);
-  return { events: rest, state: replay(root, seed, rest) };
+  return { events: rest, state: replay(root, seed, rest, startFlags) };
 }
 
 function finish(

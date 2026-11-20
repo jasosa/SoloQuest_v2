@@ -153,3 +153,46 @@
 .pickcol .pick {
   padding-top: 14px;
 }
+
+.pickcol .orphan {
+  margin: 12px 28px 0;
+}
+
+/* The team groups of the New game popup (decision 38). */
+.app.select .pick-heroes .chip.add {
+  border-style: dashed;
+}
+.app.select .team-form {
+  margin: 4px 0 8px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-3);
+}
+.app.select .team-form input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 4px 0 8px;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  color: var(--text);
+  padding: 8px 10px;
+  font:
+    16px/1.3 'Pagella',
+    Georgia,
+    serif;
+  border-radius: 0;
+}
+.app.select .team-form-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.app.select .team-warn {
+  margin: 6px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}

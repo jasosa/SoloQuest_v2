@@ -5,9 +5,18 @@
  */
 import type { Level } from '../board/level';
 import type { AbilityDef } from '../data/abilities';
-import { HEROES, HERO_NAMES, type Hero } from '../data/heroes';
+import { HEROES } from '../data/heroes';
+import {
+  heroClass,
+  labelOf,
+  normalizeTeam,
+  type MemberKind,
+  type TeamInput,
+  type TeamMember,
+} from '../data/team';
 import type { GameState } from '../game/state';
 import { monstersInPlay, type MonsterView } from '../game/view';
+import { npcsInPlay } from '../game/noteView';
 import type { MonsterDef, MonsterType } from '../quest/schema';
 import { next } from '../game/rng';
 import { wandererDef } from '../game/roster';
@@ -66,10 +75,14 @@ export interface Order {
   /** Absent for a stone monster. For a fresh wanderer it is the order for next turn. */
   readonly rule?: RuleKey;
   readonly ruleText?: string;
-  /** The hero of a `grudge` rule. */
-  readonly grudgeHero?: Hero;
-  /** A permutation of the team. Never empty. */
-  readonly tie: readonly Hero[];
+  /** The id of the hero of a `grudge` rule. */
+  readonly grudgeHero?: string;
+  /** The name of the grudge hero. */
+  readonly grudgeName?: string;
+  /** A permutation of the team entries that are alive (member ids). Never empty. */
+  readonly tie: readonly string[];
+  /** The names of `tie`, in the same order ("Scout (Dwarf)" for a mercenary). */
+  readonly tieNames: readonly string[];
   readonly plan?: string;
   /** Rules from the quest data that apply now (stat overrides, spell limit). */
   readonly special: readonly string[];
@@ -91,14 +104,32 @@ export interface Order {
   readonly done: boolean;
 }
 
-/** Heroes in canonical order, so the team order in the UI never changes an order. */
-function canon(team: readonly Hero[]): Hero[] {
-  return HEROES.filter((h) => team.includes(h));
+const KIND_RANK: Record<MemberKind, number> = { hero: 0, mercenary: 1, ally: 2 };
+
+/**
+ * The team in a fixed order (heroes in the order of the four heroes, then mercenaries, then allies, then by id),
+ * so the order of the list in the UI never changes an order.
+ */
+function canon(team: readonly TeamMember[]): TeamMember[] {
+  const rank = (m: TeamMember) => {
+    const c = heroClass(m);
+    return c ? HEROES.indexOf(c) : HEROES.length;
+  };
+  return [...team].sort(
+    (a, b) =>
+      KIND_RANK[a.kind] - KIND_RANK[b.kind] || rank(a) - rank(b) || a.id.localeCompare(b.id),
+  );
 }
 
-/** The grudge hero: a pure function of (seed, monster, team). Stable for the whole quest. */
-export function grudgeHero(seed: number, monsterId: string, team: readonly Hero[]): Hero {
-  const t = canon(team);
+/** What the rules look at for a hero: its class (a pack hero plays as a core hero), else its id. */
+const heroKey = (m: TeamMember): string => heroClass(m) ?? m.id;
+
+/**
+ * The grudge hero id: a pure function of (seed, monster, team). Stable for the whole quest. Only heroes
+ * are drawn (decision 39), never a mercenary or an ally.
+ */
+export function grudgeHero(seed: number, monsterId: string, team: readonly TeamInput[]): string {
+  const t = canon(normalizeTeam(team).filter((m) => m.kind === 'hero')).map((m) => m.id);
   if (t.length === 0) throw new Error('The team needs at least one hero');
   const [v] = next(rngFor(seed, 'grudge', monsterId, t.join(',')));
   return t[Math.floor(v * t.length)]!;
@@ -108,11 +139,12 @@ type Caps = Pick<MonsterDef, 'type' | 'spells' | 'profile' | 'weights'>;
 
 /**
  * Rule keys that can be drawn for this monster, with their weights. `living` are the heroes still
- * alive. `caster` needs a living Wizard or Elf; `grudge` needs a living grudge hero (`grudgeAlive`).
+ * alive (a class such as `wizard`, or the id of a hero that has none). `caster` needs a living Wizard
+ * or Elf; `grudge` needs a living grudge hero (`grudgeAlive`).
  */
 export function availableRules(
   def: Caps,
-  living: readonly Hero[],
+  living: readonly string[],
   grudgeAlive = true,
   weights: Weights = weightsOf(def),
 ): [RuleKey, number][] {
@@ -127,7 +159,7 @@ export function availableRules(
 
 function drawRule(
   def: Caps,
-  living: readonly Hero[],
+  living: readonly string[],
   grudgeAlive: boolean,
   seed: number,
   turn: number,
@@ -207,8 +239,6 @@ export function spellsLeft(
   return left;
 }
 
-const grudgeAlive = (living: readonly Hero[], g: Hero) => living.includes(g);
-
 /** The plan line of one turn. The seeded draws use their own labels, so they never change the rule draw. */
 function planOf(
   profile: Profile,
@@ -217,8 +247,9 @@ function planOf(
   id: string,
   attacks: number,
   caps: Caps,
-  living: readonly Hero[],
+  living: readonly string[],
   grudgeOk: boolean,
+  hugs: boolean,
 ): string {
   const draw = (label: string) => next(rngFor(seed, turn, id, label))[0];
   let plan: string;
@@ -230,7 +261,7 @@ function planOf(
       plan = thiefPlan(draw('steal') < 1 / 2);
       break;
     case 'grappler':
-      plan = grapplerPlan(true);
+      plan = grapplerPlan(hugs);
       break;
     case 'shooter':
       plan = shooterPlan(draw('stepback') < 0.7);
@@ -265,8 +296,9 @@ function planOf(
 function buildOrder(
   level: Level,
   state: GameState,
-  team: readonly Hero[],
+  team: readonly TeamMember[],
   seed: number,
+  opts: OrderOptions,
   view: MonsterView,
   def: MonsterDef | undefined,
 ): Order {
@@ -274,7 +306,10 @@ function buildOrder(
   const done = state.doneThisTurn.includes(id);
   const base = { monster: id, type: view.type, name: view.name };
   const full = canon(team);
-  const living = full.filter((h) => !state.deadHeroes.includes(h));
+  const alive = full.filter((m) => !state.deadHeroes.includes(m.id));
+  const livingHeroes = alive.filter((m) => m.kind === 'hero');
+  const living = livingHeroes.map(heroKey);
+  const nameOf = (id: string) => labelOf(full, id);
   const caps: Caps = def ?? view;
   const profile = profileOf(caps);
 
@@ -284,7 +319,8 @@ function buildOrder(
       ...base,
       status: 'stone',
       profile,
-      tie: living,
+      tie: alive.map((m) => m.id),
+      tieNames: alive.map((m) => labelOf(full, m.id)),
       special: [],
       note:
         n === undefined
@@ -300,7 +336,8 @@ function buildOrder(
       ...base,
       status: 'stone',
       profile,
-      tie: living,
+      tie: alive.map((m) => m.id),
+      tieNames: alive.map((m) => labelOf(full, m.id)),
       special: [],
       note: 'Passive: no orders. If the heroes free it or it leaves, tap "It left". If a hero attacks it, tap "A hero attacked it".',
       turn: state.turn,
@@ -312,17 +349,30 @@ function buildOrder(
   const turn = fresh ? state.turn + 1 : state.turn;
   // The grudge hero comes from the FULL team; once he is dead the rule is no longer offered.
   const grudgeHeroOfMonster = grudgeHero(seed, id, full);
-  const rule = drawRule(caps, living, living.includes(grudgeHeroOfMonster), seed, turn, id);
+  const grudgeOk = livingHeroes.some((m) => m.id === grudgeHeroOfMonster);
+  const rule = drawRule(caps, living, grudgeOk, seed, turn, id);
   const grudge = rule === 'grudge' ? grudgeHeroOfMonster : undefined;
+  const grudgeName = grudge ? nameOf(grudge) : undefined;
+  // The team and the NPCs of the quest that are not excluded (decision 39). The shuffle is of the fixed
+  // list, so an NPC that appears later does not move the others; one that is not in play is dropped.
+  const excluded = level.quest.excludeTargets ?? [];
+  const npcs = level.quest.npcs.filter((n) => !excluded.includes(n.id));
+  const npcsHere = new Set(npcsInPlay(level, state).map((n) => `npc:${n.id}`));
+  const npcNames = new Map(npcs.map((n) => [`npc:${n.id}`, n.name]));
+  const tie = shuffled(
+    [...full.map((m) => m.id), ...npcs.map((n) => `npc:${n.id}`)],
+    rngFor(seed, turn, id, 'tie'),
+  ).filter((m) => (npcNames.has(m) ? npcsHere.has(m) : alive.some((a) => a.id === m)));
   const order: Order = {
     ...base,
     status: fresh ? 'fresh' : 'act',
     profile,
     rule,
-    ruleText: grudge ? `The ${HERO_NAMES[grudge]}, whatever it costs` : RULE_TEXT[rule],
-    ...(grudge ? { grudgeHero: grudge } : {}),
+    ruleText: grudgeName ? `The ${grudgeName}, whatever it costs` : RULE_TEXT[rule],
+    ...(grudge ? { grudgeHero: grudge, grudgeName: grudgeName! } : {}),
     // The shuffle is of the full team, so the relative order stays the same after a death.
-    tie: shuffled(full, rngFor(seed, turn, id, 'tie')).filter((h) => living.includes(h)),
+    tie,
+    tieNames: tie.map((m) => npcNames.get(m) ?? nameOf(m)),
     plan: planOf(
       profile,
       seed,
@@ -331,12 +381,19 @@ function buildOrder(
       def?.attacks ?? 1,
       caps,
       living,
-      grudgeAlive(living, grudgeHeroOfMonster),
+      grudgeOk,
+      !(opts.noHugInSolo && level.quest.team?.solo),
     ),
-    ...(fresh || noTargetText(rule, grudge && HERO_NAMES[grudge]) === undefined
+    ...(fresh || noTargetText(rule, grudgeName) === undefined
       ? {}
-      : { noTarget: noTargetText(rule, grudge && HERO_NAMES[grudge])! }),
-    special: specialRules(def, view.abilities, level.quest.markers),
+      : { noTarget: noTargetText(rule, grudgeName)! }),
+    special: [
+      ...specialRules(def, view.abilities, level.quest.markers),
+      ...(profile === 'grappler' && opts.noHugInSolo && level.quest.team?.solo
+        ? ['Solo quest: it does not hug. Ignore the hug rule above.']
+        : []),
+      ...(opts.raiment && RAIMENT_LINES[profile] ? [RAIMENT_LINES[profile]!] : []),
+    ],
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
     turn,
     done,
@@ -385,6 +442,24 @@ function buildOrder(
 }
 
 /**
+ * Settings that change what an order says (decisions 59 and 61). Off when left out, so the engine alone
+ * gives the plain card text; the app passes its settings.
+ */
+export interface OrderOptions {
+  /** "No Yeti hug in solo quests" (decision 59): in a quest whose `team.solo` is set, a grappler is a plain brute. */
+  readonly noHugInSolo?: boolean | undefined;
+  /** The campaign setting "Raiment of the Frozen Champion" (decision 61): the thief and grappler cards name the artifact warnings. */
+  readonly raiment?: boolean | undefined;
+}
+
+/** Warning lines of the Raiment setting, by profile. */
+const RAIMENT_LINES: Partial<Record<Profile, string>> = {
+  thief:
+    'Raiment of the Frozen Champion: it cannot steal from a hero wearing the Cold Iron Plate Mail.',
+  grappler: 'Raiment of the Frozen Champion: it cannot hug a hero carrying the Spiked Shield.',
+};
+
+/**
  * One order per ACTIVE monster seen by the heroes, in reveal order, for `state.turn`.
  * Dormant monsters (furniture, decision 28) and slain monsters never appear. Stone monsters get an
  * entry without a rule. A wandering monster that is still fresh gets a note and next turn's order.
@@ -395,12 +470,13 @@ function buildOrder(
 export function ordersFor(
   level: Level,
   state: GameState,
-  team: readonly Hero[],
+  teamInput: readonly TeamInput[],
   seed: number = state.seed,
+  opts: OrderOptions = {},
 ): Order[] {
-  if (team.length === 0) return [];
-  // All heroes dead: nobody to order against.
-  if (team.every((h) => state.deadHeroes.includes(h))) return [];
+  const team = normalizeTeam(teamInput);
+  // All heroes dead (or no hero at all): nobody to order against. A mercenary alone does not count.
+  if (!team.some((m) => m.kind === 'hero' && !state.deadHeroes.includes(m.id))) return [];
   seed = seed >>> 0;
   const defs = new Map(level.quest.monsters.map((m) => [m.id, m]));
   return monstersInPlay(level, state)
@@ -411,6 +487,7 @@ export function ordersFor(
         state,
         team,
         seed,
+        opts,
         view,
         defs.get(view.id) ??
           (state.wanderers[view.id]

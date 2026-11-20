@@ -21,8 +21,13 @@ The base game is the pack `core`. Every expansion is a pack that depends on it. 
 ```
 
 - `quests` are quest ids (the `id` of the files in `src/content/quests/`), in **campaign order**. A pack may hold extra quests that the book does not number (Frozen Horror Q0, the online prelude): a quest `number` may be 0.
+- `team` lists what the New game popup offers for the pack (decision 38): `heroes` (`{ id, name, as }`, `as` is the core hero it plays as), `mercenaries` and `allies` (`{ id, name }`). A mercenary or an animal of any name can also be typed in.
 - `campaignSettings` are the choices made when a campaign starts (decision 61); they are off unless `default` says so.
 - Monsters, spells, heroes, mercenaries and the like are **not** in the manifest. They are Core library items tagged with the pack's name as their `expansion` (decision 76, `LIBRARY_LAYERS.md`), so the Library, the expansion switches and the editor already treat them as part of the pack.
+
+## Campaign and one-shot (decision 37)
+
+The New game popup asks One-shot or Campaign. A campaign is kept per pack on this device (`src/persist/campaigns.ts`): finished quests, the flags quests hand on (`flagsOut`, read by later quests as `flagsIn`), the last team, the campaign settings and the campaign seed. A one-shot starts every `flagsIn` flag at its `oneShot` value. See decision 90.
 
 ## What the registry checks (`src/engine/pack/registry.ts`, `npm run validate`)
 

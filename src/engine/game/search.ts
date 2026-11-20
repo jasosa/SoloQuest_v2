@@ -6,7 +6,7 @@
 import { areaAt, cellsOf, inBoard, type AreaId, type Cell } from '../board/board';
 import { keyOf, sightMap, type Level } from '../board/level';
 import { lineOfSight } from '../board/los';
-import { HEROES, type Hero } from '../data/heroes';
+import { isHeroId, nameFromId } from '../data/team';
 import { MONSTER_NAMES, statsOf } from '../data/monsters';
 import type { MonsterType } from '../quest/schema';
 import { joinRoster, wandererDef } from './roster';
@@ -22,12 +22,12 @@ export { liveMonstersInRoom };
 
 type Reduced = { readonly state: GameState; readonly prompts: readonly Prompt[] };
 
-function checkHero(hero: string, state: GameState): Hero {
-  if (!(HEROES as readonly string[]).includes(hero))
-    throw new EventError('UNKNOWN_HERO', `Unknown hero ${hero}`);
-  if (state.deadHeroes.includes(hero as Hero))
-    throw new EventError('HERO_DEAD', `The ${hero} is dead and cannot act`);
-  return hero as Hero;
+/** Only a hero searches or is chased by a wandering monster, never a mercenary or an ally (decision 39). */
+function checkHero(hero: string, state: GameState): string {
+  if (!isHeroId(hero)) throw new EventError('UNKNOWN_HERO', `Unknown hero ${hero}`);
+  if (state.deadHeroes.includes(hero))
+    throw new EventError('HERO_DEAD', `The ${nameFromId(hero)} is dead and cannot act`);
+  return hero;
 }
 
 /** A revealed room (not a corridor). */

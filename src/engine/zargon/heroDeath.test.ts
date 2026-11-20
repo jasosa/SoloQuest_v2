@@ -10,7 +10,7 @@ import { availableRules, grudgeHero, ordersFor } from './orders';
 const SEED = 9;
 const TEAM: Hero[] = ['barbarian', 'dwarf', 'elf', 'wizard'];
 const open = (door: string): GameEvent => ({ type: 'OPEN_DOOR', door });
-const died = (hero: Hero): GameEvent => ({ type: 'HERO_DIED', hero });
+const died = (hero: string): GameEvent => ({ type: 'HERO_DIED', hero });
 const level = buildLevel(testQuest());
 const code = (fn: () => unknown): string | undefined => {
   try {
@@ -156,5 +156,122 @@ describe('orders after a death (decision 32)', () => {
     const ev = [...seen, died('elf')];
     const back = undo(lv, SEED, [...ev, died('dwarf')]);
     expect(ordersFor(lv, back.state, TEAM)).toEqual(ordersFor(lv, replay(lv, SEED, ev), TEAM));
+  });
+});
+
+describe('the free team list (decision 38)', () => {
+  const scout = { id: 'merc:scout', name: 'Scout', kind: 'mercenary', owner: 'dwarf' } as const;
+  const wolf = { id: 'ally:wolf', name: 'Wolf', kind: 'ally', owner: 'elf' } as const;
+  const team = [...TEAM, scout, wolf];
+
+  it('HERO_DIED works for a mercenary and an ally, and refuses an unknown id', () => {
+    const s = replay(level, SEED, [died('merc:scout'), died('ally:wolf')]);
+    expect(s.deadHeroes).toEqual(['merc:scout', 'ally:wolf']);
+    expect(code(() => replay(level, SEED, [died('merc:scout'), died('merc:scout')]))).toBe(
+      'ALREADY_DEAD',
+    );
+    expect(code(() => replay(level, SEED, [died('merc:')]))).toBe('UNKNOWN_HERO');
+  });
+
+  it('livingHeroes lists heroes only', () => {
+    expect(livingHeroes(team, { deadHeroes: ['elf'] })).toEqual(['barbarian', 'dwarf', 'wizard']);
+  });
+
+  it('a mercenary and an ally are in the tie list with their names, and leave it when they fall', () => {
+    const l = buildLevel(testQuest());
+    const open1 = replay(l, SEED, [open('d1'), open('d2')]);
+    const orders = ordersFor(l, open1, team);
+    expect(orders.length).toBeGreaterThan(0);
+    for (const o of orders) {
+      expect([...o.tie].sort()).toEqual(team.map((m) => (typeof m === 'string' ? m : m.id)).sort());
+      expect(o.tieNames).toHaveLength(o.tie.length);
+      expect(o.tieNames[o.tie.indexOf('merc:scout')]).toBe('Scout (Dwarf)');
+      expect(o.tieNames[o.tie.indexOf('ally:wolf')]).toBe('Wolf (Elf)');
+    }
+    const after = replay(l, SEED, [open('d1'), open('d2'), died('merc:scout')]);
+    for (const o of ordersFor(l, after, team)) expect(o.tie).not.toContain('merc:scout');
+  });
+
+  it('a grudge, and the caster rule, name heroes only', () => {
+    const l = buildLevel(testQuest());
+    for (let seed = 1; seed <= 60; seed++) {
+      const g = grudgeHero(seed, 'm1', team);
+      expect(['barbarian', 'dwarf', 'elf', 'wizard']).toContain(g);
+    }
+    // only a mercenary is left alive with a hero dead: no hero, no orders
+    const s = replay(l, SEED, [
+      open('d1'),
+      open('d2'),
+      died('barbarian'),
+      died('dwarf'),
+      died('elf'),
+      died('wizard'),
+    ]);
+    expect(ordersFor(l, s, team)).toEqual([]);
+  });
+
+  it('a pack hero plays as its class: a Wizard-class hero allows the caster rule, a Barbarian-class one does not', () => {
+    const l = buildLevel(
+      testQuest({
+        monsters: [{ id: 'm1', type: 'orc', cell: [6, 15], weights: { caster: 1 } }],
+      }),
+    );
+    const mage = { id: 'hero:mage', name: 'Mage', kind: 'hero', as: 'wizard' } as const;
+    const brute = { id: 'hero:brute', name: 'Brute', kind: 'hero', as: 'barbarian' } as const;
+    const s = replay(l, SEED, [open('d1'), open('d2')]);
+    expect(ordersFor(l, s, [mage]).map((o) => o.rule)).toEqual(['caster']);
+    expect(ordersFor(l, s, [brute]).map((o) => o.rule)).toEqual(['closest']);
+  });
+});
+
+describe('NPCs as targets (decision 39)', () => {
+  const npc = {
+    id: 'n1',
+    name: 'Sir Test',
+    cell: [2, 16],
+    defend: 2,
+    body: 3,
+    text: 'An escort.',
+  };
+  const withNpc = (patch: Record<string, unknown> = {}) =>
+    buildLevel(testQuest({ npcs: [npc], ...patch }));
+  const opened = [open('d1'), open('d2')];
+  const tieOf = (l: ReturnType<typeof withNpc>, events: GameEvent[], seed = SEED) =>
+    ordersFor(l, replay(l, seed, events), TEAM)[0]!;
+
+  it('an NPC whose square is seen is in the tie list, with its name', () => {
+    const l = withNpc();
+    const o = tieOf(l, opened);
+    expect(o.tie).toContain('npc:n1');
+    expect(o.tieNames[o.tie.indexOf('npc:n1')]).toBe('Sir Test');
+    expect(o.tie).toHaveLength(5);
+  });
+
+  it('an NPC that is not in play yet is not in the list', () => {
+    const l = withNpc({ npcs: [{ ...npc, cell: [20, 2] }] });
+    expect(tieOf(l, opened).tie).not.toContain('npc:n1');
+  });
+
+  it('a quest can exclude an NPC: it is never in a tie list', () => {
+    const l = withNpc({ excludeTargets: ['n1'] });
+    for (let seed = 1; seed <= 20; seed++)
+      expect(tieOf(l, opened, seed).tie).toEqual(expect.not.arrayContaining(['npc:n1']));
+  });
+
+  it('the team is all still in the list when an NPC is added to the quest', () => {
+    const plain = tieOf(buildLevel(testQuest()), opened).tie;
+    const l = withNpc();
+    const withIt = tieOf(l, opened).tie.filter((t) => t !== 'npc:n1');
+    expect(plain.length).toBe(4);
+    expect(withIt.length).toBe(4);
+    expect(new Set(withIt)).toEqual(new Set(plain));
+  });
+
+  it('a grudge and the caster rule never name an NPC', () => {
+    const l = withNpc();
+    for (let seed = 1; seed <= 60; seed++) {
+      const o = tieOf(l, opened, seed);
+      if (o.grudgeHero) expect(o.grudgeHero.startsWith('npc:')).toBe(false);
+    }
   });
 });

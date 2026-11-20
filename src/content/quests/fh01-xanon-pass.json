@@ -572,6 +572,7 @@
     "monster": "skeleton",
     "count": 2
   },
+  "team": { "solo": true, "only": ["barbarian"] },
   "objectives": [
     {
       "id": "o1",

@@ -163,7 +163,7 @@ function Tie({ order: o }: { order: Order }) {
     <dl className="zdl" data-testid="zargon-tie">
       <dt>Tie</dt>
       <dd>
-        <span className="tgt">{tieText(o.tie)}</span>
+        <span className="tgt">{tieText(o.tie, o.tieNames)}</span>
       </dd>
     </dl>
   );

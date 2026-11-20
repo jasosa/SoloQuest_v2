@@ -1,7 +1,6 @@
 import type { AreaId } from '../board/board';
 import type { CellKey } from '../board/level';
 import { statsOf } from '../data/monsters';
-import type { Hero } from '../data/heroes';
 import type { Effect, MonsterDef, MonsterType } from '../quest/schema';
 import { createRng, type Rng } from './rng';
 
@@ -29,7 +28,7 @@ export interface WandererRecord {
   /** An enemy of the quest that it is (`quest.enemyDefs`), so it has that enemy's stats and plan. */
   readonly enemy?: string;
   /** The hero a wandering monster came for. */
-  readonly wanderAt?: Hero;
+  readonly wanderAt?: string;
   /** True from the moment it appears until the end of the Zargon turn ("attacks now"). */
   readonly fresh: boolean;
   /** The square the players put it on. */
@@ -43,7 +42,7 @@ export interface WandererRecord {
 /** What a map keeps while the heroes are on another map: things tied to its squares and rooms. */
 export interface MapMemory {
   readonly placedBlocks: readonly CellKey[];
-  readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
+  readonly treasureSearched: Readonly<Record<AreaId, readonly string[]>>;
 }
 
 /** A trap that is not armed any more. An armed trap has no entry. */
@@ -77,6 +76,8 @@ export interface ChoiceMade {
 export interface GameState {
   /** The quest seed (never changes). Zargon's orders are derived from it, not from `rng`. */
   readonly seed: number;
+  /** The flags the quest began with (a campaign carries them in, decision 37). Never changes. */
+  readonly startFlags: Readonly<Record<string, boolean>>;
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
   readonly turn: number;
@@ -117,7 +118,7 @@ export interface GameState {
   /** Squares where a falling block trap or a note left a permanent block (stops sight and movement). */
   readonly placedBlocks: ReadonlySet<CellKey>;
   /** Heroes that searched a room for treasure, in order. A hero searches a room once. */
-  readonly treasureSearched: Readonly<Record<AreaId, readonly Hero[]>>;
+  readonly treasureSearched: Readonly<Record<AreaId, readonly string[]>>;
   /** Chests (furniture ids) that were searched for traps. One search per chest. */
   readonly trapSearched: readonly string[];
   /** Wandering monsters by id (w1, w2...). They are also in `monsters` and `seenMonsters`. */
@@ -146,7 +147,7 @@ export interface GameState {
   /** Monsters that cast a spell this Zargon turn (for `onePerTurn`). Cleared on ZARGON_TURN_END. */
   readonly castThisTurn: readonly string[];
   /** Heroes that died, in order of death. Only the fact is tracked: no wounds, no Body Points. */
-  readonly deadHeroes: readonly Hero[];
+  readonly deadHeroes: readonly string[];
   /** Spells the players said could not be cast this turn, per monster, in order. Cleared on ZARGON_TURN_END. */
   readonly spellsFailed: Readonly<Record<string, readonly string[]>>;
   /** Monsters whose order was carried out this Zargon turn. Cleared on ZARGON_TURN_END. */
@@ -163,9 +164,13 @@ interface EndNotes {
   readonly notes?: readonly string[];
 }
 
-export function emptyState(seed: number): GameState {
+export function emptyState(
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
   return {
     seed: seed >>> 0,
+    startFlags: { ...startFlags },
     rng: createRng(seed),
     turn: 1,
     mapMemory: {},
@@ -190,7 +195,7 @@ export function emptyState(seed: number): GameState {
     wanderers: {},
     wanderCount: 0,
     notesFired: [],
-    flags: {},
+    flags: { ...startFlags },
     counters: {},
     objectivesDone: [],
     monsterStates: {},
@@ -218,7 +223,7 @@ export type Draft = {
         : K extends 'trapStates'
           ? Record<string, TrapState>
           : K extends 'treasureSearched'
-            ? Record<AreaId, readonly Hero[]>
+            ? Record<AreaId, readonly string[]>
             : K extends 'flags'
               ? Record<string, boolean>
               : K extends 'counters'

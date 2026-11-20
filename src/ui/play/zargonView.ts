@@ -1,7 +1,7 @@
 /** Pure helpers for Zargon's turn: the sequence of dialogs, labels. No React. */
-import type { Hero } from '../../engine/data/heroes';
-import { HERO_NAMES } from '../../engine/data/heroes';
 import type { Order, TurnProgress } from '../../engine/zargon';
+
+import { nameFromId } from '../../engine/data/team';
 
 export interface TurnItem {
   readonly order: Order;
@@ -35,7 +35,9 @@ export function turnSequence(orders: readonly Order[], read: ReadonlySet<string>
 }
 
 /** "Dwarf › Elf › Wizard" */
-export const tieText = (tie: readonly Hero[]): string => tie.map((h) => HERO_NAMES[h]).join(' › ');
+/** The tie list as one line. `names` are the order's own names (a mercenary reads "Scout (Dwarf)"); without them the ids are turned into words. */
+export const tieText = (tie: readonly string[], names?: readonly string[]): string =>
+  (names ?? tie.map(nameFromId)).join(' › ');
 
 /** The line under "Zargon's turn" in the right column. */
 export function progressLabel(p: TurnProgress): string {

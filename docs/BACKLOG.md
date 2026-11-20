@@ -177,11 +177,11 @@ Per quest
 Order of work. Each slice ends green with tests and a commit.
 
 - [x] Slice 1: core as a pack: `pack.json` manifests (`src/content/packs/`), the registry with `dependsOn` checks (`src/engine/pack/`, `npm run validate`), a `pack` field on quests, quest number 0 allowed, the `frozen-horror` pack with no quests yet
-- [ ] Slice 2: the pack in the app: the quest select screen picks the pack (hidden while there is one pack with quests), user quests are in none; the saved game remembers the pack and quest id (quest numbers overlap between packs)
-- [ ] Slice 3: team as a free list (decision 38): entries with a kind (hero, mercenary, animal ally) and an owner hero; `HERO_DIED` for any entry; the New game popup gets the groups; the quest's team rule shows as a warning, never a block
-- [ ] Slice 4: targets (decision 39): mercenaries, allies and NPCs in tie lists and target names; `excludeTargets` on a quest; `caster`, `grudge` and theft pick heroes only
-- [ ] Slice 5: campaign / one-shot (decision 37): finished quests, carried flags with one-shot defaults, the team, campaign settings and the campaign seed, kept per pack on this device
-- [ ] Slice 6: settings: Rule hints (decision 60: the free movement hint and the first-reveal reminders), "No Yeti hug in solo quests" (decision 59)
+- [x] Slice 2: the pack in the app: the quest select screen picks the pack (tabs hidden while there is one pack with quests), user quests are in none; the saved game remembers the pack and quest id (`pack` on the save, optional so old saves load), a save whose quest or pack is missing is explained with a Delete link (`orphanSaves`)
+- [x] Slice 3: team as a free list (decision 38, details in 88): entries with a kind (hero, mercenary, animal ally) and an owner hero (`src/engine/data/team.ts`); `HERO_DIED` for any entry; the New game popup gets the groups (the four heroes, the alternate Barbarian, mercenaries, the wolf); the quest's `team` rule and the general rules show as warnings, never a block; older saves with a plain hero list load. Left: the note condition "ally in team" (the team is not in the game state)
+- [x] Slice 4: targets (decision 39): mercenaries, allies and NPCs in tie lists and target names (`Order.tieNames`, an NPC is `npc:<id>`); `excludeTargets` on a quest (Frozen Horror quest 3 excludes Gothar); `caster`, `grudge` and theft pick heroes only (the thief card says a non-hero target is attacked instead)
+- [x] Slice 5: campaign / one-shot (decision 37, details in 89): finished quests, carried flags with one-shot defaults (`flagsIn`, `flagsOut`), the team, campaign settings and the campaign seed, kept per pack on this device (`src/engine/pack/campaign.ts`, `src/persist/campaigns.ts`). The campaign settings have no switch yet (slice 6)
+- [x] Slice 6: settings: Rule hints is per quest (decision 84, done earlier); "No Yeti hug in solo quests" (decision 59) and the pack's campaign settings as switches in the settings popup (decision 91). Left: the Raiment artifact draw (kill notes with the strongest monster of four quests; needs the book)
 
 ## M10 · Frozen Horror (`FROZEN_HORROR.md`, decisions 41 to 63)
 

@@ -1,5 +1,4 @@
 import type { Cell } from '../board/board';
-import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
 
 /**
@@ -42,14 +41,14 @@ export type GameEvent =
   | {
       readonly type: 'SEARCH_TREASURE';
       readonly room: string;
-      readonly hero: Hero;
+      readonly hero: string;
       readonly override?: boolean | undefined;
     }
   /** A treasure card said "wandering monster": the quest's wandering monster joins the roster. */
   | {
       readonly type: 'WANDERING_MONSTER';
       readonly room: string;
-      readonly hero: Hero;
+      readonly hero: string;
       /** The square the players put it on, next to the hero (decision 66). */
       readonly cell?: Cell | undefined;
       /** One square per monster when the quest brings several (`wandering.count`). */
@@ -97,7 +96,7 @@ export type GameEvent =
   /** A named monster cast one of its Dread spells (once per quest per listing; `onePerTurn` limits a turn). */
   | { readonly type: 'SPELL_CAST'; readonly monster: string; readonly spell: string }
   /** A hero died (decision 32). Only the fact is tracked. Once per hero; undo to take it back. */
-  | { readonly type: 'HERO_DIED'; readonly hero: Hero }
+  | { readonly type: 'HERO_DIED'; readonly hero: string }
   /** The players said this spell could not be cast this turn. The order offers the next one. */
   | { readonly type: 'SPELL_FAILED'; readonly monster: string; readonly spell: string }
   /** The players carried out the order of a monster this Zargon turn. Once per monster per turn. */

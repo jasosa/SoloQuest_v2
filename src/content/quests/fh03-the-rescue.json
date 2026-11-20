@@ -452,6 +452,7 @@
       "effect": "A poison needle pricks the hero who searches the chest: that hero loses 1 Body Point."
     }
   ],
+  "excludeTargets": ["gothar"],
   "npcs": [
     {
       "id": "gothar",
@@ -646,6 +647,7 @@
     "monster": "orc",
     "count": 2
   },
+  "team": { "solo": true },
   "objectives": [
     {
       "id": "o1",

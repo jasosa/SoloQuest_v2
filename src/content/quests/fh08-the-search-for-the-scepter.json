@@ -990,6 +990,7 @@
     "enemy": "iceGremlin",
     "count": 3
   },
+  "flagsOut": ["scepterDestroyed"],
   "objectives": [
     {
       "id": "o1",
