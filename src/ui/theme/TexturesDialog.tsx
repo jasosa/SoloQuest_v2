@@ -50,7 +50,15 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   }, [store]);
 
   const choose = async (id: string | null) => {
-    await applyPack(store, id);
+    const ok = await applyPack(store, id);
+    if (ok === false)
+      setMessage({
+        text: t(
+          'textures.packCouldNotBeLoaded',
+          'This texture pack could not be loaded. Check your connection and try again.',
+        ),
+        bad: true,
+      });
     setDeleting(null);
     await refresh();
   };

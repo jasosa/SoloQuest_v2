@@ -1478,6 +1478,7 @@
   "store.monster": "Monster",
   "store.nothingNew": "Nothing new here.",
   "store.slain": "{code} slain.",
+  "textures.packCouldNotBeLoaded": "This texture pack could not be loaded. Check your connection and try again.",
   "theme.PackPreview.adjustAPicture": "Adjust a picture",
   "theme.PackPreview.boardPicture": "Board picture{size}",
   "theme.PackPreview.check": "Check",
