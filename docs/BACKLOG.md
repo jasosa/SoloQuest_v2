@@ -198,7 +198,7 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
   - [x] 4d: terrain tiles (ice ledge, icy river, chasm) with their rule in the note of the square or room, the Rule hints setting (reminder on first reveal of terrain and room tiles, and the free-movement hint). Rule hints are a per-quest setting (see decision 84)
   - [x] 4e: sight-blocking tiles until a flag (`blocks` on a board tile, the Q0 cage) and the `replaceFurnitureWithDoor` effect (the Q0 throne). Quest 0 uses both
   - [x] 4f: ice tunnels as a quest field with design numbers, drawn on the board, `TUNNEL_USE` (decision 81). The editor cannot place tunnels, tiles or edge doors yet (slice 7)
-  - [ ] 4g: the wandering monster list with counts for a wandering monster CARD
+  - [x] 4g: the wandering monster CARD brings the quest's `count` monsters like the trap (a square per monster, all attack the searching hero at once)
 - [ ] Slice 5: notes: a question on a letter and a hidden part (decision 53) and the new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, clear a sight blocker, `crossMap`)
 - [x] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event (the `crossMap` effect and the `CROSS_MAP` event), the map name in the header, one entry in the quest list. The editor tab per map and the link tool are slice 7
 - [ ] Slice 7: editor: pack tools, a tab per map, the link tool, the spell builder; then encode Q0 and Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0

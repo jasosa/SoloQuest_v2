@@ -193,7 +193,7 @@ Terrain is a board tile too: `icyRiver`, `iceLedge` and `chasm` (squares of the 
 
 `boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. A tile with `"blocks": true` (needs `hiddenWhen`) also blocks line of sight and squares until that flag is set (decision 56: the cage of Q0 until the lever). Rooms still reveal whole: the monsters inside a cage are seen with the room.
 
-`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count` for a wandering monster trap.
+`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count`: a wandering monster trap and a wandering monster card both bring `count` monsters. The players give a square per monster (`WANDERING_MONSTER` takes `cells`); all attack the searching hero at once.
 
 An NPC such as an animal ally (`npcs`, with `spawnNpc` on the first note) shows with its stats in the Companions list.
 

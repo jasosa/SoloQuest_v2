@@ -217,7 +217,7 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer (new field); not per monster |
 | Quest rules `bounty`, `doorTeleport` | core only | `rules` | no form (no Frozen Horror quest uses them) |
 
-Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a wandering monster CARD that brings several monsters (backlog 4g: only the trap uses `count`; the owner decides if the card should too), a condition on a tile.
+Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a condition on a tile.
 
 ---
 
