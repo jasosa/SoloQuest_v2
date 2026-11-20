@@ -79,6 +79,9 @@ import { isThemeToken, monsterPicture } from '../theme/theme';
 import { ZargonDialog } from './ZargonDialog';
 import { turnSequence } from './zargonView';
 import { ordersFor, turnProgress } from '../../engine/zargon';
+import { RAIMENT_SETTING, settingOn } from '../../engine/pack/campaign';
+import type { CampaignStore } from '../../persist/campaigns';
+import { packs } from '../packs';
 
 const MAP_PAD_X = 28;
 const MAP_PAD_Y = 18;
@@ -117,6 +120,8 @@ function resultKind(prompts: readonly Prompt[]): string {
 
 export interface PlayScreenProps {
   store: GameStore;
+  /** The campaigns of this device, for the campaign settings of the pack (decision 61). */
+  campaigns?: CampaignStore | undefined;
   onLeave(): void;
   /** Initial selection, for screenshots (`?select=`). */
   initialSelect?: string | null;
@@ -124,10 +129,17 @@ export interface PlayScreenProps {
   playtest?: { onBack(): void };
 }
 
-export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: PlayScreenProps) {
+export function PlayScreen({
+  store,
+  campaigns,
+  onLeave,
+  initialSelect = null,
+  playtest,
+}: PlayScreenProps) {
   useFitMode('fill');
   useWakeLock(true); // the tablet must not go dark between turns
-  const { level, root, state, events, fx, toast, team, prompts, promptsSeq } = useStore(store);
+  const { level, root, state, events, fx, toast, team, prompts, promptsSeq, pack, campaign } =
+    useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
   const codes = useMemo(
@@ -165,7 +177,20 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     () => new Set(read.turn === state.turn ? read.ids : []),
     [read, state.turn],
   );
-  const orders = useMemo(() => ordersFor(level, state, team), [level, state, team]);
+  const settings = useQuestSettings(level.quest.id);
+  // Campaign settings are kept in the campaign; a change in the popup draws the cards again.
+  const [campaignTick, setCampaignTick] = useState(0);
+  const manifest = pack ? packs.byId.get(pack)?.manifest : undefined;
+  const raiment =
+    campaign && manifest
+      ? settingOn(manifest, campaigns?.get(manifest.id), RAIMENT_SETTING)
+      : false;
+  const orders = useMemo(
+    () => ordersFor(level, state, team, undefined, { noHugInSolo: settings.soloNoHug, raiment }),
+    // campaignTick: the Raiment switch was changed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [level, state, team, settings.soloNoHug, raiment, campaignTick],
+  );
   const seq = useMemo(() => turnSequence(orders, readIds), [orders, readIds]);
   // Every hero fell (decision 32).
   const allFallen = team.length > 0 && livingHeroes(team, state).length === 0;
@@ -1142,6 +1167,16 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <QuestSettingsCard
           questId={level.quest.id}
           title={quest.title}
+          solo={quest.team?.solo === true}
+          campaign={
+            campaign && campaigns && manifest
+              ? {
+                  store: campaigns,
+                  pack: manifest,
+                  onChange: () => setCampaignTick((n) => n + 1),
+                }
+              : undefined
+          }
           onClose={() => setSettingsOpen(false)}
         />
       )}

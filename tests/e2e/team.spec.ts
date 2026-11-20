@@ -93,3 +93,54 @@ test.describe('campaign or one-shot (decision 37)', () => {
     await expect(page.getByTestId('campaign-progress')).toHaveCount(0);
   });
 });
+
+test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', () => {
+  test('a solo quest has the Yeti switch; the Raiment switch needs a campaign and is kept', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await page.getByTestId('pack-frozen-horror').click();
+    await page.locator('.qcard', { hasText: 'Quest 0' }).click();
+
+    // on the list, with no campaign yet: the quest switches, and a note about the campaign ones
+    await page.getByTestId('quest-settings').click();
+    let card = page.getByRole('dialog', { name: 'Into the Northlands' });
+    await expect(card.getByTestId('solo-no-hug')).toHaveAttribute('aria-checked', 'true');
+    await expect(card.getByTestId('no-campaign')).toBeVisible();
+    await card.getByRole('button', { name: 'Done' }).click();
+    // a quest for a group has no Yeti switch
+    await page.locator('.qcard', { hasText: 'Quest 4' }).click();
+    await page.getByTestId('quest-settings').click();
+    await expect(page.getByTestId('solo-no-hug')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Done' }).click();
+    await page.locator('.qcard', { hasText: 'Quest 0' }).click();
+
+    // start a campaign game, then the same switches are in the play header
+    await page.getByTestId('new-game').click();
+    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+    await dialog.getByRole('button', { name: 'Campaign' }).click();
+    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Start the quest' }).click();
+    await dismissStart(page);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    card = page.getByRole('dialog', { name: 'Into the Northlands' });
+    const raiment = card.getByTestId('campaign-setting-raiment-of-the-frozen-champion');
+    await expect(raiment).toHaveAttribute('aria-checked', 'false');
+    await raiment.click();
+    await expect(raiment).toHaveAttribute('aria-checked', 'true');
+    await page.screenshot({ path: 'test-results/settings-campaign.png' });
+    await card.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('button', { name: 'Quests' }).click();
+
+    // the campaign remembers it
+    await page.getByTestId('pack-frozen-horror').click();
+    await page.locator('.qcard', { hasText: 'Quest 0' }).click();
+    await page.getByTestId('quest-settings').click();
+    await expect(
+      page.getByTestId('campaign-setting-raiment-of-the-frozen-champion'),
+    ).toHaveAttribute('aria-checked', 'true');
+  });
+});

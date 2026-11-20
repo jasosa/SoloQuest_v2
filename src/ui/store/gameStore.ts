@@ -55,6 +55,9 @@ export interface GameStoreState {
   /** The level the quest was built as: in a multi-map quest it holds all the maps. */
   readonly root: Level;
   readonly seed: number;
+  /** The pack of the quest, and whether the game is part of its campaign (decision 37). */
+  readonly pack: string | undefined;
+  readonly campaign: boolean;
   readonly team: readonly TeamMember[];
   readonly events: readonly GameEvent[];
   readonly state: GameState;
@@ -131,6 +134,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
       level: activeLevel(root, state0),
       root,
       seed,
+      pack,
+      campaign: init.campaign === true,
       team,
       events: events0,
       state: state0,

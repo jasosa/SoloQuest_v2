@@ -380,7 +380,15 @@ function Game({ params }: { params: URLSearchParams }) {
       </LibraryProvider>
     );
   if (game === 'resume' || game === 'dev') return <div className="app" />;
-  if (game) return <PlayScreen store={game} onLeave={leave} initialSelect={params.get('select')} />;
+  if (game)
+    return (
+      <PlayScreen
+        store={game}
+        campaigns={campaigns}
+        onLeave={leave}
+        initialSelect={params.get('select')}
+      />
+    );
   return (
     <>
       <SelectScreen

@@ -192,6 +192,7 @@ export function SelectScreen({
   const ready = team.some((m) => m.kind === 'hero');
 
   // Play mode (decision 37): a campaign of this pack, or the quest alone.
+  const manifestOfPack = packs.byId.get(questPack)?.manifest;
   const [campaignTick, setCampaignTick] = useState(0);
   void campaignTick; // read again after a change
   const campaign = campaigns.get(questPack);
@@ -422,6 +423,8 @@ export function SelectScreen({
         <QuestSettingsCard
           questId={level.quest.id}
           title={level.quest.title}
+          solo={level.quest.team?.solo === true}
+          campaign={manifestOfPack ? { store: campaigns, pack: manifestOfPack } : undefined}
           onClose={() => setSettingsOpen(false)}
         />
       )}

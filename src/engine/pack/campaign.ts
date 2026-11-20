@@ -88,3 +88,17 @@ export function nextQuest(
 ): string | undefined {
   return pack.quests.find((q) => !(c?.finished ?? []).includes(q));
 }
+
+/** The id of the Frozen Horror campaign setting that adds the artifact warnings to cards (decision 61). */
+export const RAIMENT_SETTING = 'raiment-of-the-frozen-champion';
+
+/** Is a campaign setting on? A campaign's own value, else the default of the pack manifest (no campaign: its default). */
+export function settingOn(
+  pack: Pick<PackManifest, 'campaignSettings'>,
+  campaign: Pick<Campaign, 'settings'> | undefined,
+  id: string,
+): boolean {
+  const own = campaign?.settings[id];
+  if (own !== undefined) return own;
+  return pack.campaignSettings.find((s) => s.id === id)?.default ?? false;
+}

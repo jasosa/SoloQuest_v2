@@ -249,6 +249,7 @@ function planOf(
   caps: Caps,
   living: readonly string[],
   grudgeOk: boolean,
+  hugs: boolean,
 ): string {
   const draw = (label: string) => next(rngFor(seed, turn, id, label))[0];
   let plan: string;
@@ -260,7 +261,7 @@ function planOf(
       plan = thiefPlan(draw('steal') < 1 / 2);
       break;
     case 'grappler':
-      plan = grapplerPlan(true);
+      plan = grapplerPlan(hugs);
       break;
     case 'shooter':
       plan = shooterPlan(draw('stepback') < 0.7);
@@ -297,6 +298,7 @@ function buildOrder(
   state: GameState,
   team: readonly TeamMember[],
   seed: number,
+  opts: OrderOptions,
   view: MonsterView,
   def: MonsterDef | undefined,
 ): Order {
@@ -371,11 +373,27 @@ function buildOrder(
     // The shuffle is of the full team, so the relative order stays the same after a death.
     tie,
     tieNames: tie.map((m) => npcNames.get(m) ?? nameOf(m)),
-    plan: planOf(profile, seed, turn, id, def?.attacks ?? 1, caps, living, grudgeOk),
+    plan: planOf(
+      profile,
+      seed,
+      turn,
+      id,
+      def?.attacks ?? 1,
+      caps,
+      living,
+      grudgeOk,
+      !(opts.noHugInSolo && level.quest.team?.solo),
+    ),
     ...(fresh || noTargetText(rule, grudgeName) === undefined
       ? {}
       : { noTarget: noTargetText(rule, grudgeName)! }),
-    special: specialRules(def, view.abilities, level.quest.markers),
+    special: [
+      ...specialRules(def, view.abilities, level.quest.markers),
+      ...(profile === 'grappler' && opts.noHugInSolo && level.quest.team?.solo
+        ? ['Solo quest: it does not hug. Ignore the hug rule above.']
+        : []),
+      ...(opts.raiment && RAIMENT_LINES[profile] ? [RAIMENT_LINES[profile]!] : []),
+    ],
     ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
     turn,
     done,
@@ -424,6 +442,24 @@ function buildOrder(
 }
 
 /**
+ * Settings that change what an order says (decisions 59 and 61). Off when left out, so the engine alone
+ * gives the plain card text; the app passes its settings.
+ */
+export interface OrderOptions {
+  /** "No Yeti hug in solo quests" (decision 59): in a quest whose `team.solo` is set, a grappler is a plain brute. */
+  readonly noHugInSolo?: boolean | undefined;
+  /** The campaign setting "Raiment of the Frozen Champion" (decision 61): the thief and grappler cards name the artifact warnings. */
+  readonly raiment?: boolean | undefined;
+}
+
+/** Warning lines of the Raiment setting, by profile. */
+const RAIMENT_LINES: Partial<Record<Profile, string>> = {
+  thief:
+    'Raiment of the Frozen Champion: it cannot steal from a hero wearing the Cold Iron Plate Mail.',
+  grappler: 'Raiment of the Frozen Champion: it cannot hug a hero carrying the Spiked Shield.',
+};
+
+/**
  * One order per ACTIVE monster seen by the heroes, in reveal order, for `state.turn`.
  * Dormant monsters (furniture, decision 28) and slain monsters never appear. Stone monsters get an
  * entry without a rule. A wandering monster that is still fresh gets a note and next turn's order.
@@ -436,6 +472,7 @@ export function ordersFor(
   state: GameState,
   teamInput: readonly TeamInput[],
   seed: number = state.seed,
+  opts: OrderOptions = {},
 ): Order[] {
   const team = normalizeTeam(teamInput);
   // All heroes dead (or no hero at all): nobody to order against. A mercenary alone does not count.
@@ -450,6 +487,7 @@ export function ordersFor(
         state,
         team,
         seed,
+        opts,
         view,
         defs.get(view.id) ??
           (state.wanderers[view.id]
