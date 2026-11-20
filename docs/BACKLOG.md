@@ -300,6 +300,6 @@ All the texts of the application can be translated or modified with a tool, for 
 
 - [ ] A translation mechanism: every interface text and every quest text (notes, intros, monster traits, spell and trap texts, rule texts) comes through a text key with a default
 - [ ] A translation file format (JSON), import, export, create a new one from the English file, edit in the app, a picker for the language of the app
-- [ ] The initial English file is supplied by the app and can never be deleted or changed (users make a copy to change texts)
+- [ ] The initial English file is supplied by the app. It can be changed (the changes are kept on the device over the built-in English, with a reset) but can never be deleted
 - [ ] Quest texts: a translation file covers the bundled quests and the quests of the user (by quest id and text key), and a missing text falls back to English
 - [ ] The editor writes the texts of a new quest as keys, so it can be translated like the bundled ones
