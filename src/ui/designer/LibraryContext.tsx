@@ -1,3 +1,4 @@
+import { t } from '../../i18n/t';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CORE_EXTRA } from '../../engine/data/coreFile';
@@ -83,7 +84,7 @@ const EMPTY: LibraryApi = {
   enemies: [],
   addable: { abilities: [], spells: [], enemies: [] },
   isShown: () => true,
-  save: async () => 'The library is not available here.',
+  save: async () => t('designer.LibraryContext.notAvailable', 'The library is not available here.'),
 };
 
 /** The library, or an empty one outside a provider (tests of single components). */

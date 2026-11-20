@@ -15,6 +15,7 @@ import {
   toMatrix3d,
   type Pt,
 } from './reference';
+import { t } from '../../i18n/t';
 
 /** The svg of the board draws 2 units of margin around the squares (viewBox starts at -2). */
 const PAD = 2;
@@ -142,8 +143,13 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
     aligning,
     setAligning,
     async load(file) {
-      if (!file.type.startsWith('image/')) return 'That file is not an image.';
-      if (file.size > MAX_BYTES) return 'That image is too big. Use one under 40 MB.';
+      if (!file.type.startsWith('image/'))
+        return t('editor.ReferenceImage.thatFileIsNot', 'That file is not an image.');
+      if (file.size > MAX_BYTES)
+        return t(
+          'editor.ReferenceImage.thatImageIsToo',
+          'That image is too big. Use one under 40 MB.',
+        );
       try {
         picked.current = true;
         const m = await measure(file);
@@ -152,7 +158,10 @@ export function useReference(questId: string, persist?: ReferenceStore): Referen
         setAligning(true);
         return null;
       } catch {
-        return 'The browser cannot read that image.';
+        return t(
+          'editor.ReferenceImage.theBrowserCannotRead',
+          'The browser cannot read that image.',
+        );
       }
     },
     setCorners: (corners) => setState((s) => (s ? { ...s, corners, visible: true } : s)),
@@ -241,7 +250,10 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
       return;
     }
     if (!isConvexQuad(next)) {
-      const text = 'Those corners do not make a four sided shape.';
+      const text = t(
+        'editor.ReferenceImage.thoseCornersDoNot',
+        'Those corners do not make a four sided shape.',
+      );
       say(text);
       setProblem(text);
       setPoints([]);
@@ -254,11 +266,20 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
 
   const step = shown.length;
   return (
-    <div className="ed-align" ref={alignRef} role="dialog" aria-label="Align the reference image">
+    <div
+      className="ed-align"
+      ref={alignRef}
+      role="dialog"
+      aria-label={t('editor.ReferenceImage.alignTheReferenceImage', 'Align the reference image')}
+    >
       <div className="ed-align-bar">
         <p className="ed-align-hint" role="status" data-problem={problem ? 'true' : undefined}>
           {problem ? `${problem} ` : ''}
-          {`Tap the ${CORNER_NAMES[step]} corner of the map frame. (${step + 1} of 4)`}
+          {t(
+            'editor.ReferenceImage.tapTheCornerOf',
+            'Tap the {v1} corner of the map frame. ({v2} of 4)',
+            { v1: CORNER_NAMES[step] ?? '', v2: step + 1 },
+          )}
         </p>
         <div className="ed-chips">
           {ZOOMS.map((z) => (
@@ -277,10 +298,12 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
           disabled={shown.length === 0}
           onClick={() => setPoints(shown.slice(0, -1))}
         >
-          Undo point
+          {t('editor.ReferenceImage.undoPoint', 'Undo point')}
         </button>
         <button className="chip" onClick={() => api.setAligning(false)}>
-          {s.corners ? 'Keep as it is' : 'Cancel'}
+          {s.corners
+            ? t('editor.ReferenceImage.keepAsItIs', 'Keep as it is')
+            : t('editor.ReferenceImage.cancel', 'Cancel')}
         </button>
       </div>
       <div className="ed-align-view">
@@ -295,11 +318,16 @@ export function AlignDialog({ api, say }: { api: ReferenceApi; say(text: string)
           <img
             ref={imgRef}
             src={s.url}
-            alt="Reference to align"
+            alt={t('editor.ReferenceImage.referenceToAlign', 'Reference to align')}
             draggable={false}
             onClick={tap}
             onError={() => {
-              say('The browser could not show that image. Try a PNG or JPG.');
+              say(
+                t(
+                  'editor.ReferenceImage.theBrowserCouldNot',
+                  'The browser could not show that image. Try a PNG or JPG.',
+                ),
+              );
               api.clear();
             }}
           />
@@ -337,13 +365,15 @@ export function ReferencePanel({
   };
   return (
     <div className="ed-ref-panel">
-      <div className="lbl ed-gap">Reference image</div>
+      <div className="lbl ed-gap">
+        {t('editor.ReferenceImage.referenceImage', 'Reference image')}
+      </div>
       <input
         ref={input}
         type="file"
         accept="image/*"
         hidden
-        aria-label="Reference image file"
+        aria-label={t('editor.ReferenceImage.referenceImageFile', 'Reference image file')}
         data-testid="reference-file"
         onChange={(e) => {
           void take(e.target.files?.[0]);
@@ -351,25 +381,42 @@ export function ReferencePanel({
         }}
       />
       <button className="chip" onClick={() => input.current?.click()}>
-        {s ? 'Change image' : 'Load image'}
+        {s
+          ? t('editor.ReferenceImage.changeImage', 'Change image')
+          : t('editor.ReferenceImage.loadImage', 'Load image')}
       </button>
-      {!s && <p className="ed-note">Stays on this device. Drop a file on the board too.</p>}
+      {!s && (
+        <p className="ed-note">
+          {t(
+            'editor.ReferenceImage.staysOnThisDevice',
+            'Stays on this device. Drop a file on the board too.',
+          )}
+        </p>
+      )}
       {s && (
         <>
           <button className="chip" onClick={() => api.setAligning(true)}>
-            {s.corners ? 'Align again' : 'Align corners'}
+            {s.corners
+              ? t('editor.ReferenceImage.alignAgain', 'Align again')
+              : t('editor.ReferenceImage.alignCorners', 'Align corners')}
           </button>
-          {!s.corners && <p className="ed-note">Align it to show it on the board.</p>}
+          {!s.corners && (
+            <p className="ed-note">
+              {t('editor.ReferenceImage.alignItToShow', 'Align it to show it on the board.')}
+            </p>
+          )}
           <button
             className="chip"
             aria-pressed={s.visible}
             disabled={!s.corners}
             onClick={() => api.setVisible(!s.visible)}
           >
-            {s.visible ? 'Hide image' : 'Show image'}
+            {s.visible
+              ? t('editor.ReferenceImage.hideImage', 'Hide image')
+              : t('editor.ReferenceImage.showImage', 'Show image')}
           </button>
           <label className="ed-field ed-range">
-            Opacity
+            {t('editor.ReferenceImage.opacity', 'Opacity')}
             <input
               type="range"
               min={0.1}
@@ -380,7 +427,7 @@ export function ReferencePanel({
             />
           </label>
           <button className="chip" onClick={() => api.clear()}>
-            Clear image
+            {t('editor.ReferenceImage.clearImage', 'Clear image')}
           </button>
         </>
       )}

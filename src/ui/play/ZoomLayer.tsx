@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { t } from '../../i18n/t';
 
 /** The size of what is zoomed (the drawing and its padding), in layout px. */
 export interface Content {
@@ -369,10 +370,15 @@ export function ZoomLayer({
           </div>
         </div>
         {notes}
-        <div className="zoomctl" data-keep role="group" aria-label="Zoom">
+        <div
+          className="zoomctl"
+          data-keep
+          role="group"
+          aria-label={t('play.ZoomLayer.zoom', 'Zoom')}
+        >
           <button
             className="chip"
-            aria-label="Zoom out"
+            aria-label={t('play.ZoomLayer.zoomOut', 'Zoom out')}
             disabled={pct <= 100}
             onClick={() => step(-ZOOM_STEP)}
           >
@@ -380,7 +386,7 @@ export function ZoomLayer({
           </button>
           <button
             className="chip"
-            aria-label="Zoom 100 percent"
+            aria-label={t('play.ZoomLayer.zoom100Percent', 'Zoom 100 percent')}
             disabled={picked === null || pct === 100}
             data-testid="zoom-level"
             onClick={() => setPicked(null)}
@@ -389,7 +395,7 @@ export function ZoomLayer({
           </button>
           <button
             className="chip"
-            aria-label="Zoom in"
+            aria-label={t('play.ZoomLayer.zoomIn', 'Zoom in')}
             disabled={pct >= ZOOM_MAX * 100}
             onClick={() => step(ZOOM_STEP)}
           >
@@ -399,13 +405,13 @@ export function ZoomLayer({
             <span
               className="panctl"
               role="group"
-              aria-label="Move the map"
+              aria-label={t('play.ZoomLayer.moveTheMap', 'Move the map')}
               data-testid="pan-controls"
             >
-              {moveButton('Move the map left', '←', 1, 0)}
-              {moveButton('Move the map up', '↑', 0, 1)}
-              {moveButton('Move the map down', '↓', 0, -1)}
-              {moveButton('Move the map right', '→', -1, 0)}
+              {moveButton(t('play.ZoomLayer.moveTheMapLeft', 'Move the map left'), '←', 1, 0)}
+              {moveButton(t('play.ZoomLayer.moveTheMapUp', 'Move the map up'), '↑', 0, 1)}
+              {moveButton(t('play.ZoomLayer.moveTheMapDown', 'Move the map down'), '↓', 0, -1)}
+              {moveButton(t('play.ZoomLayer.moveTheMapRight', 'Move the map right'), '→', -1, 0)}
             </span>
           )}
         </div>

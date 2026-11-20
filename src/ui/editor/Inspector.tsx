@@ -38,6 +38,7 @@ import {
   TileFields,
   TunnelFields,
 } from './FeatureFields';
+import { t } from '../../i18n/t';
 
 export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
   { kind: 'normal', label: 'Normal' },
@@ -47,12 +48,12 @@ export const DOOR_KINDS: readonly { kind: DoorKind; label: string }[] = [
 
 const TRAP_KINDS_ALL: readonly { kind: TrapKind; label: string }[] = [
   { kind: 'pit', label: 'Pit' },
-  { kind: 'fallingBlock', label: 'Falling block' },
+  { kind: 'fallingBlock', label: t('editor.Inspector.fallingBlock', 'Falling block') },
   { kind: 'spear', label: 'Spear' },
   { kind: 'stalactite', label: 'Stalactite' },
-  { kind: 'swingingAxe', label: 'Swinging axe' },
-  { kind: 'wanderingTrap', label: 'Wandering monsters' },
-  { kind: 'slipperyIce', label: 'Slippery ice' },
+  { kind: 'swingingAxe', label: t('editor.Inspector.swingingAxe', 'Swinging axe') },
+  { kind: 'wanderingTrap', label: t('editor.Inspector.wanderingMonsters', 'Wandering monsters') },
+  { kind: 'slipperyIce', label: t('editor.Inspector.slipperyIce', 'Slippery ice') },
   { kind: 'chest', label: 'Chest' },
   { kind: 'scripted', label: 'Scripted' },
 ];
@@ -66,8 +67,8 @@ const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
   marker: 'Marker',
   zone: 'Zone',
   tile: 'Tile',
-  roomTile: 'Room tile',
-  tunnel: 'Ice tunnel',
+  roomTile: t('editor.Inspector.roomTile', 'Room tile'),
+  tunnel: t('editor.Inspector.iceTunnel', 'Ice tunnel'),
 };
 
 export function Inspector({
@@ -99,20 +100,24 @@ export function Inspector({
     selection?.kind === 'trap' ? quest.traps.find((t) => t.id === selection.id) : undefined;
 
   const tabs = (
-    <div className="ed-chips ed-tabs" role="group" aria-label="Inspector tabs">
+    <div
+      className="ed-chips ed-tabs"
+      role="group"
+      aria-label={t('editor.Inspector.inspectorTabs', 'Inspector tabs')}
+    >
       <button
         className="chip"
         aria-pressed={panel === 'element'}
         onClick={() => st.setPanel('element')}
       >
-        Element
+        {t('editor.Inspector.element', 'Element')}
       </button>
       <button
         className="chip"
         aria-pressed={panel === 'problems'}
         onClick={() => st.setPanel('problems')}
       >
-        Problems
+        {t('editor.Inspector.problems', 'Problems')}
         {issues.length > 0 && (
           <>
             {' '}
@@ -138,13 +143,16 @@ export function Inspector({
       {tabs}
       {!selection && (
         <p className="ed-note" data-testid="inspector-hint">
-          Select something on the map to edit it. The quest fields are in the Quest tab.
+          {t(
+            'editor.Inspector.selectSomethingOnThe',
+            'Select something on the map to edit it. The quest fields are in the Quest tab.',
+          )}
         </p>
       )}
 
       {saveErrors && (
         <section className="ed-save-errors" role="alert">
-          <div className="lbl">Cannot save yet</div>
+          <div className="lbl">{t('editor.Inspector.cannotSaveYet', 'Cannot save yet')}</div>
           <ul>
             {saveErrors.map((e, i) => (
               <li key={i}>{e}</li>
@@ -181,7 +189,7 @@ export function Inspector({
             return subject ? <SubjectActions store={store} subject={subject} /> : null;
           })()}
           <button className="btn" onClick={() => deleteSelection(store)}>
-            Delete
+            {t('editor.Inspector.delete', 'Delete')}
           </button>
         </section>
       ) : null}
@@ -194,7 +202,7 @@ function MarkerFields({ store, marker }: { store: EditorStore; marker: Quest['ma
   return (
     <>
       <label className="ed-field">
-        Label
+        {t('editor.Inspector.label', 'Label')}
         <input
           key={`${marker.id}:${marker.label}`}
           defaultValue={marker.label}
@@ -205,7 +213,11 @@ function MarkerFields({ store, marker }: { store: EditorStore; marker: Quest['ma
           }}
         />
       </label>
-      <div className="ed-chips" role="group" aria-label="Who sees it">
+      <div
+        className="ed-chips"
+        role="group"
+        aria-label={t('editor.Inspector.whoSeesIt', 'Who sees it')}
+      >
         {(['editor', 'players'] as const).map((v) => (
           <button
             key={v}
@@ -213,7 +225,9 @@ function MarkerFields({ store, marker }: { store: EditorStore; marker: Quest['ma
             aria-pressed={(marker.visible ?? 'players') === v}
             onClick={() => st.apply((q) => updateMarker(q, marker.id, { visible: v }))}
           >
-            {v === 'editor' ? 'Editor only' : 'Players see'}
+            {v === 'editor'
+              ? t('editor.Inspector.editorOnly', 'Editor only')
+              : t('editor.Inspector.playersSee', 'Players see')}
           </button>
         ))}
       </div>
@@ -226,7 +240,10 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
   return (
     <>
       <p className="ed-note" data-testid="zone-size">
-        {zone.cells.length} {zone.cells.length === 1 ? 'square' : 'squares'}
+        {zone.cells.length}{' '}
+        {zone.cells.length === 1
+          ? t('editor.Inspector.square', 'square')
+          : t('editor.Inspector.squares', 'squares')}
       </p>
       <button
         className="btn alt"
@@ -235,7 +252,7 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
           st.setOpts({ zoneId: zone.id });
         }}
       >
-        Edit its squares
+        {t('editor.Inspector.editItsSquares', 'Edit its squares')}
       </button>
     </>
   );
@@ -244,11 +261,14 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
 function selectionLabel(selection: NonNullable<EditSelection>): string {
   switch (selection.kind) {
     case 'block':
-      return `Square ${selection.cell[0]}, ${selection.cell[1]}`;
+      return t('editor.Inspector.square2', 'Square {v1}, {v2}', {
+        v1: selection.cell[0],
+        v2: selection.cell[1],
+      });
     case 'tile':
-      return `Tile ${selection.index + 1}`;
+      return t('editor.Inspector.tile', 'Tile {v1}', { v1: selection.index + 1 });
     case 'roomTile':
-      return `Room tile ${selection.index + 1}`;
+      return t('editor.Inspector.roomTile2', 'Room tile {v1}', { v1: selection.index + 1 });
     case 'tunnel':
       return `${selection.id}, end ${selection.end.toUpperCase()}`;
     default:
@@ -304,13 +324,17 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
   return (
     <>
       <label className="ed-field">
-        Letter
+        {t('editor.Inspector.letter', 'Letter')}
         <input
           key={`${furniture.id}:${furniture.letter ?? ''}`}
           defaultValue={furniture.letter ?? ''}
           maxLength={1}
           disabled={stairs}
-          placeholder={stairs ? 'Stairs take no letter' : 'None'}
+          placeholder={
+            stairs
+              ? t('editor.Inspector.stairsTakeNoLetter', 'Stairs take no letter')
+              : t('editor.Inspector.none', 'None')
+          }
           onChange={(e) => (e.target.value = e.target.value.toUpperCase())}
           onBlur={(e) => {
             const r = parseMapLetter(e.target.value);
@@ -325,11 +349,13 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
         />
       </label>
       <button className="btn alt" onClick={() => rotateSelection(store)}>
-        Rotate
+        {t('editor.Inspector.rotate', 'Rotate')}
       </button>
       <p className="ed-note">
-        Rotate turns it a quarter turn (key R). It may overlap something in between: only the last
-        position has to fit.
+        {t(
+          'editor.Inspector.rotateTurnsItA',
+          'Rotate turns it a quarter turn (key R). It may overlap something in between: only the last position has to fit.',
+        )}
       </p>
     </>
   );
@@ -341,10 +367,13 @@ function MonsterPointer({ store }: { store: EditorStore }) {
   return (
     <>
       <p className="ed-note">
-        Stats, spells, abilities and behavior are edited in the Monsters tab.
+        {t(
+          'editor.Inspector.statsSpellsAbilitiesAnd',
+          'Stats, spells, abilities and behavior are edited in the Monsters tab.',
+        )}
       </p>
       <button className="btn alt" onClick={() => st.setTab('Monsters')}>
-        Edit in the Monsters tab
+        {t('editor.Inspector.editInTheMonsters', 'Edit in the Monsters tab')}
       </button>
     </>
   );
@@ -385,7 +414,9 @@ export function StatFields({
   };
   return (
     <>
-      <div className="lbl">Stats (they start from the enemy or the type)</div>
+      <div className="lbl">
+        {t('editor.Inspector.statsTheyStartFrom', 'Stats (they start from the enemy or the type)')}
+      </div>
       <div className="ed-stats">
         {STAT_KEYS.map((k) => (
           <label key={k} className="ed-field">
@@ -429,7 +460,7 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
 
   return (
     <>
-      <div className="lbl">Kind</div>
+      <div className="lbl">{t('editor.Inspector.kind', 'Kind')}</div>
       <div className="ed-chips ed-small">
         {TRAP_KINDS_ALL.map((k) => (
           <button
@@ -446,27 +477,29 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
       {trap.kind === 'scripted' && (
         <div className="ed-chips">
           <button className="chip" aria-pressed={mode === 'cell'} onClick={() => setMode('cell')}>
-            On a square
+            {t('editor.Inspector.onASquare', 'On a square')}
           </button>
           <button
             className="chip"
             aria-pressed={mode === 'furniture'}
             onClick={() => setMode('furniture')}
           >
-            On furniture
+            {t('editor.Inspector.onFurniture', 'On furniture')}
           </button>
         </div>
       )}
 
       {onFurniture ? (
         <label className="ed-field">
-          Furniture
+          {t('editor.Inspector.furniture', 'Furniture')}
           <select
             className="es-select"
             value={trap.furniture ?? ''}
             onChange={(e) => e.target.value && patch({ target: { furniture: e.target.value } })}
           >
-            {!trap.furniture && <option value="">Pick a piece</option>}
+            {!trap.furniture && (
+              <option value="">{t('editor.Inspector.pickAPiece', 'Pick a piece')}</option>
+            )}
             {quest.furniture
               .filter(
                 (f) =>
@@ -490,7 +523,7 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
       )}
 
       <label className="ed-field">
-        Effect
+        {t('editor.Inspector.effect', 'Effect')}
         <textarea
           key={`${trap.id}:${trap.effect ?? ''}`}
           defaultValue={trap.effect ?? ''}
@@ -524,13 +557,18 @@ function CellFields({
     const c: [number, number] = [Number(x), Number(y)];
     if (cell && c[0] === cell[0] && c[1] === cell[1]) return;
     if (c[0] > 25 || c[1] > 18)
-      return say('That square is off the board. Across 0 to 25, down 0 to 18.');
+      return say(
+        t(
+          'editor.Inspector.thatSquareIsOff',
+          'That square is off the board. Across 0 to 25, down 0 to 18.',
+        ),
+      );
     onSave(c);
   };
   return (
     <div className="ed-stats">
       <label className="ed-field">
-        Across
+        {t('editor.Inspector.across', 'Across')}
         <input
           inputMode="numeric"
           value={x}
@@ -540,7 +578,7 @@ function CellFields({
         />
       </label>
       <label className="ed-field">
-        Down
+        {t('editor.Inspector.down', 'Down')}
         <input
           inputMode="numeric"
           value={y}

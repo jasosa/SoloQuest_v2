@@ -11,6 +11,7 @@ import { addAction } from './addAction';
 import { subjectLabel, subjectOf, type Subject } from './actionSubjects';
 import type { EditorStore } from './editorStore';
 import { mainText, triggerSummary } from './noteForms';
+import { t } from '../../i18n/t';
 
 const ORDER: readonly Subject['kind'][] = [
   'quest',
@@ -56,7 +57,9 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
     <>
       {missing.length > 0 && (
         <section>
-          <div className="lbl">Letters on the map with no action</div>
+          <div className="lbl">
+            {t('editor.ActionsPanel.lettersOnTheMap', 'Letters on the map with no action')}
+          </div>
           <div className="ed-chips" data-testid="missing-letters">
             {missing.map((l) => (
               <button
@@ -64,17 +67,17 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
                 className="chip"
                 onClick={() => addAction(store, { kind: 'area', id: quest.start.area ?? 'R01' }, l)}
               >
-                Add action {l}
+                {t('editor.ActionsPanel.addAction', 'Add action {l}', { l })}
               </button>
             ))}
           </div>
         </section>
       )}
       <section>
-        <div className="lbl">Actions</div>
+        <div className="lbl">{t('editor.ActionsPanel.actions', 'Actions')}</div>
         {quest.notes.length === 0 ? (
           <p className="ed-note" data-testid="no-actions">
-            No action yet.
+            {t('editor.ActionsPanel.noActionYet', 'No action yet.')}
           </p>
         ) : (
           groups.map((g) => (
@@ -98,7 +101,7 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
           ))
         )}
         <button className="btn" onClick={() => addAction(store, { kind: 'quest' })}>
-          Add action
+          {t('editor.ActionsPanel.addAction2', 'Add action')}
         </button>
       </section>
     </>

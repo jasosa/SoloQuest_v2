@@ -1,6 +1,7 @@
 import { useStore } from 'zustand';
 import { setLeave, setSuggestedPack } from '../../engine/editor';
 import type { EditorStore } from './editorStore';
+import { t } from '../../i18n/t';
 
 /**
  * The quest settings of expansion quests (Frozen Horror): the way the heroes leave and the texture
@@ -14,11 +15,16 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
   return (
     <div className="ed-quest" data-testid="features-panel">
       <section>
-        <div className="lbl">How the heroes leave</div>
+        <div className="lbl">
+          {t('editor.FeaturesPanel.howTheHeroesLeave', 'How the heroes leave')}
+        </div>
         <label className="ed-field">
-          Words, for example "through the cave". Empty: by the stairs.
+          {t(
+            'editor.FeaturesPanel.wordsForExampleThrough',
+            'Words, for example "through the cave". Empty: by the stairs.',
+          )}
           <input
-            aria-label="Leave"
+            aria-label={t('editor.FeaturesPanel.leave', 'Leave')}
             key={quest.leave ?? ''}
             defaultValue={quest.leave ?? ''}
             onBlur={(e) => {
@@ -30,12 +36,14 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
       </section>
 
       <section>
-        <div className="lbl">Texture pack</div>
+        <div className="lbl">{t('editor.FeaturesPanel.texturePack', 'Texture pack')}</div>
         <label className="ed-field">
-          Id of the texture pack this quest looks best with. Only a hint, never applied for the
-          player.
+          {t(
+            'editor.FeaturesPanel.idOfTheTexture',
+            'Id of the texture pack this quest looks best with. Only a hint, never applied for the player.',
+          )}
           <input
-            aria-label="Suggested texture pack"
+            aria-label={t('editor.FeaturesPanel.suggestedTexturePack', 'Suggested texture pack')}
             key={quest.suggestedPack ?? ''}
             defaultValue={quest.suggestedPack ?? ''}
             onBlur={(e) => {
@@ -47,8 +55,10 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
       </section>
 
       <p className="ed-note" data-testid="features-pointer">
-        Tiles, ice tunnels, exterior doors and door flags are placed on the Map tab: pick Tiles or
-        Doors in the tools.
+        {t(
+          'editor.FeaturesPanel.tilesIceTunnelsExterior',
+          'Tiles, ice tunnels, exterior doors and door flags are placed on the Map tab: pick Tiles or Doors in the tools.',
+        )}
       </p>
     </div>
   );

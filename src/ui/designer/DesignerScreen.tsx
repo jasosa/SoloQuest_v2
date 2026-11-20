@@ -54,31 +54,11 @@ import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../sh
 import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
 import { expansionNames, expansionOf, setExpansionHidden, useHiddenExpansions } from './expansions';
+import { t } from '../../i18n/t';
+import { ownerModeOn, rememberOwnerMode } from '../../persist/ownerMode';
 
 type Data = Record<string, unknown>;
 
-/**
- * Owner mode (decision 76): the owner can change Core items. Everyone else sees Core read only.
- * The choice is kept on this device; without one, the development build is in owner mode.
- */
-const OWNER_KEY = 'soloquest-owner-mode';
-function ownerModeOn(): boolean {
-  try {
-    const v = localStorage.getItem(OWNER_KEY);
-    if (v === '1') return true;
-    if (v === '0') return false;
-  } catch {
-    /* storage unavailable: fall through */
-  }
-  return import.meta.env.DEV;
-}
-function rememberOwnerMode(on: boolean): void {
-  try {
-    localStorage.setItem(OWNER_KEY, on ? '1' : '0');
-  } catch {
-    /* ignore */
-  }
-}
 const ORIGIN_LABEL: Readonly<Record<Origin, string>> = {
   official: 'official',
   'fan-made': 'fan-made',
@@ -143,7 +123,7 @@ const PROFILE_LABELS: Readonly<Record<Profile, string>> = {
   passive: 'Passive: no orders',
 };
 const LIMITS = [
-  { n: 1, label: 'Once in the quest' },
+  { n: 1, label: t('designer.DesignerScreen.onceInTheQuest', 'Once in the quest') },
   { n: 2, label: 'Twice' },
   { n: 3, label: '3 times' },
   { n: 4, label: '4 times' },
@@ -217,10 +197,15 @@ function coreRows(kind: LibraryKind): Row[] {
 }
 
 function blank(kind: LibraryKind, id: string): Data {
-  const name = `New ${ONE[kind]}`;
+  const name = t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] });
   switch (kind) {
     case 'ability':
-      return { id, name, origin: 'fan-made', text: 'Describe it in your own words.' };
+      return {
+        id,
+        name,
+        origin: 'fan-made',
+        text: t('designer.DesignerScreen.describeItInYour', 'Describe it in your own words.'),
+      };
     case 'spell':
       return { id, name, origin: 'fan-made', tags: ['heroAdjacent'] };
     case 'enemy':
@@ -234,7 +219,7 @@ function blank(kind: LibraryKind, id: string): Data {
         origin: 'fan-made',
         defend: 2,
         body: 2,
-        text: 'What the helper does.',
+        text: t('designer.DesignerScreen.whatTheHelperDoes', 'What the helper does.'),
       };
   }
 }
@@ -268,7 +253,12 @@ function Picture({
         {image ? (
           <img src={image} alt="" data-testid="dz-pic" />
         ) : (
-          <span className="fr-help">No picture: the letter icon is used.</span>
+          <span className="fr-help">
+            {t(
+              'designer.DesignerScreen.noPictureTheLetter',
+              'No picture: the letter icon is used.',
+            )}
+          </span>
         )}
         <input
           ref={input}
@@ -289,7 +279,9 @@ function Picture({
           }}
         />
         <button className="btn alt" disabled={disabled} onClick={() => input.current?.click()}>
-          {image ? 'Change picture' : 'Add a picture'}
+          {image
+            ? t('designer.DesignerScreen.changePicture', 'Change picture')
+            : t('designer.DesignerScreen.addAPicture', 'Add a picture')}
         </button>
         {image && (
           <button
@@ -297,7 +289,7 @@ function Picture({
             disabled={disabled}
             onClick={() => onChange(put(data, 'image', undefined))}
           >
-            Remove picture
+            {t('designer.DesignerScreen.removePicture', 'Remove picture')}
           </button>
         )}
       </div>
@@ -317,32 +309,35 @@ function AbilityFields({
 }) {
   return (
     <>
-      <Fld label="Kind">
+      <Fld label={t('designer.DesignerScreen.kind', 'Kind')}>
         <select
           className="fr-sel"
-          aria-label="Kind"
+          aria-label={t('designer.DesignerScreen.kind', 'Kind')}
           disabled={disabled}
           value={str(data, 'kind') || 'ability'}
           onChange={(e) =>
             onChange(put(data, 'kind', e.target.value === 'ability' ? undefined : e.target.value))
           }
         >
-          <option value="ability">Ability</option>
-          <option value="weakness">Weakness</option>
-          <option value="immunity">Immunity</option>
+          <option value="ability">{t('designer.DesignerScreen.ability', 'Ability')}</option>
+          <option value="weakness">{t('designer.DesignerScreen.weakness', 'Weakness')}</option>
+          <option value="immunity">{t('designer.DesignerScreen.immunity', 'Immunity')}</option>
         </select>
       </Fld>
-      <Fld label="What it does">
+      <Fld label={t('designer.DesignerScreen.whatItDoes', 'What it does')}>
         <textarea
           className="fr-ta"
-          aria-label="What it does"
+          aria-label={t('designer.DesignerScreen.whatItDoes', 'What it does')}
           disabled={disabled}
           value={str(data, 'text')}
           onChange={(e) => onChange(put(data, 'text', e.target.value))}
         />
       </Fld>
       <p className="fr-help">
-        In your own words. It shows on the token tooltip, the margin note and Zargon&apos;s order.
+        {t(
+          'designer.helpInYourOwnWords',
+          "In your own words. It shows on the token tooltip, the margin note and Zargon's order.",
+        )}
       </p>
     </>
   );
@@ -362,38 +357,43 @@ function SpellFields({
   const [pick, setPick] = useState('');
   return (
     <>
-      <Fld label="Card text (optional, your own words)">
+      <Fld
+        label={t(
+          'designer.DesignerScreen.cardTextOptionalYour',
+          'Card text (optional, your own words)',
+        )}
+      >
         <input
           className="fr-in"
-          aria-label="Card text"
+          aria-label={t('designer.DesignerScreen.cardText', 'Card text')}
           disabled={disabled}
           value={str(data, 'text')}
           onChange={(e) => onChange(put(data, 'text', e.target.value))}
         />
       </Fld>
       <div className="fr-hd" style={{ border: 0, padding: '4px 0' }}>
-        When the monster may cast it
+        {t('designer.DesignerScreen.whenTheMonsterMay', 'When the monster may cast it')}
       </div>
       <ul className="fr-items" data-testid="dz-tags">
-        {tags.map((t) => (
-          <li key={t} data-tag={t}>
-            <b>{t}</b>
-            <p className="fr-q">{SPELL_TAG_QUESTIONS[t]}</p>
+        {tags.map((tv) => (
+          <li key={tv} data-tag={tv}>
+            <b>{tv}</b>
+            <p className="fr-q">{SPELL_TAG_QUESTIONS[tv]}</p>
             <button
               className="x"
               disabled={disabled}
-              aria-label={`Remove ${t}`}
+              aria-label={t('designer.DesignerScreen.remove2', 'Remove {tv}', { tv })}
               onClick={() =>
                 onChange(
                   put(
                     data,
                     'tags',
-                    tags.filter((x) => x !== t),
+                    tags.filter((x) => x !== tv),
                   ),
                 )
               }
             >
-              Remove
+              {t('designer.DesignerScreen.remove', 'Remove')}
             </button>
           </li>
         ))}
@@ -401,12 +401,14 @@ function SpellFields({
       <div className="fr-addrow">
         <select
           className="fr-sel"
-          aria-label="Add a situation"
+          aria-label={t('designer.DesignerScreen.addASituation', 'Add a situation')}
           disabled={disabled}
           value={pick}
           onChange={(e) => setPick(e.target.value)}
         >
-          <option value="">Add a situation…</option>
+          <option value="">
+            {t('designer.DesignerScreen.addASituation2', 'Add a situation…')}
+          </option>
           {free.map((t) => (
             <option key={t} value={t}>
               {t} · {SPELL_TAG_QUESTIONS[t]}
@@ -416,29 +418,36 @@ function SpellFields({
         <button
           className="btn"
           disabled={disabled || pick === ''}
-          aria-label="Add the situation"
+          aria-label={t('designer.DesignerScreen.addTheSituation', 'Add the situation')}
           onClick={() => {
             onChange(put(data, 'tags', [...tags, pick]));
             setPick('');
           }}
         >
-          Add
+          {t('designer.DesignerScreen.add', 'Add')}
         </button>
       </div>
-      <p className="fr-help">It fits when any of them is true.</p>
-      <Fld label="Or one question of your own (replaces the situations)">
+      <p className="fr-help">
+        {t('designer.DesignerScreen.itFitsWhenAny', 'It fits when any of them is true.')}
+      </p>
+      <Fld
+        label={t(
+          'designer.DesignerScreen.orOneQuestionOf',
+          'Or one question of your own (replaces the situations)',
+        )}
+      >
         <input
           className="fr-in"
-          aria-label="Own question"
+          aria-label={t('designer.DesignerScreen.ownQuestion', 'Own question')}
           disabled={disabled}
           value={str(data, 'question')}
           onChange={(e) => onChange(put(data, 'question', e.target.value))}
         />
       </Fld>
-      <Fld label="Offer only when">
+      <Fld label={t('designer.DesignerScreen.offerOnlyWhen', 'Offer only when')}>
         <select
           className="fr-sel"
-          aria-label="Offer only when"
+          aria-label={t('designer.DesignerScreen.offerOnlyWhen', 'Offer only when')}
           disabled={disabled}
           value={str(data, 'offerWhen') || 'always'}
           onChange={(e) =>
@@ -447,30 +456,45 @@ function SpellFields({
             )
           }
         >
-          <option value="always">Always</option>
-          <option value="escapePoint">The quest has an escape point</option>
+          <option value="always">{t('designer.DesignerScreen.always', 'Always')}</option>
+          <option value="escapePoint">
+            {t('designer.DesignerScreen.theQuestHasAn', 'The quest has an escape point')}
+          </option>
         </select>
       </Fld>
-      <Fld label="When it is cast">
+      <Fld label={t('designer.DesignerScreen.whenItIsCast', 'When it is cast')}>
         <select
           className="fr-sel"
-          aria-label="When it is cast"
+          aria-label={t('designer.DesignerScreen.whenItIsCast', 'When it is cast')}
           disabled={disabled}
           value={str(data, 'timing') || 'either'}
           onChange={(e) =>
             onChange(put(data, 'timing', e.target.value === 'either' ? undefined : e.target.value))
           }
         >
-          <option value="either">It may move first, then cast</option>
-          <option value="beforeMoving">Cast first, then it may move</option>
-          <option value="afterMoving">Move first, then cast</option>
-          <option value="instead">Cast instead of moving</option>
+          <option value="either">
+            {t('designer.DesignerScreen.itMayMoveFirst', 'It may move first, then cast')}
+          </option>
+          <option value="beforeMoving">
+            {t('designer.DesignerScreen.castFirstThenIt', 'Cast first, then it may move')}
+          </option>
+          <option value="afterMoving">
+            {t('designer.DesignerScreen.moveFirstThenCast', 'Move first, then cast')}
+          </option>
+          <option value="instead">
+            {t('designer.DesignerScreen.castInsteadOfMoving', 'Cast instead of moving')}
+          </option>
         </select>
       </Fld>
-      <Fld label="Warning for the players (optional)">
+      <Fld
+        label={t(
+          'designer.DesignerScreen.warningForThePlayers',
+          'Warning for the players (optional)',
+        )}
+      >
         <input
           className="fr-in"
-          aria-label="Warning"
+          aria-label={t('designer.DesignerScreen.warning', 'Warning')}
           disabled={disabled}
           value={str(data, 'warning')}
           onChange={(e) => onChange(put(data, 'warning', e.target.value))}
@@ -502,26 +526,33 @@ function NewItemPopup({
       foot={
         <>
           <button className="btn alt" onClick={onCancel}>
-            Cancel
+            {t('designer.DesignerScreen.cancel', 'Cancel')}
           </button>
           <button className="btn" disabled={!valid} onClick={onSave}>
-            Save
+            {t('designer.DesignerScreen.save', 'Save')}
           </button>
         </>
       }
     >
       <div className="fr-row2">
-        <Fld label="Name">
+        <Fld label={t('designer.DesignerScreen.name', 'Name')}>
           <input
             className="fr-in"
-            aria-label="Name"
+            aria-label={t('designer.DesignerScreen.name', 'Name')}
             value={str(draft, 'name')}
             onChange={(e) => onChange(put(draft, 'name', e.target.value))}
           />
         </Fld>
-        <Fld label="Save in">
-          <select className="fr-sel" aria-label="Save in" disabled value="library">
-            <option value="library">The library (every quest)</option>
+        <Fld label={t('designer.DesignerScreen.saveIn', 'Save in')}>
+          <select
+            className="fr-sel"
+            aria-label={t('designer.DesignerScreen.saveIn', 'Save in')}
+            disabled
+            value="library"
+          >
+            <option value="library">
+              {t('designer.DesignerScreen.theLibraryEveryQuest', 'The library (every quest)')}
+            </option>
           </select>
         </Fld>
       </div>
@@ -593,7 +624,8 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   ];
   // The box of an item: the expansion it belongs to, or the base game.
   const boxKey = (r: Row) => expansionOf(kind, r.id, r.data) ?? 'base';
-  const boxName = (r: Row) => (boxKey(r) === 'base' ? 'Base game' : boxKey(r));
+  const boxName = (r: Row) =>
+    boxKey(r) === 'base' ? t('designer.DesignerScreen.baseGame', 'Base game') : boxKey(r);
   const boxes = [...new Set(rows.filter((r) => r.core && boxKey(r) !== 'base').map(boxKey))].sort(
     (a, b) => a.localeCompare(b),
   );
@@ -603,7 +635,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const locked = isCore && !owner;
   const data: Data | null = sel ? (draft ?? sel.data) : null;
   const sourceLabel = !isCore
-    ? 'My library (this device)'
+    ? t('designer.DesignerScreen.myLibraryThisDevice', 'My library (this device)')
     : !owner
       ? 'Core (read only)'
       : sel?.edited
@@ -671,7 +703,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const create = () => {
     const id = freeId(
       rows.map((r) => r.id),
-      `New ${ONE[kind]}`,
+      t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] }),
     );
     void make(blank(kind, id));
   };
@@ -709,7 +741,15 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           sel.id,
           questEntries.flatMap((q) =>
             q.level
-              ? [{ title: `Quest ${q.number}: ${q.level.quest.title}`, quest: q.level.quest }]
+              ? [
+                  {
+                    title: t('designer.DesignerScreen.quest', 'Quest {number}: {title}', {
+                      number: q.number,
+                      title: q.level.quest.title,
+                    }),
+                    quest: q.level.quest,
+                  },
+                ]
               : [],
           ),
         )
@@ -786,7 +826,16 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       const r = await store.importAll(await f.text(), stamp(), { fanMade: !owner });
       const from = r.name ? `"${r.name}"${r.author ? ` by ${r.author}` : ''}: ` : '';
       setMessage(
-        `Imported ${from}${r.added} added, ${r.replaced} replaced${r.skipped ? `, ${r.skipped} skipped` : ''}.`,
+        t(
+          'designer.DesignerScreen.importedAddedReplaced',
+          'Imported {from}{added} added, {replaced} replaced{v1}.',
+          {
+            from,
+            added: r.added,
+            replaced: r.replaced,
+            v1: r.skipped ? `, ${r.skipped} skipped` : '',
+          },
+        ),
       );
       await refresh();
     } catch (e) {
@@ -878,19 +927,27 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
     ].filter((s) => !spellIds.includes(s.id));
     return (
       <>
-        <Panel title={`Enemy: ${str(d, 'name')}`} testId="dz-card">
+        <Panel
+          title={t('designer.DesignerScreen.enemy', 'Enemy: {v1}', { v1: str(d, 'name') })}
+          testId="dz-card"
+        >
           <div className="fr-row2">
-            <Fld label="Name">
+            <Fld label={t('designer.DesignerScreen.name', 'Name')}>
               <input
                 className="fr-in"
-                aria-label="Name"
+                aria-label={t('designer.DesignerScreen.name', 'Name')}
                 disabled={locked}
                 value={str(d, 'name')}
                 onChange={(e) => change(put(d, 'name', e.target.value))}
               />
             </Fld>
-            <Fld label="Source">
-              <select className="fr-sel" aria-label="Source" disabled value="x">
+            <Fld label={t('designer.DesignerScreen.source', 'Source')}>
+              <select
+                className="fr-sel"
+                aria-label={t('designer.DesignerScreen.source', 'Source')}
+                disabled
+                value="x"
+              >
                 <option value="x">{sourceLabel}</option>
               </select>
             </Fld>
@@ -918,15 +975,31 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               </Fld>
             ))}
           </div>
-          <Fld label={locked ? 'Hunts' : 'Starts from'}>
+          <Fld
+            label={
+              locked
+                ? t('designer.DesignerScreen.hunts', 'Hunts')
+                : t('designer.DesignerScreen.startsFrom', 'Starts from')
+            }
+          >
             {locked ? (
-              <select className="fr-sel" aria-label="Hunts" disabled value="x">
-                <option value="x">The hero it can reach first (core rule)</option>
+              <select
+                className="fr-sel"
+                aria-label={t('designer.DesignerScreen.hunts', 'Hunts')}
+                disabled
+                value="x"
+              >
+                <option value="x">
+                  {t(
+                    'designer.DesignerScreen.theHeroItCan',
+                    'The hero it can reach first (core rule)',
+                  )}
+                </option>
               </select>
             ) : (
               <select
                 className="fr-sel"
-                aria-label="Starts from"
+                aria-label={t('designer.DesignerScreen.startsFrom', 'Starts from')}
                 value={baseId}
                 onChange={(e) => {
                   const v = e.target.value as MonsterType | '';
@@ -949,7 +1022,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   }
                 }}
               >
-                <option value="">Nothing: its own rules</option>
+                <option value="">
+                  {t('designer.DesignerScreen.nothingItsOwnRules', 'Nothing: its own rules')}
+                </option>
                 {MONSTER_TYPES.map((t) => (
                   <option key={t} value={t}>
                     {MONSTER_NAMES[t]}
@@ -958,10 +1033,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               </select>
             )}
           </Fld>
-          <Fld label="Plan">
+          <Fld label={t('designer.DesignerScreen.plan', 'Plan')}>
             <select
               className="fr-sel"
-              aria-label="Plan"
+              aria-label={t('designer.DesignerScreen.plan', 'Plan')}
               disabled={locked}
               value={profile}
               onChange={(e) => change(put(d, 'profile', e.target.value))}
@@ -975,10 +1050,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           </Fld>
           <p className="fr-help">{PLAN_TEXT[profile]}</p>
           <div className="fr-row2">
-            <Fld label="Attacks per turn">
+            <Fld label={t('designer.DesignerScreen.attacksPerTurn', 'Attacks per turn')}>
               <select
                 className="fr-sel"
-                aria-label="Attacks per turn"
+                aria-label={t('designer.DesignerScreen.attacksPerTurn', 'Attacks per turn')}
                 disabled={locked}
                 value={String(d.attacks ?? 1)}
                 onChange={(e) =>
@@ -991,15 +1066,15 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   )
                 }
               >
-                <option value="1">One</option>
-                <option value="2">Two</option>
-                <option value="3">Three</option>
+                <option value="1">{t('designer.DesignerScreen.one', 'One')}</option>
+                <option value="2">{t('designer.DesignerScreen.two', 'Two')}</option>
+                <option value="3">{t('designer.DesignerScreen.three', 'Three')}</option>
               </select>
             </Fld>
-            <Fld label="Size">
+            <Fld label={t('designer.DesignerScreen.size', 'Size')}>
               <select
                 className="fr-sel"
-                aria-label="Size"
+                aria-label={t('designer.DesignerScreen.size', 'Size')}
                 disabled={locked}
                 value={String(d.size ?? 1)}
                 onChange={(e) =>
@@ -1008,18 +1083,22 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   )
                 }
               >
-                <option value="1">One square</option>
-                <option value="2">Large: 2 x 2 squares</option>
+                <option value="1">{t('designer.DesignerScreen.oneSquare', 'One square')}</option>
+                <option value="2">
+                  {t('designer.DesignerScreen.large2X2', 'Large: 2 x 2 squares')}
+                </option>
               </select>
             </Fld>
           </div>
-          <div className="lbl">Who it goes for (weight 0 to 9, 0 never)</div>
+          <div className="lbl">
+            {t('designer.DesignerScreen.whoItGoesFor', 'Who it goes for (weight 0 to 9, 0 never)')}
+          </div>
           <div data-testid="dz-weights">
             {RULE_KEYS.map((k) => (
               <Fld key={k} label={RULE_TEXT[k]}>
                 <input
                   className="fr-in"
-                  aria-label={`Weight: ${k}`}
+                  aria-label={t('designer.DesignerScreen.weight', 'Weight: {k}', { k })}
                   inputMode="numeric"
                   disabled={locked}
                   value={String(weights[k] ?? 0)}
@@ -1034,7 +1113,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           </div>
         </Panel>
 
-        <Panel title="Abilities" testId="dz-abilities">
+        <Panel title={t('designer.DesignerScreen.abilities', 'Abilities')} testId="dz-abilities">
           <ul className="fr-items">
             {abilities.map((id) => (
               <li key={id} data-id={id}>
@@ -1043,7 +1122,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 <button
                   className="x"
                   disabled={locked}
-                  aria-label={`Remove ${abilityName(id)}`}
+                  aria-label={t('designer.DesignerScreen.remove3', 'Remove {v1}', {
+                    v1: abilityName(id),
+                  })}
                   onClick={() =>
                     change(
                       put(
@@ -1054,7 +1135,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     )
                   }
                 >
-                  Remove
+                  {t('designer.DesignerScreen.remove', 'Remove')}
                 </button>
               </li>
             ))}
@@ -1062,12 +1143,14 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           <div className="fr-addrow">
             <select
               className="fr-sel"
-              aria-label="Add an ability"
+              aria-label={t('designer.DesignerScreen.addAnAbility', 'Add an ability')}
               disabled={locked}
               value={abPick}
               onChange={(e) => setAbPick(e.target.value)}
             >
-              <option value="">Add an ability…</option>
+              <option value="">
+                {t('designer.DesignerScreen.addAnAbility2', 'Add an ability…')}
+              </option>
               {freeAbilities.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -1077,25 +1160,25 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             <button
               className="btn"
               disabled={locked || abPick === ''}
-              aria-label="Add the ability"
+              aria-label={t('designer.DesignerScreen.addTheAbility', 'Add the ability')}
               onClick={() => {
                 change(put(d, 'abilities', [...abilities, abPick]));
                 setAbPick('');
               }}
             >
-              Add
+              {t('designer.DesignerScreen.add', 'Add')}
             </button>
             <button
               className="btn alt"
               disabled={locked}
               onClick={() => setPopup({ kind: 'ability', draft: blank('ability', 'new-ability') })}
             >
-              New ability…
+              {t('designer.DesignerScreen.newAbility', 'New ability…')}
             </button>
           </div>
         </Panel>
 
-        <Panel title="Spells" testId="dz-spells">
+        <Panel title={t('designer.DesignerScreen.spells', 'Spells')} testId="dz-spells">
           <ul className="fr-items">
             {spellIds.map((id) => {
               const sp = spellInfo(id);
@@ -1110,15 +1193,17 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                             {t}
                           </span>
                         ))
-                      : 'Unknown spell.'}
+                      : t('designer.DesignerScreen.unknownSpell', 'Unknown spell.')}
                   </p>
                   <button
                     className="x"
                     disabled={locked}
-                    aria-label={`Remove ${sp?.name ?? id}`}
+                    aria-label={t('designer.DesignerScreen.remove3', 'Remove {v1}', {
+                      v1: sp?.name ?? id,
+                    })}
                     onClick={() => setCount(id, 0)}
                   >
-                    Remove
+                    {t('designer.DesignerScreen.remove', 'Remove')}
                   </button>
                   <div className="ctl">
                     <select
@@ -1142,12 +1227,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           <div className="fr-addrow">
             <select
               className="fr-sel"
-              aria-label="Add a spell"
+              aria-label={t('designer.DesignerScreen.addASpell', 'Add a spell')}
               disabled={locked}
               value={spPick}
               onChange={(e) => setSpPick(e.target.value)}
             >
-              <option value="">Add a spell…</option>
+              <option value="">{t('designer.DesignerScreen.addASpell2', 'Add a spell…')}</option>
               {freeSpells.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -1157,20 +1242,20 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             <button
               className="btn"
               disabled={locked || spPick === ''}
-              aria-label="Add the spell"
+              aria-label={t('designer.DesignerScreen.addTheSpell', 'Add the spell')}
               onClick={() => {
                 change(put(d, 'spells', [...spells, spPick]));
                 setSpPick('');
               }}
             >
-              Add
+              {t('designer.DesignerScreen.add', 'Add')}
             </button>
             <button
               className="btn alt"
               disabled={locked}
               onClick={() => setPopup({ kind: 'spell', draft: blank('spell', 'new-spell') })}
             >
-              New spell…
+              {t('designer.DesignerScreen.newSpell', 'New spell…')}
             </button>
           </div>
         </Panel>
@@ -1183,17 +1268,22 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
     return (
       <Panel title={`${TITLE[kind]}: ${str(d, 'name')}`} testId="dz-card">
         <div className="fr-row2">
-          <Fld label="Name">
+          <Fld label={t('designer.DesignerScreen.name', 'Name')}>
             <input
               className="fr-in"
-              aria-label="Name"
+              aria-label={t('designer.DesignerScreen.name', 'Name')}
               disabled={locked}
               value={str(d, 'name')}
               onChange={(e) => change(put(d, 'name', e.target.value))}
             />
           </Fld>
-          <Fld label="Source">
-            <select className="fr-sel" aria-label="Source" disabled value="x">
+          <Fld label={t('designer.DesignerScreen.source', 'Source')}>
+            <select
+              className="fr-sel"
+              aria-label={t('designer.DesignerScreen.source', 'Source')}
+              disabled
+              value="x"
+            >
               <option value="x">{sourceLabel}</option>
             </select>
           </Fld>
@@ -1220,10 +1310,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 </Fld>
               ))}
             </div>
-            <Fld label="What it does">
+            <Fld label={t('designer.DesignerScreen.whatItDoes', 'What it does')}>
               <textarea
                 className="fr-ta"
-                aria-label="What it does"
+                aria-label={t('designer.DesignerScreen.whatItDoes', 'What it does')}
                 value={str(d, 'text')}
                 onChange={(e) => change(put(d, 'text', e.target.value))}
               />
@@ -1232,7 +1322,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
         )}
         {kind === 'hero' && isCore && (
           <p className="fr-help">
-            A core hero. You can rename it, give it a picture, or make a copy.
+            {t(
+              'designer.DesignerScreen.aCoreHeroYou',
+              'A core hero. You can rename it, give it a picture, or make a copy.',
+            )}
           </p>
         )}
       </Panel>
@@ -1242,8 +1335,8 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   return (
     <>
       <Frame>
-        <Col label="Library">
-          <ListPanel title="Library" testId="dz-library">
+        <Col label={t('designer.DesignerScreen.library', 'Library')}>
+          <ListPanel title={t('designer.DesignerScreen.library', 'Library')} testId="dz-library">
             <ul className="fr-list">
               {LIBRARY_KINDS.map((k) => (
                 <li key={k} className={k === kind ? 'on' : undefined}>
@@ -1258,7 +1351,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               ))}
             </ul>
             <Toggle
-              label="Owner mode: Core can be changed"
+              label={t(
+                'designer.DesignerScreen.ownerModeCoreCan',
+                'Owner mode: Core can be changed',
+              )}
               on={owner}
               onChange={(on) => {
                 setOwner(on);
@@ -1267,7 +1363,11 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             />
           </ListPanel>
           <ListPanel title={LIBRARY_KIND_NAMES[kind]} testId="dz-items" grow>
-            <div className="fr-scope" role="group" aria-label="Layer">
+            <div
+              className="fr-scope"
+              role="group"
+              aria-label={t('designer.DesignerScreen.layer', 'Layer')}
+            >
               <button
                 className="chip"
                 aria-pressed={scope === 'core'}
@@ -1277,7 +1377,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   if (sel && !sel.core) pick(null);
                 }}
               >
-                Core {cores.length}
+                {t('designer.DesignerScreen.core', 'Core {count}', { count: cores.length })}
               </button>
               <button
                 className="chip"
@@ -1288,11 +1388,18 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   if (sel?.core) pick(null);
                 }}
               >
-                My library {mine.length}
+                {t('designer.DesignerScreen.myLibrary', 'My library {count}', {
+                  count: mine.length,
+                })}
               </button>
             </div>
             {scope === 'core' && boxes.length > 0 && (
-              <div className="fr-scope" role="group" aria-label="Box" data-testid="dz-boxes">
+              <div
+                className="fr-scope"
+                role="group"
+                aria-label={t('designer.DesignerScreen.box', 'Box')}
+                data-testid="dz-boxes"
+              >
                 {['all', 'base', ...boxes].map((b) => (
                   <button
                     key={b}
@@ -1301,7 +1408,11 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     data-testid={`dz-box-${b}`}
                     onClick={() => setBox(b)}
                   >
-                    {b === 'all' ? 'All boxes' : b === 'base' ? 'Base game' : b}
+                    {b === 'all'
+                      ? t('designer.DesignerScreen.allBoxes', 'All boxes')
+                      : b === 'base'
+                        ? t('designer.DesignerScreen.baseGame', 'Base game')
+                        : b}
                   </button>
                 ))}
               </div>
@@ -1315,7 +1426,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                       <button className="fr-pick" onClick={() => pick(r.id)}>
                         {r.name}
                         <span className="sub" data-origin={originOf(r)}>
-                          {r.edited ? 'changed · ' : ''}
+                          {r.edited ? t('designer.DesignerScreen.changed', 'changed · ') : ''}
                           {ORIGIN_LABEL[originOf(r)]} · {boxName(r)}
                         </span>
                       </button>
@@ -1337,32 +1448,39 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   ))}
               {scope === 'mine' && mine.length === 0 && (
                 <li>
-                  <span className="fr-help">Nothing of your own yet.</span>
+                  <span className="fr-help">
+                    {t('designer.DesignerScreen.nothingOfYourOwn', 'Nothing of your own yet.')}
+                  </span>
                 </li>
               )}
             </ul>
             <div className="fr-lbtns">
               <button className="btn" onClick={create}>
-                New {ONE[kind]}
+                {t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] })}
               </button>
               <button className="btn alt" disabled={!sel} onClick={copy}>
-                Copy
+                {t('designer.DesignerScreen.copy', 'Copy')}
               </button>
             </div>
           </ListPanel>
         </Col>
 
-        <Col label="Card">
+        <Col label={t('designer.DesignerScreen.card', 'Card')}>
           {data && sel ? (
             <>
               {locked && kind !== 'hero' && (
-                <Panel title="Core item" testId="dz-readonly">
+                <Panel
+                  title={t('designer.DesignerScreen.coreItem', 'Core item')}
+                  testId="dz-readonly"
+                >
                   <p className="fr-help">
-                    Core items come with the game and are read only. Make a copy in My library to
-                    change it.
+                    {t(
+                      'designer.DesignerScreen.coreItemsComeWith',
+                      'Core items come with the game and are read only. Make a copy in My library to change it.',
+                    )}
                   </p>
                   <button className="btn" data-testid="dz-edit-copy" onClick={copy}>
-                    Edit a copy
+                    {t('designer.DesignerScreen.editACopy', 'Edit a copy')}
                   </button>
                 </Panel>
               )}
@@ -1374,7 +1492,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   data-testid="dz-delete-core"
                   onClick={() => void askDelete()}
                 >
-                  Delete from Core
+                  {t('designer.DesignerScreen.deleteFromCore', 'Delete from Core')}
                 </button>
               )}
               {!locked && (!isCore || sel.edited) && (
@@ -1383,13 +1501,17 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   style={{ alignSelf: 'flex-start' }}
                   onClick={() => void remove()}
                 >
-                  {isCore ? 'Reset to core' : `Delete ${ONE[kind]}`}
+                  {isCore
+                    ? t('designer.DesignerScreen.resetToCore', 'Reset to core')
+                    : t('designer.DesignerScreen.delete', 'Delete {v1}', { v1: ONE[kind] })}
                 </button>
               )}
             </>
           ) : (
             <Panel title={LIBRARY_KIND_NAMES[kind]}>
-              <p className="fr-help">Pick an item, or make a new one.</p>
+              <p className="fr-help">
+                {t('designer.DesignerScreen.pickAnItemOr', 'Pick an item, or make a new one.')}
+              </p>
             </Panel>
           )}
           {message && (
@@ -1399,42 +1521,55 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           )}
         </Col>
 
-        <Col label="Details">
+        <Col label={t('designer.DesignerScreen.details', 'Details')}>
           {sel && data && (
-            <Panel title="Origin" testId="dz-origin">
-              <Fld label="Origin">
+            <Panel title={t('designer.DesignerScreen.origin', 'Origin')} testId="dz-origin">
+              <Fld label={t('designer.DesignerScreen.origin', 'Origin')}>
                 <select
                   className="fr-sel"
-                  aria-label="Origin"
+                  aria-label={t('designer.DesignerScreen.origin', 'Origin')}
                   // core is always official; only the owner can call an item of the library official
                   disabled={isCore || !owner}
                   value={isCore ? 'official' : data.origin === 'official' ? 'official' : 'fan-made'}
                   onChange={(e) => change(put(data, 'origin', e.target.value))}
                 >
-                  <option value="official">Official</option>
-                  <option value="fan-made">Fan-made</option>
+                  <option value="official">
+                    {t('designer.DesignerScreen.official', 'Official')}
+                  </option>
+                  <option value="fan-made">
+                    {t('designer.DesignerScreen.fanMade', 'Fan-made')}
+                  </option>
                 </select>
               </Fld>
               {owner && !isCore && data.origin === 'official' && (
-                <Fld label="Expansion (empty: the base game)">
+                <Fld
+                  label={t(
+                    'designer.DesignerScreen.expansionEmptyTheBase',
+                    'Expansion (empty: the base game)',
+                  )}
+                >
                   <input
                     className="fr-in"
-                    aria-label="Expansion"
+                    aria-label={t('designer.DesignerScreen.expansion', 'Expansion')}
                     value={str(data, 'expansion')}
                     onChange={(e) => change(put(data, 'expansion', e.target.value || undefined))}
                   />
                 </Fld>
               )}
               <p className="fr-help">
-                Official items come from the game or its expansions. Everything else a person makes
-                is fan-made.
+                {t(
+                  'designer.DesignerScreen.officialItemsComeFrom',
+                  'Official items come from the game or its expansions. Everything else a person makes is fan-made.',
+                )}
               </p>
             </Panel>
           )}
           {sel && usageKind && (
-            <Panel title="Used in" testId="dz-used">
+            <Panel title={t('designer.DesignerScreen.usedIn', 'Used in')} testId="dz-used">
               {usage.length === 0 ? (
-                <p className="fr-help">Not used in your quests yet.</p>
+                <p className="fr-help">
+                  {t('designer.DesignerScreen.notUsedInYour', 'Not used in your quests yet.')}
+                </p>
               ) : (
                 <ul className="fr-list">
                   {usage.map((u) => (
@@ -1448,7 +1583,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 <>
                   <p className="fr-help" data-testid="dz-outdated">
                     {outdated === 0
-                      ? 'Every quest has this version.'
+                      ? t(
+                          'designer.DesignerScreen.everyQuestHasThis',
+                          'Every quest has this version.',
+                        )
                       : `${outdated} quest${outdated === 1 ? ' has' : 's have'} an older copy.`}
                   </p>
                   <button
@@ -1466,27 +1604,36 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                       };
                       void updateQuests((q) => refreshEnemyInQuest(q, enemyDef, libContent)).then(
                         (n) => {
-                          setMessage(`Updated in ${n} quest${n === 1 ? '' : 's'}.`);
+                          setMessage(
+                            t(
+                              'designer.DesignerScreen.updatedInQuest',
+                              'Updated in {n} quest{v1}.',
+                              { n, v1: n === 1 ? '' : 's' },
+                            ),
+                          );
                           void quests?.().then((qs) => setQuestList(qs));
                         },
                       );
                     }}
                   >
-                    Update in all quests
+                    {t('designer.DesignerScreen.updateInAllQuests', 'Update in all quests')}
                   </button>
                 </>
               )}
             </Panel>
           )}
           {data && sel && kind === 'enemy' && (
-            <Panel title="Token">
+            <Panel title={t('designer.DesignerScreen.token', 'Token')}>
               <p className="fr-help">
-                Green coin with the type letter. Custom enemies pick a letter and a picture.
+                {t(
+                  'designer.DesignerScreen.greenCoinWithThe',
+                  'Green coin with the type letter. Custom enemies pick a letter and a picture.',
+                )}
               </p>
-              <Fld label="Letter">
+              <Fld label={t('designer.DesignerScreen.letter', 'Letter')}>
                 <input
                   className="fr-in"
-                  aria-label="Letter (1 or 2)"
+                  aria-label={t('designer.DesignerScreen.letter1Or2', 'Letter (1 or 2)')}
                   disabled={locked}
                   maxLength={2}
                   value={str(data, 'letter')}
@@ -1497,15 +1644,21 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             </Panel>
           )}
           {data && sel && (kind === 'hero' || kind === 'companion') && (
-            <Panel title="Picture">
+            <Panel title={t('designer.DesignerScreen.picture', 'Picture')}>
               <Picture data={data} onChange={change} disabled={locked} />
             </Panel>
           )}
           {owner && (
-            <Panel title="Core file" testId="dz-core-file">
+            <Panel title={t('designer.DesignerScreen.coreFile', 'Core file')} testId="dz-core-file">
               <p className="fr-help">
-                Your changes to Core (changed, new official and deleted items) go into one file for{' '}
-                <code>src/content/library/</code>.
+                {t(
+                  'designer.DesignerScreen.yourChangesToCore',
+                  'Your changes to Core (changed, new official and deleted items) go into one file for',
+                )}{' '}
+                <code>
+                  {t('designer.DesignerScreen.srcContentLibrary', 'src/content/library/')}
+                </code>
+                .
               </p>
               <div className="fr-lbtns" style={{ padding: 0 }}>
                 <button
@@ -1513,14 +1666,19 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   data-testid="dz-export-core"
                   onClick={() => void exportCore()}
                 >
-                  Export Core
+                  {t('designer.DesignerScreen.exportCore', 'Export Core')}
                 </button>
               </div>
             </Panel>
           )}
-          <Panel title="Expansions" testId="dz-expansions">
+          <Panel
+            title={t('designer.DesignerScreen.expansions', 'Expansions')}
+            testId="dz-expansions"
+          >
             {expansionList.length === 0 ? (
-              <p className="fr-help">No expansion in the library yet.</p>
+              <p className="fr-help">
+                {t('designer.DesignerScreen.noExpansionInThe', 'No expansion in the library yet.')}
+              </p>
             ) : (
               <>
                 {expansionList.map((name) => (
@@ -1532,27 +1690,36 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   />
                 ))}
                 <p className="fr-help">
-                  Switching one off hides its items from the quest editor's add menus. Quests that
-                  already use them keep working.
+                  {t(
+                    'designer.DesignerScreen.switchingOneOffHides',
+                    "Switching one off hides its items from the quest editor's add menus. Quests that already use them keep working.",
+                  )}
                 </p>
               </>
             )}
           </Panel>
-          <Panel title="My library file">
+          <Panel title={t('designer.DesignerScreen.myLibraryFile', 'My library file')}>
             <p className="fr-help">
-              Share what you made as a pack file. Core items are not in it. A pack you import is
-              fan-made.
+              {t(
+                'designer.DesignerScreen.shareWhatYouMade',
+                'Share what you made as a pack file. Core items are not in it. A pack you import is fan-made.',
+              )}
             </p>
             <div className="fr-lbtns" style={{ padding: 0 }}>
               <button
                 className="btn alt"
                 data-testid="dz-export-pack"
-                onClick={() => setPack({ name: 'My library', author: '' })}
+                onClick={() =>
+                  setPack({
+                    name: t('designer.DesignerScreen.myLibrary2', 'My library'),
+                    author: '',
+                  })
+                }
               >
-                Export
+                {t('designer.DesignerScreen.export', 'Export')}
               </button>
               <button className="btn alt" onClick={() => file.current?.click()}>
-                Import
+                {t('designer.DesignerScreen.import', 'Import')}
               </button>
             </div>
             <input
@@ -1572,12 +1739,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
       </Frame>
       {pack && (
         <Dialog
-          title="Share my library as a pack"
+          title={t('designer.DesignerScreen.shareMyLibraryAs', 'Share my library as a pack')}
           onClose={() => setPack(null)}
           foot={
             <>
               <button className="btn alt" onClick={() => setPack(null)}>
-                Cancel
+                {t('designer.DesignerScreen.cancel', 'Cancel')}
               </button>
               <button
                 className="btn"
@@ -1585,58 +1752,71 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 disabled={pack.name.trim() === ''}
                 onClick={() => void exportFile()}
               >
-                Save the pack file
+                {t('designer.DesignerScreen.saveThePackFile', 'Save the pack file')}
               </button>
             </>
           }
         >
-          <Fld label="Name of the pack">
+          <Fld label={t('designer.DesignerScreen.nameOfThePack', 'Name of the pack')}>
             <input
               className="fr-in"
-              aria-label="Name of the pack"
+              aria-label={t('designer.DesignerScreen.nameOfThePack', 'Name of the pack')}
               value={pack.name}
               maxLength={80}
               onChange={(e) => setPack({ ...pack, name: e.target.value })}
             />
           </Fld>
-          <Fld label="Author (optional)">
+          <Fld label={t('designer.DesignerScreen.authorOptional', 'Author (optional)')}>
             <input
               className="fr-in"
-              aria-label="Author"
+              aria-label={t('designer.DesignerScreen.author', 'Author')}
               value={pack.author}
               maxLength={80}
               onChange={(e) => setPack({ ...pack, author: e.target.value })}
             />
           </Fld>
           <p className="fr-help">
-            The file has what you made: abilities, spells, enemies, heroes and companions. It has no
-            Core items. Whoever imports it sees its name and author.
+            {t(
+              'designer.DesignerScreen.theFileHasWhat',
+              'The file has what you made: abilities, spells, enemies, heroes and companions. It has no Core items. Whoever imports it sees its name and author.',
+            )}
           </p>
         </Dialog>
       )}
       {del && (
         <Dialog
-          title="Delete from Core"
+          title={t('designer.DesignerScreen.deleteFromCore', 'Delete from Core')}
           onClose={() => setDel(null)}
           foot={
             <>
               <button className="btn alt" onClick={() => setDel(null)}>
-                Cancel
+                {t('designer.DesignerScreen.cancel', 'Cancel')}
               </button>
               <button
                 className="btn"
                 data-testid="dz-delete-confirm"
                 onClick={() => void confirmDelete()}
               >
-                Delete {del.name}
+                {t('designer.DesignerScreen.delete2', 'Delete {name}', { name: del.name })}
               </button>
             </>
           }
         >
-          <p>{del.name} leaves Core. It stays in quests only as far as they already copy it.</p>
+          <p>
+            {t(
+              'designer.DesignerScreen.leavesCoreItStays',
+              '{name} leaves Core. It stays in quests only as far as they already copy it.',
+              { name: del.name },
+            )}
+          </p>
           {del.own.length > 0 ? (
             <>
-              <p>These quests of yours use it (an ability or spell is copied into them first):</p>
+              <p>
+                {t(
+                  'designer.DesignerScreen.theseQuestsOfYours',
+                  'These quests of yours use it (an ability or spell is copied into them first):',
+                )}
+              </p>
               <ul data-testid="dz-delete-own">
                 {del.own.map((u) => (
                   <li key={u.quest}>
@@ -1646,12 +1826,15 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               </ul>
             </>
           ) : (
-            <p>None of your quests uses it.</p>
+            <p>{t('designer.DesignerScreen.noneOfYourQuests', 'None of your quests uses it.')}</p>
           )}
           {del.bundled.length > 0 && (
             <>
               <p className="warn">
-                These bundled quests use it. They stop validating until you fix them:
+                {t(
+                  'designer.DesignerScreen.theseBundledQuestsUse',
+                  'These bundled quests use it. They stop validating until you fix them:',
+                )}
               </p>
               <ul data-testid="dz-delete-bundled">
                 {del.bundled.map((u) => (
@@ -1684,7 +1867,7 @@ export function DesignerScreen({ store, quests, updateQuests, onBack }: Designer
     <div className="app fr designer">
       <TopBar tabs={['Library']} active="Library">
         <button className="link" onClick={onBack}>
-          Back
+          {t('designer.DesignerScreen.back', 'Back')}
         </button>
       </TopBar>
       <DesignerBody store={store} quests={quests} updateQuests={updateQuests} />

@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 import { useModal } from './useModal';
 import { useZoom } from '../play/ZoomLayer';
+import { t } from '../../i18n/t';
 
 /** Size of the map area the note is placed in (the left grid cell of the play screen). */
 const NOTE_W = 252;
@@ -71,7 +72,11 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
           } as React.CSSProperties
         }
       >
-        <button className="close" aria-label="Close" onClick={onClose}>
+        <button
+          className="close"
+          aria-label={t('shared.MarginNote.close', 'Close')}
+          onClick={onClose}
+        >
           ×
         </button>
         <div className="kind">{kind}</div>

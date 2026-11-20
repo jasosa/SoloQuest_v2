@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { NoteCard } from './NoteCard';
+import { t } from '../../i18n/t';
 
 /**
  * Toasts are short. A long message is cut and gets a "More" button that opens it whole in a card, and
@@ -39,7 +40,7 @@ export function ToastBox({
       {toastText(text)}
       {long && (
         <button data-testid="toast-more" onClick={() => onMore(text)}>
-          More
+          {t('shared.Toast.more', 'More')}
         </button>
       )}
       {children}
@@ -50,10 +51,14 @@ export function ToastBox({
 /** A message that was too long for its toast, in full. */
 export function FullMessage({ text, onClose }: { text: string; onClose(): void }) {
   return (
-    <NoteCard kind="Message" title="Message" onClose={onClose}>
+    <NoteCard
+      kind={t('shared.Toast.message', 'Message')}
+      title={t('shared.Toast.message', 'Message')}
+      onClose={onClose}
+    >
       <p data-testid="full-message">{text}</p>
       <button className="btn" onClick={onClose}>
-        Close
+        {t('shared.Toast.close', 'Close')}
       </button>
     </NoteCard>
   );

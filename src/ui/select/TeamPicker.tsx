@@ -10,6 +10,7 @@ import {
   type TeamRule,
 } from '../../engine/data/team';
 import type { PackManifest } from '../../engine/pack/schema';
+import { t } from '../../i18n/t';
 
 /**
  * The three groups of the New game popup (decision 38): heroes, mercenaries, animal allies. The
@@ -68,7 +69,11 @@ export function TeamPicker({
       }}
     >
       <label>
-        <span className="lbl">{kind === 'mercenary' ? 'Mercenary name' : 'Animal name'}</span>
+        <span className="lbl">
+          {kind === 'mercenary'
+            ? t('select.mercenaryName', 'Mercenary name')
+            : t('select.animalName', 'Animal name')}
+        </span>
         <input
           autoFocus
           value={name}
@@ -77,9 +82,11 @@ export function TeamPicker({
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      <div className="lbl">Belongs to</div>
-      <div className="pick-heroes" role="group" aria-label="Owner">
-        {heroes.length === 0 && <p className="hint">Pick a hero first.</p>}
+      <div className="lbl">{t('select.belongsTo', 'Belongs to')}</div>
+      <div className="pick-heroes" role="group" aria-label={t('select.owner', 'Owner')}>
+        {heroes.length === 0 && (
+          <p className="hint">{t('select.pickAHeroFirst', 'Pick a hero first.')}</p>
+        )}
         {heroes.map((h) => (
           <button
             type="button"
@@ -94,7 +101,7 @@ export function TeamPicker({
       </div>
       <div className="team-form-btns">
         <button type="submit" className="btn" disabled={!name.trim() || !ownerId}>
-          Add
+          {t('select.add', 'Add')}
         </button>
         <button
           type="button"
@@ -104,7 +111,7 @@ export function TeamPicker({
             setName('');
           }}
         >
-          Cancel
+          {t('select.cancel', 'Cancel')}
         </button>
       </div>
     </form>
@@ -112,8 +119,8 @@ export function TeamPicker({
 
   return (
     <>
-      <div className="lbl">Heroes</div>
-      <div className="pick-heroes" role="group" aria-label="Heroes">
+      <div className="lbl">{t('select.heroes', 'Heroes')}</div>
+      <div className="pick-heroes" role="group" aria-label={t('select.heroes', 'Heroes')}>
         {HEROES.map((h) => {
           const m = heroMember(h);
           return (
@@ -142,8 +149,8 @@ export function TeamPicker({
         })}
       </div>
 
-      <div className="lbl">Mercenaries</div>
-      <div className="pick-heroes" role="group" aria-label="Mercenaries">
+      <div className="lbl">{t('select.mercenaries', 'Mercenaries')}</div>
+      <div className="pick-heroes" role="group" aria-label={t('select.mercenaries', 'Mercenaries')}>
         {packMercs.map((p) => (
           <button
             key={p.id}
@@ -173,13 +180,17 @@ export function TeamPicker({
           disabled={heroes.length === 0}
           onClick={() => setAdding(adding === 'mercenary' ? null : 'mercenary')}
         >
-          Add a mercenary
+          {t('select.addAMercenary', 'Add a mercenary')}
         </button>
       </div>
       {adding === 'mercenary' && form('mercenary')}
 
-      <div className="lbl">Animal allies</div>
-      <div className="pick-heroes" role="group" aria-label="Animal allies">
+      <div className="lbl">{t('select.animalAllies', 'Animal allies')}</div>
+      <div
+        className="pick-heroes"
+        role="group"
+        aria-label={t('select.animalAllies', 'Animal allies')}
+      >
         {packAllies.map((p) => (
           <button
             key={p.id}
@@ -189,7 +200,7 @@ export function TeamPicker({
             onClick={() => togglePreset('ally', p.name)}
           >
             {presetOn('ally', p.name) ? labelOf(value, presetOn('ally', p.name)!.id) : p.name}
-            {grants === p.id ? ' (from the quest)' : ''}
+            {grants === p.id ? t('select.fromTheQuest', ' (from the quest)') : ''}
           </button>
         ))}
         {allies
@@ -210,7 +221,7 @@ export function TeamPicker({
           disabled={heroes.length === 0}
           onClick={() => setAdding(adding === 'ally' ? null : 'ally')}
         >
-          Add an animal ally
+          {t('select.addAnAnimalAlly', 'Add an animal ally')}
         </button>
       </div>
       {adding === 'ally' && form('ally')}

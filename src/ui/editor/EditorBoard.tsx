@@ -67,6 +67,7 @@ import {
   toCell,
   type OuterEdge,
 } from './geometry';
+import { t } from '../../i18n/t';
 
 /** Editor squares are drawn in board units and scaled down by the svg viewBox. */
 export const EDITOR_CELL_PX = 26;
@@ -272,8 +273,11 @@ export function EditorBoard({
         if (!d || (req.kind === 'secretDoor') !== secret) {
           s.say(
             req.kind === 'secretDoor'
-              ? 'Click a secret door. Doors show at the edge of a square.'
-              : 'Click a door. Click close to its edge.',
+              ? t(
+                  'editor.EditorBoard.clickASecretDoor',
+                  'Click a secret door. Doors show at the edge of a square.',
+                )
+              : t('editor.EditorBoard.clickADoorClick', 'Click a door. Click close to its edge.'),
           );
           return;
         }
@@ -283,7 +287,7 @@ export function EditorBoard({
       }
       const area = areaAt(board, cell[0], cell[1]);
       if (!area || (req.kind === 'room' && area === 'C')) {
-        s.say('Click a room.');
+        s.say(t('editor.EditorBoard.clickARoom', 'Click a room.'));
         return;
       }
       s.setPicking(null);
@@ -331,7 +335,12 @@ export function EditorBoard({
       }
       const op = previewOp(store, cell, edge, outer);
       if (!op) {
-        s.say('Tap the outer edge of a square on the board border, or an edge that touches rock.');
+        s.say(
+          t(
+            'editor.EditorBoard.tapTheOuterEdge',
+            'Tap the outer edge of a square on the board border, or an edge that touches rock.',
+          ),
+        );
         return;
       }
       if (s.apply(op)) {
@@ -380,7 +389,8 @@ export function EditorBoard({
       }
       if (s.opts.blockDouble) {
         if (!s.pendingBlock || !adjacent(s.pendingBlock, cell)) {
-          if (s.pendingBlock) s.say('Pick a square next to the first one.');
+          if (s.pendingBlock)
+            s.say(t('editor.EditorBoard.pickASquareNext', 'Pick a square next to the first one.'));
           s.setPendingBlock(cell);
           return;
         }
@@ -414,19 +424,21 @@ export function EditorBoard({
       return;
     }
     if (s.tool === 'doors' && s.opts.doorKind !== 'tunnel' && !edge) {
-      s.say('Click near the edge between two squares.');
+      s.say(t('editor.EditorBoard.clickNearTheEdge', 'Click near the edge between two squares.'));
       return;
     }
     if (s.tool === 'traps' && s.opts.trapKind === 'chest' && !previewOp(store, cell, edge)) {
-      s.say('Click a chest to put a chest trap on it.');
+      s.say(t('editor.EditorBoard.clickAChestTo', 'Click a chest to put a chest trap on it.'));
       return;
     }
     if (s.tool === 'rock' && s.opts.rockRoom && areaAt(board, cell[0], cell[1]) === 'C') {
-      s.say('Whole room is on: click a room, not the corridor.');
+      s.say(
+        t('editor.EditorBoard.wholeRoomIsOn', 'Whole room is on: click a room, not the corridor.'),
+      );
       return;
     }
     if (s.tool === 'start' && areaAt(board, cell[0], cell[1]) === 'C') {
-      s.say('The start is a room. Click a room.');
+      s.say(t('editor.EditorBoard.theStartIsA', 'The start is a room. Click a room.'));
       return;
     }
     const op = previewOp(store, cell, edge);
@@ -543,7 +555,7 @@ export function EditorBoard({
         opts.doorKind === 'tunnel' &&
         pendingTunnel &&
         (!active || sameCell(active.cell, pendingTunnel) || !(preview && !preview.ok))
-      ? 'Pick the other end of the tunnel.'
+      ? t('editor.EditorBoard.pickTheOtherEnd', 'Pick the other end of the tunnel.')
       : tool !== 'select' && preview && !preview.ok
         ? preview.error
         : '';
@@ -1011,7 +1023,13 @@ export function EditorBoard({
             fill="transparent"
             style={{ cursor: 'pointer' }}
             role="button"
-            aria-label={missing ? `Letter ${l.letter}, no note yet` : `Quest note ${l.letter}`}
+            aria-label={
+              missing
+                ? t('editor.EditorBoard.letterNoNoteYet', 'Letter {letter}, no note yet', {
+                    letter: l.letter,
+                  })
+                : t('editor.EditorBoard.questNote', 'Quest note {letter}', { letter: l.letter })
+            }
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => {
               e.stopPropagation();
@@ -1268,7 +1286,10 @@ export function EditorBoard({
             data-flash-id={flash?.id}
             id="editor-board"
             role="application"
-            aria-label="Quest board. Arrow keys move the cursor, Enter acts."
+            aria-label={t(
+              'editor.EditorBoard.questBoardArrowKeys',
+              'Quest board. Arrow keys move the cursor, Enter acts.',
+            )}
             tabIndex={0}
             width={BOARD_W * EDITOR_CELL_PX + 4}
             height={BOARD_H * EDITOR_CELL_PX + 4}

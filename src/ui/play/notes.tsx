@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { nameFromId } from '../../engine/data/team';
 import type { Prompt } from '../../engine/game/prompts';
 import { TRAP_NAMES, sprungLines, sprungTitle, wanderingLines } from './texts';
+import { t } from '../../i18n/t';
 
 export function HeroChips({
   team,
@@ -33,8 +34,8 @@ export function HeroChips({
 export function RoomScope({ children }: { children: ReactNode }) {
   return (
     <section className="scope" data-scope="room">
-      <div className="lbl">Room</div>
-      <h3>Search this room</h3>
+      <div className="lbl">{t('play.notes.room', 'Room')}</div>
+      <h3>{t('play.notes.searchThisRoom', 'Search this room')}</h3>
       {children}
     </section>
   );
@@ -52,17 +53,17 @@ export function RoomMenu({
 }) {
   return (
     <>
-      <p>One hero, one search, on their own turn.</p>
+      <p>{t('play.notes.oneHeroOneSearch', 'One hero, one search, on their own turn.')}</p>
       {onEnter && (
         <button className="btn" onClick={onEnter}>
-          A hero enters
+          {t('play.notes.aHeroEnters', 'A hero enters')}
         </button>
       )}
       <button className="btn" onClick={onTreasure}>
-        Search for treasure
+        {t('play.notes.searchForTreasure', 'Search for treasure')}
       </button>
       <button className="btn alt" onClick={onSecret}>
-        Search for secret doors
+        {t('play.notes.searchForSecretDoors', 'Search for secret doors')}
       </button>
     </>
   );
@@ -89,12 +90,19 @@ export function PickHero(props: {
   const askAgain = allSearched && !again;
   return (
     <>
-      {askAgain && <p className="warn">All heroes searched already, search anyway?</p>}
+      {askAgain && (
+        <p className="warn">
+          {t('play.notes.allHeroesSearchedAlready', 'All heroes searched already, search anyway?')}
+        </p>
+      )}
       {warned && (
         <p className="warn">
           {props.monsters.length > 0
             ? `${props.monsters.join(', ')} still here. A search needs a clear room.`
-            : 'A monster is in sight. A search needs a clear corridor.'}
+            : t(
+                'play.notes.aMonsterIsIn',
+                'A monster is in sight. A search needs a clear corridor.',
+              )}
         </p>
       )}
       <HeroChips
@@ -105,7 +113,9 @@ export function PickHero(props: {
       />
       {(guarded || askAgain) && (
         <button className="btn alt" onClick={guarded ? props.onOverride : () => setAgain(true)}>
-          {guarded ? 'The room is clear, search anyway' : 'Search anyway'}
+          {guarded
+            ? t('play.notes.theRoomIsClear', 'The room is clear, search anyway')
+            : t('play.notes.searchAnyway', 'Search anyway')}
         </button>
       )}
     </>
@@ -117,7 +127,11 @@ export function TileRule({ tile }: { tile: { name: string; rule: readonly string
   return (
     <div className="tile-rule" data-testid="tile-rule">
       <p className="special-note">{tile.name}</p>
-      <p className="hint">Put the {tile.name} tile on the board here.</p>
+      <p className="hint">
+        {t('play.notes.putTheTileOn', 'Put the {name} tile on the board here.', {
+          name: tile.name,
+        })}
+      </p>
       {tile.rule.map((line) => (
         <p key={line} className="hint">
           {line}
@@ -142,20 +156,27 @@ export function TrapMenu(props: {
     <>
       <p>
         {props.sprung
-          ? `The ${props.kindName ?? 'trap'} is still here.`
-          : 'The kind of trap stays hidden until it springs or is disarmed.'}
+          ? t('play.notes.theIsStillHere', 'The {v1} is still here.', {
+              v1: props.kindName ?? 'trap',
+            })
+          : t(
+              'play.notes.theKindOfTrap',
+              'The kind of trap stays hidden until it springs or is disarmed.',
+            )}
       </p>
       <button className="btn" disabled={!props.canJump} onClick={props.onJump}>
-        Jump over it
+        {t('play.notes.jumpOverIt', 'Jump over it')}
       </button>
       <button className="btn alt" disabled={!props.canDisarm} onClick={props.onDisarm}>
-        Try to disarm it
+        {t('play.notes.tryToDisarmIt', 'Try to disarm it')}
       </button>
       <button className="btn alt" disabled={!props.canStep} onClick={props.onStep}>
-        Step onto it
+        {t('play.notes.stepOntoIt', 'Step onto it')}
       </button>
       {!props.canJump && !props.sprung && (
-        <p className="small">A trap on furniture can only be disarmed.</p>
+        <p className="small">
+          {t('play.notes.aTrapOnFurniture', 'A trap on furniture can only be disarmed.')}
+        </p>
       )}
     </>
   );
@@ -174,16 +195,16 @@ export function trapStepBody(props: {
     case 'jump':
       return {
         kind: 'Jump · needs 2 moves left',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
-            <p>Anything but a skull: you jump over.</p>
+            <p>{t('play.notes.anythingButASkull', 'Anything but a skull: you jump over.')}</p>
             <div className="row">
               <button className="btn" onClick={() => props.onJump('skull')}>
-                Skull
+                {t('play.notes.skull', 'Skull')}
               </button>
               <button className="btn alt" onClick={() => props.onJump('ok')}>
-                No skull
+                {t('play.notes.noSkull', 'No skull')}
               </button>
             </div>
           </>
@@ -192,15 +213,15 @@ export function trapStepBody(props: {
     case 'who':
       return {
         kind: 'Disarm',
-        title: 'Who tries?',
+        title: t('play.notes.whoTries', 'Who tries?'),
         body: (
           <>
-            <p>Move onto the square first.</p>
+            <p>{t('play.notes.moveOntoTheSquare', 'Move onto the square first.')}</p>
             <button className="btn" disabled={!props.hasDwarf} onClick={() => props.onWho('dwarf')}>
-              The Dwarf
+              {t('play.notes.theDwarf', 'The Dwarf')}
             </button>
             <button className="btn alt" onClick={() => props.onWho('kit')}>
-              A hero with a tool kit
+              {t('play.notes.aHeroWithA', 'A hero with a tool kit')}
             </button>
           </>
         ),
@@ -208,18 +229,16 @@ export function trapStepBody(props: {
     case 'dwarf':
       return {
         kind: 'Disarm · Dwarf',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
-            <p>
-              Only a <b>black shield</b> springs the trap.
-            </p>
+            <p>{t('play.notes.onlyABlackShield', 'Only a black shield springs the trap.')}</p>
             <div className="row">
               <button className="btn" onClick={() => props.onDisarm('dwarf', 'blackShield')}>
-                Black shield
+                {t('play.notes.blackShield2', 'Black shield')}
               </button>
               <button className="btn alt" onClick={() => props.onDisarm('dwarf', 'other')}>
-                Other
+                {t('play.notes.other', 'Other')}
               </button>
             </div>
           </>
@@ -228,18 +247,19 @@ export function trapStepBody(props: {
     case 'kit':
       return {
         kind: 'Disarm · tool kit',
-        title: 'Roll 1 combat die',
+        title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
             <p>
-              A <b>skull</b> springs the trap.
+              A <b>{t('play.notes.skull2', 'skull')}</b>{' '}
+              {t('play.notes.springsTheTrap', 'springs the trap.')}
             </p>
             <div className="row">
               <button className="btn" onClick={() => props.onDisarm('toolkit', 'skull')}>
-                Skull
+                {t('play.notes.skull', 'Skull')}
               </button>
               <button className="btn alt" onClick={() => props.onDisarm('toolkit', 'other')}>
-                Shield
+                {t('play.notes.shield', 'Shield')}
               </button>
             </div>
           </>
@@ -271,11 +291,11 @@ export function ResultBody({
         </section>
       ))}
       <button className="btn" onClick={onDone}>
-        Done
+        {t('play.notes.done', 'Done')}
       </button>
       {draws && onWandering && (
         <button className="btn alt" onClick={onWandering}>
-          It was a wandering monster
+          {t('play.notes.itWasAWandering', 'It was a wandering monster')}
         </button>
       )}
     </>
@@ -288,27 +308,31 @@ export function headingOf(p: Prompt, nameOf: (id: string) => string = nameFromId
     case 'trapSprung':
       return sprungTitle(p.trapKind);
     case 'trapJumped':
-      return 'You land safely';
+      return t('play.notes.youLandSafely', 'You land safely');
     case 'trapDisarmed':
-      return `It was a ${TRAP_NAMES[p.trapKind]}`;
+      return t('play.notes.itWasA', 'It was a {v1}', { v1: TRAP_NAMES[p.trapKind] });
     case 'tunnelUsed':
-      return `Ice tunnel ${p.design}`;
+      return t('play.notes.iceTunnel', 'Ice tunnel {design}', { design: p.design });
     case 'note':
-      return p.letter ? `Quest note ${p.letter}` : 'Quest note';
+      return p.letter
+        ? t('play.notes.questNote', 'Quest note {letter}', { letter: p.letter })
+        : t('play.notes.questNote2', 'Quest note');
     case 'drawCard':
-      return 'Draw a treasure card';
+      return t('play.notes.drawATreasureCard', 'Draw a treasure card');
     case 'wanderingMonster':
-      return `It attacks the ${nameOf(p.hero)}!`;
+      return t('play.notes.itAttacksThe', 'It attacks the {v1}!', { v1: nameOf(p.hero) });
     case 'wanderingText':
-      return 'Wandering monster';
+      return t('play.notes.wanderingMonster', 'Wandering monster');
     case 'secretDoorsFound':
-      return p.doors.length > 1 ? 'Secret doors!' : 'A secret door!';
+      return p.doors.length > 1
+        ? t('play.notes.secretDoors', 'Secret doors!')
+        : t('play.notes.aSecretDoor', 'A secret door!');
     case 'nothingFound':
-      return 'Nothing found';
+      return t('play.notes.nothingFound', 'Nothing found');
     case 'trapFound':
-      return 'You found a trap';
+      return t('play.notes.youFoundATrap', 'You found a trap');
     case 'noTrap':
-      return 'No trap';
+      return t('play.notes.noTrap', 'No trap');
     case 'doorStuck':
       return 'A door that will not open';
     default:
@@ -323,36 +347,50 @@ function lines(p: Prompt, nameOf: (id: string) => string): string[] {
     case 'trapJumped':
       return p.slide
         ? [
-            'The trap is still there for the next hero.',
-            'The hero saw the whole slide: put the ice slide tile on the board. It ends at the arrow.',
+            t('play.notes.theTrapIsStill', 'The trap is still there for the next hero.'),
+            t(
+              'play.notes.theHeroSawThe',
+              'The hero saw the whole slide: put the ice slide tile on the board. It ends at the arrow.',
+            ),
           ]
-        : ['The trap is still there for the next hero.'];
+        : [t('play.notes.theTrapIsStill', 'The trap is still there for the next hero.')];
     case 'trapDisarmed':
-      return ['The square is safe now.'];
+      return [t('play.notes.theSquareIsSafe', 'The square is safe now.')];
     case 'note':
       return [...p.texts];
     case 'drawCard':
-      return ['No quest treasure here. Read the card aloud.'];
+      return [t('play.notes.noQuestTreasureHere', 'No quest treasure here. Read the card aloud.')];
     case 'tunnelUsed':
       return [
-        `The hero comes out at the other square of ice tunnel ${p.design}. If a figure is on it, move that figure to a free square next to it. The move ends here.`,
+        t(
+          'play.notes.theHeroComesOut',
+          'The hero comes out at the other square of ice tunnel {design}. If a figure is on it, move that figure to a free square next to it. The move ends here.',
+          { design: p.design },
+        ),
       ];
     case 'wanderingMonster':
       return wanderingLines(p, nameOf);
     case 'wanderingText':
       return [p.text];
     case 'secretDoorsFound':
-      return [`${p.doors.length > 1 ? 'They are' : 'It is'} on the map now, closed. Tap to open.`];
+      return [
+        p.doors.length > 1
+          ? t('play.notes.theyAreOnTheMap', 'They are on the map now, closed. Tap to open.')
+          : t('play.notes.itIsOnTheMap', 'It is on the map now, closed. Tap to open.'),
+      ];
     case 'nothingFound':
-      return ['There is no secret door to find here.'];
+      return [t('play.notes.thereIsNoSecret', 'There is no secret door to find here.')];
     case 'trapFound':
       return [
-        'You found a trap on this chest. Try to disarm it, or a treasure search here springs it.',
+        t(
+          'play.notes.youFoundATrap2',
+          'You found a trap on this chest. Try to disarm it, or a treasure search here springs it.',
+        ),
       ];
     case 'noTrap':
-      return ['No trap on this chest.'];
+      return [t('play.notes.noTrapOnThis', 'No trap on this chest.')];
     case 'doorStuck':
-      return ['This door cannot be opened. Nothing changed.'];
+      return [t('play.notes.thisDoorCannotBe', 'This door cannot be opened. Nothing changed.')];
     default:
       return [];
   }
@@ -430,31 +468,40 @@ export function ChestBody(props: {
   if (props.trapFound)
     return (
       <>
-        <p>A trap was found on this chest. A treasure search here springs it.</p>
+        <p>
+          {t(
+            'play.notes.aTrapWasFound',
+            'A trap was found on this chest. A treasure search here springs it.',
+          )}
+        </p>
         <button className="btn" onClick={props.onDisarm}>
-          Try to disarm it
+          {t('play.notes.tryToDisarmIt', 'Try to disarm it')}
         </button>
       </>
     );
   if (props.searched)
     return (
       <>
-        <p>Already searched.</p>
+        <p>{t('play.notes.alreadySearched', 'Already searched.')}</p>
       </>
     );
   const guarded = props.monsters.length > 0 && !props.override;
   return (
     <>
-      <p>Anyone can look for traps on a chest, once.</p>
+      <p>{t('play.notes.anyoneCanLookFor', 'Anyone can look for traps on a chest, once.')}</p>
       {props.monsters.length > 0 && (
-        <p className="warn">{props.monsters.join(', ')} still here. A search needs a clear room.</p>
+        <p className="warn">
+          {t('play.notes.stillHereASearch', '{v1} still here. A search needs a clear room.', {
+            v1: props.monsters.join(', '),
+          })}
+        </p>
       )}
       <button className="btn" disabled={guarded} onClick={props.onSearch}>
-        Search for traps
+        {t('play.notes.searchForTraps', 'Search for traps')}
       </button>
       {guarded && (
         <button className="btn alt" onClick={props.onOverride}>
-          The room is clear, search anyway
+          {t('play.notes.theRoomIsClear', 'The room is clear, search anyway')}
         </button>
       )}
     </>
@@ -474,10 +521,10 @@ export function SecretGuard(props: {
       <p className="warn">
         {props.monsters.length > 0
           ? `${props.monsters.join(', ')} still here. A search needs a clear ${props.clear ? 'corridor' : 'room'}.`
-          : 'A monster is in sight. A search needs a clear corridor.'}
+          : t('play.notes.aMonsterIsIn', 'A monster is in sight. A search needs a clear corridor.')}
       </p>
       <button className="btn alt" onClick={props.onOverride}>
-        {props.clear ?? 'The room is clear, search anyway'}
+        {props.clear ?? t('play.notes.theRoomIsClear', 'The room is clear, search anyway')}
       </button>
     </>
   );

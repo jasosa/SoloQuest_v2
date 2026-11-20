@@ -3,6 +3,7 @@ import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import type { EditorStore } from './editorStore';
 import { ActionForm } from './NotesPanel';
+import { t } from '../../i18n/t';
 
 /**
  * The action popup (decision 68): the whole action in one dialog over the editor, opened by a
@@ -26,7 +27,7 @@ export function ActionDialog({ store }: { store: EditorStore }) {
       <div className="ed-pickfloat" role="status" data-testid="pick-bar">
         <span>{picking.hint}</span>
         <button className="btn alt" onClick={() => st.setPicking(null)}>
-          Cancel
+          {t('editor.ActionDialog.cancel', 'Cancel')}
         </button>
       </div>
     );
@@ -35,11 +36,17 @@ export function ActionDialog({ store }: { store: EditorStore }) {
 
   return (
     <div className="ed-veil">
-      <div className="ed-dialog" ref={box} role="dialog" aria-modal="true" aria-label="Action">
+      <div
+        className="ed-dialog"
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('editor.ActionDialog.action', 'Action')}
+      >
         <div className="ed-dialog-hd">
-          <h2>Action</h2>
+          <h2>{t('editor.ActionDialog.action', 'Action')}</h2>
           <button className="btn alt" onClick={() => st.setNoteId(null)}>
-            Close
+            {t('editor.ActionDialog.close', 'Close')}
           </button>
         </div>
         <div className="ed-dialog-body">

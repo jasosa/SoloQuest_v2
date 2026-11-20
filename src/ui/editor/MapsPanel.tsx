@@ -19,6 +19,7 @@ import {
 import { isMultiMap, questMaps } from '../../engine/quest/maps';
 import { Fld } from '../shared/Frame';
 import type { EditorStore } from './editorStore';
+import { t } from '../../i18n/t';
 
 const ROOMS = roomIds(board);
 const endKey = (map: string, cell: readonly number[]) => `${map}|${cell[0]},${cell[1]}`;
@@ -39,7 +40,7 @@ export function MapsPanel({ store }: { store: EditorStore }) {
     const a = pick(first);
     const b = pick(second);
     if (!a || !b) {
-      st.say('Pick the two stairways to join.');
+      st.say(t('editor.MapsPanel.pickTheTwoStairways', 'Pick the two stairways to join.'));
       return;
     }
     if (
@@ -61,25 +62,25 @@ export function MapsPanel({ store }: { store: EditorStore }) {
                 <button
                   className="chip"
                   aria-pressed={m.id === mapId}
-                  aria-label={`Show map ${m.id}`}
+                  aria-label={t('editor.MapsPanel.showMap', 'Show map {id}', { id: m.id })}
                   onClick={() => st.setMap(m.id)}
                 >
-                  Show on map
+                  {t('editor.MapsPanel.showOnMap', 'Show on map')}
                 </button>{' '}
                 <button
                   className="chip"
-                  aria-label={`Delete map ${m.id}`}
+                  aria-label={t('editor.MapsPanel.deleteMap2', 'Delete map {id}', { id: m.id })}
                   onClick={() => st.applyQuest((q) => removeMap(q, m.id))}
                 >
-                  Delete map
+                  {t('editor.MapsPanel.deleteMap', 'Delete map')}
                 </button>
               </span>
             </div>
             <div className="fr-row2">
-              <Fld label="Name">
+              <Fld label={t('editor.MapsPanel.name', 'Name')}>
                 <input
                   className="fr-in"
-                  aria-label={`Map ${m.id} name`}
+                  aria-label={t('editor.MapsPanel.mapName', 'Map {id} name', { id: m.id })}
                   key={`${m.id}:n:${m.name ?? ''}`}
                   defaultValue={m.name ?? ''}
                   placeholder={m.id}
@@ -91,10 +92,10 @@ export function MapsPanel({ store }: { store: EditorStore }) {
                   }}
                 />
               </Fld>
-              <Fld label="Id">
+              <Fld label={t('editor.MapsPanel.id', 'Id')}>
                 <input
                   className="fr-in"
-                  aria-label={`Map ${m.id} id`}
+                  aria-label={t('editor.MapsPanel.mapId', 'Map {id} id', { id: m.id })}
                   key={`${m.id}:i`}
                   defaultValue={m.id}
                   onBlur={(e) => {
@@ -109,7 +110,10 @@ export function MapsPanel({ store }: { store: EditorStore }) {
         ))}
       {!multi && (
         <p className="fr-help">
-          This quest has one map. A double quest has two or more, joined by stairways.
+          {t(
+            'editor.MapsPanel.thisQuestHasOne',
+            'This quest has one map. A double quest has two or more, joined by stairways.',
+          )}
         </p>
       )}
       <button
@@ -117,16 +121,18 @@ export function MapsPanel({ store }: { store: EditorStore }) {
         data-testid="new-map"
         onClick={() => st.applyQuest((q) => addMap(q, {}))}
       >
-        New map
+        {t('editor.MapsPanel.newMap', 'New map')}
       </button>
 
       {multi && (
         <>
-          <div className="lbl">Links</div>
+          <div className="lbl">{t('editor.MapsPanel.links', 'Links')}</div>
           {(canon.links ?? []).length === 0 && (
             <p className="fr-help">
-              No links. Join a stairway of one map to a stairway of another, or the heroes cannot
-              cross.
+              {t(
+                'editor.MapsPanel.noLinksJoinA',
+                'No links. Join a stairway of one map to a stairway of another, or the heroes cannot cross.',
+              )}
             </p>
           )}
           {(canon.links ?? []).map((l) => (
@@ -134,28 +140,28 @@ export function MapsPanel({ store }: { store: EditorStore }) {
               <div className="ed-row-head">
                 <span>
                   {l.id}: {maps.find((m) => m.id === l.a.map)?.name ?? l.a.map} {l.a.cell.join(',')}
-                  {' to '}
+                  {t('editor.MapsPanel.to', ' to ')}
                   {maps.find((m) => m.id === l.b.map)?.name ?? l.b.map} {l.b.cell.join(',')}
                 </span>
                 <button
                   className="chip"
-                  aria-label={`Remove link ${l.id}`}
+                  aria-label={t('editor.MapsPanel.removeLink', 'Remove link {id}', { id: l.id })}
                   onClick={() => st.applyQuest((q) => removeLink(q, l.id))}
                 >
-                  Remove
+                  {t('editor.MapsPanel.remove', 'Remove')}
                 </button>
               </div>
             </div>
           ))}
           <div className="fr-row2" data-testid="link-tool">
-            <Fld label="First stairway">
+            <Fld label={t('editor.MapsPanel.firstStairway', 'First stairway')}>
               <select
                 className="fr-sel"
-                aria-label="First stairway"
+                aria-label={t('editor.MapsPanel.firstStairway', 'First stairway')}
                 value={first}
                 onChange={(e) => setFirst(e.target.value)}
               >
-                <option value="">Pick a stairway</option>
+                <option value="">{t('editor.MapsPanel.pickAStairway', 'Pick a stairway')}</option>
                 {ends.map((e) => (
                   <option key={endKey(e.map, e.cell)} value={endKey(e.map, e.cell)}>
                     {label(e)}
@@ -163,14 +169,14 @@ export function MapsPanel({ store }: { store: EditorStore }) {
                 ))}
               </select>
             </Fld>
-            <Fld label="Second stairway">
+            <Fld label={t('editor.MapsPanel.secondStairway', 'Second stairway')}>
               <select
                 className="fr-sel"
-                aria-label="Second stairway"
+                aria-label={t('editor.MapsPanel.secondStairway', 'Second stairway')}
                 value={second}
                 onChange={(e) => setSecond(e.target.value)}
               >
-                <option value="">Pick a stairway</option>
+                <option value="">{t('editor.MapsPanel.pickAStairway', 'Pick a stairway')}</option>
                 {ends.map((e) => (
                   <option key={endKey(e.map, e.cell)} value={endKey(e.map, e.cell)}>
                     {label(e)}
@@ -180,10 +186,15 @@ export function MapsPanel({ store }: { store: EditorStore }) {
             </Fld>
           </div>
           <button className="btn" data-testid="join-link" onClick={join}>
-            Join
+            {t('editor.MapsPanel.join', 'Join')}
           </button>
           {ends.length < 2 && (
-            <p className="fr-help">Put a stairway (furniture) on each map to join them.</p>
+            <p className="fr-help">
+              {t(
+                'editor.MapsPanel.putAStairwayFurniture',
+                'Put a stairway (furniture) on each map to join them.',
+              )}
+            </p>
           )}
         </>
       )}
@@ -201,29 +212,37 @@ export function MergesPanel({ store }: { store: EditorStore }) {
   return (
     <div data-testid="merges-panel">
       {quest.areaOverrides.length === 0 && (
-        <p className="fr-help">No merged rooms. Merge two rooms that touch into one.</p>
+        <p className="fr-help">
+          {t(
+            'editor.MapsPanel.noMergedRoomsMerge',
+            'No merged rooms. Merge two rooms that touch into one.',
+          )}
+        </p>
       )}
       {quest.areaOverrides.map((m) => (
         <div className="ed-row" key={m.merge[1]} data-testid="merge-row">
           <div className="ed-row-head">
             <span>
-              {m.merge[1]} is part of {m.merge[0]}
+              {t('editor.MapsPanel.isPartOf', '{v1} is part of {v2}', {
+                v1: m.merge[1],
+                v2: m.merge[0],
+              })}
             </span>
             <button
               className="chip"
-              aria-label={`Split room ${m.merge[1]}`}
+              aria-label={t('editor.MapsPanel.splitRoom', 'Split room {v1}', { v1: m.merge[1] })}
               onClick={() => st.apply((q) => removeAreaMerge(q, m.merge[1]))}
             >
-              Split
+              {t('editor.MapsPanel.split', 'Split')}
             </button>
           </div>
         </div>
       ))}
       <div className="fr-row2">
-        <Fld label="Main room">
+        <Fld label={t('editor.MapsPanel.mainRoom', 'Main room')}>
           <select
             className="fr-sel"
-            aria-label="Main room"
+            aria-label={t('editor.MapsPanel.mainRoom', 'Main room')}
             value={a}
             onChange={(e) => setA(e.target.value)}
           >
@@ -234,10 +253,10 @@ export function MergesPanel({ store }: { store: EditorStore }) {
             ))}
           </select>
         </Fld>
-        <Fld label="Room that joins it">
+        <Fld label={t('editor.MapsPanel.roomThatJoinsIt', 'Room that joins it')}>
           <select
             className="fr-sel"
-            aria-label="Room that joins it"
+            aria-label={t('editor.MapsPanel.roomThatJoinsIt', 'Room that joins it')}
             value={b}
             onChange={(e) => setB(e.target.value)}
           >
@@ -254,7 +273,7 @@ export function MergesPanel({ store }: { store: EditorStore }) {
         data-testid="merge-rooms"
         onClick={() => st.apply((q) => addAreaMerge(q, a, b))}
       >
-        Merge
+        {t('editor.MapsPanel.merge', 'Merge')}
       </button>
     </div>
   );
@@ -265,7 +284,12 @@ export function MapChips({ store }: { store: EditorStore }) {
   const { canon, mapId } = useStore(store);
   if (!isMultiMap(canon)) return null;
   return (
-    <div className="ed-chips" role="tablist" aria-label="Maps" data-testid="map-tabs">
+    <div
+      className="ed-chips"
+      role="tablist"
+      aria-label={t('editor.MapsPanel.maps', 'Maps')}
+      data-testid="map-tabs"
+    >
       {questMaps(canon).map((m) => (
         <button
           key={m.id}
@@ -284,7 +308,7 @@ export function MapChips({ store }: { store: EditorStore }) {
         data-testid="tab-new-map"
         onClick={() => store.getState().applyQuest((q) => addMap(q, {}))}
       >
-        New map
+        {t('editor.MapsPanel.newMap', 'New map')}
       </button>
     </div>
   );

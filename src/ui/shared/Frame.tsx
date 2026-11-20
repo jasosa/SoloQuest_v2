@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 import { useModal } from './useModal';
 import './frame.css';
+import { t } from '../../i18n/t';
 
 /**
  * The building blocks of the Designer mockups (design/play-a/editor-mockups.html): the top bar with
@@ -27,8 +28,12 @@ export function TopBar({
 }) {
   return (
     <div className="fr-top">
-      <span className="fr-ttl">Quest editor</span>
-      <div role="tablist" aria-label="Editor" style={{ display: 'flex', gap: 6 }}>
+      <span className="fr-ttl">{t('shared.Frame.questEditor', 'Quest editor')}</span>
+      <div
+        role="tablist"
+        aria-label={t('shared.Frame.editor', 'Editor')}
+        style={{ display: 'flex', gap: 6 }}
+      >
         {tabs.map((t) => (
           <button
             key={t}

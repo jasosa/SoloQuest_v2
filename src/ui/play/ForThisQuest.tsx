@@ -1,4 +1,5 @@
 import type { ElementQuest } from '../../engine/game/view';
+import { t } from '../../i18n/t';
 
 const firstLine = (e: ElementQuest['read'][number]) => {
   const text = e.title ?? e.texts[0] ?? e.choices[0]?.picked ?? '';
@@ -21,7 +22,7 @@ export function ForThisQuest({
   if (view.read.length === 0 && view.buttons.length === 0 && view.waiting.length === 0) return null;
   return (
     <div className="fq">
-      <div className="lbl">For this quest</div>
+      <div className="lbl">{t('play.ForThisQuest.forThisQuest', 'For this quest')}</div>
       {view.read.map((e) => (
         <button key={e.id} data-hit className="nr" onClick={() => onRead(e.id)}>
           <b>{e.letter ?? '•'}</b>
