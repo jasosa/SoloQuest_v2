@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
-import { ART_FOLDER, ART_MANIFESTS } from '../src/ui/theme/boxArt';
+import { INCLUDED_PACKS } from '../src/ui/theme/included';
 import {
   manifestFiles,
   readPack,
@@ -10,7 +10,7 @@ import {
 } from '../src/ui/theme/pack';
 
 /**
- * `npm run build:pack -- frozen-horror`: writes the built-in art layer of a box as an importable
+ * `npm run build:pack -- frozen-horror`: writes the pack of a box that ships with the app as an importable
  * `.sqtextures` file into `dist-packs/` (git-ignored). It zips the same manifest and the same pictures
  * the app uses, so the file and the built-in layer cannot drift apart.
  */
@@ -20,9 +20,9 @@ const mimeOf = (name: string) =>
 
 /** The pack of a box, with its pictures read by `read` (a path under `public/`). */
 export function packOfBox(box: string, read: (path: string) => Uint8Array): StoredPack {
-  const manifest = ART_MANIFESTS[box];
-  const folder = ART_FOLDER[box];
-  if (!manifest || folder === undefined) throw new Error(`No art layer for "${box}".`);
+  const inc = INCLUDED_PACKS.find((i) => i.manifest.box === box);
+  if (!inc) throw new Error(`No pack for "${box}" is included with the app.`);
+  const { manifest, folder } = inc;
   const files: Record<string, PackFile> = {};
   for (const name of manifestFiles(manifest))
     files[name] = { mime: mimeOf(name), bytes: read(`${folder}${name}`) };
@@ -32,7 +32,9 @@ export function packOfBox(box: string, read: (path: string) => Uint8Array): Stor
 export function main(argv: string[]): void {
   const box = argv[0];
   if (!box)
-    throw new Error(`Usage: npm run build:pack -- <${Object.keys(ART_MANIFESTS).join('|')}>`);
+    throw new Error(
+      `Usage: npm run build:pack -- <${INCLUDED_PACKS.map((i) => i.manifest.box).join('|')}>`,
+    );
   const pub = resolve('public');
   const pack = packOfBox(box, (p) => readFileSync(join(pub, p)));
   const bytes = writePack(pack);

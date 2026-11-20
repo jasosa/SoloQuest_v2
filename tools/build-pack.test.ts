@@ -20,6 +20,6 @@ describe('build:pack frozen-horror', () => {
     expect(total).toBeLessThan(10 * 1024 * 1024);
   });
   it('refuses a box without art', () => {
-    expect(() => packOfBox('nope', () => new Uint8Array())).toThrow(/No art layer/);
+    expect(() => packOfBox('nope', () => new Uint8Array())).toThrow(/included/);
   });
 });

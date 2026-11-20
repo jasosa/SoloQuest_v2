@@ -6,6 +6,7 @@ import { TranslationsDialog } from './translations/TranslationsDialog';
 import { bundledQuestFiles } from './quests';
 import { englishStrings } from '../i18n/english';
 import { englishDataStrings, languageStore } from '../i18n/runtime';
+import { withIncluded } from './theme/included';
 import { DexieThemeStore, MemoryThemeStore, type ThemeStore } from '../persist/themes';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { board } from '../engine/board/board';
@@ -168,7 +169,7 @@ function Game({ params }: { params: URLSearchParams }) {
     [params],
   );
   const themeStore = useMemo<ThemeStore>(
-    () => (params.has('nosave') ? new MemoryThemeStore() : new DexieThemeStore()),
+    () => withIncluded(params.has('nosave') ? new MemoryThemeStore() : new DexieThemeStore()),
     [params],
   );
   const [textures, setTextures] = useState(false);

@@ -17,6 +17,8 @@ export interface PackSummary {
   box?: string | undefined;
   /** The texture pack it builds on. */
   extends?: string | undefined;
+  /** Ships with the app: it cannot be deleted. */
+  included?: boolean | undefined;
 }
 
 export interface ThemeStore {

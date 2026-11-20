@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PackSummary, ThemeStore } from '../../persist/themes';
-import { Dialog, Toggle } from '../shared/Frame';
+import { Dialog } from '../shared/Frame';
 import { applyPack } from './activate';
-import { FROZEN_HORROR, isBoxArtOn, setBoxArtOn } from './boxArt';
 import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack, type StoredPack } from './pack';
 import { PackPreview } from './PackPreview';
 import { t } from '../../i18n/t';
@@ -30,7 +29,6 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<StoredPack | null>(null);
-  const [fhArt, setFhArt] = useState(() => isBoxArtOn(FROZEN_HORROR));
   const input = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -134,22 +132,6 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             {message.text}
           </p>
         )}
-        <div className="fr-fld" data-testid="box-art">
-          <Toggle
-            label={t('theme.TexturesDialog.frozenHorrorPictures', 'Frozen Horror pictures')}
-            on={fhArt}
-            onChange={(on) => {
-              setBoxArtOn(FROZEN_HORROR, on);
-              setFhArt(on);
-            }}
-          />
-          <p className="fr-help">
-            {t(
-              'theme.TexturesDialog.usedInFrozenHorror',
-              'Used in Frozen Horror quests. A pack of your own for Frozen Horror is drawn on top of them.',
-            )}
-          </p>
-        </div>
         <ul className="fr-recent" data-testid="pack-list">
           <li>
             <div className="fr-open-static">
@@ -176,11 +158,19 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
                     ? t('theme.TexturesDialog.official', 'Official')
                     : t('theme.TexturesDialog.fanMade', 'Fan-made')}
                   {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
+                  {p.included
+                    ? ` · ${t('theme.TexturesDialog.includedWithTheApp', 'Included with the app')}`
+                    : ''}
                 </span>
                 <span className="fr-qtitle">{p.name}</span>
               </div>
               {active === p.id ? (
-                <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
+                <>
+                  <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
+                  <button className="chip" onClick={() => void choose(null)}>
+                    {t('theme.TexturesDialog.stopUsingIt', 'Stop using it')}
+                  </button>
+                </>
               ) : p.extends && !packs.some((x) => x.id === p.extends) ? (
                 <span className="fr-qnote" data-testid={`needs-${p.id}`}>
                   {t('theme.TexturesDialog.needsThePack', 'Needs the pack {extends}', {
@@ -208,7 +198,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
               >
                 {t('theme.TexturesDialog.export', 'Export')}
               </button>
-              {deleting === p.id ? (
+              {p.included ? null : deleting === p.id ? (
                 <button
                   className="chip main"
                   onClick={async () => {
