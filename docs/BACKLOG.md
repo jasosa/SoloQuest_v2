@@ -303,3 +303,4 @@ All the texts of the application can be translated or modified with a tool, for 
 - [ ] The initial English file is supplied by the app. It can be changed (the changes are kept on the device over the built-in English, with a reset) but can never be deleted
 - [ ] Quest texts: a translation file covers the bundled quests and the quests of the user (by quest id and text key), and a missing text falls back to English
 - [ ] The editor writes the texts of a new quest as keys, so it can be translated like the bundled ones
+- [ ] The owner can update the built-in English: in owner mode the Translations tool edits it and exports an update file; `npm run i18n:apply -- <file>` writes the changes into `src/i18n/en.json` and into the quest, library and data source files by key path (dry run first)
