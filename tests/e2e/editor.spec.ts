@@ -10,7 +10,7 @@ const btn = (page: Page, name: string) => page.getByRole('button', { name, exact
 // A tile chip may end with its count, "Ice Vault 0 of 2".
 const tool = (page: Page, name: string) =>
   page
-    .locator('.ed-tools')
+    .locator('.ed-tools, .ed-palette')
     .getByRole('button', { name: new RegExp(String.raw`^${name}( \d+ of \d+)?$`) });
 const board = (page: Page) => page.locator('#editor-board');
 
@@ -1377,10 +1377,13 @@ test.describe('editor: Frozen Horror features', () => {
     await inspector(page).getByRole('button', { name: 'Turn', exact: true }).click();
     await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
     // each shape is listed once (3 x 2), and the size keeps the turn of the tile
-    await expect(inspector(page).getByRole('button', { name: '2 x 3', exact: true })).toHaveCount(
-      0,
-    );
-    await inspector(page).getByRole('button', { name: '3 x 2', exact: true }).click();
+    await expect(
+      page.getByTestId('inspector-selection').getByRole('button', { name: '2 x 3', exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByTestId('inspector-selection')
+      .getByRole('button', { name: '3 x 2', exact: true })
+      .click();
     await expect(page.getByTestId('tile-size')).toContainText('2 x 3');
     await btn(page, 'Undo').click();
     await btn(page, 'Undo').click();
@@ -1506,8 +1509,16 @@ test.describe('editor: Frozen Horror features', () => {
     const chip = (await palette.getByRole('button', { name: /^Ice Vault/ }).boundingBox())!;
     const z = (await first.boundingBox())!;
     expect(z.y - (chip.y + chip.height)).toBeLessThan(20);
-    for (const c of await page.locator('.ed-tools button').all())
+    for (const c of await page.locator('.ed-inspector .ed-palette button').all())
       expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    // at 1194 x 834 the whole palette fits: last chip, shapes row and limit note, no scrolling
+    await expect(
+      palette.getByRole('button', { name: /^Ice Gremlin Treasure Room/ }),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(page.getByTestId('tile-limit')).toBeInViewport({ ratio: 1 });
+    await tool(page, 'Cage Room').click();
+    await expect(page.getByTestId('tile-limit')).toBeInViewport({ ratio: 1 });
+    await tool(page, 'Ice Vault').click();
     await shot(page, 'editor-tiles-palette');
 
     // the ghost has the picked shape, and Turn (R) swaps it, as for furniture
@@ -1519,8 +1530,13 @@ test.describe('editor: Frozen Horror features', () => {
     await clickAt(page, 6, 6);
     await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 3 x 4');
     // the inspector lists each shape once too, and keeps the turn
-    await expect(inspector(page).getByRole('button', { name: /^(4 x 3|3 x 4)$/ })).toHaveCount(1);
-    await inspector(page).getByRole('button', { name: '3 x 2', exact: true }).click();
+    await expect(
+      page.getByTestId('inspector-selection').getByRole('button', { name: /^(4 x 3|3 x 4)$/ }),
+    ).toHaveCount(1);
+    await page
+      .getByTestId('inspector-selection')
+      .getByRole('button', { name: '3 x 2', exact: true })
+      .click();
     await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 2 x 3');
   });
 

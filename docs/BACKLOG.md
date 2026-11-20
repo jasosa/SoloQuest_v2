@@ -316,7 +316,6 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] The `bounty` quest rule is removed everywhere (schema accepts and drops it, editor form, docs, quest 11 data and test); the door teleport form says what it is for (quest 10, magic doors)
 - [x] Cancel while picking a square from the Actions tab returns to the Actions tab, no popup over the map (the pick remembers the tab it started from)
 - [x] Merge rooms is a tool of the Map tab (map on show), not a panel of the Quest tab
-- [x] Tiles: one Board Tiles palette (room tiles and board tiles), the shapes of the picked tile right under it (each shape once), Turn (R), drag and drop to move a placed tile (decision 93)
-- [x] Cage Room and Bottomless Chasm Room are the 4 x 4 tiles: the 2 x 2 cage and the laid chasm are out of the palette, the cage is added from the Cage Room, chasm squares migrate (decision 93)
-- [ ] Owner: the lowest row of the palette (Cage Room, Gremlin treasure room) needs a small scroll of the tools column at 1194 x 834
+- [x] Tiles: one Board Tiles palette (room tiles and board tiles), the shapes of the picked tile right under it (each shape once), Turn (R), drag and drop to move a placed tile (decision 94)
+- [x] Cage Room and Bottomless Chasm Room are the 4 x 4 tiles: the 2 x 2 cage and the laid chasm are out of the palette, the cage is added from the Cage Room, chasm squares migrate (decision 94)
 

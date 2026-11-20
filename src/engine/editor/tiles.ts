@@ -505,7 +505,7 @@ export function tunnelsFull(q: Quest): boolean {
   return q.tunnels.length >= MAX_TUNNEL_PAIRS;
 }
 
-// ---- the cage of a Cage Room (decision 93)
+// ---- the cage of a Cage Room (decision 94)
 
 /** The cage (a `cage` board tile) that lies inside a Cage Room tile, or -1. */
 export function cageOfRoomTile(q: Quest, roomIndex: number): number {

@@ -17,8 +17,8 @@ export function TilePalette({ store }: { store: EditorStore }) {
   const picked = TILE_PALETTE.findIndex(
     (p) => p.group === opts.tile.group && p.type === opts.tile.type,
   );
-  // the shapes go after the last chip of the picked chip's row (two chips per row)
-  const rowEnd = picked < 0 ? -1 : Math.min(picked - (picked % 2) + 1, TILE_PALETTE.length - 1);
+  // the shapes go after the last chip of the picked chip's row (three chips per row)
+  const rowEnd = picked < 0 ? -1 : Math.min(picked - (picked % 3) + 2, TILE_PALETTE.length - 1);
   const spec = picked < 0 ? undefined : tileSpec(opts.tile.group, opts.tile.type);
   const fp = spec?.footprints[opts.tileVariant];
   const canTurn = fp !== undefined && fp[0] !== fp[1];

@@ -1,4 +1,4 @@
-/** Decision 93: one palette of physical tiles, the cage of a Cage Room, chasm squares become the 4 x 4 room. */
+/** Decision 94: one palette of physical tiles, the cage of a Cage Room, chasm squares become the 4 x 4 room. */
 import { describe, expect, it } from 'vitest';
 import { board } from '../board/board';
 import { BOARD_TILES, ROOM_TILES, TILE_PALETTE, tileSpec } from '../data/roomTiles';
@@ -173,6 +173,15 @@ describe('chasm squares become the Bottomless Chasm Room when they fill a 4 x 4'
     });
     expect(quest.boardTiles).toHaveLength(1);
     expect(msgs(quest).join(' | ')).toMatch(/replaced by the Bottomless Chasm Room tile/);
+  });
+
+  it('keeps a chasm that has a flag or blocks (the room tile has neither)', () => {
+    const quest = parseQuest({
+      ...base,
+      boardTiles: [{ type: 'chasm', cells: square4, hiddenWhen: 'f', blocks: true }],
+    });
+    expect(quest.boardTiles).toHaveLength(1);
+    expect(quest.roomTiles).toEqual([]);
   });
 
   it('keeps the squares when the map already has a chasm room', () => {

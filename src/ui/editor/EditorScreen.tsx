@@ -292,6 +292,7 @@ export function EditorScreen({
             className="ed-inspector"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
+            {tool === 'tiles' && <TilePalette store={store} />}
             <Inspector store={store} issues={issues} saveErrors={saveErrors} />
           </aside>
         </div>
@@ -416,7 +417,6 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </button>
         </>
       )}
-      {tool === 'tiles' && <TilePalette store={store} />}
       {tool === 'monsters' && (
         <>
           <div className="lbl">{t('editor.EditorScreen.monster', 'Monster')}</div>

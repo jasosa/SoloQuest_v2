@@ -40,7 +40,7 @@ export function dropLegacy(raw: unknown): unknown {
 }
 
 /**
- * Decision 93: chasm squares laid one by one are gone from the editor. A chasm that fills a plain
+ * Decision 94: chasm squares laid one by one are gone from the editor. A chasm that fills a plain
  * 4 x 4 square becomes the Bottomless Chasm Room tile (when the map has none yet). Anything else
  * stays as it is: the validator warns about it and the owner decides.
  */
@@ -54,7 +54,10 @@ function moveChasmToRoomTile(map: unknown): Record<string, unknown> {
     : [];
   const keep: unknown[] = [];
   for (const t of tiles) {
-    const cells = t.type === 'chasm' && Array.isArray(t.cells) ? (t.cells as number[][]) : null;
+    // a chasm with a flag or `blocks` stays as it is: the room tile has no such fields
+    const plain = Object.keys(t).every((k) => k === 'type' || k === 'cells');
+    const cells =
+      t.type === 'chasm' && plain && Array.isArray(t.cells) ? (t.cells as number[][]) : null;
     if (cells && cells.length === 16 && !rooms.some((r) => r.type === 'chasmRoom')) {
       const xs = cells.map((c) => c[0]!);
       const ys = cells.map((c) => c[1]!);

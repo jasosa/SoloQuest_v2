@@ -758,3 +758,11 @@
   font-size: 13px;
   padding: 0 2px;
 }
+
+/* The palette lives in the right column while the Tiles tool is on: three chips per row. */
+.ed-inspector .ed-palette {
+  grid-template-columns: repeat(3, 1fr);
+}
+.ed-inspector .ed-palette-shapes {
+  grid-template-columns: repeat(3, 1fr);
+}

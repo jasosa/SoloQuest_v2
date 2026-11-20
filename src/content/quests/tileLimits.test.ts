@@ -39,7 +39,7 @@ describe('the Frozen Horror quests keep to the tile sizes and limits', () => {
     expect(found.sort()).toEqual([...KNOWN].sort());
   });
 
-  it('has no laid chasm squares, and every cage lies inside a Cage Room tile (decision 93)', () => {
+  it('has no laid chasm squares, and every cage lies inside a Cage Room tile (decision 94)', () => {
     for (const f of files) {
       const quest = parseQuest(JSON.parse(readFileSync(resolve(dir, f), 'utf8')));
       expect(

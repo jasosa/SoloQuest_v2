@@ -240,7 +240,7 @@ function SizeChips({
   );
 }
 
-/** The cage a Cage Room may hold: it blocks sight until its flag is set (decision 93). */
+/** The cage a Cage Room may hold: it blocks sight until its flag is set (decision 94). */
 function CageOfRoom({ store, index }: { store: EditorStore; index: number }) {
   const { quest } = useStore(store);
   const st = store.getState();

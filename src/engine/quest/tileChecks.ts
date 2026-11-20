@@ -121,7 +121,7 @@ export function tileLimitIssues(
       );
     }
   }
-  // The cage belongs to a Cage Room, and chasm squares were replaced by the 4 x 4 room (decision 93).
+  // The cage belongs to a Cage Room, and chasm squares were replaced by the 4 x 4 room (decision 94).
   const cageRooms = items.filter((t) => t.group === 'room' && t.type === 'cageRoom');
   for (const t of items) {
     if (t.group !== 'board') continue;

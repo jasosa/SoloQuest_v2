@@ -155,7 +155,7 @@ export interface BoardTileDef {
   /** How many of each size one quest may use (none: no limit stated). */
   readonly maxPerSize?: number;
   /**
-   * Not in the editor palette (decision 93): the cage is part of the Cage Room tile (added from
+   * Not in the editor palette (decision 94): the cage is part of the Cage Room tile (added from
    * that tile), and chasm squares were replaced by the Bottomless Chasm Room tile. Old files that
    * have them still load and play.
    */
@@ -312,7 +312,7 @@ export function limitText(spec: Pick<TileSpec, 'laid' | 'footprints' | 'maxPerSi
   return spec.footprints.map(([w, h]) => `${spec.maxPerSize} of ${w} x ${h}`).join(' and ');
 }
 
-/** One entry of the editor palette "Board tiles": room tiles and board tiles together (decision 93). */
+/** One entry of the editor palette "Board tiles": room tiles and board tiles together (decision 94). */
 export type PaletteTile =
   | { readonly group: 'board'; readonly type: BoardTileType }
   | { readonly group: 'room'; readonly type: RoomTileType };
