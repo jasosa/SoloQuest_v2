@@ -58,6 +58,31 @@ describe('the campaign while a quest is played', () => {
     expect(campaigns.get('ice')?.flags).toEqual({});
   });
 
+  it('Undo of the end after a resume (a new tracker on a game that had ended) still takes the quest back', () => {
+    const { campaigns, game } = open();
+    const d = game.getState().dispatch;
+    d({ type: 'MANUAL_TRIGGER', note: 'lv' });
+    d({ type: 'END_QUEST', outcome: 'stairs' });
+    expect(campaigns.get('ice')?.finished).toEqual([level.quest.id]);
+    // the player leaves and reopens the saved game: a new tracker starts on the ended game
+    const again = trackCampaign(game, campaigns, newCampaign(pack, 3));
+    game.getState().undo();
+    expect(campaigns.get('ice')?.finished).toEqual([]);
+    expect(campaigns.get('ice')?.flags).toEqual({});
+    again();
+  });
+
+  it('Undo gives back only the finished list and flags: a setting toggled since stays', () => {
+    const { campaigns, game } = open();
+    const d = game.getState().dispatch;
+    d({ type: 'MANUAL_TRIGGER', note: 'lv' });
+    d({ type: 'END_QUEST', outcome: 'stairs' });
+    campaigns.set({ ...campaigns.get('ice')!, settings: { raiment: true } });
+    game.getState().undo();
+    expect(campaigns.get('ice')?.settings).toEqual({ raiment: true });
+    expect(campaigns.get('ice')?.finished).toEqual([]);
+  });
+
   it('a quest left with the goal undone is not finished', () => {
     const { campaigns, game } = open();
     game.getState().dispatch({ type: 'END_QUEST', outcome: 'stairs' });

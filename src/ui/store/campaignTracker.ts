@@ -17,13 +17,28 @@ export function trackCampaign(
   const check = () => {
     const { root, state } = game.getState();
     const done = questFinished(root, state);
+    const id = questId ?? root.quest.id;
     if (done && !before) {
-      before = campaigns.get(start.pack) ?? start;
-      campaigns.set(
-        finishQuest(before, { id: questId ?? root.quest.id, flagsOut: root.quest.flagsOut }, state),
-      );
+      const stored = campaigns.get(start.pack) ?? start;
+      if (stored.finished.includes(id)) {
+        // A resumed game that had already ended: the campaign lists the quest already. What an Undo of
+        // the end must give back is the campaign without this quest and without the flags it handed on.
+        const flags = { ...stored.flags };
+        for (const f of root.quest.flagsOut ?? []) delete flags[f];
+        before = { ...stored, finished: stored.finished.filter((q) => q !== id), flags };
+      } else {
+        before = stored;
+        campaigns.set(finishQuest(stored, { id, flagsOut: root.quest.flagsOut }, state));
+      }
     } else if (!done && before) {
-      campaigns.set(before);
+      // Only what the end changed goes back: a setting toggled since stays as it is.
+      const now = campaigns.get(start.pack) ?? before;
+      campaigns.set({
+        ...now,
+        finished: before.finished,
+        flags: before.flags,
+        fallen: before.fallen,
+      });
       before = undefined;
     }
   };
