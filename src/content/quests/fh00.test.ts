@@ -180,17 +180,12 @@ describe('quest 0: tunnels and tiles', () => {
     expect(() => run(...toA, tunnel('tun3', 'a'))).toThrow(/has not been seen yet/);
   });
 
-  it('the cave entrance is drawn from the start; the cage shows with its room and goes when the lever is pulled', () => {
+  it('the cave entrance is drawn from the start; there is no cage piece on the board', () => {
     const start = startGame(level, 1).state;
     expect(boardTilesInView(level, start).map((t) => t.type)).toEqual(['iceCaveEntrance']);
     const cage = run(...toCage);
-    expect(
-      boardTilesInView(level, cage)
-        .map((t) => t.type)
-        .sort(),
-    ).toEqual(['cage', 'iceCaveEntrance']);
-    const open3 = pull(cage, 0);
-    expect(boardTilesInView(level, open3).map((t) => t.type)).toEqual(['iceCaveEntrance']);
+    expect(boardTilesInView(level, cage).map((t) => t.type)).toEqual(['iceCaveEntrance']);
+    expect(level.quest.boardTiles.map((t) => t.type)).toEqual(['iceCaveEntrance']);
   });
 });
 
@@ -236,10 +231,13 @@ describe('quest 0: rooms and notes', () => {
     expect(fired(run(...toCage, search('R02')), 'n-C-search')).toBe(true);
   });
 
-  it('the cage blocks sight until the lever is pulled', () => {
+  it('the cage blocks nothing in the app: a note tells the players it blocks sight until opened', () => {
     const s = run(...toCage);
-    expect(s.sightBlockers.has('6,2') && s.sightBlockers.has('7,3')).toBe(true);
+    expect(s.sightBlockers.size).toBe(0);
     expect(pull(s, 0).sightBlockers.size).toBe(0);
+    const text = JSON.stringify(level.quest.notes);
+    expect(text).toContain('it blocks line of sight, until it is opened');
+    expect(text).toContain('The cage swings open and the line of sight is clear');
   });
 
   it('the throne door is not on the map before the throne melts', () => {

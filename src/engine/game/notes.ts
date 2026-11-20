@@ -22,14 +22,7 @@ import { crossLink } from './crossing';
 import { liveMonstersInRoom } from './monstersIn';
 import { lookHintCells } from './hints';
 import type { Prompt } from './prompts';
-import {
-  doorMayShow,
-  syncBlockers,
-  revealEverything,
-  revealFrom,
-  revealRoom,
-  revealThroughDoor,
-} from './reveal';
+import { doorMayShow, revealEverything, revealFrom, revealRoom, revealThroughDoor } from './reveal';
 import { seeMonster, type Draft, type GameState } from './state';
 
 /** What happened, as the notes engine sees it. */
@@ -496,7 +489,6 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
     }
     case 'setFlag':
       d.flags[e.flag] = e.value;
-      syncBlockers(level, d);
       // A door that waited for this flag shows now, if the heroes can see one of its squares.
       for (const door of level.doors.values())
         if (

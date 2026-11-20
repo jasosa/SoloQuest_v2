@@ -488,17 +488,6 @@
         [4, 11],
         [5, 11]
       ]
-    },
-    {
-      "type": "cage",
-      "cells": [
-        [6, 2],
-        [7, 2],
-        [6, 3],
-        [7, 3]
-      ],
-      "hiddenWhen": "cageOpen",
-      "blocks": true
     }
   ],
   "npcs": [
@@ -683,7 +672,7 @@
       "effects": [
         {
           "type": "showText",
-          "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and blocks line of sight. A lever is fixed to the wall at the square marked C."
+          "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and it blocks line of sight, until it is opened. You apply this at the table. A lever is fixed to the wall at the square marked C."
         }
       ]
     },

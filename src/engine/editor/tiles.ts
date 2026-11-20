@@ -24,7 +24,7 @@ import {
 } from '../data/roomTiles';
 import type { Quest } from '../quest/schema';
 import { roomTileCells } from '../quest/roomTileCells';
-import { clean, fail, isRockCell as isRock, newIssues, ok, type EditResult } from './result';
+import { fail, isRockCell as isRock, newIssues, ok, type EditResult } from './result';
 
 type Cell = [number, number];
 type Tile = Quest['boardTiles'][number];
@@ -310,30 +310,6 @@ export function rotateBoardTile(q: Quest, index: number): EditResult {
   return resizeBoardTile(q, index, [box.h, box.w]);
 }
 
-/**
- * The flag that takes a tile away (`hiddenWhen`) and whether it blocks sight and squares until
- * then. An empty text clears the flag. A tile that blocks needs a flag.
- */
-export function setBoardTileFlags(
-  q: Quest,
-  index: number,
-  flags: { hiddenWhen?: string; blocks?: boolean },
-): EditResult {
-  const t = q.boardTiles[index];
-  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
-  const hiddenWhen =
-    flags.hiddenWhen === undefined ? t.hiddenWhen : flags.hiddenWhen.trim() || undefined;
-  const blocks = flags.blocks === undefined ? t.blocks : flags.blocks || undefined;
-  if (blocks && !hiddenWhen)
-    return fail(
-      tr(
-        'editor.tiles.aTileThatBlocksNeedsA',
-        'A tile that blocks needs a flag that takes it away. Type the flag first.',
-      ),
-    );
-  return withTile(q, index, (x) => clean({ type: x.type, cells: x.cells, hiddenWhen, blocks }));
-}
-
 /** Take one square out of laid terrain. The last square takes the tile with it. */
 export function removeBoardTileCell(q: Quest, index: number, cell: Cell): EditResult {
   const t = q.boardTiles[index];
@@ -503,32 +479,4 @@ export function roomTileIndexAt(q: Quest, cell: readonly number[]): number {
 /** True when the quest may not have one more ice tunnel pair (the box holds three). */
 export function tunnelsFull(q: Quest): boolean {
   return q.tunnels.length >= MAX_TUNNEL_PAIRS;
-}
-
-// ---- the cage of a Cage Room (decision 94)
-
-/** The cage (a `cage` board tile) that lies inside a Cage Room tile, or -1. */
-export function cageOfRoomTile(q: Quest, roomIndex: number): number {
-  const rt = q.roomTiles[roomIndex];
-  if (!rt || rt.type !== 'cageRoom') return -1;
-  const own = new Set(roomTileCells(q, rt).map(key));
-  return q.boardTiles.findIndex((t) => t.type === 'cage' && t.cells.every((c) => own.has(key(c))));
-}
-
-/**
- * Put the 2 x 2 cage in the middle of a Cage Room tile. The cage blocks sight until its flag is
- * set; the flag and the "blocks" switch are edited on the cage like on any board tile.
- */
-export function addCageToRoomTile(q: Quest, roomIndex: number): EditResult {
-  const rt = q.roomTiles[roomIndex];
-  if (!rt) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
-  if (rt.type !== 'cageRoom')
-    return fail(tr('editor.tiles.onlyACageRoomHolds', 'Only a Cage Room holds a cage.'));
-  if (cageOfRoomTile(q, roomIndex) >= 0)
-    return fail(tr('editor.tiles.thisCageRoomHasACage', 'This Cage Room already has a cage.'));
-  const box = tileBox(roomTileCells(q, rt));
-  return placeBoardTile(q, {
-    type: 'cage',
-    at: [box.x + Math.floor((box.w - 2) / 2), box.y + Math.floor((box.h - 2) / 2)],
-  });
 }

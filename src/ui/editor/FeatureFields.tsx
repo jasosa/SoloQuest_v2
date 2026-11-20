@@ -7,15 +7,12 @@ import { useStore } from 'zustand';
 import {
   knownFlags,
   removeBoardTileCell,
-  addCageToRoomTile,
-  cageOfRoomTile,
   resizeBoardTile,
   resizeRoomTile,
   rotateRoomTile,
   sizeKeepingTurn,
   tileUsage,
   rotateBoardTile,
-  setBoardTileFlags,
   setDoorFlags,
   setEdgeDoorKind,
   setStart,
@@ -31,7 +28,6 @@ import {
   type Footprint,
 } from '../../engine/data/roomTiles';
 import { roomTileCells } from '../../engine/quest/roomTileCells';
-import { Toggle } from '../shared/Frame';
 import type { EditorStore } from './editorStore';
 import { t } from '../../i18n/t';
 
@@ -118,7 +114,6 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
   if (!tile) return null;
   const def = BOARD_TILES[tile.type];
   const box = tileBox(tile.cells);
-  const flags = knownFlags(quest);
   return (
     <>
       <p className="ed-note" data-testid="tile-size">
@@ -150,21 +145,6 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
           onTurn={() => st.apply((q) => rotateBoardTile(q, index))}
         />
       )}
-      <FlagField
-        label={t('editor.FeatureFields.goneWhenThisFlag', 'Gone when this flag is set')}
-        value={tile.hiddenWhen ?? ''}
-        flags={flags}
-        listId={`flags-t-${index}`}
-        onSave={(v) => st.apply((q) => setBoardTileFlags(q, index, { hiddenWhen: v }))}
-      />
-      <Toggle
-        label={t(
-          'editor.FeatureFields.blocksSightAndSquares',
-          'Blocks sight and squares until then',
-        )}
-        on={tile.blocks === true}
-        onChange={(on) => st.apply((q) => setBoardTileFlags(q, index, { blocks: on }))}
-      />
       {def.shape === 'laid' && (
         <>
           <p className="ed-note">
@@ -240,35 +220,6 @@ function SizeChips({
   );
 }
 
-/** The cage a Cage Room may hold: it blocks sight until its flag is set (decision 94). */
-function CageOfRoom({ store, index }: { store: EditorStore; index: number }) {
-  const { quest } = useStore(store);
-  const st = store.getState();
-  const cage = cageOfRoomTile(quest, index);
-  const tile = quest.boardTiles[cage];
-  return (
-    <>
-      <div className="lbl">{t('editor.FeatureFields.cage', 'Cage')}</div>
-      {tile ? (
-        <>
-          <p className="ed-note" data-testid="cage-info">
-            {t('editor.FeatureFields.theCageIsOnSquares', 'The cage is on squares {cells}.', {
-              cells: tile.cells.map((c) => `${c[0]}, ${c[1]}`).join(' and '),
-            })}
-          </p>
-          <button className="btn alt" onClick={() => st.select({ kind: 'tile', index: cage })}>
-            {t('editor.FeatureFields.editTheCage', 'Edit the cage')}
-          </button>
-        </>
-      ) : (
-        <button className="btn alt" onClick={() => st.apply((q) => addCageToRoomTile(q, index))}>
-          {t('editor.FeatureFields.addTheCage', 'Add the cage')}
-        </button>
-      )}
-    </>
-  );
-}
-
 export function RoomTileFields({ store, index }: { store: EditorStore; index: number }) {
   const { quest } = useStore(store);
   const st = store.getState();
@@ -300,7 +251,6 @@ export function RoomTileFields({ store, index }: { store: EditorStore; index: nu
         onSize={(size) => st.apply((q) => resizeRoomTile(q, index, size))}
         onTurn={() => st.apply((q) => rotateRoomTile(q, index))}
       />
-      {tv.type === 'cageRoom' && <CageOfRoom store={store} index={index} />}
       {def.rule.map((line, i) => (
         <p className="ed-note" key={i}>
           {line}

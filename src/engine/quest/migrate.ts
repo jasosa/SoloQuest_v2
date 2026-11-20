@@ -34,8 +34,9 @@ export function dropLegacy(raw: unknown): unknown {
         ? { ...m, visible: 'editor' }
         : m,
     );
-  const out = moveChasmToRoomTile(rest);
-  if (Array.isArray(out.maps)) out.maps = out.maps.map((m: unknown) => moveChasmToRoomTile(m));
+  const out = moveChasmToRoomTile(dropCage(rest));
+  if (Array.isArray(out.maps))
+    out.maps = out.maps.map((m: unknown) => moveChasmToRoomTile(dropCage(m)));
   return out;
 }
 
@@ -77,5 +78,25 @@ function moveChasmToRoomTile(map: unknown): Record<string, unknown> {
     m.boardTiles = keep;
     m.roomTiles = rooms;
   }
+  return m;
+}
+
+/**
+ * Decision 94: there is no cage piece and no sight-blocking tile. Old files may still have a
+ * `cage` board tile, or `blocks` and `hiddenWhen` on a tile: they are dropped on load (the quest
+ * notes tell the players, like the old bounty rule).
+ */
+function dropCage(map: unknown): Record<string, unknown> {
+  if (typeof map !== 'object' || map === null) return map as Record<string, unknown>;
+  const m = { ...map } as Record<string, unknown>;
+  if (!Array.isArray(m.boardTiles)) return m;
+  m.boardTiles = (m.boardTiles as Record<string, unknown>[])
+    .filter((t) => t.type !== 'cage')
+    .map((t) => {
+      const { blocks: _blocks, hiddenWhen: _hidden, ...rest } = t;
+      void _blocks;
+      void _hidden;
+      return rest;
+    });
   return m;
 }

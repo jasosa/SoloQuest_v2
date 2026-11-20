@@ -1403,28 +1403,10 @@ test.describe('editor: Frozen Horror features', () => {
     await page.keyboard.press('r');
     await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
 
-    // a flag takes it away; blocking needs the flag first
-    await inspector(page)
-      .getByRole('switch', { name: /Blocks sight/ })
-      .click();
-    await expect(page.locator('.toast')).toContainText('flag');
-    await inspector(page).getByLabel('Gone when this flag is set').fill('iceMelted');
-    await inspector(page).getByLabel('Gone when this flag is set').blur();
-    await expect(page.locator('[data-tile-flag="iceMelted"]')).toHaveCount(1);
-    await inspector(page)
-      .getByRole('switch', { name: /Blocks sight/ })
-      .click();
-    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    // the flag is never set by an action: the Problems list says so
-    await inspector(page)
-      .getByRole('button', { name: /^Problems/ })
-      .click();
-    await expect(page.locator('.ed-inspector')).toContainText('iceMelted is never set');
+    // a tile has no sight flag any more (decision 94)
+    await expect(inspector(page).getByLabel('Gone when this flag is set')).toHaveCount(0);
+    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveCount(0);
 
-    await btn(page, 'Element').click();
     await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.locator('[data-board-tile]')).toHaveCount(0);
   });
@@ -1593,29 +1575,18 @@ test.describe('editor: Frozen Horror features', () => {
     await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
   });
 
-  test('the cage is part of the Cage Room: add it from the room, set its flag, it stays out of the palette', async ({
+  test('the Cage Room is only the 4 x 4 room tile: no cage piece, no cage button, no sight flag', async ({
     page,
   }) => {
     await newQuest(page);
     await tool(page, 'Tiles').click();
     await tool(page, 'Cage Room').click();
     await clickAt(page, 12, 3);
-    await expect(inspector(page).getByRole('button', { name: 'Add the cage' })).toBeVisible();
-    await inspector(page).getByRole('button', { name: 'Add the cage' }).click();
-    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(1);
-    await expect(page.getByTestId('cage-info')).toContainText('13, 4');
-    await expect(inspector(page).getByRole('button', { name: 'Add the cage' })).toHaveCount(0);
-    await inspector(page).getByRole('button', { name: 'Edit the cage' }).click();
-    await inspector(page).getByLabel('Gone when this flag is set').fill('cageOpen');
-    await inspector(page).getByLabel('Gone when this flag is set').blur();
-    await inspector(page)
-      .getByRole('switch', { name: /Blocks sight/ })
-      .click();
-    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    await expect(page.locator('[data-tile-flag="cageOpen"]')).toHaveCount(1);
+    await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
+    await expect(page.getByTestId('room-tile-info')).toContainText('Cage Room, 4 x 4');
+    await expect(inspector(page).getByRole('button', { name: /the cage/i })).toHaveCount(0);
+    await expect(inspector(page).getByLabel('Gone when this flag is set')).toHaveCount(0);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(0);
     await shot(page, 'editor-cage-room');
   });
 
@@ -1724,10 +1695,9 @@ test.describe('editor: Frozen Horror features', () => {
     });
     await expect(page.locator('.fr-title')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
-    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-room-tile]')).toHaveCount(2);
     await expect(page.locator('[data-edge-door="in"]')).toHaveCount(1);
-    await expect(page.locator('[data-tile-flag="cageOpen"]')).toHaveCount(1);
     await shot(page, 'editor-fh00');
 
     // the box holds three pairs: a fourth is refused, then export
@@ -1757,7 +1727,7 @@ test.describe('editor: Frozen Horror features', () => {
     });
     await expect(page.locator('.fr-title')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
-    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-edge-door]')).toHaveCount(original.edgeDoors.length);
   });
 

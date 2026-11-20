@@ -174,7 +174,7 @@ export function buildOverlaySvg(
       }
     }
 
-    // Board tiles (ice cave entrance, cage, river, ledge...).
+    // Board tiles (ice cave entrance, river, ledge...).
     for (const bt of quest.boardTiles) {
       for (const c of bt.cells)
         out.push(

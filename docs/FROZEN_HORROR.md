@@ -204,7 +204,7 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Door not on the map until a flag, door that stays stuck until a flag | Q0 throne, Q5 C, Q9 key door | door `hiddenUntil`, `lockedUntil`, effect `setFlag` | yes: flags in Board features (door flags), `setFlag` in the effect list |
 | Secret door that shows | core | effect `addSecretDoor` | yes |
 | Furniture that turns into an open door | Q0 throne | effect `replaceFurnitureWithDoor` | yes |
-| Block placed by an event, sight-blocking tile until a flag | Q12 block, Q0 cage | effect `placeBlock`, board tile `blocks` with `hiddenWhen` | yes (`placeBlock`; tiles in Board features) |
+| Block placed by an event | Q12 block | effect `placeBlock` | yes (`placeBlock`). The Q0 and Q4 cage is a note message only (decision 94) |
 | "Look from this square" | Q0, Q12 | effect `lookFrom`, condition `lookDone` | yes |
 | Character that joins the heroes | Q0 wolf, Q3 Gothar | `npcs`, effect `spawnNpc` | the effect yes; the character itself had no form: new Characters panel (Quest tab) |
 | A question to the players with different results | Q0 C, Q4 B, Q5 B, Q8 G | `manual` action with `promptChoice`, nested effects | yes |

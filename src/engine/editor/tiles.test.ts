@@ -33,7 +33,6 @@ import {
   tileUsage,
   resizeBoardTile,
   rotateBoardTile,
-  setBoardTileFlags,
   tileBox,
   tileCellsFor,
   tileSizes,
@@ -49,7 +48,6 @@ const good = (r: EditResult) => {
 describe('tile footprints in the data', () => {
   it('says what size every tile comes in', () => {
     expect(footprintText(BOARD_TILES.slipperyIce)).toBe('1 x 1 or 2 x 1 or 3 x 1 or 3 x 2');
-    expect(footprintText(BOARD_TILES.cage)).toBe('2 x 2');
     expect(footprintText(BOARD_TILES.iceCaveEntrance)).toBe('6 x 5');
     expect(footprintText(BOARD_TILES.icyRiver)).toBe('1 x 8 or 1 x 3');
     expect(footprintText(BOARD_TILES.iceLedge)).toBe('5 x 3');
@@ -67,7 +65,6 @@ describe('tile footprints in the data', () => {
       [3, 2],
       [2, 3],
     ]);
-    expect(tileSizes('cage')).toEqual([[2, 2]]);
   });
 });
 
@@ -88,16 +85,16 @@ describe('placing a board tile', () => {
       placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 3, turned: true }),
     );
     expect(tileBox(c.boardTiles[0]!.cells)).toMatchObject({ w: 2, h: 3 });
-    expect(tileCellsFor('cage', [6, 2], 0, true)).toHaveLength(4);
+    expect(tileCellsFor('iceLedge', [6, 2], 0, true)).toHaveLength(15);
   });
 
   it('is refused off the board, over rock (except the cave entrance) and over another tile', () => {
-    expect(placeBoardTile(q, { type: 'cage', at: [25, 18] }).ok).toBe(false);
+    expect(placeBoardTile(q, { type: 'slipperyIce', at: [25, 18], variant: 3 }).ok).toBe(false);
     // (13,0) is rock in the test quest
     const rock = good(placeBoardTile(q, { type: 'iceCaveEntrance', at: [13, 0] }));
     expect(rock.boardTiles).toHaveLength(1);
-    expect(placeBoardTile(q, { type: 'cage', at: [13, 0] }).ok).toBe(false);
-    const a = good(placeBoardTile(q, { type: 'cage', at: [6, 2] }));
+    expect(placeBoardTile(q, { type: 'slipperyIce', at: [13, 0], variant: 3 }).ok).toBe(false);
+    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [6, 2], variant: 3 }));
     const over = placeBoardTile(a, { type: 'slipperyIce', at: [7, 3], variant: 0 });
     expect(over.ok).toBe(false);
     if (!over.ok) expect(over.error).toMatch(/overlap/);
@@ -126,22 +123,16 @@ describe('placing a board tile', () => {
     );
   });
 
-  it('moves, removes one square of terrain, and a tile that blocks needs its flag', () => {
-    const a = good(placeBoardTile(q, { type: 'cage', at: [6, 2] }));
+  it('moves, and removes one square of terrain', () => {
+    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [6, 2], variant: 3 }));
     const moved = good(moveBoardTile(a, 0, [8, 2]));
     expect(tileBox(moved.boardTiles[0]!.cells)).toMatchObject({ x: 8, y: 2 });
-    expect(setBoardTileFlags(a, 0, { blocks: true }).ok).toBe(false);
-    const b = good(setBoardTileFlags(a, 0, { hiddenWhen: 'cageOpen' }));
-    const c = good(setBoardTileFlags(b, 0, { blocks: true }));
-    expect(c.boardTiles[0]).toMatchObject({ hiddenWhen: 'cageOpen', blocks: true });
-    expect(setBoardTileFlags(c, 0, { hiddenWhen: '' }).ok).toBe(false);
     const river = good(placeBoardTile(q, { type: 'chasm', at: [9, 12] }));
     expect(good(removeBoardTileCell(river, 0, [9, 12])).boardTiles).toEqual([]);
   });
 
   it('a tile round trips through export and import', () => {
-    let a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1 }));
-    a = good(setBoardTileFlags(a, 0, { hiddenWhen: 'f' }));
+    const a = good(placeBoardTile(q, { type: 'slipperyIce', at: [10, 13], variant: 1 }));
     const back = parseQuest(JSON.parse(exportQuest(a)));
     expect(back.boardTiles).toEqual(a.boardTiles);
   });
@@ -347,12 +338,14 @@ describe('problems the validator reports for the new features', () => {
       ...testQuestData,
       boardTiles: [
         {
-          type: 'cage',
+          type: 'slipperyIce',
           cells: [
             [6, 2],
             [7, 2],
+            [8, 2],
             [6, 3],
             [7, 3],
+            [8, 3],
           ],
         },
         {
@@ -381,23 +374,12 @@ describe('problems the validator reports for the new features', () => {
     );
   });
 
-  it('a blocking tile on the start room, and a tile issue jumps to the tile', () => {
+  it('a tile issue jumps to the tile', () => {
     const bad = parseQuest({
       ...testQuestData,
-      boardTiles: [{ type: 'cage', cells: [[1, 14]], hiddenWhen: 'f', blocks: true }],
-      notes: [
-        ...testQuestData.notes,
-        {
-          id: 'n-f',
-          trigger: { type: 'manual', label: 'Flag' },
-          effects: [{ type: 'setFlag', flag: 'f', value: true }],
-        },
-      ],
+      boardTiles: [{ type: 'icyRiver', cells: [[13, 0]] }],
     });
-    const hit = validateQuestIssues(bad, board).find((i) =>
-      /where the heroes start/.test(i.message),
-    );
-    expect(hit).toBeDefined();
+    const hit = validateQuestIssues(bad, board).find((i) => /is in rock/.test(i.message));
     expect(hit?.ref).toMatchObject({ kind: 'tile', id: '0' });
   });
 

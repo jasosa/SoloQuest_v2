@@ -14,7 +14,7 @@
 import { areaAt, type Cell } from '../board/board';
 import type { Level } from '../board/level';
 import { EventError } from './errors';
-import { revealFrom, revealRoom, syncBlockers } from './reveal';
+import { revealFrom, revealRoom } from './reveal';
 import type { Draft } from './state';
 
 export interface Arrival {
@@ -77,7 +77,6 @@ export function crossLink(level: Level, d: Draft, linkId: string): Arrival {
  * room, or the line of sight when it is in a corridor). Returns the squares that became known.
  */
 export function revealArrival(level: Level, d: Draft, cell: Cell): string[] {
-  syncBlockers(level, d);
   const area = areaAt(level.board, cell[0], cell[1]);
   if (area === undefined) return [];
   if (area === 'C') {

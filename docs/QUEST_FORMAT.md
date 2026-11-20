@@ -192,7 +192,9 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 
 Terrain is a board tile too: `icyRiver` and `iceLedge`, with the rule in the note of the square or room (see Rule hints in `DESIGN.md`). Terrain changes no sight. The river and the ledge are tiles of a fixed size (see the table below). The old `chasm` board tile (squares laid one by one) is gone from the editor: a file that has a 4 x 4 block of chasm squares loads as the Bottomless Chasm Room tile (`roomTiles`, `chasmRoom`) on the same squares, and any other chasm squares load as they are with a validator warning (decision 94).
 
-`boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. The cage is part of the Cage Room tile (`roomTiles`, `cageRoom`, 4 x 4): the editor adds it from that tile, and the validator warns when a cage does not lie inside a Cage Room (decision 94). A tile with `"blocks": true` (needs `hiddenWhen`) also blocks line of sight and squares until that flag is set (decision 56: the cage of Q0 until the lever). Rooms still reveal whole: the monsters inside a cage are seen with the room.
+`boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock.
+
+There is no cage tile and no sight-blocking tile (decision 94). Quests 0 and 4 have a cage that blocks line of sight and squares until it is opened: the quest note says it in plain words and the players apply it, the app does not. Old files with a `cage` board tile, or with `blocks` or `hiddenWhen` on a tile, still load: those are dropped on load (like the old `bounty` rule). Rooms reveal whole: the monsters inside a cage are seen with the room.
 
 `wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count`: a wandering monster trap and a wandering monster card both bring `count` monsters. The players give a square per monster (`WANDERING_MONSTER` takes `cells`); all attack the searching hero at once.
 
@@ -217,7 +219,6 @@ The box holds a limited number of each tile, in fixed sizes (a tile can lie turn
 | Ice ledge (board) | 5 x 3 | 1 |
 | Icy river (board) | 1 x 8, 1 x 3 | 1 of each |
 | Slippery ice (board) | 1 x 1, 2 x 1, 3 x 1, 3 x 2 | no limit stated |
-| Cage (board, part of the Cage Room, not in the palette) | 2 x 2 | no limit stated |
 | Ice Vault (room) | 3 x 2, 4 x 3 | 1 of each |
 | Living Fog, Scepter, Bottomless Chasm and Cage rooms | 4 x 4 | 1 each |
 | Frozen Crypt room | 5 x 3 | 1 |

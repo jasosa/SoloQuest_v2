@@ -124,12 +124,11 @@ export const ROOM_TILES: Readonly<Record<RoomTileType, RoomTileDef>> = {
 
 /**
  * Tiles that are drawn on squares, not tied to one room (Frozen Horror): the ice cave entrance
- * (the heroes start on it, and it lies over rock) and the cage of a cage room. The built-in look is
+ * (the heroes start on it, and it lies over rock) and the terrain. The built-in look is
  * a labeled outline; a texture pack can give them a picture later.
  */
 export const BOARD_TILE_TYPES = [
   'iceCaveEntrance',
-  'cage',
   'icyRiver',
   'iceLedge',
   'chasm',
@@ -155,9 +154,8 @@ export interface BoardTileDef {
   /** How many of each size one quest may use (none: no limit stated). */
   readonly maxPerSize?: number;
   /**
-   * Not in the editor palette (decision 94): the cage is part of the Cage Room tile (added from
-   * that tile), and chasm squares were replaced by the Bottomless Chasm Room tile. Old files that
-   * have them still load and play.
+   * Not in the editor palette (decision 94): chasm squares were replaced by the Bottomless Chasm
+   * Room tile. Old files that have them still load and play.
    */
   readonly notInPalette?: boolean;
   readonly rule: readonly string[];
@@ -230,15 +228,6 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
       'Put the slippery ice tile over these squares. It cannot be found or disarmed, and monsters are not affected by it.',
       'Whenever a hero moves onto one of its squares, roll 1 combat die. On a white shield the hero falls and the turn ends. A fallen hero cannot act or defend until their next turn. Roll again for every ice square moved onto.',
     ],
-  },
-  cage: {
-    id: 'cage',
-    shape: 'fixed',
-    footprints: [[2, 2]],
-    name: 'Cage',
-    notInPalette: true,
-    always: false,
-    rule: ['Nobody can enter the cage and it blocks line of sight, until the quest opens it.'],
   },
 };
 

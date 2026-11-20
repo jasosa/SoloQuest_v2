@@ -55,12 +55,9 @@ describe('Frozen Horror features in the editor', () => {
     expect(good(removeTunnel(a, a.tunnels[0]!.id)).tunnels).toEqual([]);
   });
 
-  it('board tiles: a blocking tile needs a flag; remove by index', () => {
-    expect(addBoardTile(q, { type: 'cage', cells: [[6, 2]], blocks: true }).ok).toBe(false);
-    const a = good(
-      addBoardTile(q, { type: 'cage', cells: [[6, 2]], hiddenWhen: 'open', blocks: true }),
-    );
-    expect(a.boardTiles[0]).toMatchObject({ type: 'cage', hiddenWhen: 'open', blocks: true });
+  it('board tiles: add and remove by index', () => {
+    const a = good(addBoardTile(q, { type: 'iceLedge', cells: [[6, 2]] }));
+    expect(a.boardTiles[0]).toMatchObject({ type: 'iceLedge' });
     expect(good(removeBoardTile(a, 0)).boardTiles).toEqual([]);
     expect(removeBoardTile(a, 3).ok).toBe(false);
   });

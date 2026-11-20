@@ -6,14 +6,7 @@ import { parseQuest } from '../quest/loader';
 import { testQuestData } from '../quest/testQuest';
 import { validateQuestIssues } from '../quest/validate';
 import type { EditResult } from './result';
-import {
-  addCageToRoomTile,
-  cageOfRoomTile,
-  moveBoardTile,
-  moveRoomTile,
-  placeRoomTile,
-  sizeKeepingTurn,
-} from './tiles';
+import { moveBoardTile, moveRoomTile, placeRoomTile, sizeKeepingTurn } from './tiles';
 
 const base = { ...testQuestData, tunnels: [], boardTiles: [], roomTiles: [] };
 const q = parseQuest(base);
@@ -41,9 +34,7 @@ describe('the Board Tiles palette', () => {
       'Cage Room',
       'Ice Gremlin Treasure Room',
     ]);
-    expect(
-      TILE_PALETTE.some((p) => p.group === 'board' && (p.type === 'cage' || p.type === 'chasm')),
-    ).toBe(false);
+    expect(TILE_PALETTE.some((p) => p.group === 'board' && p.type === 'chasm')).toBe(false);
   });
 
   it('lists every shape once: no size is the turned copy of another', () => {
@@ -70,7 +61,7 @@ describe('the Board Tiles palette', () => {
     expect(fp('room', 'seatOfPower')).toEqual(['6x5']);
     expect(fp('board', 'slipperyIce')).toEqual(['1x1', '2x1', '3x1', '3x2']);
     expect(ROOM_TILES.chasmRoom.name).toBe('Bottomless Chasm Room');
-    expect(BOARD_TILES.cage.notInPalette).toBe(true);
+    expect('cage' in BOARD_TILES).toBe(false);
     expect(BOARD_TILES.chasm.notInPalette).toBe(true);
   });
 
@@ -95,45 +86,45 @@ describe('moving a tile by drag and drop (the engine side)', () => {
   });
 });
 
-describe('the cage of a Cage Room', () => {
-  it('is added in the middle of the tile, once, and only to a Cage Room', () => {
-    let a = good(placeRoomTile(q, { type: 'cageRoom', at: [2, 2] }));
-    a = good(addCageToRoomTile(a, 0));
-    expect(a.boardTiles).toHaveLength(1);
-    expect(a.boardTiles[0]!.type).toBe('cage');
-    expect(a.boardTiles[0]!.cells).toEqual([
-      [3, 3],
-      [4, 3],
-      [3, 4],
-      [4, 4],
-    ]);
-    expect(cageOfRoomTile(a, 0)).toBe(0);
-    expect(addCageToRoomTile(a, 0).ok).toBe(false);
-    const fog = good(placeRoomTile(q, { type: 'livingFog', at: [2, 2] }));
-    expect(addCageToRoomTile(fog, 0).ok).toBe(false);
-    expect(cageOfRoomTile(fog, 0)).toBe(-1);
+describe('there is no cage piece (decision 94)', () => {
+  const cage = {
+    type: 'cage',
+    cells: [
+      [6, 2],
+      [7, 2],
+      [6, 3],
+      [7, 3],
+    ],
+    hiddenWhen: 'cageOpen',
+    blocks: true,
+  };
+
+  it('an old cage tile loads without the tile, and its blocks and flag go with it', () => {
+    const quest = parseQuest({ ...base, boardTiles: [cage] });
+    expect(quest.boardTiles).toEqual([]);
   });
 
-  it('a cage outside a Cage Room is a validator warning', () => {
-    const lone = parseQuest({
+  it('other tiles lose blocks and hiddenWhen on load, and keep the rest', () => {
+    const quest = parseQuest({
       ...base,
-      boardTiles: [
-        {
-          type: 'cage',
-          cells: [
-            [6, 2],
-            [7, 2],
-            [6, 3],
-            [7, 3],
-          ],
-        },
-      ],
+      boardTiles: [{ type: 'iceLedge', cells: [[6, 2]], hiddenWhen: 'f', blocks: true }],
     });
-    expect(msgs(lone).join(' | ')).toMatch(/the cage is not inside a Cage Room tile/);
-    const inside = good(
-      addCageToRoomTile(good(placeRoomTile(q, { type: 'cageRoom', at: [2, 2] })), 0),
-    );
-    expect(msgs(inside).join(' | ')).not.toMatch(/Cage Room tile/);
+    expect(quest.boardTiles).toEqual([{ type: 'iceLedge', cells: [[6, 2]] }]);
+  });
+
+  it('also on the extra maps of a double quest', () => {
+    const quest = parseQuest({
+      ...base,
+      mapId: 'a',
+      maps: [{ id: 'b', start: { area: 'R20' }, boardTiles: [cage] }],
+    });
+    expect(quest.maps?.[0]?.boardTiles).toEqual([]);
+  });
+
+  it('the Cage Room is only the 4 x 4 room tile, with no cage button', () => {
+    const a = good(placeRoomTile(q, { type: 'cageRoom', at: [2, 2] }));
+    expect(a.roomTiles[0]!.cells).toHaveLength(16);
+    expect(a.boardTiles).toEqual([]);
   });
 });
 
@@ -175,13 +166,13 @@ describe('chasm squares become the Bottomless Chasm Room when they fill a 4 x 4'
     expect(msgs(quest).join(' | ')).toMatch(/replaced by the Bottomless Chasm Room tile/);
   });
 
-  it('keeps a chasm that has a flag or blocks (the room tile has neither)', () => {
+  it('a chasm with the old flag and blocks loses them first, then becomes the room tile', () => {
     const quest = parseQuest({
       ...base,
       boardTiles: [{ type: 'chasm', cells: square4, hiddenWhen: 'f', blocks: true }],
     });
-    expect(quest.boardTiles).toHaveLength(1);
-    expect(quest.roomTiles).toEqual([]);
+    expect(quest.boardTiles).toEqual([]);
+    expect(quest.roomTiles).toEqual([{ type: 'chasmRoom', cells: square4 }]);
   });
 
   it('keeps the squares when the map already has a chasm room', () => {

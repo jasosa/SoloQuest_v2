@@ -3,7 +3,6 @@
  * ice tunnel ends and exterior doors. They follow the play board (DESIGN.md, "Frozen Horror look"
  * and "Edge doors") so the author sees what the players will see. Pure drawing: no state.
  */
-import type { ReactNode } from 'react';
 import { BOARD_TILES, ROOM_TILES, type RoomTileType } from '../../engine/data/roomTiles';
 import type { Quest } from '../../engine/quest/schema';
 import { color } from '../shared/tokens';
@@ -19,31 +18,6 @@ function label(t: Tile): string {
 const SEL_RING = (x: number, y: number, w: number, h: number) => (
   <rect x={x - 2} y={y - 2} width={w + 4} height={h + 4} fill={color.sel} className="selring" />
 );
-
-/** A flag label at the bottom left of a tile that goes away (or blocks) with a flag. */
-function FlagTag({ t, U }: { t: Tile; U: number }): ReactNode {
-  if (!t.hiddenWhen) return null;
-  const xs = t.cells.map((c) => c[0]);
-  const ys = t.cells.map((c) => c[1]);
-  const c: Cell = [Math.min(...xs), Math.max(...ys)];
-  const text = `${t.blocks ? 'blocks, ' : ''}gone when ${t.hiddenWhen}`;
-  const w = Math.min(text.length * 4.6 + 8, U * 4);
-  return (
-    <g pointerEvents="none" data-tile-flag={t.hiddenWhen}>
-      <rect x={c[0] * U + 2} y={(c[1] + 1) * U - 15} width={w} height={13} fill={color.ink} />
-      <text
-        x={c[0] * U + 6}
-        y={(c[1] + 1) * U - 5.5}
-        fill={color.tokenText}
-        fontFamily="Bonum"
-        fontWeight={700}
-        fontSize={9}
-      >
-        {text}
-      </text>
-    </g>
-  );
-}
 
 export function BoardTileArt({
   tile,
@@ -134,27 +108,10 @@ export function BoardTileArt({
         >
           {label(tile)}
         </text>
-        <FlagTag t={tile} U={U} />
       </g>
     );
   }
 
-  const cage = tile.type === 'cage';
-  const bars: ReactNode[] = [];
-  if (cage)
-    for (let bx = x0 + 7; bx < x0 + w - 3; bx += 9)
-      bars.push(
-        <line
-          key={bx}
-          x1={bx}
-          y1={y0 + 3}
-          x2={bx}
-          y2={y0 + h - 3}
-          stroke={color.ink}
-          strokeWidth={1.6}
-          opacity={0.55}
-        />,
-      );
   return (
     <g data-board-tile={tile.type} data-tile-index={index}>
       {selected && SEL_RING(x0, y0, w, h)}
@@ -163,14 +120,13 @@ export function BoardTileArt({
         y={y0 + 2}
         width={w - 4}
         height={h - 4}
-        fill={cage ? 'none' : 'var(--ice)'}
-        fillOpacity={cage ? 0 : 0.3}
-        stroke={cage ? color.ink : 'var(--ice)'}
-        strokeWidth={cage ? 3 : 2.5}
-        strokeDasharray={cage ? undefined : '7 4'}
+        fill="var(--ice)"
+        fillOpacity={0.3}
+        stroke="var(--ice)"
+        strokeWidth={2.5}
+        strokeDasharray="7 4"
         pointerEvents="none"
       />
-      {bars}
       <text
         x={x0 + w / 2}
         y={y0 + h / 2 + 4}
@@ -187,7 +143,6 @@ export function BoardTileArt({
       >
         {label(tile)}
       </text>
-      <FlagTag t={tile} U={U} />
     </g>
   );
 }
