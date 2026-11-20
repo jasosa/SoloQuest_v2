@@ -385,6 +385,11 @@ export function PlayScreen({
       }
     | null
   >(null);
+  // Show room (decision 66): a free tool, with a warning, that draws a room or corridor without contents.
+  const [showRoom, setShowRoom] = useState<'warn' | 'pick' | null>(null);
+  const pickedRoom = (cell: readonly [number, number]) => {
+    if (dispatch({ type: 'SHOW_LAYOUT', cell: [cell[0], cell[1]] })) setShowRoom(null);
+  };
   const pickedCell = (picked: readonly [number, number]) => {
     const cell: [number, number] = [picked[0], picked[1]];
     if (!adding) return;
@@ -1138,6 +1143,7 @@ export function PlayScreen({
             ...(res?.prompts.flatMap((p) => (p.kind === 'tunnelUsed' ? [p.to] : [])) ?? []),
           ]}
           {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
+          {...(showRoom === 'pick' ? { onPickAny: pickedRoom } : {})}
           zargonView={zargonView}
         />
       </ZoomLayer>
@@ -1229,6 +1235,30 @@ export function PlayScreen({
               {t('play.PlayScreen.addAMonster', 'Add a monster')}
             </button>
           )}
+          {showRoom === 'warn' ? (
+            <div className="add-monster" data-testid="show-room-warning">
+              <p className="hint">
+                {t(
+                  'play.PlayScreen.showRoomWarning',
+                  'Use this for a spell or a quest note that shows a room. It draws the floor and walls only, not what is inside.',
+                )}
+              </p>
+              <button className="btn" onClick={() => setShowRoom('pick')}>
+                {t('play.PlayScreen.chooseASquare', 'Choose a square')}
+              </button>
+              <button className="btn alt" onClick={() => setShowRoom(null)}>
+                {t('play.PlayScreen.cancel', 'Cancel')}
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn alt add-monster-btn"
+              data-testid="show-room-btn"
+              onClick={() => setShowRoom('warn')}
+            >
+              {t('play.PlayScreen.showRoom', 'Show room')}
+            </button>
+          )}
           <button className="zargon-btn" onClick={() => setZOpen(true)}>
             {t('play.PlayScreen.zargonsTurn', "Zargon's turn")}
             <small>{progressLabel(progress)}</small>
@@ -1259,6 +1289,18 @@ export function PlayScreen({
                   { v1: nameOf(adding.hero) },
                 )}
           <button className="link" onClick={() => setAdding(null)}>
+            {t('play.PlayScreen.cancel', 'Cancel')}
+          </button>
+        </div>
+      )}
+
+      {showRoom === 'pick' && (
+        <div className="pick-banner" role="status" data-testid="show-room-banner">
+          {t(
+            'play.PlayScreen.tapASquareOfThe',
+            'Tap a square of the room or corridor to show. Rock has nothing to show.',
+          )}
+          <button className="link" onClick={() => setShowRoom(null)}>
             {t('play.PlayScreen.cancel', 'Cancel')}
           </button>
         </div>

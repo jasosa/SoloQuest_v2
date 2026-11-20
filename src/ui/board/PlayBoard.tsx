@@ -95,6 +95,8 @@ export interface PlayBoardProps {
   highlight?: readonly Cell[];
   /** While set, every square the heroes know is tappable and the tap goes here (adding a monster). */
   onPickCell?: (cell: Cell) => void;
+  /** While set, every square of the board takes the tap, rock too (Show room). */
+  onPickAny?: (cell: Cell) => void;
   /** Playtest only: also draw everything the heroes have not seen (a view, not a game change). */
   zargonView?: boolean;
 }
@@ -178,6 +180,7 @@ export function PlayBoard({
   onLetter,
   highlight = [],
   onPickCell,
+  onPickAny,
   zargonView = false,
 }: PlayBoardProps) {
   const theme = useTheme();
@@ -1253,6 +1256,47 @@ export function PlayBoard({
 
   // Adding a monster: every known floor square takes the tap (it sits above everything else).
   const pickLayer: ReactNode[] = [];
+  // Show room: floor and walls of squares drawn "layout only", dimmed, with nothing on them.
+  const layoutLayer: ReactNode[] = [];
+  for (const k of state.layoutCells) {
+    if (state.seenCells.has(k)) continue;
+    const [x, y] = parseKey(k);
+    layoutLayer.push(floorCell(theme, x, y, S, areaAt(board, x, y) === 'C', `lf${k}`));
+    for (const [dx, dy, ax, ay, bx, by] of EDGES) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (!isWallBetween(board, [x, y], [nx, ny]) && !level.rock.has(cellKey(nx, ny))) continue;
+      layoutLayer.push(
+        wallSegment(
+          theme,
+          `lw${k},${dx},${dy}`,
+          (x + ax) * S,
+          (y + ay) * S,
+          (x + bx) * S,
+          (y + by) * S,
+        ),
+      );
+    }
+  }
+  if (onPickAny)
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++)
+        pickLayer.push(
+          <rect
+            key={`pa${x},${y}`}
+            className="hit pickcell"
+            data-hit
+            data-pick-cell={`${x},${y}`}
+            x={x * S}
+            y={y * S}
+            width={S}
+            height={S}
+            fillOpacity={0.12}
+            {...press(t('board.PlayBoard.square', 'Square {x}, {y}', { x, y }), () =>
+              onPickAny([x, y]),
+            )}
+          />,
+        );
   if (onPickCell)
     for (const k of state.seenCells) {
       const [x, y] = parseKey(k);
@@ -1380,6 +1424,11 @@ export function PlayBoard({
         {walls.old}
         {layers.old}
       </g>
+      {layoutLayer.length > 0 && (
+        <g opacity={0.55} data-layout-only>
+          {layoutLayer}
+        </g>
+      )}
       <g mask={ink ? 'url(#inkmask)' : undefined}>
         {floors.neu}
         {walls.neu}
