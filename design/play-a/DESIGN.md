@@ -365,3 +365,14 @@ A setting that is on or off is a row: its label on the left, a switch on the rig
 ## Quest packs on the quest list (owner)
 
 A row of tabs over the quest cards, one per installed pack: Core game, then each expansion by name. A tab is a chip (44 px tall); the chosen one is filled with `--ink` and `--paper` text. Choosing a tab shows only the quests of that pack and selects its first quest. Quests made in the editor sit with the core game.
+
+## Editor: double quests (Frozen Horror, M10 slice 7)
+
+No new styles: only existing chips, panels, fields and buttons.
+
+- **A tab per map.** When a quest has more than one map, the Map tab shows a row of chips at the top of the tools column, one per map (its name, or its id), then a chip "New map". The pressed chip is the map on the board. Everything on the board, the inspector and the Monsters tab belongs to that map. A tap on a problem or an action of another map opens that map first.
+- **Maps and links panel** (Quest tab, General column). One row per map: Name and Id fields, "Show on map" and "Delete map" chips. "New map" adds an empty one; a quest with one map has only this button (it makes the quest a double quest). Under the rows: the links (each as "Map A stairway to Map B stairway" with a Remove chip) and the link tool: two dropdowns (first stairway, second stairway, each "map: stairs id") and a "Join" button. The engine refuses a link when an end is not on stairs.
+- **Merged rooms panel** (Quest tab): the rooms that count as one in this quest, with "Split", and two room dropdowns with "Merge".
+- **Action form**: a "Map" dropdown in Extras, shown only for a double quest ("Every map" or one map).
+- **Rules panel**: a bounty row per monster type (gold) and the door teleport rule (dice and squares).
+- **Monsters tab**: a "Size" dropdown (as its enemy, or Large 2 x 2).

@@ -16,6 +16,9 @@ import {
 } from '../../engine/editor';
 import type { LibraryContent } from '../../engine/editor/library';
 import type { BoardTileType, RoomTileType } from '../../engine/data/roomTiles';
+import { foreignIdsOf, swapTo } from '../../engine/editor/maps';
+import { withForeignIds } from '../../engine/editor/result';
+import { firstMapId, questMaps } from '../../engine/quest/maps';
 import type { EnemyDef, FurnitureDef, Quest } from '../../engine/quest/schema';
 import type { UserQuestStore } from '../../persist/userQuests';
 import type { IssueRef } from '../../engine/quest/validate';
@@ -138,9 +141,18 @@ export interface EditorToast {
 }
 
 export interface EditorState {
+  /**
+   * The quest with the map on show swapped into its top-level fields (`swapTo`), so every panel
+   * and edit works on one map. A quest with one map is the same as `canon`.
+   */
   readonly quest: Quest;
-  /** The quest as last saved: the draft differs from it when there are unsaved changes. */
+  /** The quest in its saved form: map 1 on top. Save, export, play, undo and the draft use this. */
+  readonly canon: Quest;
+  /** The id of the map on show. */
+  readonly mapId: string;
+  /** The quest as last saved (canonical): the draft differs from it when there are unsaved changes. */
   readonly clean: Quest;
+  /** Undo history, in canonical form. */
   readonly past: readonly Quest[];
   readonly future: readonly Quest[];
   readonly tool: Tool;
@@ -170,8 +182,12 @@ export interface EditorState {
   readonly saveErrors: readonly string[] | null;
   /** False after the draft could not be written (editing goes on). */
   readonly stored: boolean;
-  /** Run an engine edit operation. True when it was accepted. */
+  /** Run an engine edit operation on the map on show. True when it was accepted. */
   apply(fn: (q: Quest) => EditResult): boolean;
+  /** Run an edit operation on the whole quest (maps, links). True when it was accepted. */
+  applyQuest(fn: (q: Quest) => EditResult): boolean;
+  /** Show another map of a multi-map quest. */
+  setMap(id: string): void;
   undo(): void;
   redo(): void;
   setTool(tool: Tool): void;
@@ -186,7 +202,7 @@ export interface EditorState {
   setPendingBlock(cell: Cell | null): void;
   setPendingTunnel(cell: Cell | null): void;
   /** Open the thing a problem names: select it, show its tab, flash it on the board. */
-  jump(ref: IssueRef | undefined): void;
+  jump(ref: IssueRef | undefined, message?: string): void;
   clearFlash(): void;
   say(text: string): void;
   dismissToast(): void;
@@ -229,8 +245,24 @@ export function createEditorStore(init: EditorInit): EditorStore {
     };
     const toastOf = (text: string): EditorToast => ({ id: ++counter, text });
 
+    // The oriented quest of a canonical one, for the map on show (map 1 when it is gone).
+    const orient = (canon: Quest, wanted: string): { quest: Quest; mapId: string } => {
+      const target = wanted === firstMapId(canon) || canon.maps?.some((m) => m.id === wanted);
+      const mapId = target ? wanted : firstMapId(canon);
+      return { quest: swapTo(canon, mapId), mapId };
+    };
+    const reset = {
+      selection: null,
+      picking: null,
+      pendingBlock: null,
+      pendingTunnel: null,
+      flash: null,
+    } as const;
+
     return {
       quest: init.quest,
+      canon: init.quest,
+      mapId: firstMapId(init.quest),
       clean: init.clean ?? init.quest,
       past: [],
       future: [],
@@ -252,33 +284,68 @@ export function createEditorStore(init: EditorInit): EditorStore {
       stored: true,
 
       apply(fn) {
-        const { quest, past } = get();
-        const r = fn(quest);
+        const { quest, canon, past, mapId } = get();
+        // new ids must not repeat the ids of the other maps
+        const r = withForeignIds(foreignIdsOf(quest), () => fn(quest));
         if (!r.ok) {
           set({ toast: toastOf(r.error) });
           return false;
         }
         if (r.quest === quest) return true; // nothing changed
+        const nextCanon = swapTo(r.quest, firstMapId(canon));
         set({
           quest: r.quest,
-          past: [...past, quest].slice(-HISTORY_LIMIT),
+          canon: nextCanon,
+          mapId,
+          past: [...past, canon].slice(-HISTORY_LIMIT),
           future: [],
           warnings: r.warnings,
           saveErrors: null,
           toast: null,
         });
+        persist(nextCanon);
+        return true;
+      },
+
+      applyQuest(fn) {
+        const { canon, past, mapId } = get();
+        const r = fn(canon);
+        if (!r.ok) {
+          set({ toast: toastOf(r.error) });
+          return false;
+        }
+        if (r.quest === canon) return true;
+        const view = orient(r.quest, mapId);
+        set({
+          ...view,
+          canon: r.quest,
+          past: [...past, canon].slice(-HISTORY_LIMIT),
+          future: [],
+          warnings: r.warnings,
+          saveErrors: null,
+          toast: null,
+          ...(view.mapId !== mapId ? reset : {}),
+        });
         persist(r.quest);
         return true;
       },
 
+      setMap(id) {
+        const { canon, mapId } = get();
+        if (id === mapId) return;
+        const view = orient(canon, id);
+        set({ ...view, ...reset, tool: 'select', warnings: [], toast: null });
+      },
+
       undo() {
-        const { past, future, quest } = get();
+        const { past, future, canon, mapId } = get();
         const prev = past[past.length - 1];
         if (!prev) return;
         set({
-          quest: prev,
+          ...orient(prev, mapId),
+          canon: prev,
           past: past.slice(0, -1),
-          future: [quest, ...future],
+          future: [canon, ...future],
           selection: null,
           picking: null,
           pendingBlock: null,
@@ -290,12 +357,13 @@ export function createEditorStore(init: EditorInit): EditorStore {
       },
 
       redo() {
-        const { past, future, quest } = get();
+        const { past, future, canon, mapId } = get();
         const next = future[0];
         if (!next) return;
         set({
-          quest: next,
-          past: [...past, quest],
+          ...orient(next, mapId),
+          canon: next,
+          past: [...past, canon],
           future: future.slice(1),
           selection: null,
           picking: null,
@@ -319,15 +387,30 @@ export function createEditorStore(init: EditorInit): EditorStore {
             ? { panel: 'element', picking: null, selection: null, tab: 'Actions' }
             : { panel, picking: null },
         ),
-      setNoteId: (noteId) => set({ noteId, picking: null }),
+      setNoteId(noteId) {
+        // an action of another map opens that map, so its places and elements are the ones shown
+        const note = noteId ? get().canon.notes.find((n) => n.id === noteId) : undefined;
+        if (note?.map && note.map !== get().mapId) get().setMap(note.map);
+        set({ noteId, picking: null });
+      },
       setAbilityId: (abilityId) => set({ abilityId }),
       setSpellId: (spellId) => set({ spellId }),
       // picking needs the board, so the Map tab comes back while a square is chosen
       setPicking: (picking) => set(picking ? { picking, tab: 'Map' } : { picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
       setPendingTunnel: (pendingTunnel) => set({ pendingTunnel }),
-      jump(ref) {
+      jump(ref, message) {
+        // an issue of another map ("Map Name: ...") opens that map first
+        const named = message?.match(/^Map (.+?): /)?.[1];
+        if (named) {
+          const target = questMaps(get().canon).find((m) => (m.name ?? m.id) === named);
+          if (target) get().setMap(target.id);
+        }
         const j = jumpFor(get().quest, ref);
+        const noteMap = j.noteId
+          ? get().canon.notes.find((n) => n.id === j.noteId)?.map
+          : undefined;
+        if (noteMap && noteMap !== get().mapId) get().setMap(noteMap);
         const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
         set({
           tab: j.panel === 'notes' ? 'Actions' : 'Map',
@@ -336,6 +419,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
+
           ...(j.panel === 'notes' ? { noteId: j.noteId } : {}),
           flash: hasFlash ? { ...j.flash, id: ++counter } : null,
         });
@@ -348,7 +432,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       async save() {
         // Let queued draft writes finish first, or one could land after the draft is removed.
         await queue;
-        const { quest } = get();
+        const quest = get().canon;
         const errors = validateQuestIssues(quest, board)
           .filter((i) => i.severity === 'error')
           .map((i) => i.message);
@@ -359,7 +443,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
         try {
           await init.store.save(quest, now());
           // Keep the draft if the user changed something while we were saving.
-          if (get().quest === quest) await init.store.removeDraft(quest.id);
+          if (get().canon === quest) await init.store.removeDraft(quest.id);
         } catch (e) {
           set({ toast: toastOf((e as Error).message) });
           return false;

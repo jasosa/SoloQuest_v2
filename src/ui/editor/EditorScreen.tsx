@@ -22,6 +22,7 @@ import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
 import { MonstersTab } from './MonstersTab';
+import { MapChips } from './MapsPanel';
 import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
@@ -107,9 +108,9 @@ export function EditorScreen({
     const problem = await ref.load(file);
     if (problem) store.getState().say(problem);
   };
-  const issues = useMemo(() => validateQuestIssues(quest, board), [quest]);
+  const issues = useMemo(() => validateQuestIssues(s.canon, board), [s.canon]);
   const errors = issues.filter((i) => i.severity === 'error').length;
-  const dirty = quest !== s.clean;
+  const dirty = s.canon !== s.clean;
 
   // Toasts go away on their own.
   useEffect(() => {
@@ -198,7 +199,7 @@ export function EditorScreen({
             data-testid="playtest"
             disabled={errors > 0}
             title={errors > 0 ? 'Fix the problems first' : 'Play this quest to try it'}
-            onClick={() => onPlaytest(quest)}
+            onClick={() => onPlaytest(s.canon)}
           >
             Playtest
           </button>
@@ -230,6 +231,7 @@ export function EditorScreen({
       {tab === 'Map' && (
         <div className="ed-body">
           <nav className="ed-tools" aria-label="Tools">
+            <MapChips store={store} />
             <div className="ed-chips">
               {TOOLS.map((t) => (
                 <button
