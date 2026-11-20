@@ -277,20 +277,22 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 
 Each Frozen Horror tile has a fixed size and a limit per quest. A tile may lie over two different rooms and over corridors (like the ice cave entrance). The editor (Tiles tool) and the validator should know these limits, warn when a quest has too many of a tile, and offer only the sizes below.
 
-- [ ] Ice Ledge: 1 per quest, 5 x 3 squares
-- [ ] Ice Tunnels: 3 pairs, 1 x 1 each
-- [ ] Ice Slide: 1 per quest, 1 x 8
-- [ ] Ice Vault (room tile): 1 of 3 x 2 and 1 of 4 x 3
-- [ ] Living Fog Room: 1, 4 x 4
-- [ ] Scepter Room: 1, 4 x 4
-- [ ] Bottomless Chasm Room: 1, 4 x 4
-- [ ] Icy River: 1 of 1 x 8 and 1 of 1 x 3
-- [ ] Frozen Crypt Room: 1, 5 x 3
-- [ ] Cage Room: 1, 4 x 4
-- [ ] Ice Gremlin Treasure Room: 1, 4 x 3
-- [ ] Frozen Horror Throne Room: 1, 6 x 5
-- [ ] Ice Cave Entrance: 1, 6 x 5
-- [ ] Check what the engine and the bundled quests do today against these sizes and limits (several quests use other footprints, for example slippery ice and the cage at 2 x 2); decide what changes in the data, in `roomTiles.ts` and in the validator. Room tiles may cover parts of two rooms and corridors, so a "tile of a room" may need to become a tile over squares.
+- [x] Ice Ledge: 1 per quest, 5 x 3 squares
+- [x] Ice Tunnels: 3 pairs, 1 x 1 each
+- [x] Ice Slide: 1 per quest, 1 x 8
+- [x] Ice Vault (room tile): 1 of 3 x 2 and 1 of 4 x 3
+- [x] Living Fog Room: 1, 4 x 4
+- [x] Scepter Room: 1, 4 x 4
+- [x] Bottomless Chasm Room: 1, 4 x 4
+- [x] Icy River: 1 of 1 x 8 and 1 of 1 x 3
+- [x] Frozen Crypt Room: 1, 5 x 3
+- [x] Cage Room: 1, 4 x 4
+- [x] Ice Gremlin Treasure Room: 1, 4 x 3
+- [x] Frozen Horror Throne Room: 1, 6 x 5
+- [x] Ice Cave Entrance: 1, 6 x 5
+- [x] Check what the engine and the bundled quests do today against these sizes and limits (several quests use other footprints, for example slippery ice and the cage at 2 x 2); decide what changes in the data, in `roomTiles.ts` and in the validator. Room tiles may cover parts of two rooms and corridors, so a "tile of a room" may need to become a tile over squares.
+  - Done (decision 88): room tiles are tiles over squares (`cells`, or the `area` shortcut), every tile has its sizes and limit in `roomTiles.ts`, the validator warns, the editor offers only the sizes and shows "Ice Vault 1 of 2", a fourth tunnel pair is refused. Ice river and ice ledge became fixed tiles. All ten Frozen Horror quests are checked by `src/content/quests/tileLimits.test.ts`.
+  - For the owner, against the book: quest 5 draws its ice ledge 4 x 4 (21..24, 10..13) and the tile comes as 5 x 3. It stays as it is and the test lists it as a known deviation. Also not in the owner table and left without a limit: the cage board tile (2 x 2, used by quests 0 and 4) and slippery ice (quest 9 uses five pieces over its two halves).
 
 ## Translations (owner, 2026-11-20)
 
