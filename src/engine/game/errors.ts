@@ -46,7 +46,9 @@ export type EventErrorCode =
   | 'HERO_DEAD'
   | 'NOT_A_LOOK_SQUARE'
   | 'UNKNOWN_LINK'
-  | 'WRONG_MAP';
+  | 'WRONG_MAP'
+  | 'LAYOUT_ROCK'
+  | 'LAYOUT_KNOWN';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

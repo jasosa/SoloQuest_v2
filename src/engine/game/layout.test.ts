@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildLevel } from '../board/level';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
-import { reduce, replay, startGame } from './reducer';
+import { replay } from './reducer';
 
 const level = buildLevel(testQuest());
 const show = (x: number, y: number): GameEvent => ({ type: 'SHOW_LAYOUT', cell: [x, y] });
@@ -36,22 +36,17 @@ describe('Show room (layout only)', () => {
     expect(s.layoutCells.has('3,17')).toBe(false); // a room square: not a corridor square
   });
 
-  it('says so on rock and changes nothing', () => {
-    const start = startGame(level, 1).state;
+  it('refuses rock with a message, so no event is kept', () => {
     expect(level.rock.has('13,0')).toBe(true);
-    const r = reduce(level, start, show(13, 0));
-    expect(r.prompts).toEqual([{ kind: 'layoutRock' }]);
-    expect(r.state).toBe(start);
+    expect(() => run(show(13, 0))).toThrow(expect.objectContaining({ code: 'LAYOUT_ROCK' }));
+    expect(() => run(show(14, 1))).toThrow(expect.objectContaining({ code: 'LAYOUT_ROCK' })); // room R04 is rock
   });
 
-  it('a room that is already on the map shows nothing new', () => {
-    const start = startGame(level, 1).state;
-    expect(reduce(level, start, show(2, 15)).prompts).toEqual([{ kind: 'layoutKnown' }]);
-  });
-
-  it('a second tap on the same room shows nothing new', () => {
-    const once = run(show(6, 15));
-    expect(reduce(level, once, show(6, 15)).prompts).toEqual([{ kind: 'layoutKnown' }]);
+  it('refuses a room that is already on the map, or already drawn', () => {
+    expect(() => run(show(2, 15))).toThrow(expect.objectContaining({ code: 'LAYOUT_KNOWN' }));
+    expect(() => run(show(6, 15), show(6, 15))).toThrow(
+      expect.objectContaining({ code: 'LAYOUT_KNOWN' }),
+    );
   });
 
   it('is replayed exactly (undo drops it)', () => {

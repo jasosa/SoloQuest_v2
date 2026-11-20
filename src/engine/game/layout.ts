@@ -19,7 +19,8 @@ export function showLayout(
   const area = areaAt(level.board, x, y);
   if (!Number.isInteger(x) || !Number.isInteger(y) || area === undefined)
     throw new EventError('BAD_CELL', `Cell ${x},${y} is outside the board`);
-  if (level.rock.has(cellKey(x, y))) return { state, prompts: [{ kind: 'layoutRock' }] };
+  if (level.rock.has(cellKey(x, y)))
+    throw new EventError('LAYOUT_ROCK', 'That is solid rock. There is nothing to show.');
 
   const found: string[] = [];
   if (area === 'C') {
@@ -36,7 +37,8 @@ export function showLayout(
     for (const c of cellsOf(level.board, area)) if (!level.rock.has(keyOf(c))) found.push(keyOf(c));
   }
   const fresh = found.filter((k) => !state.layoutCells.has(k) && !state.seenCells.has(k));
-  if (fresh.length === 0) return { state, prompts: [{ kind: 'layoutKnown' }] };
+  if (fresh.length === 0)
+    throw new EventError('LAYOUT_KNOWN', 'That part of the map is already drawn.');
   const d = draftOf(state);
   for (const k of fresh) d.layoutCells.add(k);
   return { state: d, prompts: [{ kind: 'layoutShown', cells: fresh }] };
