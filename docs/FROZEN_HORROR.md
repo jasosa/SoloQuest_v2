@@ -45,7 +45,7 @@ Ignored (players handle it): potions and alchemist shop, Mind Points and shock, 
 - Wooden exit revealed by sight like any door; the end dialog (decision 26) says "Heroes left through this door".
 - `start`: stairway | iron door | tile (ice cave entrance, which also holds the end action in Q0 and Q2).
 
-**Room tiles (#55).** `roomTiles: [{ type, areaId, rot, cells? }]`.
+**Room tiles (#55, #88).** `roomTiles: [{ type, area | cells }]`: a physical tile of a fixed size over squares (it may cover two rooms and corridor squares); `area` is a shortcut for a tile that fills one room. Sizes and limits per quest: `QUEST_FORMAT.md`, section Tile sizes and limits.
 - Look + rule: Ice Vault, Living Fog, Cage, Scepter, Seat of Power, Frozen Crypt, Gremlin treasure room.
 - Special cells: Chasm / ice ledge crevasse, Frozen Crypt monster squares.
 - Merge: `areaOverrides: [{ merge: [areaA, areaB], as }]` (Q10 K Gremlin treasure room). Wall between them removed for reveal and sight.

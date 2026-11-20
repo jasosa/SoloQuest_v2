@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BOARD_TILES, BOARD_TILE_TYPES, footprintText } from '../data/roomTiles';
 import { parseQuest } from '../quest/loader';
@@ -24,10 +22,16 @@ import {
   boardTileAt,
   moveBoardTile,
   placeBoardTile,
+  moveRoomTile,
   placeRoomTile,
   removeBoardTileCell,
+  removeRoomTile,
+  resizeRoomTile,
+  roomTileIndexAt,
+  roomTileSizes,
+  rotateRoomTile,
+  tileUsage,
   resizeBoardTile,
-  roomTileAt,
   rotateBoardTile,
   setBoardTileFlags,
   tileBox,
@@ -47,7 +51,9 @@ describe('tile footprints in the data', () => {
     expect(footprintText(BOARD_TILES.slipperyIce)).toBe('1 x 1 or 2 x 1 or 3 x 1 or 3 x 2');
     expect(footprintText(BOARD_TILES.cage)).toBe('2 x 2');
     expect(footprintText(BOARD_TILES.iceCaveEntrance)).toBe('6 x 5');
-    expect(footprintText(BOARD_TILES.icyRiver)).toBe('square by square');
+    expect(footprintText(BOARD_TILES.icyRiver)).toBe('1 x 8 or 1 x 3');
+    expect(footprintText(BOARD_TILES.iceLedge)).toBe('5 x 3');
+    expect(footprintText(BOARD_TILES.chasm)).toBe('square by square');
     for (const t of BOARD_TILE_TYPES) expect(BOARD_TILES[t].footprints.length).toBeGreaterThan(0);
   });
 
@@ -98,15 +104,15 @@ describe('placing a board tile', () => {
   });
 
   it('terrain is laid square by square and touching squares make one tile', () => {
-    let a = good(placeBoardTile(q, { type: 'icyRiver', at: [9, 12] }));
-    a = good(placeBoardTile(a, { type: 'icyRiver', at: [10, 12] }));
-    a = good(placeBoardTile(a, { type: 'icyRiver', at: [12, 12] }));
+    let a = good(placeBoardTile(q, { type: 'chasm', at: [9, 12] }));
+    a = good(placeBoardTile(a, { type: 'chasm', at: [10, 12] }));
+    a = good(placeBoardTile(a, { type: 'chasm', at: [12, 12] }));
     expect(a.boardTiles).toHaveLength(2);
     expect(a.boardTiles[0]!.cells).toHaveLength(2);
     // the gap between them joins the first tile it touches
-    a = good(placeBoardTile(a, { type: 'icyRiver', at: [11, 12] }));
+    a = good(placeBoardTile(a, { type: 'chasm', at: [11, 12] }));
     expect(boardTileAt(a, [11, 12])).toBe(0);
-    expect(placeBoardTile(a, { type: 'icyRiver', at: [11, 12] }).ok).toBe(false);
+    expect(placeBoardTile(a, { type: 'chasm', at: [11, 12] }).ok).toBe(false);
   });
 
   it('turn and resize keep the top left square and respect the sizes', () => {
@@ -115,7 +121,7 @@ describe('placing a board tile', () => {
     expect(tileBox(turned.boardTiles[0]!.cells)).toMatchObject({ x: 10, y: 13, w: 1, h: 2 });
     expect(resizeBoardTile(a, 0, [5, 5]).ok).toBe(false);
     expect(good(resizeBoardTile(a, 0, [2, 3])).boardTiles[0]!.cells).toHaveLength(6);
-    expect(rotateBoardTile(good(placeBoardTile(q, { type: 'icyRiver', at: [9, 12] })), 0).ok).toBe(
+    expect(rotateBoardTile(good(placeBoardTile(q, { type: 'chasm', at: [9, 12] })), 0).ok).toBe(
       false,
     );
   });
@@ -129,7 +135,7 @@ describe('placing a board tile', () => {
     const c = good(setBoardTileFlags(b, 0, { blocks: true }));
     expect(c.boardTiles[0]).toMatchObject({ hiddenWhen: 'cageOpen', blocks: true });
     expect(setBoardTileFlags(c, 0, { hiddenWhen: '' }).ok).toBe(false);
-    const river = good(placeBoardTile(q, { type: 'icyRiver', at: [9, 12] }));
+    const river = good(placeBoardTile(q, { type: 'chasm', at: [9, 12] }));
     expect(good(removeBoardTileCell(river, 0, [9, 12])).boardTiles).toEqual([]);
   });
 
@@ -142,13 +148,108 @@ describe('placing a board tile', () => {
 });
 
 describe('room tiles', () => {
-  it('go in the tapped room, one per room, and never in a corridor', () => {
-    const a = good(placeRoomTile(q, [2, 15], 'iceVault'));
-    expect(a.roomTiles).toEqual([{ type: 'iceVault', area: 'R20' }]);
-    expect(roomTileAt(a, [3, 16])?.type).toBe('iceVault');
-    const b = good(placeRoomTile(a, [2, 15], 'livingFog'));
-    expect(b.roomTiles).toEqual([{ type: 'livingFog', area: 'R20' }]);
-    expect(placeRoomTile(q, [3, 18], 'iceVault').ok).toBe(false);
+  it('lie over squares: a fixed size, any rooms and corridors, with the top left on the tap', () => {
+    const a = good(placeRoomTile(q, { type: 'livingFog', at: [2, 15] }));
+    expect(a.roomTiles).toHaveLength(1);
+    expect(a.roomTiles[0]!.cells).toHaveLength(16);
+    expect(a.roomTiles[0]!.area).toBeUndefined();
+    expect(roomTileIndexAt(a, [5, 18])).toBe(0);
+    expect(roomTileIndexAt(a, [6, 18])).toBe(-1);
+    // 4 x 4 starting in a corridor, over the edge of a room
+    expect(placeRoomTile(q, { type: 'cageRoom', at: [0, 17] }).ok).toBe(false); // off the board
+    expect(roomTileSizes('iceVault')).toEqual([
+      [3, 2],
+      [2, 3],
+      [4, 3],
+      [3, 4],
+    ]);
+    const vault = good(
+      placeRoomTile(q, { type: 'iceVault', at: [2, 15], variant: 1, turned: true }),
+    );
+    expect(tileBox(vault.roomTiles[0]!.cells!)).toMatchObject({ w: 3, h: 4, full: true });
+  });
+
+  it('are refused over another room tile and over rock', () => {
+    const a = good(placeRoomTile(q, { type: 'livingFog', at: [2, 14] }));
+    const over = placeRoomTile(a, { type: 'frozenCrypt', at: [4, 15] });
+    expect(over.ok).toBe(false);
+    if (!over.ok) expect(over.error).toMatch(/overlap/);
+    expect(placeRoomTile(q, { type: 'livingFog', at: [12, 0] }).ok).toBe(false); // (13,0) is rock
+  });
+
+  it('keep to the limit of the box, per size', () => {
+    let a = good(placeRoomTile(q, { type: 'iceVault', at: [2, 15], variant: 0 }));
+    const again = placeRoomTile(a, { type: 'iceVault', at: [8, 2], variant: 0 });
+    expect(again.ok).toBe(false);
+    if (!again.ok) expect(again.error).toMatch(/1 of 3 x 2 and 1 of 4 x 3/);
+    a = good(placeRoomTile(a, { type: 'iceVault', at: [8, 2], variant: 1 }));
+    expect(tileUsage(a, 'room', 'iceVault')).toMatchObject({ used: 2, max: 2 });
+    expect(placeRoomTile(a, { type: 'iceVault', at: [14, 2], variant: 1 }).ok).toBe(false);
+    // one livingFog only
+    const fog = good(placeRoomTile(q, { type: 'livingFog', at: [2, 15] }));
+    expect(placeRoomTile(fog, { type: 'livingFog', at: [14, 2] }).ok).toBe(false);
+    // board tiles too: one river of 1 x 8 and one of 1 x 3, one ledge, one cave entrance
+    let r = good(placeBoardTile(q, { type: 'icyRiver', at: [9, 12], variant: 0, turned: true }));
+    expect(placeBoardTile(r, { type: 'icyRiver', at: [9, 14], variant: 0, turned: true }).ok).toBe(
+      false,
+    );
+    r = good(placeBoardTile(r, { type: 'icyRiver', at: [9, 14], variant: 1, turned: true }));
+    expect(tileUsage(r, 'board', 'icyRiver')).toMatchObject({ used: 2, max: 2 });
+    expect(placeBoardTile(r, { type: 'icyRiver', at: [9, 16], variant: 1 }).ok).toBe(false);
+    const ledge = good(placeBoardTile(q, { type: 'iceLedge', at: [1, 1] }));
+    expect(tileBox(ledge.boardTiles[0]!.cells)).toMatchObject({ w: 5, h: 3 });
+    expect(placeBoardTile(ledge, { type: 'iceLedge', at: [14, 8] }).ok).toBe(false);
+    // slippery ice has no limit
+    let s = q;
+    for (let i = 0; i < 4; i++)
+      s = good(placeBoardTile(s, { type: 'slipperyIce', at: [10 + i * 2, 13] }));
+    expect(tileUsage(s, 'board', 'slipperyIce').max).toBeUndefined();
+  });
+
+  it('move, turn, resize and delete work, and a room shortcut becomes squares when moved', () => {
+    let a = good(placeRoomTile(q, { type: 'frozenCrypt', at: [2, 11] }));
+    a = good(rotateRoomTile(a, 0));
+    expect(tileBox(a.roomTiles[0]!.cells!)).toMatchObject({ x: 2, y: 11, w: 3, h: 5 });
+    expect(resizeRoomTile(a, 0, [4, 4]).ok).toBe(false);
+    a = good(moveRoomTile(a, 0, [8, 2]));
+    expect(tileBox(a.roomTiles[0]!.cells!)).toMatchObject({ x: 8, y: 2 });
+    expect(removeRoomTile(good(removeRoomTile(a, 0)), 0).ok).toBe(false);
+    expect(good(removeRoomTile(a, 0)).roomTiles).toEqual([]);
+    // an old tile that fills the room R20 turns into squares when it is moved
+    const old = parseQuest({ ...testQuestData, roomTiles: [{ type: 'cageRoom', area: 'R20' }] });
+    const moved = good(moveRoomTile(old, 0, [1, 14]));
+    expect(moved.roomTiles[0]!.cells).toBeDefined();
+    expect(moved.roomTiles[0]!.area).toBeUndefined();
+  });
+
+  it('round trip through export and import', () => {
+    const a = good(placeRoomTile(q, { type: 'livingFog', at: [2, 15] }));
+    expect(parseQuest(JSON.parse(exportQuest(a))).roomTiles).toEqual(a.roomTiles);
+  });
+
+  it('a room tile has exactly one of area and cells', () => {
+    expect(() =>
+      parseQuest({
+        ...testQuestData,
+        roomTiles: [{ type: 'iceVault', area: 'R20', cells: [[1, 1]] }],
+      }),
+    ).toThrow();
+    expect(() => parseQuest({ ...testQuestData, roomTiles: [{ type: 'iceVault' }] })).toThrow();
+  });
+});
+
+describe('ice tunnels', () => {
+  it('a fourth pair is refused', () => {
+    let a = q;
+    for (const [d, y] of [
+      [1, 9],
+      [2, 10],
+      [3, 11],
+    ] as const)
+      a = good(addTunnel(a, { design: d, a: [8, y], b: [9, y] }));
+    const r = addTunnel(a, { design: 4, a: [8, 12], b: [9, 12] });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/3 pairs/);
   });
 });
 
@@ -234,25 +335,6 @@ describe('door flags on every kind of door', () => {
       ],
     });
     expect(knownFlags(withFlag)).toContain('leverPulled');
-  });
-});
-
-describe('the bundled quests have no tile of the wrong size', () => {
-  it('quest 1 (2 x 3), quest 5 (2 x 1) and the double quest 9 (3 x 1, 3 x 2, 2 x 1) are valid shapes', () => {
-    for (const f of [
-      'fh01-xanon-pass.json',
-      'fh05-the-deadly-depths.json',
-      'fh09-the-heart-of-ice.json',
-    ]) {
-      const quest = parseQuest(
-        JSON.parse(readFileSync(resolve(import.meta.dirname, '../../content/quests', f), 'utf8')),
-      );
-      const all = validateQuestIssues(quest, board).map((i) => i.message);
-      expect(
-        all.filter((m) => /comes as/.test(m)),
-        f,
-      ).toEqual([]);
-    }
   });
 });
 

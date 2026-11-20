@@ -6,7 +6,7 @@
 import { board, inBoard, type Cell } from '../board/board';
 import { outsideOf } from '../board/level';
 import { forEachEffect } from '../quest/effects';
-import { BOARD_TILE_TYPES, ROOM_TILE_TYPES } from '../data/roomTiles';
+import { BOARD_TILE_TYPES, MAX_TUNNEL_PAIRS, ROOM_TILE_TYPES } from '../data/roomTiles';
 import { EDGE_DOOR_KINDS, type Quest } from '../quest/schema';
 import { referencesTo } from './refs';
 import { clean, fail, isRockCell, newIssues, nextId, ok, type EditResult } from './result';
@@ -60,6 +60,10 @@ export function setSuggestedPack(q: Quest, id: string): EditResult {
 }
 
 export function addTunnel(q: Quest, input: { design: number; a: Cell; b: Cell }): EditResult {
+  if (q.tunnels.length >= MAX_TUNNEL_PAIRS)
+    return fail(
+      `Ice tunnels: the box has ${MAX_TUNNEL_PAIRS} pairs, and this quest uses them all.`,
+    );
   if (!onBoard(input.a) || !onBoard(input.b)) return fail('A tunnel end must be on the board.');
   if (input.a[0] === input.b[0] && input.a[1] === input.b[1])
     return fail('The two ends of a tunnel must be different squares.');

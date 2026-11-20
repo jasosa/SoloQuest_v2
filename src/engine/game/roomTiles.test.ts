@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { areaAt, board, isWallBetween } from '../board/board';
 import { buildLevel } from '../board/level';
-import { ROOM_TILES, ROOM_TILE_TYPES, roomTileOf } from '../data/roomTiles';
+import { ROOM_TILES, ROOM_TILE_TYPES } from '../data/roomTiles';
 import { parseQuest } from '../quest/loader';
 import { testQuestData } from '../quest/testQuest';
 import { validateQuest } from '../quest/validate';
@@ -37,8 +37,7 @@ describe('merged rooms (Q10 K)', () => {
 describe('room tiles and the validator', () => {
   it('a tile gives its room a name and a rule', () => {
     const q = make({ roomTiles: [{ type: 'iceVault', area: 'R17' }] });
-    expect(roomTileOf(q, 'R17')?.name).toBe('Ice Vault');
-    expect(roomTileOf(q, 'R20')).toBeUndefined();
+    expect(ROOM_TILES[q.roomTiles[0]!.type].name).toBe('Ice Vault');
     for (const t of ROOM_TILE_TYPES) {
       expect(ROOM_TILES[t].id).toBe(t);
       expect(ROOM_TILES[t].rule.length).toBeGreaterThan(0);

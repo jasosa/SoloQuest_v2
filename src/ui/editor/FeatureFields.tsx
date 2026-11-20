@@ -8,6 +8,10 @@ import {
   knownFlags,
   removeBoardTileCell,
   resizeBoardTile,
+  resizeRoomTile,
+  roomTileSizes,
+  rotateRoomTile,
+  tileUsage,
   rotateBoardTile,
   setBoardTileFlags,
   setDoorFlags,
@@ -17,7 +21,14 @@ import {
   tileBox,
   tileSizes,
 } from '../../engine/editor';
-import { BOARD_TILES, ROOM_TILES, footprintText } from '../../engine/data/roomTiles';
+import {
+  BOARD_TILES,
+  ROOM_TILES,
+  footprintText,
+  sizesText,
+  tileSpec,
+} from '../../engine/data/roomTiles';
+import { roomTileCells } from '../../engine/quest/roomTileCells';
 import { Toggle } from '../shared/Frame';
 import type { EditorStore } from './editorStore';
 
@@ -111,6 +122,8 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
           ? `${box.w} x ${box.h}`
           : `${tile.cells.length} ${tile.cells.length === 1 ? 'square' : 'squares'}`}
         . Comes as {footprintText(def)}.
+        {def.maxPerSize !== undefined &&
+          ` ${tileUsage(quest, 'board', tile.type).used} of ${tileUsage(quest, 'board', tile.type).max} in this quest (${tileUsage(quest, 'board', tile.type).text}).`}
       </p>
       {def.shape === 'fixed' && (
         <>
@@ -166,16 +179,36 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
   );
 }
 
-export function RoomTileFields({ store, area }: { store: EditorStore; area: string }) {
+export function RoomTileFields({ store, index }: { store: EditorStore; index: number }) {
   const { quest } = useStore(store);
-  const t = quest.roomTiles.find((x) => x.area === area);
+  const st = store.getState();
+  const t = quest.roomTiles[index];
   if (!t) return null;
   const def = ROOM_TILES[t.type];
+  const box = tileBox(roomTileCells(quest, t));
+  const usage = tileUsage(quest, 'room', t.type);
   return (
     <>
       <p className="ed-note" data-testid="room-tile-info">
-        {def.name} in room {area}. One tile per room.
+        {def.name}, {box.w} x {box.h}. Comes as {sizesText(tileSpec('room', t.type)!)}. {usage.used}{' '}
+        of {usage.max} in this quest ({usage.text}).
       </p>
+      <div className="lbl">Size</div>
+      <div className="ed-chips" role="group" aria-label="Tile size">
+        {roomTileSizes(t.type).map(([w, h]) => (
+          <button
+            key={`${w}x${h}`}
+            className="chip"
+            aria-pressed={box.w === w && box.h === h}
+            onClick={() => st.apply((q) => resizeRoomTile(q, index, [w, h]))}
+          >
+            {w} x {h}
+          </button>
+        ))}
+      </div>
+      <button className="btn alt" onClick={() => st.apply((q) => rotateRoomTile(q, index))}>
+        Turn
+      </button>
       {def.rule.map((line, i) => (
         <p className="ed-note" key={i}>
           {line}

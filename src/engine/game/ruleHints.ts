@@ -3,8 +3,9 @@
  * turns them on is in the UI; this only says which reminders are due.
  */
 import type { Level } from '../board/level';
-import { BOARD_TILES, ROOM_TILES, roomTileOf } from '../data/roomTiles';
+import { BOARD_TILES } from '../data/roomTiles';
 import type { GameState } from './state';
+import { roomTilesInView } from './tiles';
 import { boardTilesInView, monstersInPlay } from './view';
 
 export interface RuleHint {
@@ -15,7 +16,7 @@ export interface RuleHint {
 
 /**
  * The reminders that became due between two states: terrain that came into view for the first time,
- * and room tiles whose room was revealed for the first time. Tiles shown before are not repeated.
+ * and room tiles that came into view for the first time. Tiles shown before are not repeated.
  */
 export function newRuleHints(level: Level, before: GameState, after: GameState): RuleHint[] {
   const out: RuleHint[] = [];
@@ -24,11 +25,9 @@ export function newRuleHints(level: Level, before: GameState, after: GameState):
     const def = BOARD_TILES[t.type];
     if (def.terrain && !seenBefore.has(t.index)) out.push({ name: def.name, lines: def.rule });
   }
-  for (const room of after.revealedRooms) {
-    if (before.revealedRooms.has(room)) continue;
-    const tile = roomTileOf(level.quest, room);
-    if (tile) out.push({ name: tile.name, lines: ROOM_TILES[tile.id].rule });
-  }
+  const roomsBefore = new Set(roomTilesInView(level, before).map((t) => t.index));
+  for (const t of roomTilesInView(level, after))
+    if (!roomsBefore.has(t.index)) out.push({ name: t.tile.name, lines: t.tile.rule });
   return out;
 }
 

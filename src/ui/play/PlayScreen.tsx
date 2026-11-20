@@ -44,10 +44,10 @@ import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
-import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
+import { BOARD_TILES } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
 import { liveMonstersInSight } from '../../engine/game/search';
-import { putTilesText, startTiles } from '../../engine/game/tiles';
+import { putTilesText, roomTilesAt, roomTilesInArea, startTiles } from '../../engine/game/tiles';
 import { useQuestSettings } from '../settings';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { ForThisQuest } from './ForThisQuest';
@@ -467,6 +467,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           title={canLook ? 'A hero stands here' : 'Corridor square'}
           onClose={closeNote}
         >
+          {roomTilesAt(level, state, sel.at).map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {boardTilesAt(level, state, sel.at).map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}
@@ -555,7 +558,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       );
       // A furniture note has three scopes: the element, the room, this quest. A furniture piece
       // with no action of its own says so, and the room actions sit under their own heading.
-      const tile = roomTileOf(level.quest, sel.room);
+      const roomTiles = roomTilesInArea(level, state, sel.room);
       const terrain = boardTilesInArea(level, state, sel.room).filter(
         (t) => BOARD_TILES[t.type].terrain,
       );
@@ -572,7 +575,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
               This {furnitureName(sel.furniture).toLowerCase()} has no special action.
             </p>
           )}
-          {tile && <TileRule tile={tile} />}
+          {roomTiles.map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {terrain.map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}
@@ -585,11 +590,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       ) : (
         <MarginNote
           anchor={anchor}
-          kind={tile ? tile.name : 'Room'}
+          kind={roomTiles[0] ? roomTiles[0].tile.name : 'Room'}
           title="Search this room"
           onClose={closeNote}
         >
-          {tile && <TileRule tile={tile} />}
+          {roomTiles.map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {terrain.map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}

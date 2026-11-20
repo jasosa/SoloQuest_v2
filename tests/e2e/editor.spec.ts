@@ -7,8 +7,11 @@ const shot = async (page: Page, name: string) => {
   await page.screenshot({ path: `test-results/${name}.png` });
 };
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
+// A tile chip may end with its count, "Ice Vault 0 of 2".
 const tool = (page: Page, name: string) =>
-  page.locator('.ed-tools').getByRole('button', { name, exact: true });
+  page
+    .locator('.ed-tools')
+    .getByRole('button', { name: new RegExp(String.raw`^${name}( \d+ of \d+)?$`) });
 const board = (page: Page) => page.locator('#editor-board');
 
 /** Click the middle of a square (or a point `fx`, `fy` squares in) of the editor board. */
@@ -1392,35 +1395,59 @@ test.describe('editor: Frozen Horror features', () => {
     await expect(page.locator('[data-board-tile]')).toHaveCount(0);
   });
 
-  test('tiles: cave entrance footprint, laid terrain that grows, a room tile', async ({ page }) => {
+  test('tiles: fixed sizes, limits per quest, laid chasm that grows, room tiles over squares', async ({
+    page,
+  }) => {
     await newQuest(page);
     await tool(page, 'Tiles').click();
     await tool(page, 'Ice cave entrance').click();
     await expect(page.getByTestId('tile-sizes')).toHaveCount(0); // one size only
+    await expect(page.getByTestId('tile-limit')).toContainText('1 of 6 x 5');
     await clickAt(page, 14, 1);
     await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
     await expect(page.getByTestId('tile-size')).toContainText('6 x 5');
+    await expect(page.getByTestId('tile-size')).toContainText('1 of 1 in this quest');
+    // a second one is refused: the box holds one
+    await clickAt(page, 3, 12);
+    await expect(page.locator('.toast')).toContainText('the box has 1 of 6 x 5');
+    await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
 
+    // the river: 1 x 8 and 1 x 3, one of each
     await tool(page, 'Icy river').click();
+    await expect(page.getByTestId('tile-sizes').getByRole('button')).toHaveText(['1 x 8', '1 x 3']);
+    await page.getByTestId('tile-sizes').getByRole('button', { name: '1 x 3' }).click();
     await clickAt(page, 9, 12);
-    await clickAt(page, 10, 12);
-    await clickAt(page, 11, 12);
-    await expect(page.locator('[data-board-tile="icyRiver"]')).toHaveCount(1);
-    await expect(page.getByTestId('tile-size')).toContainText('3 squares');
+    await expect(page.getByTestId('tile-size')).toContainText('1 x 3');
+    await expect(
+      page.getByTestId('tile-sizes').getByRole('button', { name: '1 x 3' }),
+    ).toBeDisabled();
 
+    // chasm is laid square by square
+    await tool(page, 'Chasm').click();
+    await clickAt(page, 12, 14);
+    await clickAt(page, 13, 14);
+    await expect(page.locator('[data-board-tile="chasm"]')).toHaveCount(1);
+    await expect(page.getByTestId('tile-size')).toContainText('2 squares');
+
+    // an Ice Vault 3 x 2 over a room and a corridor
     await tool(page, 'Ice Vault').click();
-    await clickAt(page, 6, 2); // a room
+    await expect(page.getByTestId('tile-limit')).toContainText('1 of 3 x 2 and 1 of 4 x 3');
+    await page.getByTestId('tile-sizes').getByRole('button', { name: '3 x 2' }).click();
+    await clickAt(page, 4, 15);
     await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(1);
-    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault in room');
-    await clickAt(page, 4, 18); // a corridor
-    await expect(page.locator('.toast')).toContainText('room');
+    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 3 x 2');
+    await expect(page.getByTestId('room-tile-info')).toContainText('1 of 2 in this quest');
+    await expect(page.getByRole('button', { name: /^Ice Vault 1 of 2$/ })).toBeVisible();
+    // turn it with the inspector, delete it
+    await inspector(page).getByRole('button', { name: 'Turn', exact: true }).click();
+    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 2 x 3');
     await tool(page, 'Living Fog Room').click();
-    await clickAt(page, 6, 2); // replaces the vault
+    await clickAt(page, 12, 3);
     await expect(page.locator('[data-room-tile="livingFog"]')).toHaveCount(1);
-    await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(0);
     await shot(page, 'editor-tiles');
     await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
-    await expect(page.locator('[data-room-tile]')).toHaveCount(0);
+    await expect(page.locator('[data-room-tile="livingFog"]')).toHaveCount(0);
+    await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(1);
   });
 
   test('doors: an ice tunnel is two taps, with a design number you can change', async ({
@@ -1534,12 +1561,14 @@ test.describe('editor: Frozen Horror features', () => {
     await expect(page.locator('[data-tile-flag="cageOpen"]')).toHaveCount(1);
     await shot(page, 'editor-fh00');
 
-    // add a fourth tunnel on the map, then export
+    // the box holds three pairs: a fourth is refused, then export
     await tool(page, 'Doors').click();
     await tool(page, 'Ice tunnel').click();
+    await expect(page.getByTestId('tunnel-limit')).toContainText('3 of 3 pairs');
     await clickAt(page, 13, 9);
     await clickAt(page, 14, 9);
-    await expect(page.locator('[data-tunnel]')).toHaveCount(8);
+    await expect(page.locator('.toast')).toContainText('3 pairs');
+    await expect(page.locator('[data-tunnel]')).toHaveCount(6);
     const [dl] = await Promise.all([page.waitForEvent('download'), btn(page, 'Export').click()]);
     const out = readFileSync((await dl.path())!, 'utf8');
     const json = JSON.parse(out);
@@ -1547,10 +1576,7 @@ test.describe('editor: Frozen Horror features', () => {
     expect(json.roomTiles).toEqual(original.roomTiles);
     expect(json.edgeDoors).toEqual(original.edgeDoors);
     expect(json.start).toEqual(original.start);
-    expect(json.tunnels).toEqual([
-      ...original.tunnels,
-      { id: 'tun4', design: 4, a: [13, 9], b: [14, 9] },
-    ]);
+    expect(json.tunnels).toEqual(original.tunnels);
     expect(json.doors).toEqual(original.doors);
 
     // import the exported file into a fresh draft: the map shows it all again
@@ -1561,7 +1587,7 @@ test.describe('editor: Frozen Horror features', () => {
       buffer: Buffer.from(out),
     });
     await expect(page.locator('.fr-title')).toHaveText(original.title);
-    await expect(page.locator('[data-tunnel]')).toHaveCount(8);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(6);
     await expect(page.locator('[data-board-tile]')).toHaveCount(2);
     await expect(page.locator('[data-edge-door]')).toHaveCount(original.edgeDoors.length);
   });
