@@ -398,11 +398,8 @@ export function PlayScreen({
       }
     | null
   >(null);
-  // Show room (decision 66): a free tool, with a warning, that draws a room or corridor without contents.
-  const [showRoom, setShowRoom] = useState<'warn' | 'pick' | null>(null);
-  const pickedRoom = (cell: readonly [number, number]) => {
-    if (dispatch({ type: 'SHOW_LAYOUT', cell: [cell[0], cell[1]] })) setShowRoom(null);
-  };
+  // Reveal what is here (decision 95): the square of the confirmation card, when it is open.
+  const [revealAsk, setRevealAsk] = useState<readonly [number, number] | null>(null);
   const pickedCell = (picked: readonly [number, number]) => {
     const cell: [number, number] = [picked[0], picked[1]];
     if (!adding) return;
@@ -581,6 +578,25 @@ export function PlayScreen({
         </MarginNote>
       );
     }
+  } else if (sel?.kind === 'fog') {
+    note = (
+      <MarginNote
+        anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
+        kind={t('play.PlayScreen.map', 'Map')}
+        title={t('play.PlayScreen.notSeenYet', 'Not seen yet')}
+        onClose={closeNote}
+      >
+        <p>
+          {t(
+            'play.PlayScreen.useThisWhenTheTable',
+            'Use this when the table shows something the app has not revealed.',
+          )}
+        </p>
+        <button className="btn" onClick={() => setRevealAsk(sel.at)}>
+          {t('play.PlayScreen.revealWhatIsHere', 'Reveal what is here')}
+        </button>
+      </MarginNote>
+    );
   } else if (sel?.kind === 'room') {
     const anchor = roomAnchor(sel.room);
     const ss = searchState(level, state, sel.room);
@@ -1163,7 +1179,6 @@ export function PlayScreen({
             ...(res?.prompts.flatMap((p) => (p.kind === 'tunnelUsed' ? [p.to] : [])) ?? []),
           ]}
           {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
-          {...(showRoom === 'pick' ? { onPickAny: pickedRoom } : {})}
           zargonView={zargonView}
         />
       </ZoomLayer>
@@ -1255,30 +1270,6 @@ export function PlayScreen({
               {t('play.PlayScreen.addAMonster', 'Add a monster')}
             </button>
           )}
-          {showRoom === 'warn' ? (
-            <div className="add-monster" data-testid="show-room-warning">
-              <p className="hint">
-                {t(
-                  'play.PlayScreen.showRoomWarning',
-                  'Use this for a spell or a quest note that shows a room. It draws the floor and walls only, not what is inside.',
-                )}
-              </p>
-              <button className="btn" onClick={() => setShowRoom('pick')}>
-                {t('play.PlayScreen.chooseASquare', 'Choose a square')}
-              </button>
-              <button className="btn alt" onClick={() => setShowRoom(null)}>
-                {t('play.PlayScreen.cancel', 'Cancel')}
-              </button>
-            </div>
-          ) : (
-            <button
-              className="btn alt add-monster-btn"
-              data-testid="show-room-btn"
-              onClick={() => setShowRoom('warn')}
-            >
-              {t('play.PlayScreen.showRoom', 'Show room')}
-            </button>
-          )}
           <button className="zargon-btn" onClick={() => setZOpen(true)}>
             {t('play.PlayScreen.zargonsTurn', "Zargon's turn")}
             <small>{progressLabel(progress)}</small>
@@ -1321,16 +1312,32 @@ export function PlayScreen({
         </div>
       )}
 
-      {showRoom === 'pick' && (
-        <div className="pick-banner" role="status" data-testid="show-room-banner">
-          {t(
-            'play.PlayScreen.tapASquareOfThe',
-            'Tap a square of the room or corridor to show. Rock has nothing to show.',
-          )}
-          <button className="link" onClick={() => setShowRoom(null)}>
+      {revealAsk && (
+        <NoteCard
+          kind={t('play.PlayScreen.map', 'Map')}
+          title={t('play.PlayScreen.revealWhatIsHere2', 'Reveal what is here?')}
+          onClose={() => setRevealAsk(null)}
+        >
+          <p>
+            {areaAt(level.board, revealAsk[0], revealAsk[1]) === 'C'
+              ? t('play.PlayScreen.itShowsWhatCan', 'It shows what can be seen from this square.')
+              : t('play.PlayScreen.itShowsEverythingIn', 'It shows everything in this room.')}
+          </p>
+          <button
+            className="btn"
+            data-testid="reveal-confirm"
+            onClick={() => {
+              const at = revealAsk;
+              setRevealAsk(null);
+              run({ type: 'REVEAL_AREA', cell: [at[0], at[1]] }, toMap(at[0] + 0.5, at[1] + 0.5));
+            }}
+          >
+            {t('play.PlayScreen.reveal', 'Reveal')}
+          </button>
+          <button className="btn alt" onClick={() => setRevealAsk(null)}>
             {t('play.PlayScreen.cancel', 'Cancel')}
           </button>
-        </div>
+        </NoteCard>
       )}
 
       {questOpen && !end && (

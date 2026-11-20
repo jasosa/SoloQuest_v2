@@ -8,10 +8,10 @@ import { t } from '../../i18n/t';
 
 export function errorText(code: EventErrorCode, message: string): string {
   switch (code) {
-    case 'LAYOUT_ROCK':
-      return t('play.errors.layoutRock', 'That is solid rock. There is nothing to show.');
-    case 'LAYOUT_KNOWN':
-      return t('play.errors.layoutKnown', 'That part of the map is already drawn.');
+    case 'REVEAL_ROCK':
+      return t('play.errors.revealRock', 'That is solid rock. There is nothing to reveal.');
+    case 'REVEAL_SEEN':
+      return t('play.errors.revealSeen', 'That square is already on the map.');
     case 'ALREADY_SEARCHED':
       return t('play.errors.alreadySearched', 'That was already searched.');
     case 'MONSTERS_IN_ROOM':

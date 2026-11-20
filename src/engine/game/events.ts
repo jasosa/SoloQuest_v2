@@ -13,7 +13,12 @@ export type GameEvent =
   | { readonly type: 'OPEN_DOOR'; readonly door: string }
   /** Show what a hero standing on a seen corridor square can see. */
   | { readonly type: 'LOOK_FROM'; readonly cell: Cell }
-  /** Show room: draw the floor and walls of the room (or the corridor in sight) of `cell`, with nothing on them. */
+  /**
+   * The players tap a square they cannot see and reveal what is there (decision 95): the whole room,
+   * or what a hero would see from a corridor square. The same result as a door or a look.
+   */
+  | { readonly type: 'REVEAL_AREA'; readonly cell: Cell }
+  /** Old saves only (decision 95): the retired layout-only Show room. It changes nothing when replayed. */
   | { readonly type: 'SHOW_LAYOUT'; readonly cell: Cell }
   /** The heroes cross a stairway link to the other map of a multi-map quest (decision 45). */
   | { readonly type: 'CROSS_MAP'; readonly link: string }

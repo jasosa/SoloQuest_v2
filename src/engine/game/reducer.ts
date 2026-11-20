@@ -24,7 +24,6 @@ import {
   searchTreasure,
   wanderingMonster,
 } from './search';
-import { showLayout } from './layout';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
 import { isMemberId, nameFromId } from '../data/team';
@@ -167,8 +166,11 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
     }
     case 'LOOK_FROM':
       return lookFrom(level, state, event.cell);
+    case 'REVEAL_AREA':
+      return revealArea(level, state, event.cell);
     case 'SHOW_LAYOUT':
-      return showLayout(level, state, event.cell);
+      // Retired (decision 95): it only drew dimmed squares, which no state keeps now.
+      return { state, prompts: [] };
     case 'TUNNEL_USE':
       return tunnelUse(level, state, event.tunnel, event.from);
     case 'MONSTER_DAMAGE':
@@ -388,6 +390,41 @@ function lookFrom(level: Level, state: GameState, cell: Cell): Reduced {
   // Rooms that the look revealed fire their `areaRevealed` notes.
   const notes = runTriggers(level, d, [], { beforeRooms: new Set(state.revealedRooms) }).prompts;
   return { state: d, prompts: withNotes(shown.prompts, notes) };
+}
+
+/**
+ * Reveal what is at a square the heroes cannot see (decision 95). A room square reveals the whole
+ * room, as opening its door does. A corridor square reveals what a hero sees from there, as a look
+ * does. It works on any square that is not rock and not yet seen; the others are refused, so no
+ * event is kept.
+ */
+function revealArea(level: Level, state: GameState, cell: Cell): Reduced {
+  const [x, y] = cell;
+  checkCell(level, cell);
+  const k = keyOf(cell);
+  if (level.rock.has(k))
+    throw new EventError('REVEAL_ROCK', 'That is solid rock. There is nothing to reveal.');
+  const area = areaAt(level.board, x, y);
+  if (area === undefined) throw new EventError('BAD_CELL', `Cell ${x},${y} is outside the board`);
+  // A blocked square is part of its room or corridor: it counts as seen when its block is.
+  const block = level.blockAt.get(k);
+  const known =
+    state.seenCells.has(k) ||
+    (area !== 'C' && state.revealedRooms.has(area)) ||
+    (block !== undefined && state.seenBlocks.has(block.id));
+  if (known) throw new EventError('REVEAL_SEEN', 'That square is already on the map.');
+
+  const d = draftOf(state);
+  const before = progress(d);
+  const cells = area === 'C' ? corridorLook(level, d, cell) : revealRoom(level, d, area).cells;
+  const shown = finish(d, before, cells, [x + 0.5, y + 0.5], false);
+  const notes = runTriggers(level, d, [], { beforeRooms: new Set(state.revealedRooms) }).prompts;
+  return { state: d, prompts: withNotes(shown.prompts, notes) };
+}
+
+function corridorLook(level: Level, d: Draft, cell: Cell): CellKey[] {
+  d.looked.add(keyOf(cell));
+  return revealFrom(level, d, cell).cells;
 }
 
 /**

@@ -71,11 +71,6 @@ export function promptToasts(prompts: readonly Prompt[]): string[] {
       case 'loopStopped':
         out.push(t('play.toasts.tooManyNotes', 'Too many notes in a row. The rest was skipped.'));
         break;
-      case 'layoutShown':
-        out.push(
-          t('play.toasts.layoutShown', 'Drawn without what is inside. Open the door to see it.'),
-        );
-        break;
       default:
         break;
     }
