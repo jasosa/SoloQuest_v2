@@ -1311,23 +1311,274 @@ test.describe('editor: endings and blocked search', () => {
 });
 
 test.describe('editor: Frozen Horror features', () => {
-  test('add a tunnel, a room tile and an edge door in the Quest tab; they list and remove', async ({
+  const inspector = (page: Page) => page.locator('.ed-inspector');
+
+  test('the Quest tab keeps only quest settings and points to the Map', async ({ page }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    await expect(page.getByLabel('Leave')).toBeVisible();
+    await expect(page.getByLabel('Suggested texture pack')).toBeVisible();
+    await expect(page.getByTestId('features-pointer')).toContainText('Map tab');
+    for (const gone of ['Tunnel end A', 'Tile squares', 'Edge door square', 'Tile room'])
+      await expect(page.getByLabel(gone)).toHaveCount(0);
+  });
+
+  test('tiles: slippery ice as 2 x 1, turn it, make it 2 x 3, undo, flag it', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Slippery ice').click();
+    await expect(page.getByTestId('tile-sizes').getByRole('button')).toHaveText([
+      '1 x 1',
+      '2 x 1',
+      '3 x 1',
+      '3 x 2',
+    ]);
+    await page.getByTestId('tile-sizes').getByRole('button', { name: '2 x 1' }).click();
+    // the ghost shows the footprint before the click
+    const at = await pointAt(page, 10, 13);
+    await page.mouse.move(at.x, at.y);
+    await expect(board(page).locator('rect[stroke-dasharray="4 3"]')).toHaveCount(2);
+    await clickAt(page, 10, 13);
+    await expect(page.locator('[data-board-tile="slipperyIce"]')).toHaveCount(1);
+    await expect(page.getByTestId('tile-size')).toContainText('2 x 1');
+    await shot(page, 'editor-tile-slippery');
+
+    // turn (the inspector button), then change the size
+    await inspector(page).getByRole('button', { name: 'Turn', exact: true }).click();
+    await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
+    await inspector(page).getByRole('button', { name: '2 x 3', exact: true }).click();
+    await expect(page.getByTestId('tile-size')).toContainText('2 x 3');
+    await btn(page, 'Undo').click();
+    await btn(page, 'Undo').click();
+    await tool(page, 'Select').click();
+    await clickAt(page, 10, 13);
+    await expect(page.getByTestId('tile-size')).toContainText('2 x 1');
+
+    // a tile that overlaps is refused with a reason
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Cage').click();
+    await clickAt(page, 10, 12);
+    await expect(page.locator('.toast')).toContainText('overlap');
+
+    // the R key turns the selected tile
+    await tool(page, 'Select').click();
+    await clickAt(page, 10, 13);
+    await page.keyboard.press('r');
+    await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
+
+    // a flag takes it away; blocking needs the flag first
+    await inspector(page)
+      .getByRole('switch', { name: /Blocks sight/ })
+      .click();
+    await expect(page.locator('.toast')).toContainText('flag');
+    await inspector(page).getByLabel('Gone when this flag is set').fill('iceMelted');
+    await inspector(page).getByLabel('Gone when this flag is set').blur();
+    await expect(page.locator('[data-tile-flag="iceMelted"]')).toHaveCount(1);
+    await inspector(page)
+      .getByRole('switch', { name: /Blocks sight/ })
+      .click();
+    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    // the flag is never set by an action: the Problems list says so
+    await inspector(page)
+      .getByRole('button', { name: /^Problems/ })
+      .click();
+    await expect(page.locator('.ed-inspector')).toContainText('iceMelted is never set');
+
+    await btn(page, 'Element').click();
+    await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.locator('[data-board-tile]')).toHaveCount(0);
+  });
+
+  test('tiles: cave entrance footprint, laid terrain that grows, a room tile', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Ice cave entrance').click();
+    await expect(page.getByTestId('tile-sizes')).toHaveCount(0); // one size only
+    await clickAt(page, 14, 1);
+    await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
+    await expect(page.getByTestId('tile-size')).toContainText('6 x 5');
+
+    await tool(page, 'Icy river').click();
+    await clickAt(page, 9, 12);
+    await clickAt(page, 10, 12);
+    await clickAt(page, 11, 12);
+    await expect(page.locator('[data-board-tile="icyRiver"]')).toHaveCount(1);
+    await expect(page.getByTestId('tile-size')).toContainText('3 squares');
+
+    await tool(page, 'Ice Vault').click();
+    await clickAt(page, 6, 2); // a room
+    await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(1);
+    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault in room');
+    await clickAt(page, 4, 18); // a corridor
+    await expect(page.locator('.toast')).toContainText('room');
+    await tool(page, 'Living Fog Room').click();
+    await clickAt(page, 6, 2); // replaces the vault
+    await expect(page.locator('[data-room-tile="livingFog"]')).toHaveCount(1);
+    await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(0);
+    await shot(page, 'editor-tiles');
+    await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.locator('[data-room-tile]')).toHaveCount(0);
+  });
+
+  test('doors: an ice tunnel is two taps, with a design number you can change', async ({
     page,
   }) => {
     await newQuest(page);
-    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
-    await page.getByLabel('Tunnel end A').fill('4,18');
-    await page.getByLabel('Tunnel end B').fill('20,18');
-    await page.getByRole('button', { name: 'Add a tunnel' }).click();
-    await expect(page.getByTestId('tunnel-row')).toContainText('Design 1: 4,18 to 20,18');
-    await page.getByLabel('Tile room').fill('R04');
-    await page.getByRole('button', { name: 'Put the tile in the room' }).click();
-    await expect(page.getByTestId('room-tile-row')).toHaveCount(1);
-    await page.getByLabel('Edge door square').fill('0,9');
-    await page.getByRole('button', { name: 'Add an edge door' }).click();
-    await expect(page.getByTestId('edge-row')).toHaveCount(1);
-    await page.getByRole('button', { name: 'Remove tunnel 1' }).click();
-    await expect(page.getByTestId('tunnel-row')).toHaveCount(0);
+    await tool(page, 'Doors').click();
+    await tool(page, 'Ice tunnel').click();
+    await clickAt(page, 4, 18);
+    await expect(page.locator('.ed-hint')).toHaveText('Pick the other end of the tunnel.');
+    await clickAt(page, 20, 18);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(2);
+    await expect(page.locator('[data-tunnel="tun1:a"]')).toHaveAttribute('data-design', '1');
+    await expect(page.getByTestId('tunnel-info')).toContainText('design 1, end A');
+    // the next one takes the next free design
+    await clickAt(page, 5, 18);
+    await clickAt(page, 19, 18);
+    await expect(page.locator('[data-tunnel="tun2:a"]')).toHaveAttribute('data-design', '2');
+    await shot(page, 'editor-tunnels');
+
+    // change the design of the second; a design that is used is off
+    const designs = inspector(page).getByRole('group', { name: 'Tunnel design' });
+    await designs.getByRole('button', { name: '7' }).click();
+    await expect(page.locator('[data-tunnel="tun2:b"]')).toHaveAttribute('data-design', '7');
+    await expect(designs.getByRole('button', { name: '1', exact: true })).toBeDisabled();
+
+    // select end B of the first with the Select tool and delete: both ends go
+    await tool(page, 'Select').click();
+    await clickAt(page, 20, 18);
+    await expect(page.getByTestId('tunnel-info')).toContainText('end B');
+    await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.locator('[data-tunnel^="tun1"]')).toHaveCount(0);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(2);
+    await btn(page, 'Undo').click();
+    await expect(page.locator('[data-tunnel]')).toHaveCount(4);
+  });
+
+  test('doors: an iron entry on the board edge becomes the start; a second one is refused', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await tool(page, 'Iron entry').click();
+    await clickAt(page, 5, 5); // the middle of a square inside the board: no edge
+    await expect(page.locator('.toast')).toContainText('outer edge');
+    await clickAt(page, 0, 9, 0.06, 0.5); // the west edge of (0,9)
+    await expect(page.locator('[data-edge-door="in"]')).toHaveCount(1);
+    await expect(page.locator('[data-edge-door="in"]')).toHaveAttribute(
+      'data-edge-kind',
+      'ironEntry',
+    );
+    await expect(page.getByTestId('selection-id')).toHaveText('in');
+    const start = inspector(page).getByRole('button', { name: 'The heroes start here' });
+    await expect(start).toBeEnabled();
+    await start.click();
+    await expect(start).toBeDisabled();
+
+    await clickAt(page, 0, 5, 0.06, 0.5);
+    await expect(page.locator('.toast')).toContainText('iron entry');
+    await tool(page, 'Wooden exit').click();
+    await clickAt(page, 25, 9, 0.95, 0.5); // the east edge of (25,9)
+    await expect(page.locator('[data-edge-door="out"]')).toHaveAttribute(
+      'data-edge-kind',
+      'woodenExit',
+    );
+    await expect(start).toHaveCount(0);
+    await shot(page, 'editor-exterior-doors');
+
+    // the kind chips: the start door cannot become an exit
+    await tool(page, 'Select').click();
+    await clickAt(page, 0, 9, 0.06, 0.5);
+    await inspector(page).getByRole('button', { name: 'Wooden exit', exact: true }).click();
+    await expect(page.locator('.toast')).toContainText('start');
+    await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.locator('[data-edge-door="in"]')).toHaveCount(0);
+  });
+
+  test('a door can be hidden or locked until a flag', async ({ page }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(inspector(page).getByLabel('Hidden until flag')).toHaveValue('');
+    await inspector(page).getByLabel('Hidden until flag').fill('leverPulled');
+    await inspector(page).getByLabel('Hidden until flag').blur();
+    await inspector(page).getByLabel('Locked until flag').fill('keyFound');
+    await inspector(page).getByLabel('Locked until flag').blur();
+    // the flags stay when the kind changes (the id changes with it)
+    await inspector(page).getByRole('button', { name: 'Secret', exact: true }).click();
+    await expect(inspector(page).getByLabel('Hidden until flag')).toHaveValue('leverPulled');
+    await expect(inspector(page).getByLabel('Locked until flag')).toHaveValue('keyFound');
+  });
+
+  test('everything survives an export and an import (Frozen Horror quest 0 plus new features)', async ({
+    page,
+  }) => {
+    const source = readFileSync('src/content/quests/fh00-into-the-northlands.json', 'utf8');
+    const original = JSON.parse(source);
+    await newQuest(page, 'Other');
+    await page.getByLabel('Import file').setInputFiles({
+      name: 'fh0.hqquest.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(source),
+    });
+    await expect(page.locator('.fr-title')).toHaveText(original.title);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(6);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-room-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-edge-door="in"]')).toHaveCount(1);
+    await expect(page.locator('[data-tile-flag="cageOpen"]')).toHaveCount(1);
+    await shot(page, 'editor-fh00');
+
+    // add a fourth tunnel on the map, then export
+    await tool(page, 'Doors').click();
+    await tool(page, 'Ice tunnel').click();
+    await clickAt(page, 13, 9);
+    await clickAt(page, 14, 9);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(8);
+    const [dl] = await Promise.all([page.waitForEvent('download'), btn(page, 'Export').click()]);
+    const out = readFileSync((await dl.path())!, 'utf8');
+    const json = JSON.parse(out);
+    expect(json.boardTiles).toEqual(original.boardTiles);
+    expect(json.roomTiles).toEqual(original.roomTiles);
+    expect(json.edgeDoors).toEqual(original.edgeDoors);
+    expect(json.start).toEqual(original.start);
+    expect(json.tunnels).toEqual([
+      ...original.tunnels,
+      { id: 'tun4', design: 4, a: [13, 9], b: [14, 9] },
+    ]);
+    expect(json.doors).toEqual(original.doors);
+
+    // import the exported file into a fresh draft: the map shows it all again
+    await newQuest(page, 'Third');
+    await page.getByLabel('Import file').setInputFiles({
+      name: 'again.hqquest.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(out),
+    });
+    await expect(page.locator('.fr-title')).toHaveText(original.title);
+    await expect(page.locator('[data-tunnel]')).toHaveCount(8);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-edge-door]')).toHaveCount(original.edgeDoors.length);
+  });
+
+  test('a door flag of a bundled Frozen Horror quest survives in the file the editor writes', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('105');
+    await page.getByRole('button', { name: 'Edit it now' }).click();
+    await expect(board(page)).toBeVisible();
+    // the door of quest 5 that is hidden until a flag keeps the flag in the file
+    const [dl] = await Promise.all([page.waitForEvent('download'), btn(page, 'Export').click()]);
+    const json = JSON.parse(readFileSync((await dl.path())!, 'utf8'));
+    const hidden = json.doors.filter((d: { hiddenUntil?: string }) => d.hiddenUntil);
+    expect(hidden.length).toBeGreaterThan(0);
   });
 
   test('a quest can suggest a texture pack', async ({ page }) => {
@@ -1347,8 +1598,10 @@ test('a copy of Frozen Horror quest 0 opens in the editor and keeps its tunnels 
   await page.getByLabel('Bundled quest').selectOption('0');
   await page.getByRole('button', { name: 'Edit it now' }).click();
   await expect(board(page)).toBeVisible();
+  await expect(page.locator('[data-tunnel]')).toHaveCount(6); // three tunnels, two ends each
+  await expect(page.locator('[data-edge-door="in"]')).toHaveCount(1);
+  await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Quest', exact: true }).click();
-  await expect(page.getByTestId('tunnel-row')).toHaveCount(3);
   await expect(page.getByLabel('Leave')).toHaveValue('through the cave');
 });
 

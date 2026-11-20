@@ -9,7 +9,13 @@ import { FURNITURE_NAMES } from '../board/furnitureNames';
 import { useFitMode } from '../FitToScreen';
 import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
-import type { EditorStore, EditorTabName, Tool } from './editorStore';
+import type { DoorTool, EditorStore, EditorTabName, Tool } from './editorStore';
+import {
+  BOARD_TILES,
+  BOARD_TILE_TYPES,
+  ROOM_TILES,
+  ROOM_TILE_TYPES,
+} from '../../engine/data/roomTiles';
 import { EDITOR_TABS, TopBar } from '../shared/Frame';
 import { DesignerBody, type QuestSource, type QuestUpdater } from '../designer/DesignerScreen';
 import { useLibrary } from '../designer/LibraryContext';
@@ -20,7 +26,8 @@ import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
 import { SpellDialog } from './SpellDialog';
-import { DOOR_KINDS, Inspector } from './Inspector';
+import { Inspector } from './Inspector';
+import { pickTunnelDesign } from '../../engine/editor';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -36,11 +43,21 @@ const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'doors', label: 'Doors', key: 'd' },
   { tool: 'blocks', label: 'Blocks', key: 'b' },
   { tool: 'furniture', label: 'Furniture', key: 'f' },
+  { tool: 'tiles', label: 'Tiles', key: 'i' },
   { tool: 'monsters', label: 'Monsters', key: 'm' },
   { tool: 'traps', label: 'Traps', key: 't' },
   { tool: 'markers', label: 'Markers', key: 'l' },
   { tool: 'zones', label: 'Zones', key: 'z' },
   { tool: 'start', label: 'Start', key: 'h' },
+];
+
+const DOOR_TOOLS: readonly { kind: DoorTool; label: string }[] = [
+  { kind: 'normal', label: 'Normal' },
+  { kind: 'secret', label: 'Secret' },
+  { kind: 'false', label: 'False' },
+  { kind: 'tunnel', label: 'Ice tunnel' },
+  { kind: 'ironEntry', label: 'Iron entry' },
+  { kind: 'woodenExit', label: 'Wooden exit' },
 ];
 
 const TRAP_KINDS = [
@@ -308,11 +325,35 @@ function ToolOptions({ store }: { store: EditorStore }) {
       {tool === 'doors' && (
         <>
           <div className="lbl">Door kind</div>
-          <div className="ed-chips">
-            {DOOR_KINDS.map((d) =>
+          <div className="ed-chips ed-small">
+            {DOOR_TOOLS.map((d) =>
               chip(d.label, opts.doorKind === d.kind, () => set({ doorKind: d.kind })),
             )}
           </div>
+          {opts.doorKind === 'tunnel' && (
+            <>
+              <div className="lbl">Design</div>
+              <div className="ed-chips ed-nums" role="group" aria-label="Next tunnel design">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <button
+                    key={d}
+                    className="chip"
+                    aria-pressed={pickTunnelDesign(quest, opts.tunnelDesign) === d}
+                    disabled={quest.tunnels.some((t) => t.design === d)}
+                    onClick={() => set({ tunnelDesign: d })}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              <p className="ed-note">Tap end A, then end B.</p>
+            </>
+          )}
+          {(opts.doorKind === 'ironEntry' || opts.doorKind === 'woodenExit') && (
+            <p className="ed-note">
+              Tap the outer edge of a square on the board border, or an edge that touches rock.
+            </p>
+          )}
         </>
       )}
       {tool === 'blocks' && (
@@ -339,6 +380,54 @@ function ToolOptions({ store }: { store: EditorStore }) {
           >
             Turn (R)
           </button>
+        </>
+      )}
+      {tool === 'tiles' && (
+        <>
+          <div className="lbl">Board tiles</div>
+          <div className="ed-chips ed-small" data-testid="board-tile-chips">
+            {BOARD_TILE_TYPES.map((t) =>
+              chip(BOARD_TILES[t].name, opts.tile.group === 'board' && opts.tile.type === t, () =>
+                set({ tile: { group: 'board', type: t }, tileVariant: 0, tileTurned: false }),
+              ),
+            )}
+          </div>
+          <div className="lbl">Room tiles</div>
+          <div className="ed-chips ed-small" data-testid="room-tile-chips">
+            {ROOM_TILE_TYPES.map((t) =>
+              chip(ROOM_TILES[t].name, opts.tile.group === 'room' && opts.tile.type === t, () =>
+                set({ tile: { group: 'room', type: t } }),
+              ),
+            )}
+          </div>
+          {opts.tile.group === 'board' && BOARD_TILES[opts.tile.type].shape === 'fixed' && (
+            <>
+              {BOARD_TILES[opts.tile.type].footprints.length > 1 && (
+                <>
+                  <div className="lbl">Size</div>
+                  <div className="ed-chips" data-testid="tile-sizes">
+                    {BOARD_TILES[opts.tile.type].footprints.map(([w, h], i) =>
+                      chip(`${w} x ${h}`, opts.tileVariant === i, () => set({ tileVariant: i })),
+                    )}
+                  </div>
+                </>
+              )}
+              <button
+                className="btn alt"
+                onClick={() => set({ tileTurned: !opts.tileTurned })}
+                aria-pressed={opts.tileTurned}
+              >
+                Turn (R)
+              </button>
+              <p className="ed-note">Tap a square for the top left of the tile.</p>
+            </>
+          )}
+          {opts.tile.group === 'board' && BOARD_TILES[opts.tile.type].shape === 'laid' && (
+            <p className="ed-note">Tap squares to lay it. Squares that touch make one tile.</p>
+          )}
+          {opts.tile.group === 'room' && (
+            <p className="ed-note">Tap a room to put the tile in it.</p>
+          )}
         </>
       )}
       {tool === 'monsters' && (

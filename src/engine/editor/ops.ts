@@ -341,7 +341,16 @@ export function setDoorKind(q: Quest, id: string, kind: DoorKind): EditResult {
   const moved: Quest = {
     ...q,
     ...rest,
-    [list]: [...rest[list], { id: newId, a: found.a, b: found.b }],
+    [list]: [
+      ...rest[list],
+      clean({
+        id: newId,
+        a: found.a,
+        b: found.b,
+        hiddenUntil: found.hiddenUntil,
+        lockedUntil: found.lockedUntil,
+      }),
+    ],
   };
   const renamed = renameDoorRefs(moved, id, newId);
   const warnings: Issue[] =

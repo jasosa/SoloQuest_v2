@@ -15,6 +15,7 @@ import {
   type MonsterKind,
 } from '../../engine/editor';
 import type { LibraryContent } from '../../engine/editor/library';
+import type { BoardTileType, RoomTileType } from '../../engine/data/roomTiles';
 import type { EnemyDef, FurnitureDef, Quest } from '../../engine/quest/schema';
 import type { UserQuestStore } from '../../persist/userQuests';
 import type { IssueRef } from '../../engine/quest/validate';
@@ -26,6 +27,7 @@ export type Tool =
   | 'doors'
   | 'blocks'
   | 'furniture'
+  | 'tiles'
   | 'monsters'
   | 'traps'
   | 'markers'
@@ -38,11 +40,31 @@ export type EditSelection =
       readonly id: string;
     }
   | { readonly kind: 'block'; readonly cell: Cell }
+  /** A board tile, by its place in the quest's `boardTiles`. */
+  | { readonly kind: 'tile'; readonly index: number }
+  /** The tile of a room. */
+  | { readonly kind: 'roomTile'; readonly area: string }
+  /** One end of an ice tunnel. */
+  | { readonly kind: 'tunnel'; readonly id: string; readonly end: 'a' | 'b' }
   | null;
+
+/** What the Doors tool places: the three door kinds, an ice tunnel, or an exterior door. */
+export type DoorTool = DoorKind | 'tunnel' | 'ironEntry' | 'woodenExit';
+
+/** What the Tiles tool places: a board tile or a room tile. */
+export type TilePick =
+  | { readonly group: 'board'; readonly type: BoardTileType }
+  | { readonly group: 'room'; readonly type: RoomTileType };
 
 export interface ToolOpts {
   readonly rockRoom: boolean;
-  readonly doorKind: DoorKind;
+  readonly doorKind: DoorTool;
+  /** Design number of the next ice tunnel (1 to 9); a used one gives way to the first free one. */
+  readonly tunnelDesign: number;
+  readonly tile: TilePick;
+  /** Which of the tile's sizes is laid (an index into its footprints). */
+  readonly tileVariant: number;
+  readonly tileTurned: boolean;
   readonly blockDouble: boolean;
   readonly furnitureType: FurnitureDef['type'];
   readonly furnitureTurned: boolean;
@@ -72,6 +94,10 @@ export interface ToolOpts {
 export const DEFAULT_OPTS: ToolOpts = {
   rockRoom: false,
   doorKind: 'normal',
+  tunnelDesign: 1,
+  tile: { group: 'board', type: 'slipperyIce' },
+  tileVariant: 0,
+  tileTurned: false,
   blockDouble: false,
   furnitureType: 'table',
   furnitureTurned: false,
@@ -134,6 +160,8 @@ export interface EditorState {
   readonly picking: PickRequest | null;
   /** First square of a double block, waiting for the second click. */
   readonly pendingBlock: Cell | null;
+  /** End A of an ice tunnel, waiting for end B. */
+  readonly pendingTunnel: Cell | null;
   readonly toast: EditorToast | null;
   readonly flash: BoardFlash | null;
   /** Warnings of the last change (for example notes that point at a removed door). */
@@ -156,6 +184,7 @@ export interface EditorState {
   setSpellId(id: string | null): void;
   setPicking(req: PickRequest | null): void;
   setPendingBlock(cell: Cell | null): void;
+  setPendingTunnel(cell: Cell | null): void;
   /** Open the thing a problem names: select it, show its tab, flash it on the board. */
   jump(ref: IssueRef | undefined): void;
   clearFlash(): void;
@@ -215,6 +244,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       spellId: null,
       picking: null,
       pendingBlock: null,
+      pendingTunnel: null,
       toast: null,
       flash: null,
       warnings: [],
@@ -252,6 +282,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           selection: null,
           picking: null,
           pendingBlock: null,
+          pendingTunnel: null,
           warnings: [],
           toast: null,
         });
@@ -269,13 +300,14 @@ export function createEditorStore(init: EditorInit): EditorStore {
           selection: null,
           picking: null,
           pendingBlock: null,
+          pendingTunnel: null,
           warnings: [],
           toast: null,
         });
         persist(next);
       },
 
-      setTool: (tool) => set({ tool, pendingBlock: null }),
+      setTool: (tool) => set({ tool, pendingBlock: null, pendingTunnel: null }),
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
       select: (selection) =>
         set(selection ? { selection, panel: 'element', picking: null } : { selection }),
@@ -293,6 +325,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       // picking needs the board, so the Map tab comes back while a square is chosen
       setPicking: (picking) => set(picking ? { picking, tab: 'Map' } : { picking }),
       setPendingBlock: (pendingBlock) => set({ pendingBlock }),
+      setPendingTunnel: (pendingTunnel) => set({ pendingTunnel }),
       jump(ref) {
         const j = jumpFor(get().quest, ref);
         const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
@@ -302,6 +335,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           selection: j.selection,
           picking: null,
           pendingBlock: null,
+          pendingTunnel: null,
           ...(j.panel === 'notes' ? { noteId: j.noteId } : {}),
           flash: hasFlash ? { ...j.flash, id: ++counter } : null,
         });

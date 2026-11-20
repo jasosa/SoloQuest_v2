@@ -11,7 +11,16 @@ import {
   addMarker,
   addMonster,
   addMonsterOfEnemy,
+  addEdgeDoor,
   addTrap,
+  addTunnel,
+  boardTileAt,
+  exteriorSideOf,
+  pickTunnelDesign,
+  placeBoardTile,
+  placeRoomTile,
+  roomTileAt,
+  tileCellsFor,
   moveFurniture,
   moveMonster,
   setRockCell,
@@ -22,6 +31,7 @@ import {
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import { Furniture } from '../board/Furniture';
+import { BoardTileArt, ExteriorDoorArt, RoomTileArt, TunnelEndArt } from './TileArt';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
@@ -51,7 +61,9 @@ import {
   edgeOfCell,
   footprintCells,
   nearestEdge,
+  nearestOuterEdge,
   toCell,
+  type OuterEdge,
 } from './geometry';
 
 /** Editor squares are drawn in board units and scaled down by the svg viewBox. */
@@ -71,8 +83,9 @@ export function previewOp(
   store: EditorStore,
   cell: Cell | undefined,
   edge: Edge | undefined,
+  outer?: OuterEdge,
 ): ((q: Quest) => EditResult) | undefined {
-  const { tool, opts, pendingBlock, quest } = store.getState();
+  const { tool, opts, pendingBlock, pendingTunnel, quest } = store.getState();
   if (!cell) return undefined;
   switch (tool) {
     case 'rock': {
@@ -87,8 +100,34 @@ export function previewOp(
       const on = !quest.rock.cells.some((c) => sameCell(c as Cell, cell));
       return (q) => setRockCell(q, cell, on);
     }
-    case 'doors':
-      return edge ? (q) => addDoor(q, edge.a, edge.b, opts.doorKind) : undefined;
+    case 'doors': {
+      const kind = opts.doorKind;
+      if (kind === 'tunnel')
+        return pendingTunnel
+          ? (q) =>
+              addTunnel(q, {
+                design: pickTunnelDesign(q, opts.tunnelDesign),
+                a: pendingTunnel,
+                b: cell,
+              })
+          : undefined;
+      if (kind === 'ironEntry' || kind === 'woodenExit') {
+        const target = outer ?? (edge ? exteriorSideOf(quest, edge.a, edge.b) : undefined);
+        return target ? (q) => addEdgeDoor(q, { ...target, kind }) : undefined;
+      }
+      return edge ? (q) => addDoor(q, edge.a, edge.b, kind) : undefined;
+    }
+    case 'tiles': {
+      const picked = opts.tile;
+      if (picked.group === 'room') return (q) => placeRoomTile(q, cell, picked.type);
+      return (q) =>
+        placeBoardTile(q, {
+          type: picked.type,
+          at: cell,
+          variant: opts.tileVariant,
+          turned: opts.tileTurned,
+        });
+    }
     case 'blocks':
       if (opts.blockDouble)
         return pendingBlock && adjacent(pendingBlock, cell)
@@ -136,14 +175,23 @@ export function EditorBoard({
   store: EditorStore;
   reference?: ReferenceApi;
 }) {
-  const { quest, tool, opts, selection, pendingBlock, picking, flash } = useStore(store);
+  const { quest, tool, opts, selection, pendingBlock, pendingTunnel, picking, flash } =
+    useStore(store);
   const theme = useTheme();
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
   const svgRef = useRef<SVGSVGElement>(null);
-  const [hover, setHover] = useState<{ cell: Cell; edge: Edge | undefined } | null>(null);
+  const [hover, setHover] = useState<{
+    cell: Cell;
+    edge: Edge | undefined;
+    outer: OuterEdge | undefined;
+  } | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
-  const [cursor, setCursor] = useState<{ cell: Cell; edge: Edge | undefined } | null>(null);
+  const [cursor, setCursor] = useState<{
+    cell: Cell;
+    edge: Edge | undefined;
+    outer?: OuterEdge | undefined;
+  } | null>(null);
   const [focused, setFocused] = useState(false);
 
   // The flash goes away on its own (and stays still with reduced motion).
@@ -159,10 +207,16 @@ export function EditorBoard({
   };
 
   /** Things at a square, topmost first, for the Select tool. */
-  const pick = (cell: Cell, edge: Edge | undefined): EditSelection => {
+  const pick = (cell: Cell, edge: Edge | undefined, outer?: OuterEdge): EditSelection => {
     if (edge) {
       const d = level.doorAtEdge.get(edgeKey(edge.a, edge.b));
       if (d) return { kind: 'door', id: d.id };
+    }
+    if (outer) {
+      const e = quest.edgeDoors.find(
+        (x) => sameCell(x.cell as Cell, outer.cell) && x.side === outer.side,
+      );
+      if (e) return { kind: 'door', id: e.id };
     }
     const marker = quest.markers.find((m) => sameCell(m.cell as Cell, cell));
     if (marker) return { kind: 'marker', id: marker.id };
@@ -179,13 +233,21 @@ export function EditorBoard({
     }
     const blk = level.blockAt.get(cellKey(cell[0], cell[1]));
     if (blk) return { kind: 'block', cell };
+    const tun = quest.tunnels.find(
+      (t) => sameCell(t.a as Cell, cell) || sameCell(t.b as Cell, cell),
+    );
+    if (tun) return { kind: 'tunnel', id: tun.id, end: sameCell(tun.a as Cell, cell) ? 'a' : 'b' };
+    const ti = boardTileAt(quest, cell);
+    if (ti >= 0) return { kind: 'tile', index: ti };
     const zone = quest.zones.find((z) => z.cells.some((c) => sameCell(c as Cell, cell)));
     if (zone) return { kind: 'zone', id: zone.id };
+    const rt = roomTileAt(quest, cell);
+    if (rt) return { kind: 'roomTile', area: rt.area };
     return null;
   };
 
   /** A click (or Enter) on a square or edge. */
-  const act = (cell: Cell | undefined, edge: Edge | undefined) => {
+  const act = (cell: Cell | undefined, edge: Edge | undefined, outer?: OuterEdge) => {
     const s = store.getState();
     if (!cell) return;
     if (s.picking) {
@@ -220,7 +282,53 @@ export function EditorBoard({
       return;
     }
     if (s.tool === 'select') {
-      s.select(pick(cell, edge));
+      s.select(pick(cell, edge, outer));
+      return;
+    }
+    if (s.tool === 'doors' && s.opts.doorKind === 'tunnel') {
+      const end = quest.tunnels.find(
+        (t) => sameCell(t.a as Cell, cell) || sameCell(t.b as Cell, cell),
+      );
+      if (end && !s.pendingTunnel) {
+        s.select({ kind: 'tunnel', id: end.id, end: sameCell(end.a as Cell, cell) ? 'a' : 'b' });
+        return;
+      }
+      if (!s.pendingTunnel) {
+        s.setPendingTunnel(cell);
+        return;
+      }
+      const first = s.pendingTunnel;
+      s.setPendingTunnel(null);
+      if (sameCell(first, cell)) return;
+      if (
+        s.apply((q) =>
+          addTunnel(q, { design: pickTunnelDesign(q, s.opts.tunnelDesign), a: first, b: cell }),
+        )
+      ) {
+        const now = store.getState().quest;
+        const made = now.tunnels.at(-1);
+        if (made) s.select({ kind: 'tunnel', id: made.id, end: 'a' });
+      }
+      return;
+    }
+    if (
+      s.tool === 'doors' &&
+      (s.opts.doorKind === 'ironEntry' || s.opts.doorKind === 'woodenExit')
+    ) {
+      const hit = pick(cell, edge, outer);
+      if (hit?.kind === 'door') {
+        s.select(hit);
+        return;
+      }
+      const op = previewOp(store, cell, edge, outer);
+      if (!op) {
+        s.say('Tap the outer edge of a square on the board border, or an edge that touches rock.');
+        return;
+      }
+      if (s.apply(op)) {
+        const made = store.getState().quest.edgeDoors.at(-1);
+        if (made) s.select({ kind: 'door', id: made.id });
+      }
       return;
     }
     if (s.tool === 'doors' && edge) {
@@ -229,6 +337,31 @@ export function EditorBoard({
         s.select({ kind: 'door', id: d.id });
         return;
       }
+    }
+    if (s.tool === 'tiles') {
+      const picked = s.opts.tile;
+      const ti = boardTileAt(quest, cell);
+      const rt = roomTileAt(quest, cell);
+      if (picked.group === 'board' && ti >= 0) {
+        s.select({ kind: 'tile', index: ti });
+        return;
+      }
+      if (picked.group === 'room' && rt && rt.type === picked.type) {
+        s.select({ kind: 'roomTile', area: rt.area });
+        return;
+      }
+      const op = previewOp(store, cell, edge, outer);
+      if (op && s.apply(op)) {
+        const now = store.getState().quest;
+        if (picked.group === 'board') {
+          const made = boardTileAt(now, cell);
+          if (made >= 0) s.select({ kind: 'tile', index: made });
+        } else {
+          const made = roomTileAt(now, cell);
+          if (made) s.select({ kind: 'roomTile', area: made.area });
+        }
+      }
+      return;
     }
     if (s.tool === 'blocks') {
       const blk = level.blockAt.get(cellKey(cell[0], cell[1]));
@@ -271,7 +404,7 @@ export function EditorBoard({
       }
       return;
     }
-    if (s.tool === 'doors' && !edge) {
+    if (s.tool === 'doors' && s.opts.doorKind !== 'tunnel' && !edge) {
       s.say('Click near the edge between two squares.');
       return;
     }
@@ -296,22 +429,25 @@ export function EditorBoard({
   const position = (e: React.PointerEvent) => {
     const [ux, uy] = toUnits(e);
     const cell = toCell(ux, uy);
+    const exterior =
+      tool === 'doors' && (opts.doorKind === 'ironEntry' || opts.doorKind === 'woodenExit');
     const edge =
-      tool === 'doors' ||
+      (tool === 'doors' && opts.doorKind !== 'tunnel') ||
       tool === 'select' ||
       picking?.kind === 'door' ||
       picking?.kind === 'secretDoor'
         ? nearestEdge(ux, uy)
         : undefined;
-    return { cell, edge };
+    const outer = exterior || tool === 'select' ? nearestOuterEdge(ux, uy) : undefined;
+    return { cell, edge, outer };
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
     svgRef.current?.focus();
     if (tool !== 'select' || picking) return;
-    const { cell, edge } = position(e);
+    const { cell, edge, outer } = position(e);
     if (!cell) return;
-    const hit = pick(cell, edge);
+    const hit = pick(cell, edge, outer);
     if (hit && (hit.kind === 'furniture' || hit.kind === 'monster')) {
       const first =
         hit.kind === 'furniture'
@@ -323,12 +459,12 @@ export function EditorBoard({
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    const { cell, edge } = position(e);
-    setHover(cell ? { cell, edge } : null);
+    const { cell, edge, outer } = position(e);
+    setHover(cell ? { cell, edge, outer } : null);
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    const { cell, edge } = position(e);
+    const { cell, edge, outer } = position(e);
     if (drag) {
       const d = drag;
       setDrag(null);
@@ -343,7 +479,7 @@ export function EditorBoard({
         return;
       }
     }
-    act(cell, edge);
+    act(cell, edge, outer);
   };
 
   // ---- keyboard cursor
@@ -360,35 +496,48 @@ export function EditorBoard({
     if (d) {
       e.preventDefault();
       if (e.shiftKey) {
-        setCursor({ cell: cur.cell, edge: edgeOfCell(cur.cell, d[2]) });
+        const e2 = edgeOfCell(cur.cell, d[2]);
+        setCursor({
+          cell: cur.cell,
+          edge: e2,
+          outer: e2 ? undefined : { cell: cur.cell, side: d[2] },
+        });
         return;
       }
       const next: Cell = [
         Math.max(0, Math.min(BOARD_W - 1, cur.cell[0] + d[0])),
         Math.max(0, Math.min(BOARD_H - 1, cur.cell[1] + d[1])),
       ];
-      setCursor({ cell: next, edge: undefined });
+      setCursor({ cell: next, edge: undefined, outer: undefined });
       return;
     }
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       const wantsDoor =
-        tool === 'doors' || picking?.kind === 'door' || picking?.kind === 'secretDoor';
+        (tool === 'doors' && opts.doorKind !== 'tunnel') ||
+        picking?.kind === 'door' ||
+        picking?.kind === 'secretDoor';
       const edge = cur.edge ?? (wantsDoor ? edgeOfCell(cur.cell, 'e') : undefined);
-      act(cur.cell, edge);
+      act(cur.cell, cur.outer ? undefined : edge, cur.outer);
     }
   };
 
   // ---- hints and ghosts
 
   const active = hover ?? (focused && cursor ? cursor : null);
-  const previewFn = active && !picking ? previewOp(store, active.cell, active.edge) : undefined;
+  const previewFn =
+    active && !picking ? previewOp(store, active.cell, active.edge, active.outer) : undefined;
   const preview = previewFn ? previewFn(quest) : undefined;
   const hint = picking
     ? picking.hint
-    : tool !== 'select' && preview && !preview.ok
-      ? preview.error
-      : '';
+    : tool === 'doors' &&
+        opts.doorKind === 'tunnel' &&
+        pendingTunnel &&
+        (!active || sameCell(active.cell, pendingTunnel) || !(preview && !preview.ok))
+      ? 'Pick the other end of the tunnel.'
+      : tool !== 'select' && preview && !preview.ok
+        ? preview.error
+        : '';
 
   // ---- drawing
 
@@ -501,6 +650,7 @@ export function EditorBoard({
 
   const doors: ReactNode[] = [];
   for (const d of level.doors.values()) {
+    if (d.edge) continue; // exterior doors have their own drawing
     const vertical = d.a[1] === d.b[1];
     const ex = vertical ? Math.max(d.a[0], d.b[0]) : d.a[0];
     const ey = vertical ? d.a[1] : Math.max(d.a[1], d.b[1]);
@@ -550,6 +700,71 @@ export function EditorBoard({
       </g>,
     );
   }
+
+  // Frozen Horror board features: tiles under the walls, tunnels and exterior doors on top.
+  const tileArt: ReactNode[] = [];
+  quest.roomTiles.forEach((rt) => {
+    const cs: Cell[] = [];
+    for (let y = 0; y < BOARD_H; y++)
+      for (let x = 0; x < BOARD_W; x++)
+        if (
+          !rockSet.has(cellKey(x, y)) &&
+          (areaAt(board, x, y) === rt.area ||
+            quest.areaOverrides.some(
+              (m) => m.merge[0] === rt.area && m.merge[1] === areaAt(board, x, y),
+            ))
+        )
+          cs.push([x, y]);
+    if (cs.length === 0) return;
+    tileArt.push(
+      <RoomTileArt
+        key={`rt${rt.area}`}
+        type={rt.type}
+        area={rt.area}
+        cells={cs}
+        selected={selection?.kind === 'roomTile' && selection.area === rt.area}
+        U={U}
+      />,
+    );
+  });
+  quest.boardTiles.forEach((t, i) =>
+    tileArt.push(
+      <BoardTileArt
+        key={`bt${i}`}
+        tile={t}
+        index={i}
+        selected={selection?.kind === 'tile' && selection.index === i}
+        U={U}
+      />,
+    ),
+  );
+  const featureArt: ReactNode[] = [];
+  for (const e of quest.edgeDoors)
+    featureArt.push(
+      <ExteriorDoorArt
+        key={`ed${e.id}`}
+        id={e.id}
+        cell={e.cell as Cell}
+        side={e.side}
+        kind={e.kind}
+        selected={selection?.kind === 'door' && selection.id === e.id}
+        start={quest.start.door === e.id}
+        U={U}
+      />,
+    );
+  for (const t of quest.tunnels)
+    for (const end of ['a', 'b'] as const)
+      featureArt.push(
+        <TunnelEndArt
+          key={`tn${t.id}${end}`}
+          tunnel={t.id}
+          end={end}
+          design={t.design}
+          cell={t[end] as Cell}
+          selected={selection?.kind === 'tunnel' && selection.id === t.id && selection.end === end}
+          U={U}
+        />,
+      );
 
   const blockArt: ReactNode[] = [];
   for (const b of level.blocks) {
@@ -752,14 +967,14 @@ export function EditorBoard({
   // With the Select tool a tap on one opens the Notes tab (its own hit square, 44 units, 18 in the corner of a piece).
   const letterMarks: ReactNode[] = [];
   const tappable = tool === 'select' && !picking;
-  for (const l of editorLetters(quest)) {
+  for (const [li, l] of editorLetters(quest).entries()) {
     // A letter on its furniture or marker sits in the corner, so the piece can still be tapped.
     const cx = (l.at[0] + 0.5) * U + (l.onThing ? 11 : 0);
     const cy = (l.at[1] + 0.5) * U - (l.onThing ? 11 : 0);
     const missing = l.note === undefined;
     letterMarks.push(
       <g
-        key={`lt${l.letter}`}
+        key={`lt${li}${l.letter}`}
         data-letter={l.letter}
         data-note={l.note}
         data-missing={missing ? 'true' : undefined}
@@ -896,10 +1111,11 @@ export function EditorBoard({
       <line x1={0} y1={0} x2={0} y2={6} stroke={color.ink} strokeWidth={2} />
     </pattern>
   );
+  let ghostSeq = 0; // one key per ghost square: two ghosts can cover the same square
   const ghostCells = (cs: readonly Cell[], valid: boolean) =>
     cs.map((c) => (
       <rect
-        key={`g${c[0]},${c[1]}`}
+        key={`g${ghostSeq++}`}
         x={c[0] * U + 1}
         y={c[1] * U + 1}
         width={U - 2}
@@ -933,11 +1149,24 @@ export function EditorBoard({
         preview?.ok ?? false,
       ),
     );
+  else if (active && tool === 'tiles' && opts.tile.group === 'board')
+    ghost.push(
+      ...ghostCells(
+        tileCellsFor(opts.tile.type, active.cell, opts.tileVariant, opts.tileTurned),
+        preview?.ok ?? false,
+      ),
+    );
+  else if (active && tool === 'tiles' && opts.tile.group === 'room' && preview)
+    ghost.push(...ghostCells([active.cell], preview.ok));
+  else if (active && tool === 'doors' && opts.doorKind === 'tunnel')
+    ghost.push(...ghostCells([active.cell], pendingTunnel ? (preview?.ok ?? false) : true));
   else if (active && ['monsters', 'markers', 'blocks', 'traps'].includes(tool) && preview)
     ghost.push(...ghostCells([active.cell], preview.ok));
   else if (active && tool === 'rock' && preview && !opts.rockRoom)
     ghost.push(...ghostCells([active.cell], preview.ok));
   if (tool === 'blocks' && pendingBlock) ghost.push(...ghostCells([pendingBlock], true));
+  if (tool === 'doors' && opts.doorKind === 'tunnel' && pendingTunnel)
+    ghost.push(...ghostCells([pendingTunnel], true));
   if (active?.edge && tool === 'doors') {
     const { a, b } = active.edge;
     const vertical = a[1] === b[1];
@@ -956,6 +1185,36 @@ export function EditorBoard({
         pointerEvents="none"
       />,
     );
+  }
+  if (
+    active &&
+    tool === 'doors' &&
+    (opts.doorKind === 'ironEntry' || opts.doorKind === 'woodenExit')
+  ) {
+    const target = active.outer
+      ? active.outer
+      : active.edge
+        ? exteriorSideOf(quest, active.edge.a, active.edge.b)
+        : undefined;
+    if (target) {
+      const [cx, cy] = target.cell;
+      const x1 = target.side === 'e' ? cx + 1 : cx;
+      const y1 = target.side === 's' ? cy + 1 : cy;
+      const horizontal = target.side === 'n' || target.side === 's';
+      ghost.push(
+        <line
+          key="outer"
+          x1={x1 * U}
+          y1={y1 * U}
+          x2={(horizontal ? x1 + 1 : x1) * U}
+          y2={(horizontal ? y1 : y1 + 1) * U}
+          stroke={preview?.ok === false ? color.text : color.ink}
+          strokeWidth={5}
+          opacity={0.7}
+          pointerEvents="none"
+        />,
+      );
+    }
   }
   if (tool === 'select' && hover && !drag)
     ghost.push(
@@ -1026,10 +1285,12 @@ export function EditorBoard({
             {cells}
             {startTint}
             {zoneArt}
+            {tileArt}
             {walls}
             {blockArt}
             {things}
             {doors}
+            {featureArt}
             {letterMarks}
             <rect
               x={0}

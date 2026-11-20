@@ -18,6 +18,7 @@ import {
 import { footprintShapeProblem } from './footprint';
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
+import { BOARD_TILES, footprintText } from '../data/roomTiles';
 import { forEachEffect } from './effects';
 import { isMultiMap, noteOnMap, questMaps } from './maps';
 import type { Condition, Effect, Note, Quest } from './schema';
@@ -37,6 +38,8 @@ export type IssueRefKind =
   | 'objective'
   | 'npc'
   | 'area'
+  | 'tile'
+  | 'tunnel'
   | 'quest';
 
 export interface IssueRef {
@@ -524,27 +527,68 @@ export function validateQuestIssues(
   eachEffect((e) => {
     if (e.type === 'setFlag') flagsSetEarly.add(e.flag);
   });
+  const tileRef = (i: number, c?: C): IssueRef =>
+    c ? { kind: 'tile', id: String(i), cell: cellOf(c) } : { kind: 'tile', id: String(i) };
   quest.boardTiles.forEach((t, i) => {
+    const ref = tileRef(i, t.cells[0]);
     if (t.blocks && t.hiddenWhen === undefined)
-      err(`board tile ${i + 1} (${t.type}): blocks needs a hiddenWhen flag`, { kind: 'quest' });
+      err(`board tile ${i + 1} (${t.type}): blocks needs a hiddenWhen flag`, ref);
     if (t.hiddenWhen !== undefined && !flagsSetEarly.has(t.hiddenWhen))
-      err(`board tile ${i + 1} (${t.type}): hiddenWhen flag ${t.hiddenWhen} is never set`, {
-        kind: 'quest',
-      });
+      err(`board tile ${i + 1} (${t.type}): hiddenWhen flag ${t.hiddenWhen} is never set`, ref);
   });
-  // Board tiles: every square is on the board (the cave entrance may lie over rock).
-  quest.boardTiles.forEach((t, i) =>
-    t.cells.forEach((c) =>
-      inside(`board tile ${i + 1} (${t.type})`, c, { kind: 'quest', cell: cellOf(c) }, true),
-    ),
-  );
+  // Board tiles: every square is on the board (the cave entrance may lie over rock), no other tile
+  // lies over rock, two tiles never share a square, and a tile of a fixed size has that size.
+  {
+    const owner = new Map<string, number>();
+    quest.boardTiles.forEach((t, i) => {
+      const def = BOARD_TILES[t.type];
+      t.cells.forEach((c) => {
+        const ref = tileRef(i, c);
+        inside(`board tile ${i + 1} (${t.type})`, c, ref, true);
+        if (inBoard(board, c[0], c[1]) && t.type !== 'iceCaveEntrance' && isRock(c))
+          err(`board tile ${i + 1} (${t.type}): cell ${key(c)} is in rock`, ref);
+        const other = owner.get(key(c));
+        if (other !== undefined && other !== i)
+          err(`board tile ${i + 1} (${t.type}) overlaps board tile ${other + 1} at ${key(c)}`, ref);
+        else owner.set(key(c), i);
+      });
+      if (editor && def.shape === 'fixed' && t.cells.length > 0) {
+        const xs = t.cells.map((c) => c[0]);
+        const ys = t.cells.map((c) => c[1]);
+        const w = Math.max(...xs) - Math.min(...xs) + 1;
+        const h = Math.max(...ys) - Math.min(...ys) + 1;
+        const fits =
+          w * h === new Set(t.cells.map(key)).size &&
+          def.footprints.some(([fw, fh]) => (fw === w && fh === h) || (fw === h && fh === w));
+        if (!fits)
+          warn(
+            `board tile ${i + 1} (${t.type}): ${def.name} comes as ${footprintText(def)}, these squares are not that shape`,
+            tileRef(i, t.cells[0]),
+          );
+      }
+    });
+    // A tile that blocks must not sit where the heroes start.
+    const startCells = new Set<string>();
+    if (quest.start.area) for (const c of cellsOf(board, quest.start.area)) startCells.add(key(c));
+    const entry = quest.edgeDoors.find((e) => e.id === quest.start.door);
+    if (entry) startCells.add(key(entry.cell));
+    quest.boardTiles.forEach((t, i) => {
+      if (!t.blocks) return;
+      const hit = t.cells.find((c) => startCells.has(key(c)));
+      if (hit)
+        err(
+          `board tile ${i + 1} (${t.type}) blocks the square ${key(hit)} where the heroes start`,
+          tileRef(i, hit),
+        );
+    });
+  }
   // Ice tunnels: both ends on bare floor, two different squares, one pair per design.
   {
     const ids = new Set<string>();
     const designs = new Set<number>();
     const ends = new Map<string, string>();
     for (const t of quest.tunnels) {
-      const ref: IssueRef = { kind: 'quest', cell: cellOf(t.a) };
+      const ref: IssueRef = { kind: 'tunnel', id: t.id, cell: cellOf(t.a) };
       if (ids.has(t.id)) err(`tunnel ${t.id}: duplicate id`, ref);
       ids.add(t.id);
       if (designs.has(t.design))

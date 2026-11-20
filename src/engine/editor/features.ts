@@ -3,10 +3,13 @@
  * tiles, room tiles, edge doors, door flags, the way the heroes leave. Same style as `ops.ts`: pure,
  * the input is never changed, half done work comes back as warnings.
  */
-import type { Cell } from '../board/board';
+import { board, inBoard, type Cell } from '../board/board';
+import { outsideOf } from '../board/level';
+import { forEachEffect } from '../quest/effects';
 import { BOARD_TILE_TYPES, ROOM_TILE_TYPES } from '../data/roomTiles';
 import { EDGE_DOOR_KINDS, type Quest } from '../quest/schema';
-import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
+import { referencesTo } from './refs';
+import { clean, fail, isRockCell, newIssues, nextId, ok, type EditResult } from './result';
 
 type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
 type RoomTileType = (typeof ROOM_TILE_TYPES)[number];
@@ -60,6 +63,8 @@ export function addTunnel(q: Quest, input: { design: number; a: Cell; b: Cell })
   if (!onBoard(input.a) || !onBoard(input.b)) return fail('A tunnel end must be on the board.');
   if (input.a[0] === input.b[0] && input.a[1] === input.b[1])
     return fail('The two ends of a tunnel must be different squares.');
+  if (isRockCell(q, input.a) || isRockCell(q, input.b))
+    return fail('A tunnel end must be on a floor square, not on rock.');
   if (!Number.isInteger(input.design) || input.design < 1 || input.design > 9)
     return fail('The design number is 1 to 9.');
   if (q.tunnels.some((t) => t.design === input.design))
@@ -75,6 +80,29 @@ export function addTunnel(q: Quest, input: { design: number; a: Cell; b: Cell })
     b: [input.b[0], input.b[1]] as [number, number],
   };
   const quest = { ...q, tunnels: [...q.tunnels, tunnel] };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** The lowest design number (1 to 9) no tunnel uses yet, or undefined when all nine are used. */
+export function nextTunnelDesign(q: Quest): number | undefined {
+  for (let d = 1; d <= 9; d++) if (!q.tunnels.some((t) => t.design === d)) return d;
+  return undefined;
+}
+
+/** The design the next tunnel gets: `wanted` when no tunnel uses it, else the first free one. */
+export function pickTunnelDesign(q: Quest, wanted: number): number {
+  return q.tunnels.some((t) => t.design === wanted) ? (nextTunnelDesign(q) ?? wanted) : wanted;
+}
+
+/** Give a tunnel another design number (1 to 9) that no other tunnel uses. */
+export function setTunnelDesign(q: Quest, id: string, design: number): EditResult {
+  const t = q.tunnels.find((x) => x.id === id);
+  if (!t) return fail(`There is no tunnel ${id}.`);
+  if (!Number.isInteger(design) || design < 1 || design > 9)
+    return fail('The design number is 1 to 9.');
+  if (q.tunnels.some((x) => x.id !== id && x.design === design))
+    return fail(`Design ${design} is used by another tunnel.`);
+  const quest = { ...q, tunnels: q.tunnels.map((x) => (x.id === id ? { ...x, design } : x)) };
   return ok(quest, newIssues(q, quest));
 }
 
@@ -119,16 +147,70 @@ export function setRoomTile(q: Quest, area: string, type: RoomTileType | null): 
   return ok(quest, newIssues(q, quest));
 }
 
+/**
+ * The exterior door an edge between two neighbouring squares asks for: the square that holds the
+ * door and the side it faces. It works when one square is floor and the other is rock (the ice
+ * cave lies over rock). Undefined for any other edge.
+ */
+export function exteriorSideOf(
+  q: Quest,
+  a: Cell,
+  b: Cell,
+): { cell: Cell; side: 'n' | 'e' | 's' | 'w' } | undefined {
+  const [floor, rock] = isRockCell(q, b) && !isRockCell(q, a) ? [a, b] : [b, a];
+  if (!isRockCell(q, rock) || isRockCell(q, floor)) return undefined;
+  const dx = rock[0] - floor[0];
+  const dy = rock[1] - floor[1];
+  if (Math.abs(dx) + Math.abs(dy) !== 1) return undefined;
+  return { cell: floor, side: dx === 1 ? 'e' : dx === -1 ? 'w' : dy === 1 ? 's' : 'n' };
+}
+
+const EDGE_ID: Record<EdgeKind, string> = { ironEntry: 'in', woodenExit: 'out' };
+
+/** First free id of the form `in`, `in2`, `in3`... across every door of the quest. */
+function freeDoorId(q: Quest, base: string): string {
+  const taken = new Set(
+    [...q.doors, ...q.secretDoors, ...q.falseDoors, ...q.edgeDoors].map((d) => d.id),
+  );
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base}${n}`)) n++;
+  return `${base}${n}`;
+}
+
+/** Why a square and side cannot hold an exterior door, or undefined. */
+function edgeDoorProblem(
+  q: Quest,
+  cell: Cell,
+  side: 'n' | 'e' | 's' | 'w',
+  kind: EdgeKind,
+  skipId?: string,
+): string | undefined {
+  if (!onBoard(cell)) return 'The door square must be on the board.';
+  const out = outsideOf(cell, side);
+  if (inBoard(board, out[0], out[1]) && !isRockCell(q, out))
+    return 'An exterior door goes on the outer edge of the board, or on an edge that touches rock.';
+  if (isRockCell(q, cell)) return 'An exterior door cannot sit on a rock square.';
+  if (
+    q.edgeDoors.some(
+      (e) => e.id !== skipId && e.cell[0] === cell[0] && e.cell[1] === cell[1] && e.side === side,
+    )
+  )
+    return 'There is an exterior door on that edge already.';
+  if (kind === 'ironEntry' && q.edgeDoors.some((e) => e.id !== skipId && e.kind === 'ironEntry'))
+    return 'The quest has an iron entry door already. There is only one.';
+  return undefined;
+}
+
+/** An exterior door: an iron entry or a wooden exit on the outer edge of a square. */
 export function addEdgeDoor(
   q: Quest,
   input: { cell: Cell; side: 'n' | 'e' | 's' | 'w'; kind: EdgeKind },
 ): EditResult {
-  if (!onBoard(input.cell)) return fail('The door square must be on the board.');
-  if (!EDGE_DOOR_KINDS.includes(input.kind)) return fail('That is not an edge door.');
-  const id = nextId(
-    'e',
-    q.edgeDoors.map((e) => e.id),
-  );
+  if (!EDGE_DOOR_KINDS.includes(input.kind)) return fail('That is not an exterior door.');
+  const problem = edgeDoorProblem(q, input.cell, input.side, input.kind);
+  if (problem) return fail(problem);
+  const id = freeDoorId(q, EDGE_ID[input.kind]);
   const quest = {
     ...q,
     edgeDoors: [
@@ -139,10 +221,26 @@ export function addEdgeDoor(
   return ok(quest, newIssues(q, quest));
 }
 
+/** Change an exterior door between iron entry and wooden exit. The start door must stay iron. */
+export function setEdgeDoorKind(q: Quest, id: string, kind: EdgeKind): EditResult {
+  const e = q.edgeDoors.find((x) => x.id === id);
+  if (!e) return fail(`There is no exterior door ${id}.`);
+  if (e.kind === kind) return ok(q);
+  if (kind !== 'ironEntry' && q.start.door === id)
+    return fail('The heroes start outside this door. Pick another start first.');
+  const problem = edgeDoorProblem(q, e.cell, e.side, kind, id);
+  if (problem) return fail(problem);
+  const quest = {
+    ...q,
+    edgeDoors: q.edgeDoors.map((x) => (x.id === id ? { ...x, kind } : x)),
+  };
+  return ok(quest, newIssues(q, quest));
+}
+
 export function removeEdgeDoor(q: Quest, id: string): EditResult {
   if (!q.edgeDoors.some((e) => e.id === id)) return fail(`There is no edge door ${id}.`);
   const quest = { ...q, edgeDoors: q.edgeDoors.filter((e) => e.id !== id) };
-  return ok(quest, newIssues(q, quest));
+  return ok(quest, [...referencesTo(quest, 'door', id), ...newIssues(q, quest)]);
 }
 
 /** Where the heroes start: outside an edge door, or in a room (stairway, or an ice cave tile). */
@@ -150,8 +248,11 @@ export function setStart(
   q: Quest,
   start: { door: string } | { area: string; kind?: 'stairway' | 'tile' },
 ): EditResult {
-  if ('door' in start && !q.edgeDoors.some((e) => e.id === start.door))
-    return fail(`There is no edge door ${start.door}.`);
+  if ('door' in start) {
+    const door = q.edgeDoors.find((e) => e.id === start.door);
+    if (!door) return fail(`There is no edge door ${start.door}.`);
+    if (door.kind !== 'ironEntry') return fail('The heroes start outside an iron entry door.');
+  }
   const quest = { ...q, start: clean(start) } as Quest;
   return ok(quest, newIssues(q, quest));
 }
@@ -162,8 +263,10 @@ export function setDoorFlags(
   doorId: string,
   flags: { hiddenUntil?: string; lockedUntil?: string },
 ): EditResult {
-  const door = q.doors.find((d) => d.id === doorId);
-  if (!door) return fail(`There is no door ${doorId}.`);
+  const lists = ['doors', 'secretDoors', 'falseDoors'] as const;
+  const list = lists.find((l) => q[l].some((d) => d.id === doorId));
+  if (!list) return fail(`There is no door ${doorId}.`);
+  const door = q[list].find((d) => d.id === doorId)!;
   const pick = (v: string | undefined, old: string | undefined) =>
     v === undefined ? old : v.trim() || undefined;
   const next = clean({
@@ -171,6 +274,15 @@ export function setDoorFlags(
     hiddenUntil: pick(flags.hiddenUntil, door.hiddenUntil),
     lockedUntil: pick(flags.lockedUntil, door.lockedUntil),
   });
-  const quest = { ...q, doors: q.doors.map((d) => (d.id === doorId ? next : d)) };
+  const quest = { ...q, [list]: q[list].map((d) => (d.id === doorId ? next : d)) };
   return ok(quest, newIssues(q, quest));
+}
+
+/** The flags the quest's actions set, sorted. Suggestions for a flag field. */
+export function knownFlags(q: Quest): string[] {
+  const out = new Set<string>();
+  forEachEffect(q, (e) => {
+    if (e.type === 'setFlag') out.add(e.flag);
+  });
+  return [...out].sort();
 }

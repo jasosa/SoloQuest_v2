@@ -113,9 +113,20 @@ export const BOARD_TILE_TYPES = [
 ] as const;
 export type BoardTileType = (typeof BOARD_TILE_TYPES)[number];
 
+/** Width and height in squares of a tile as it comes in the box (it can be laid turned). */
+export type Footprint = readonly [number, number];
+
 export interface BoardTileDef {
   readonly id: BoardTileType;
   readonly name: string;
+  /**
+   * `fixed`: a tile of one of the `footprints` (a rectangle, laid on the board with a quarter turn
+   * if the author wants). `laid`: terrain laid square by square, any shape; one square is its
+   * footprint.
+   */
+  readonly shape: 'fixed' | 'laid';
+  /** The sizes it comes in (width x height). A turned tile swaps the two. */
+  readonly footprints: readonly Footprint[];
   /** Drawn from the start, even on squares the heroes have not seen (the cave under the start). */
   readonly always: boolean;
   /** Terrain: it changes no sight, but its rule is a reminder the players may want (decision 57). */
@@ -126,12 +137,16 @@ export interface BoardTileDef {
 export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   iceCaveEntrance: {
     id: 'iceCaveEntrance',
+    shape: 'fixed',
+    footprints: [[6, 5]],
     name: 'Ice cave entrance',
     always: true,
     rule: ['The heroes start here, outside the iron door, and leave here when the quest says so.'],
   },
   icyRiver: {
     id: 'icyRiver',
+    shape: 'laid',
+    footprints: [[1, 1]],
     name: 'Icy river',
     always: false,
     terrain: true,
@@ -143,6 +158,8 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   },
   iceLedge: {
     id: 'iceLedge',
+    shape: 'laid',
+    footprints: [[1, 1]],
     name: 'Ice ledge',
     always: false,
     terrain: true,
@@ -154,6 +171,8 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   },
   chasm: {
     id: 'chasm',
+    shape: 'laid',
+    footprints: [[1, 1]],
     name: 'Chasm',
     always: false,
     terrain: true,
@@ -161,6 +180,13 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   },
   slipperyIce: {
     id: 'slipperyIce',
+    shape: 'fixed',
+    footprints: [
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [3, 2],
+    ],
     name: 'Slippery ice',
     always: false,
     terrain: true,
@@ -171,8 +197,16 @@ export const BOARD_TILES: Readonly<Record<BoardTileType, BoardTileDef>> = {
   },
   cage: {
     id: 'cage',
+    shape: 'fixed',
+    footprints: [[2, 2]],
     name: 'Cage',
     always: false,
     rule: ['Nobody can enter the cage and it blocks line of sight, until the quest opens it.'],
   },
 };
+
+/** "6 x 5" or "2 x 1 or 2 x 3": the sizes a board tile comes in, for the editor. */
+export function footprintText(def: BoardTileDef): string {
+  if (def.shape === 'laid') return 'square by square';
+  return def.footprints.map(([w, h]) => `${w} x ${h}`).join(' or ');
+}

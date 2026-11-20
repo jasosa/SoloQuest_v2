@@ -40,6 +40,31 @@ export function nearestEdge(
   return { a: c, b: best.b };
 }
 
+/** A square on the board border and the side of it that is the board's outer edge. */
+export interface OuterEdge {
+  cell: Cell;
+  side: 'n' | 'e' | 's' | 'w';
+}
+
+/**
+ * The outer edge of the board that a point is close to (within `reach` of a border square, 0.3 by
+ * default: a bit more than an inner edge, a finger is wide), or undefined.
+ */
+export function nearestOuterEdge(ux: number, uy: number, reach = 0.3): OuterEdge | undefined {
+  const c = toCell(ux, uy);
+  if (!c) return undefined;
+  const fx = ux / U - c[0];
+  const fy = uy / U - c[1];
+  const sides: { d: number; side: OuterEdge['side'] }[] = [];
+  if (c[1] === 0) sides.push({ d: fy, side: 'n' });
+  if (c[1] === BOARD_H - 1) sides.push({ d: 1 - fy, side: 's' });
+  if (c[0] === 0) sides.push({ d: fx, side: 'w' });
+  if (c[0] === BOARD_W - 1) sides.push({ d: 1 - fx, side: 'e' });
+  sides.sort((p, q) => p.d - q.d);
+  const best = sides[0];
+  return best && best.d <= reach ? { cell: c, side: best.side } : undefined;
+}
+
 /** The edge on one side of a square (for the keyboard cursor). */
 export function edgeOfCell(c: Cell, dir: 'n' | 'e' | 's' | 'w'): { a: Cell; b: Cell } | undefined {
   const b: Cell =

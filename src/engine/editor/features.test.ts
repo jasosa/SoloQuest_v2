@@ -74,7 +74,7 @@ describe('Frozen Horror features in the editor', () => {
   });
 
   it('edge doors and the start outside them', () => {
-    const a = good(addEdgeDoor(q, { cell: [6, 9], side: 'w', kind: 'ironEntry' }));
+    const a = good(addEdgeDoor(q, { cell: [0, 9], side: 'w', kind: 'ironEntry' }));
     const id = a.edgeDoors[0]!.id;
     expect(setStart(a, { door: 'nope' }).ok).toBe(false);
     expect(good(setStart(a, { door: id })).start).toEqual({ door: id });
