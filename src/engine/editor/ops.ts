@@ -838,6 +838,8 @@ export interface MonsterPatch {
   attackOnly?: boolean | null;
   /** Attacks per turn (2 or 3; 1 or `null` clears it, the enemy's own number applies). */
   attacks?: number | null;
+  /** 2 draws it over 2 x 2 squares from its square (a large monster). 1 or `null` clears it. */
+  size?: number | null;
 }
 
 /**
@@ -928,6 +930,11 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     if (a !== null && (!Number.isInteger(a) || a < 1 || a > 3))
       return fail('Attacks per turn is a whole number from 1 to 3.');
     set('attacks', a === null || a === 1 ? null : a);
+  }
+  if (patch.size !== undefined) {
+    const z = patch.size;
+    if (z !== null && z !== 1 && z !== 2) return fail('A monster is 1 square or 2 x 2 squares.');
+    set('size', z === null || z === 1 ? null : z);
   }
   if (patch.abilities !== undefined) {
     const known = abilityLookup(q);

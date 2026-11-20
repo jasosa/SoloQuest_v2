@@ -6,20 +6,28 @@
  * The squares in the quest are the real footprint. A turned tile is just the same footprint with
  * width and height swapped, so the quest format needs no field for it.
  */
-import { areaAt, board, inBoard } from '../board/board';
+import { board, inBoard } from '../board/board';
 import {
   BOARD_TILES,
   BOARD_TILE_TYPES,
+  MAX_TUNNEL_PAIRS,
+  ROOM_TILES,
   ROOM_TILE_TYPES,
+  footprintIndex,
+  limitText,
+  tileMax,
+  tileSpec,
   type BoardTileType,
   type Footprint,
   type RoomTileType,
 } from '../data/roomTiles';
 import type { Quest } from '../quest/schema';
+import { roomTileCells } from '../quest/roomTileCells';
 import { clean, fail, isRockCell as isRock, newIssues, ok, type EditResult } from './result';
 
 type Cell = [number, number];
 type Tile = Quest['boardTiles'][number];
+type RoomTile = Quest['roomTiles'][number];
 
 const key = (c: readonly number[]) => `${c[0]},${c[1]}`;
 
@@ -70,6 +78,59 @@ export function tileCellsFor(
   return turned ? rectCells(at, h0, w0) : rectCells(at, w0, h0);
 }
 
+/** The squares of every tile of a group, as the editor sees them (a room tile may be an `area`). */
+function groupCells(
+  q: Quest,
+  group: 'board' | 'room',
+): { type: string; cells: readonly (readonly number[])[] }[] {
+  return group === 'board'
+    ? q.boardTiles.map((t) => ({ type: t.type, cells: t.cells as Cell[] }))
+    : q.roomTiles.map((t) => ({ type: t.type, cells: roomTileCells(q, t) }));
+}
+
+/** How many tiles of a type the quest has and the most it may have (undefined: no limit). */
+export function tileUsage(
+  q: Quest,
+  group: 'board' | 'room',
+  type: string,
+): { used: number; max: number | undefined; text: string } {
+  const spec = tileSpec(group, type);
+  const used = groupCells(q, group).filter((t) => t.type === type).length;
+  return { used, max: spec ? tileMax(spec) : undefined, text: spec ? limitText(spec) : '' };
+}
+
+/** How many tiles of a type already use one of its sizes (a turned tile has the same size). */
+export function tileSizeUsed(
+  q: Quest,
+  group: 'board' | 'room',
+  type: string,
+  size: Footprint,
+  skip?: number,
+): number {
+  const spec = tileSpec(group, type);
+  if (!spec) return 0;
+  const at = footprintIndex(spec.footprints, size[0], size[1]);
+  return groupCells(q, group).filter((t, i) => {
+    if (i === skip || t.type !== type || t.cells.length === 0) return false;
+    const b = tileBox(t.cells);
+    return b.full && footprintIndex(spec.footprints, b.w, b.h) === at;
+  }).length;
+}
+
+/** Why the quest may not have one more tile of this type and size, or undefined. */
+function limitProblem(
+  q: Quest,
+  group: 'board' | 'room',
+  type: string,
+  size: Footprint,
+  skip?: number,
+): string | undefined {
+  const spec = tileSpec(group, type);
+  if (!spec || spec.laid || spec.maxPerSize === undefined) return undefined;
+  if (tileSizeUsed(q, group, type, size, skip) < spec.maxPerSize) return undefined;
+  return `${spec.name} ${size[0]} x ${size[1]}: the box has ${limitText(spec)}, and this quest already uses it.`;
+}
+
 /** Why these squares cannot hold this tile, or undefined. `skip` is the tile being changed. */
 function placeProblem(
   q: Quest,
@@ -111,7 +172,10 @@ export function placeBoardTile(
   if (!BOARD_TILE_TYPES.includes(input.type)) return fail('That is not a board tile.');
   const def = BOARD_TILES[input.type];
   const cells = tileCellsFor(input.type, input.at, input.variant ?? 0, input.turned ?? false);
-  const problem = placeProblem(q, input.type, cells);
+  const problem =
+    (def.shape === 'fixed' &&
+      limitProblem(q, 'board', input.type, [tileBox(cells).w, tileBox(cells).h])) ||
+    placeProblem(q, input.type, cells);
   if (def.shape === 'laid') {
     const here = q.boardTiles.findIndex((t) => t.cells.some((c) => key(c) === key(input.at)));
     if (here >= 0)
@@ -165,7 +229,8 @@ export function resizeBoardTile(q: Quest, index: number, size: Footprint): EditR
     return fail(`${def.name} does not come as ${size[0]} x ${size[1]}.`);
   const box = tileBox(t.cells);
   const cells = rectCells([box.x, box.y], size[0], size[1]);
-  const problem = placeProblem(q, t.type, cells, index);
+  const problem =
+    limitProblem(q, 'board', t.type, size, index) || placeProblem(q, t.type, cells, index);
   if (problem) return fail(problem);
   return withTile(q, index, (x) => ({ ...x, cells }));
 }
@@ -220,27 +285,126 @@ export function boardTileAt(q: Quest, cell: readonly number[]): number {
   return q.boardTiles.findIndex((t) => t.cells.some((c) => key(c) === key(cell)));
 }
 
+// ---- room tiles (decision 88): a physical tile over squares, like a board tile ----
+
+/** Every size a room tile can be laid in: its footprints and the same turned a quarter. */
+export function roomTileSizes(type: RoomTileType): Footprint[] {
+  const out: Footprint[] = [];
+  for (const [w, h] of ROOM_TILES[type].footprints)
+    for (const f of [[w, h] as Footprint, [h, w] as Footprint])
+      if (!out.some((o) => o[0] === f[0] && o[1] === f[1])) out.push(f);
+  return out;
+}
+
+/** The squares a room tile covers when placed at `at`: `variant` picks a footprint, `turned` swaps it. */
+export function roomTileCellsFor(
+  type: RoomTileType,
+  at: readonly number[],
+  variant: number,
+  turned: boolean,
+): Cell[] {
+  const fps = ROOM_TILES[type].footprints;
+  const [w0, h0] = fps[Math.min(Math.max(variant, 0), fps.length - 1)]!;
+  return turned ? rectCells(at, h0, w0) : rectCells(at, w0, h0);
+}
+
+/** Why these squares cannot hold this room tile, or undefined. `skip` is the tile being changed. */
+function roomPlaceProblem(
+  q: Quest,
+  type: RoomTileType,
+  cells: readonly Cell[],
+  skip?: number,
+): string | undefined {
+  const name = ROOM_TILES[type].name;
+  for (const c of cells)
+    if (!Number.isInteger(c[0]) || !Number.isInteger(c[1]) || !inBoard(board, c[0], c[1]))
+      return `${name}: ${c[0]}, ${c[1]} is off the board.`;
+  const taken = new Map<string, string>();
+  q.roomTiles.forEach((t, i) => {
+    if (i !== skip) for (const c of roomTileCells(q, t)) taken.set(key(c), ROOM_TILES[t.type].name);
+  });
+  for (const c of cells) {
+    const other = taken.get(key(c));
+    if (other) return `${name} would overlap the ${other.toLowerCase()} at ${c[0]}, ${c[1]}.`;
+    if (isRock(q, c)) return `${name}: ${c[0]}, ${c[1]} is rock.`;
+  }
+  return undefined;
+}
+
 /**
- * Put a room tile in the room that holds `cell`, replacing the room's old tile. A corridor is not
- * a room.
+ * Lay a room tile with its top left square on `at`. `variant` picks one of the tile's footprints and
+ * `turned` swaps width and height. The tile may lie over parts of two rooms and over corridor squares.
  */
-export function placeRoomTile(q: Quest, cell: Cell, type: RoomTileType): EditResult {
-  if (!ROOM_TILE_TYPES.includes(type)) return fail('That is not a room tile.');
-  if (!inBoard(board, cell[0], cell[1])) return fail('That square is off the board.');
-  const area = areaAt(board, cell[0], cell[1]);
-  if (!area || area === 'C') return fail('A room tile goes in a room. Tap a room, not a corridor.');
-  const merged = q.areaOverrides.find((m) => m.merge[1] === area);
-  const room = merged ? merged.merge[0] : area;
-  const rest = q.roomTiles.filter((t) => t.area !== room);
-  const quest = { ...q, roomTiles: [...rest, { type, area: room }] };
+export function placeRoomTile(
+  q: Quest,
+  input: { type: RoomTileType; at: Cell; variant?: number; turned?: boolean },
+): EditResult {
+  if (!ROOM_TILE_TYPES.includes(input.type)) return fail('That is not a room tile.');
+  const cells = roomTileCellsFor(input.type, input.at, input.variant ?? 0, input.turned ?? false);
+  const b = tileBox(cells);
+  const problem =
+    limitProblem(q, 'room', input.type, [b.w, b.h]) || roomPlaceProblem(q, input.type, cells);
+  if (problem) return fail(problem);
+  const quest = { ...q, roomTiles: [...q.roomTiles, { type: input.type, cells }] };
   return ok(quest, newIssues(q, quest));
 }
 
-/** The room tile of the room that holds `cell`, or undefined. */
-export function roomTileAt(q: Quest, cell: readonly number[]) {
-  const area = areaAt(board, cell[0] as number, cell[1] as number);
-  if (!area) return undefined;
-  const merged = q.areaOverrides.find((m) => m.merge[1] === area);
-  const room = merged ? merged.merge[0] : area;
-  return q.roomTiles.find((t) => t.area === room);
+function withRoomTile(q: Quest, index: number, fn: (t: RoomTile) => RoomTile): EditResult {
+  const t = q.roomTiles[index];
+  if (!t) return fail('There is no such tile.');
+  const quest = { ...q, roomTiles: q.roomTiles.map((x, i) => (i === index ? fn(x) : x)) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** Slide a room tile so its top left square is on `to`. A tile that filled a room gets squares. */
+export function moveRoomTile(q: Quest, index: number, to: Cell): EditResult {
+  const t = q.roomTiles[index];
+  if (!t) return fail('There is no such tile.');
+  const here = roomTileCells(q, t);
+  const box = tileBox(here);
+  const cells = ordered(here.map((c) => [c[0] - box.x + to[0], c[1] - box.y + to[1]] as Cell));
+  const problem = roomPlaceProblem(q, t.type, cells, index);
+  if (problem) return fail(problem);
+  return withRoomTile(q, index, (x) => ({ type: x.type, cells }));
+}
+
+/** Give a room tile another size it comes in, keeping its top left square. */
+export function resizeRoomTile(q: Quest, index: number, size: Footprint): EditResult {
+  const t = q.roomTiles[index];
+  if (!t) return fail('There is no such tile.');
+  if (!roomTileSizes(t.type).some((s) => s[0] === size[0] && s[1] === size[1]))
+    return fail(`${ROOM_TILES[t.type].name} does not come as ${size[0]} x ${size[1]}.`);
+  const box = tileBox(roomTileCells(q, t));
+  const cells = rectCells([box.x, box.y], size[0], size[1]);
+  const problem =
+    limitProblem(q, 'room', t.type, size, index) || roomPlaceProblem(q, t.type, cells, index);
+  if (problem) return fail(problem);
+  return withRoomTile(q, index, (x) => ({ type: x.type, cells }));
+}
+
+/** Turn a room tile a quarter turn: width and height swap, the top left square stays. */
+export function rotateRoomTile(q: Quest, index: number): EditResult {
+  const t = q.roomTiles[index];
+  if (!t) return fail('There is no such tile.');
+  const box = tileBox(roomTileCells(q, t));
+  if (!box.full) return fail('This tile is not a plain rectangle, so it cannot be turned.');
+  if (box.w === box.h) return ok(q);
+  return resizeRoomTile(q, index, [box.h, box.w]);
+}
+
+/** Take a room tile away. */
+export function removeRoomTile(q: Quest, index: number): EditResult {
+  if (!q.roomTiles[index]) return fail('There is no such tile.');
+  const quest = { ...q, roomTiles: q.roomTiles.filter((_, i) => i !== index) };
+  return ok(quest, newIssues(q, quest));
+}
+
+/** The index of the room tile over a square, or -1. */
+export function roomTileIndexAt(q: Quest, cell: readonly number[]): number {
+  return q.roomTiles.findIndex((t) => roomTileCells(q, t).some((c) => key(c) === key(cell)));
+}
+
+/** True when the quest may not have one more ice tunnel pair (the box holds three). */
+export function tunnelsFull(q: Quest): boolean {
+  return q.tunnels.length >= MAX_TUNNEL_PAIRS;
 }

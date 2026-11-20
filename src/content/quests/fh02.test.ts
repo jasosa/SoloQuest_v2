@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { board } from '../../engine/board/board';
 import { buildLevel } from '../../engine/board/level';
 import { applyCoreFile, parseCoreFile } from '../../engine/data/coreFile';
-import { roomTileOf } from '../../engine/data/roomTiles';
+import { ROOM_TILES } from '../../engine/data/roomTiles';
 import type { GameEvent } from '../../engine/game/events';
 import { lookHintCells } from '../../engine/game/hints';
 import { reduce, replay, startGame } from '../../engine/game/reducer';
@@ -233,7 +233,8 @@ describe('quest 2: the north-west rooms', () => {
   it('the ice vault shows its tile and two skeletons', () => {
     const s = run(...toVault);
     expect(s.seenMonsters.has('m-skel-v1') && s.seenMonsters.has('m-skel-v2')).toBe(true);
-    expect(roomTileOf(quest, 'R02')?.name).toBe('Ice Vault');
+    const tile = quest.roomTiles.find((t) => t.area === 'R02');
+    expect(tile && ROOM_TILES[tile.type].name).toBe('Ice Vault');
   });
 
   it('E: R03 shows Krag, a gargoyle and three slippery ice squares; the secret door is found by search', () => {

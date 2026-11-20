@@ -181,7 +181,7 @@ Order of work. Each slice ends green with tests and a commit.
 - [x] Slice 3: team as a free list (decision 38, details in 88): entries with a kind (hero, mercenary, animal ally) and an owner hero (`src/engine/data/team.ts`); `HERO_DIED` for any entry; the New game popup gets the groups (the four heroes, the alternate Barbarian, mercenaries, the wolf); the quest's `team` rule and the general rules show as warnings, never a block; older saves with a plain hero list load. Left: the note condition "ally in team" (the team is not in the game state)
 - [x] Slice 4: targets (decision 39): mercenaries, allies and NPCs in tie lists and target names (`Order.tieNames`, an NPC is `npc:<id>`); `excludeTargets` on a quest (Frozen Horror quest 3 excludes Gothar); `caster`, `grudge` and theft pick heroes only (the thief card says a non-hero target is attacked instead)
 - [x] Slice 5: campaign / one-shot (decision 37, details in 89): finished quests, carried flags with one-shot defaults (`flagsIn`, `flagsOut`), the team, campaign settings and the campaign seed, kept per pack on this device (`src/engine/pack/campaign.ts`, `src/persist/campaigns.ts`). The campaign settings have no switch yet (slice 6)
-- [x] Slice 6: settings: Rule hints is per quest (decision 84, done earlier); "No Yeti hug in solo quests" (decision 59) and the pack's campaign settings as switches in the settings popup (decision 90). Left: the Raiment artifact draw (kill notes with the strongest monster of four quests; needs the book)
+- [x] Slice 6: settings: Rule hints is per quest (decision 84, done earlier); "No Yeti hug in solo quests" (decision 59) and the pack's campaign settings as switches in the settings popup (decision 91). Left: the Raiment artifact draw (kill notes with the strongest monster of four quests; needs the book)
 
 ## M10 · Frozen Horror (`FROZEN_HORROR.md`, decisions 41 to 63)
 
@@ -198,10 +198,10 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
   - [x] 4d: terrain tiles (ice ledge, icy river, chasm) with their rule in the note of the square or room, the Rule hints setting (reminder on first reveal of terrain and room tiles, and the free-movement hint). Rule hints are a per-quest setting (see decision 84)
   - [x] 4e: sight-blocking tiles until a flag (`blocks` on a board tile, the Q0 cage) and the `replaceFurnitureWithDoor` effect (the Q0 throne). Quest 0 uses both
   - [x] 4f: ice tunnels as a quest field with design numbers, drawn on the board, `TUNNEL_USE` (decision 81). The editor cannot place tunnels, tiles or edge doors yet (slice 7)
-  - [ ] 4g: the wandering monster list with counts for a wandering monster CARD
-- [ ] Slice 5: notes: a question on a letter and a hidden part (decision 53) and the new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, clear a sight blocker, `crossMap`)
+  - [x] 4g: the wandering monster CARD brings the quest's `count` monsters like the trap (a square per monster, all attack the searching hero at once)
+- [x] Slice 5: notes (audit done 2026-11-20): everything in the list already exists: a question on a letter with a hidden part is a `manual` note with `promptChoice` (decision 53, QUEST_FORMAT.md), `removeDoor`, `showDoor` (door `hiddenUntil` plus `setFlag`: no separate effect), `removeMonster` (`setMonsterState` away; `monsterLeft` trigger), `replaceFurnitureWithDoor`, clear a sight blocker (board tile `blocks` with `hiddenWhen` a flag), `crossMap`. Skipped on purpose: `excludeTarget` (and the quest field `excludeTargets`). Targets are heroes only today, because the team list and NPC/mercenary targets (M9 slices 3 and 4) are not built, so there is nothing to exclude; Gothar of Frozen Horror quest 3 stays a note text ("monsters go only for the Barbarian"). Build it with M9 slice 4
 - [x] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event (the `crossMap` effect and the `CROSS_MAP` event), the map name in the header, one entry in the quest list. The editor tab per map and the link tool are slice 7
-- [ ] Slice 7: editor: pack tools, a tab per map, the link tool, the spell builder; then encode Q0 and Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
+- [ ] Slice 7: editor for double quests is DONE (2026-11-20): a tab per map, New map and Delete map, map name and id, the link tool (join two stairways, refused unless both ends are on stairs), notes scoped to a map (the `map` dropdown in the action form), merged rooms (`areaOverrides`), monster `size`, rules `bounty` and `doorTeleport`; the editor opens the whole bundled double quest (the copy used to take map 1 only). Still open: pack tools, then encode Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
 
 ## Bugs from the quest 0 review (owner, 2026-11-18)
 
@@ -271,26 +271,28 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [x] Encode Frozen Horror quests 1 to 8 (map read from the scan, checked by script overlays; the owner still reviews each in the editor). Quests 9 and 10 need multi-map quests (M10 slice 6)
 - [x] Editor map: draw and place tunnels, tiles and edge doors on the board (done 2026-11-20: Tiles tool, door kinds and flags in the inspector; the Quest tab keeps only the way out and the texture pack)
 - [x] Editor can model the Frozen Horror behaviors (audit table in `FROZEN_HORROR.md`, section 9): `attackOnly`, `passive`, attacks per turn, objective done rules and confirm buttons, wandering count and enemy, characters (NPCs), end text, entry and exit doors in door lists, the general `monsterLeft` trigger, enemy attacks and size in the Designer. The unused `surrendered` leave reason is gone: a surrender is an action
-- [ ] Editor, still without a form: merged rooms (`areaOverrides`), maps and links of a double quest (slice 7), monster-level `size`, the rules `bounty` and `doorTeleport`
+- [x] Editor forms for merged rooms (`areaOverrides`), maps and links of a double quest, monster-level `size`, the rules `bounty` and `doorTeleport` (done 2026-11-20, M10 slice 7)
 
 ## Tile limits and fixed sizes (owner, 2026-11-20)
 
 Each Frozen Horror tile has a fixed size and a limit per quest. A tile may lie over two different rooms and over corridors (like the ice cave entrance). The editor (Tiles tool) and the validator should know these limits, warn when a quest has too many of a tile, and offer only the sizes below.
 
-- [ ] Ice Ledge: 1 per quest, 5 x 3 squares
-- [ ] Ice Tunnels: 3 pairs, 1 x 1 each
-- [ ] Ice Slide: 1 per quest, 1 x 8
-- [ ] Ice Vault (room tile): 1 of 3 x 2 and 1 of 4 x 3
-- [ ] Living Fog Room: 1, 4 x 4
-- [ ] Scepter Room: 1, 4 x 4
-- [ ] Bottomless Chasm Room: 1, 4 x 4
-- [ ] Icy River: 1 of 1 x 8 and 1 of 1 x 3
-- [ ] Frozen Crypt Room: 1, 5 x 3
-- [ ] Cage Room: 1, 4 x 4
-- [ ] Ice Gremlin Treasure Room: 1, 4 x 3
-- [ ] Frozen Horror Throne Room: 1, 6 x 5
-- [ ] Ice Cave Entrance: 1, 6 x 5
-- [ ] Check what the engine and the bundled quests do today against these sizes and limits (several quests use other footprints, for example slippery ice and the cage at 2 x 2); decide what changes in the data, in `roomTiles.ts` and in the validator. Room tiles may cover parts of two rooms and corridors, so a "tile of a room" may need to become a tile over squares.
+- [x] Ice Ledge: 1 per quest, 5 x 3 squares
+- [x] Ice Tunnels: 3 pairs, 1 x 1 each
+- [x] Ice Slide: 1 per quest, 1 x 8
+- [x] Ice Vault (room tile): 1 of 3 x 2 and 1 of 4 x 3
+- [x] Living Fog Room: 1, 4 x 4
+- [x] Scepter Room: 1, 4 x 4
+- [x] Bottomless Chasm Room: 1, 4 x 4
+- [x] Icy River: 1 of 1 x 8 and 1 of 1 x 3
+- [x] Frozen Crypt Room: 1, 5 x 3
+- [x] Cage Room: 1, 4 x 4
+- [x] Ice Gremlin Treasure Room: 1, 4 x 3
+- [x] Frozen Horror Throne Room: 1, 6 x 5
+- [x] Ice Cave Entrance: 1, 6 x 5
+- [x] Check what the engine and the bundled quests do today against these sizes and limits (several quests use other footprints, for example slippery ice and the cage at 2 x 2); decide what changes in the data, in `roomTiles.ts` and in the validator. Room tiles may cover parts of two rooms and corridors, so a "tile of a room" may need to become a tile over squares.
+  - Done (decision 88): room tiles are tiles over squares (`cells`, or the `area` shortcut), every tile has its sizes and limit in `roomTiles.ts`, the validator warns, the editor offers only the sizes and shows "Ice Vault 1 of 2", a fourth tunnel pair is refused. Ice river and ice ledge became fixed tiles. All ten Frozen Horror quests are checked by `src/content/quests/tileLimits.test.ts`.
+  - For the owner, against the book: quest 5 draws its ice ledge 4 x 4 (21..24, 10..13) and the tile comes as 5 x 3. It stays as it is and the test lists it as a known deviation. Also not in the owner table and left without a limit: the cage board tile (2 x 2, used by quests 0 and 4) and slippery ice (quest 9 uses five pieces over its two halves).
 
 ## Translations (owner, 2026-11-20)
 

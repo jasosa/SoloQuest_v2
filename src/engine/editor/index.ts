@@ -14,3 +14,5 @@ export {
 } from '../quest/validate';
 export * from './features';
 export * from './tiles';
+export * from './maps';
+export * from './merges';

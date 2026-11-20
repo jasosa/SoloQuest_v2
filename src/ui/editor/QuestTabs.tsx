@@ -6,6 +6,7 @@ import type { EditorStore } from './editorStore';
 import { ActionForm } from './NotesPanel';
 import { FeaturesPanel } from './FeaturesPanel';
 import { QuestPanel } from './QuestPanel';
+import { MapsPanel, MergesPanel } from './MapsPanel';
 
 /**
  * The Quest tab (the mockup of decision 70): the actions of the quest on the left, the general
@@ -57,6 +58,12 @@ export function QuestTab({ store }: { store: EditorStore }) {
               }}
             />
           </Fld>
+        </Panel>
+        <Panel title="Maps and links" testId="quest-maps">
+          <MapsPanel store={store} />
+        </Panel>
+        <Panel title="Merged rooms (map on show)" testId="quest-merges">
+          <MergesPanel store={store} />
         </Panel>
         <Panel title="Objectives" testId="quest-objectives">
           <QuestPanel store={store} only="objectives" />

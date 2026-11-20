@@ -192,16 +192,16 @@ export function BoardTileArt({
   );
 }
 
-/** A room tile: a dashed outline round every square of the room and the tile's name. */
+/** A room tile: a dashed outline round every square of the tile and the tile's name. */
 export function RoomTileArt({
   type,
-  area,
+  index,
   cells,
   selected,
   U,
 }: {
   type: RoomTileType;
-  area: string;
+  index: number;
   cells: readonly Cell[];
   selected: boolean;
   U: number;
@@ -212,7 +212,7 @@ export function RoomTileArt({
     Math.hypot(c[0] - mx, c[1] - my) < Math.hypot(best[0] - mx, best[1] - my) ? c : best,
   );
   return (
-    <g data-room-tile={type} data-room-tile-area={area}>
+    <g data-room-tile={type} data-room-tile-index={index}>
       {cells.map(([cx, cy]) => (
         <g key={`${cx},${cy}`} pointerEvents="none">
           {selected && (

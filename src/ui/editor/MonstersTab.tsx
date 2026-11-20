@@ -337,6 +337,17 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   <option value="3">Three</option>
                 </select>
               </Fld>
+              <Fld label="Size">
+                <select
+                  className="fr-sel"
+                  aria-label="Monster size"
+                  value={String(monster.size ?? '')}
+                  onChange={(e) => patch({ size: e.target.value ? Number(e.target.value) : null })}
+                >
+                  <option value="">As its enemy (usually 1 square)</option>
+                  <option value="2">Large: 2 x 2 squares</option>
+                </select>
+              </Fld>
               <Toggle
                 label="Attacked, not fought: no wounds, no Slain button (an action says what an attack does)"
                 on={monster.attackOnly === true}

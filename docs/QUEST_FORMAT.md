@@ -189,17 +189,44 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 
 `tunnels: [{ "id": "tun1", "design": 1, "a": [15, 12], "b": [18, 10] }]`: two squares of bare floor that lead to each other. `design` (1 to 9) is the number drawn on both, one pair per design. A tap on a seen end gives the button "A hero used this tunnel" (event `TUNNEL_USE`, `from` is `a` or `b`): the other end is looked from, as after "Look from here".
 
-Terrain is a board tile too: `icyRiver`, `iceLedge` and `chasm` (squares of the quest map), drawn square by square, with the rule in the note of the square or room (see Rule hints in `DESIGN.md`). Terrain changes no sight.
+Terrain is a board tile too: `icyRiver`, `iceLedge` and `chasm` (squares of the quest map), with the rule in the note of the square or room (see Rule hints in `DESIGN.md`). Terrain changes no sight. Only `chasm` is laid square by square; the river and the ledge are tiles of a fixed size (see the table below).
 
 `boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. A tile with `"blocks": true` (needs `hiddenWhen`) also blocks line of sight and squares until that flag is set (decision 56: the cage of Q0 until the lever). Rooms still reveal whole: the monsters inside a cage are seen with the room.
 
-`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count` for a wandering monster trap.
+`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count`: a wandering monster trap and a wandering monster card both bring `count` monsters. The players give a square per monster (`WANDERING_MONSTER` takes `cells`); all attack the searching hero at once.
 
 An NPC such as an animal ally (`npcs`, with `spawnNpc` on the first note) shows with its stats in the Companions list.
 
 ## Room tiles and merged rooms (Frozen Horror)
 
-`roomTiles: [{ "type": "iceVault", "area": "R17" }]` gives a room a tile with its own name and rule, shown in the room note (types in `src/engine/data/roomTiles.ts`: `iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`). One tile per room. The rule is a reminder: rolls and hits stay with the players.
+A room tile is a physical tile of a fixed size (decision 88). It lies over squares, so it may cover parts of two rooms and corridor squares. Two forms, exactly one per tile:
+
+- `roomTiles: [{ "type": "iceVault", "cells": [[4,15],[5,15],[6,15],[4,16],[5,16],[6,16]] }]`: the tile lies over these squares (a plain rectangle of one of its sizes, rock never). Its rule is shown in the note of every room and corridor square it covers, once one of its squares has been seen.
+- `roomTiles: [{ "type": "iceVault", "area": "R17" }]`: a shortcut for a tile that fills one room. It expands to the squares of that room, with the rooms merged into it (`areaOverrides`) and without rock squares. It is seen when the room is revealed. Used by the bundled quests; the editor turns it into `cells` when the tile is moved, resized or turned.
+
+Types (`src/engine/data/roomTiles.ts`): `iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`. With `area`, one tile per room. The rule is a reminder: rolls and hits stay with the players.
+
+### Tile sizes and limits (decision 88)
+
+The box holds a limited number of each tile, in fixed sizes (a tile can lie turned, so 3 x 2 is also 2 x 3). The limits are per quest, and a quest of two maps counts each map on its own (the book gives each half its own set).
+
+| Tile | Sizes in the box | Per quest |
+|---|---|---|
+| Ice cave entrance (board) | 6 x 5 | 1 |
+| Ice ledge (board) | 5 x 3 | 1 |
+| Icy river (board) | 1 x 8, 1 x 3 | 1 of each |
+| Slippery ice (board) | 1 x 1, 2 x 1, 3 x 1, 3 x 2 | no limit stated |
+| Cage (board) | 2 x 2 | no limit stated |
+| Chasm (board) | square by square | none |
+| Ice Vault (room) | 3 x 2, 4 x 3 | 1 of each |
+| Living Fog, Scepter, Bottomless Chasm and Cage rooms | 4 x 4 | 1 each |
+| Frozen Crypt room | 5 x 3 | 1 |
+| Ice Gremlin Treasure room | 4 x 3 | 1 |
+| Frozen Horror throne room (`seatOfPower`) | 6 x 5 | 1 |
+| Ice tunnels | 1 x 1 each end | 3 pairs |
+| Ice slide (trap `path`) | 1 x 8, straight | 1 |
+
+The validator warns (it never blocks) when a tile has a size that is not one of its sizes, when there are more tiles of a size than the limit, when room tiles overlap, when there are more than 3 tunnel pairs, or when an ice slide is not a straight run of 8 squares. Each message names the tile and the limit. Squares of a room tile in rock, or off the board, are errors. The editor offers only the allowed sizes and refuses a tap past a limit.
 
 `areaOverrides: [{ "merge": ["R09", "R10"] }]` makes two rooms that touch one room (Q10 K: a tile laid over two small rooms). The second room becomes part of the first: the wall between them is gone for sight and reveal, and the second id is no longer a room of the quest (notes, tiles and the start must use the first). The rooms must touch.
 
@@ -246,3 +273,8 @@ A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose m
 `team` (optional): `{ "solo": true, "only": ["barbarian"], "grantsAlly": "snowdasher" }`. `solo`: the quest is for one hero. `only`: only these heroes (left out: any hero). `grantsAlly`: the id of a pack animal ally (`team.allies` in the pack manifest) that comes with the hero. Words for the New game popup only: it shows warnings and never blocks.
 
 `flagsIn` (optional): `[{ "flag": "scepterDestroyed", "oneShot": true }]`. Flags the quest begins with. In a campaign the value is what an earlier quest handed on (false if none); played alone it is `oneShot`. `flagsOut` (optional): `["scepterDestroyed"]`, flags this quest hands on when it is finished. `excludeTargets` (optional): NPC ids that Zargon's monsters ignore (decision 39).
+
+
+## Editing a double quest
+
+The editor shows one map at a time (a chip per map on the Map tab). Inside, the map on show is swapped into the top-level fields, so every single-map edit works on it, and the saved draft, undo and the exported file always keep map 1 on top. New ids skip the ids of the other maps. A new note about a letter, a square or a room names the map on show (`map`); a quest-wide note names none. The link tool refuses a link unless both ends are on stairs furniture of two different maps. Deleting a map also deletes the notes that name it and the links that end on it; a quest left with one map has no `maps`, `links`, `mapId` or note `map` any more.

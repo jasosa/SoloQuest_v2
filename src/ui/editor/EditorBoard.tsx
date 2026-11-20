@@ -19,7 +19,8 @@ import {
   pickTunnelDesign,
   placeBoardTile,
   placeRoomTile,
-  roomTileAt,
+  roomTileCellsFor,
+  roomTileIndexAt,
   tileCellsFor,
   moveFurniture,
   moveMonster,
@@ -31,6 +32,7 @@ import {
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import { Furniture } from '../board/Furniture';
+import { roomTileCells } from '../../engine/quest/roomTileCells';
 import { BoardTileArt, ExteriorDoorArt, RoomTileArt, TunnelEndArt } from './TileArt';
 import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
@@ -119,7 +121,14 @@ export function previewOp(
     }
     case 'tiles': {
       const picked = opts.tile;
-      if (picked.group === 'room') return (q) => placeRoomTile(q, cell, picked.type);
+      if (picked.group === 'room')
+        return (q) =>
+          placeRoomTile(q, {
+            type: picked.type,
+            at: cell,
+            variant: opts.tileVariant,
+            turned: opts.tileTurned,
+          });
       return (q) =>
         placeBoardTile(q, {
           type: picked.type,
@@ -241,8 +250,8 @@ export function EditorBoard({
     if (ti >= 0) return { kind: 'tile', index: ti };
     const zone = quest.zones.find((z) => z.cells.some((c) => sameCell(c as Cell, cell)));
     if (zone) return { kind: 'zone', id: zone.id };
-    const rt = roomTileAt(quest, cell);
-    if (rt) return { kind: 'roomTile', area: rt.area };
+    const rt = roomTileIndexAt(quest, cell);
+    if (rt >= 0) return { kind: 'roomTile', index: rt };
     return null;
   };
 
@@ -341,13 +350,13 @@ export function EditorBoard({
     if (s.tool === 'tiles') {
       const picked = s.opts.tile;
       const ti = boardTileAt(quest, cell);
-      const rt = roomTileAt(quest, cell);
+      const rt = roomTileIndexAt(quest, cell);
       if (picked.group === 'board' && ti >= 0) {
         s.select({ kind: 'tile', index: ti });
         return;
       }
-      if (picked.group === 'room' && rt && rt.type === picked.type) {
-        s.select({ kind: 'roomTile', area: rt.area });
+      if (picked.group === 'room' && rt >= 0 && quest.roomTiles[rt]?.type === picked.type) {
+        s.select({ kind: 'roomTile', index: rt });
         return;
       }
       const op = previewOp(store, cell, edge, outer);
@@ -357,8 +366,8 @@ export function EditorBoard({
           const made = boardTileAt(now, cell);
           if (made >= 0) s.select({ kind: 'tile', index: made });
         } else {
-          const made = roomTileAt(now, cell);
-          if (made) s.select({ kind: 'roomTile', area: made.area });
+          const made = roomTileIndexAt(now, cell);
+          if (made >= 0) s.select({ kind: 'roomTile', index: made });
         }
       }
       return;
@@ -703,26 +712,16 @@ export function EditorBoard({
 
   // Frozen Horror board features: tiles under the walls, tunnels and exterior doors on top.
   const tileArt: ReactNode[] = [];
-  quest.roomTiles.forEach((rt) => {
-    const cs: Cell[] = [];
-    for (let y = 0; y < BOARD_H; y++)
-      for (let x = 0; x < BOARD_W; x++)
-        if (
-          !rockSet.has(cellKey(x, y)) &&
-          (areaAt(board, x, y) === rt.area ||
-            quest.areaOverrides.some(
-              (m) => m.merge[0] === rt.area && m.merge[1] === areaAt(board, x, y),
-            ))
-        )
-          cs.push([x, y]);
+  quest.roomTiles.forEach((rt, i) => {
+    const cs = roomTileCells(quest, rt);
     if (cs.length === 0) return;
     tileArt.push(
       <RoomTileArt
-        key={`rt${rt.area}`}
+        key={`rt${i}`}
         type={rt.type}
-        area={rt.area}
+        index={i}
         cells={cs}
-        selected={selection?.kind === 'roomTile' && selection.area === rt.area}
+        selected={selection?.kind === 'roomTile' && selection.index === i}
         U={U}
       />,
     );
@@ -1156,8 +1155,13 @@ export function EditorBoard({
         preview?.ok ?? false,
       ),
     );
-  else if (active && tool === 'tiles' && opts.tile.group === 'room' && preview)
-    ghost.push(...ghostCells([active.cell], preview.ok));
+  else if (active && tool === 'tiles' && opts.tile.group === 'room')
+    ghost.push(
+      ...ghostCells(
+        roomTileCellsFor(opts.tile.type, active.cell, opts.tileVariant, opts.tileTurned),
+        preview?.ok ?? false,
+      ),
+    );
   else if (active && tool === 'doors' && opts.doorKind === 'tunnel')
     ghost.push(...ghostCells([active.cell], pendingTunnel ? (preview?.ok ?? false) : true));
   else if (active && ['monsters', 'markers', 'blocks', 'traps'].includes(tool) && preview)

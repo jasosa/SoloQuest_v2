@@ -368,6 +368,61 @@ describe('SEARCH_TREASURE: quest 1 notes A and D (decision 17)', () => {
   });
 });
 
+describe('WANDERING_MONSTER with a count', () => {
+  const lv = buildLevel(testQuest({ wandering: { monster: 'orc', count: 2 } }));
+  const ready: GameEvent[] = [open('d2'), kill('m1')];
+
+  it('a card brings the whole group, each fresh and aimed at the searching hero', () => {
+    const r = reduce(lv, replay(lv, SEED, ready), wander('R17', 'elf'));
+    expect(r.prompts).toHaveLength(2);
+    expect(r.prompts[0]).toMatchObject({ monster: 'w1', number: 1, of: 2, hero: 'elf' });
+    expect(r.prompts[1]).toMatchObject({ monster: 'w2', number: 2, of: 2 });
+    const roster = monstersInPlay(lv, r.state).filter((m) => m.wandering);
+    expect(roster.map((m) => [m.id, m.fresh, m.wanderAt])).toEqual([
+      ['w1', true, 'elf'],
+      ['w2', true, 'elf'],
+    ]);
+  });
+
+  it('takes a square per monster, and rejects too many', () => {
+    const base = replay(lv, SEED, ready);
+    const r = reduce(lv, base, {
+      type: 'WANDERING_MONSTER',
+      room: 'R17',
+      hero: 'elf',
+      cells: [
+        [4, 16],
+        [5, 16],
+      ],
+    });
+    expect(r.state.wanderers.w1?.cell).toEqual([4, 16]);
+    expect(r.state.wanderers.w2?.cell).toEqual([5, 16]);
+    expect(() =>
+      reduce(lv, base, {
+        type: 'WANDERING_MONSTER',
+        room: 'R17',
+        hero: 'elf',
+        cells: [
+          [4, 16],
+          [5, 16],
+          [6, 16],
+        ],
+      }),
+    ).toThrow();
+  });
+
+  it('a single square still places the first monster', () => {
+    const r = reduce(lv, replay(lv, SEED, ready), {
+      type: 'WANDERING_MONSTER',
+      room: 'R17',
+      hero: 'elf',
+      cell: [4, 16],
+    });
+    expect(r.state.wanderers.w1?.cell).toEqual([4, 16]);
+    expect(r.state.wanderers.w2?.cell).toBeUndefined();
+  });
+});
+
 describe('WANDERING_MONSTER', () => {
   const lv = buildLevel(testQuest({ wandering: { monster: 'orc' } }));
   const ready: GameEvent[] = [open('d2'), kill('m1')];

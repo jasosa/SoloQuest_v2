@@ -4,6 +4,7 @@
  */
 import { areaAt, type Board } from '../../src/engine/board/board';
 import type { Quest } from '../../src/engine/quest/schema';
+import { roomTileCells } from '../../src/engine/quest/roomTileCells';
 
 /** Where the board grid sits in the cropped scan (measured from the grid lines of quest 1). */
 export interface Calibration {
@@ -77,13 +78,6 @@ export interface OverlayOptions {
   grid?: boolean;
   /** Scan opacity, 0..1. */
   scanOpacity?: number;
-}
-
-/** First square (row by row) of an area, or undefined. */
-function firstCellOfArea(board: Board, area: string): [number, number] | undefined {
-  for (let y = 0; y < board.height; y++)
-    for (let x = 0; x < board.width; x++) if (areaAt(board, x, y) === area) return [x, y];
-  return undefined;
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -170,13 +164,10 @@ export function buildOverlaySvg(
 
     // Room tiles (Frozen Horror): the room's tile type, written in its first square.
     for (const rt of quest.roomTiles) {
-      for (let y = 0; y < board.height; y++)
-        for (let x = 0; x < board.width; x++)
-          if (areaAt(board, x, y) === rt.area) {
-            const r = cellRect(cal, x, y);
-            out.push(rectEl(r, 'fill="#00acc1" fill-opacity="0.12"'));
-          }
-      const first = firstCellOfArea(board, rt.area);
+      const cs = roomTileCells(quest, rt, board);
+      for (const [x, y] of cs)
+        out.push(rectEl(cellRect(cal, x, y), 'fill="#00acc1" fill-opacity="0.12"'));
+      const first = cs[0];
       if (first) {
         const r = cellRect(cal, first[0], first[1]);
         out.push(text(r.x + r.w / 2, r.y + r.h / 2 + 5, `[${rt.type}]`, 13, '#006064'));

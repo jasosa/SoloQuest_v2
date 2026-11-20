@@ -27,7 +27,7 @@ The base game is the pack `core`. Every expansion is a pack that depends on it. 
 
 ## Campaign and one-shot (decision 37)
 
-The New game popup asks One-shot or Campaign. A campaign is kept per pack on this device (`src/persist/campaigns.ts`): finished quests, the flags quests hand on (`flagsOut`, read by later quests as `flagsIn`), the last team, the campaign settings and the campaign seed. A one-shot starts every `flagsIn` flag at its `oneShot` value. See decision 89.
+The New game popup asks One-shot or Campaign. A campaign is kept per pack on this device (`src/persist/campaigns.ts`): finished quests, the flags quests hand on (`flagsOut`, read by later quests as `flagsIn`), the last team, the campaign settings and the campaign seed. A one-shot starts every `flagsIn` flag at its `oneShot` value. See decision 90.
 
 ## What the registry checks (`src/engine/pack/registry.ts`, `npm run validate`)
 

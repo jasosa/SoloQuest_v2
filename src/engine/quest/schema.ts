@@ -533,8 +533,24 @@ const boardFields = {
     .default({ rooms: [], cells: [] }),
   doors: z.array(DoorSchema).default([]),
   edgeDoors: z.array(EdgeDoorSchema).default([]),
-  /** Rooms that hold a tile with its own look and rule (Frozen Horror). One tile per room. */
-  roomTiles: z.array(z.strictObject({ type: z.enum(ROOM_TILE_TYPES), area: roomId })).default([]),
+  /**
+   * Room tiles (Frozen Horror, decision 88): a physical tile with a fixed size, over squares. `cells`
+   * are its squares and may cover parts of two rooms and corridor squares. `area` is a shortcut for
+   * a tile that fills one room (with the rooms merged into it, rock left out). Exactly one of them.
+   */
+  roomTiles: z
+    .array(
+      z
+        .strictObject({
+          type: z.enum(ROOM_TILE_TYPES),
+          area: roomId.optional(),
+          cells: cells.optional(),
+        })
+        .refine((t) => (t.area === undefined) !== (t.cells === undefined), {
+          message: 'a room tile has exactly one of "area" and "cells"',
+        }),
+    )
+    .default([]),
   /**
    * Tiles drawn on squares: the ice cave entrance, a cage. `hiddenWhen` is a quest flag that takes
    * the tile off the board when it is set (the cage opens).

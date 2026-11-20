@@ -6,6 +6,7 @@
  * Targets (a door, a square, an area) are chosen from a list or by clicking on the board.
  */
 import { board, roomIds } from '../../engine/board/board';
+import { isMultiMap, questMaps } from '../../engine/quest/maps';
 import { shownName } from './monsterLabel';
 import { removeNote, updateNote, type NotePatch } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
@@ -405,6 +406,20 @@ export function ActionForm({
 
       <section>
         <div className="lbl">Extras</div>
+        {isMultiMap(store.getState().canon) && (
+          <Choose
+            label="Map"
+            value={note.map ?? ''}
+            options={[
+              { value: '', label: 'Every map' },
+              ...questMaps(store.getState().canon).map((m) => ({
+                value: m.id,
+                label: m.name ?? m.id,
+              })),
+            ]}
+            onChange={(v) => patch({ map: v === '' ? null : v })}
+          />
+        )}
         <LetterField
           key={`${note.id}:${note.letter ?? ''}`}
           store={store}

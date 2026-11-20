@@ -205,32 +205,39 @@ export function wanderingMonster(
   if ('text' in w) return { state, prompts: [{ kind: 'wanderingText', text: w.text }] };
 
   const d = draftOf(state);
-  const cell = event.cell ? floorCell(level, event.cell) : undefined;
-  const id = joinRoster(level, d, {
-    type: w.monster,
-    ...(w.enemy ? { enemy: w.enemy } : {}),
-    room,
-    wanderAt: hero,
-    fresh: true,
-    ...(cell ? { cell } : {}),
-  });
-  return {
-    state: d,
-    prompts: [
-      {
-        kind: 'wanderingMonster',
-        monster: id,
-        monsterType: w.monster,
-        ...wandererFacts(level, id, w.monster, w.enemy),
-        hero,
-        room,
-        placement: {
-          nextToHero: hero,
-          attacksAtOnce: true,
-        },
+  // The card brings the quest's whole wandering group (`count`), as the trap does. The players
+  // give a square per monster: `cells`, or `cell` for the first one (older saves).
+  const total = w.count ?? 1;
+  const given = event.cells ?? (event.cell ? [event.cell] : []);
+  if (given.length > total)
+    throw new EventError('BAD_CELL', `Too many squares: the card brings ${total} monster(s)`);
+  const cells = given.map((c) => floorCell(level, c));
+  const prompts: Prompt[] = [];
+  for (let i = 0; i < total; i++) {
+    const cell = cells[i];
+    const id = joinRoster(level, d, {
+      type: w.monster,
+      ...(w.enemy ? { enemy: w.enemy } : {}),
+      room,
+      wanderAt: hero,
+      fresh: true,
+      ...(cell ? { cell } : {}),
+    });
+    prompts.push({
+      kind: 'wanderingMonster',
+      monster: id,
+      monsterType: w.monster,
+      ...wandererFacts(level, id, w.monster, w.enemy),
+      hero,
+      room,
+      ...(total > 1 ? { number: i + 1, of: total } : {}),
+      placement: {
+        nextToHero: hero,
+        attacksAtOnce: true,
       },
-    ],
-  };
+    });
+  }
+  return { state: d, prompts };
 }
 
 // ---- secret doors

@@ -44,10 +44,10 @@ import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
 import type { NoteTarget } from '../../engine/quest/schema';
-import { BOARD_TILES, roomTileOf } from '../../engine/data/roomTiles';
+import { BOARD_TILES } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
 import { liveMonstersInSight } from '../../engine/game/search';
-import { putTilesText, startTiles } from '../../engine/game/tiles';
+import { putTilesText, roomTilesAt, roomTilesInArea, startTiles } from '../../engine/game/tiles';
 import { useQuestSettings } from '../settings';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { ForThisQuest } from './ForThisQuest';
@@ -372,7 +372,14 @@ export function PlayScreen({
   const [adding, setAdding] = useState<
     | { t: 'type'; type: MonsterType }
     | { t: 'pick'; type: MonsterType }
-    | { t: 'wander'; room: string; hero: string; anchor: Anchor }
+    | {
+        t: 'wander';
+        room: string;
+        hero: string;
+        anchor: Anchor;
+        total: number;
+        cells: [number, number][];
+      }
     | null
   >(null);
   const pickedCell = (picked: readonly [number, number]) => {
@@ -387,9 +394,13 @@ export function PlayScreen({
       )
         setAdding(null);
     } else if (adding.t === 'wander') {
-      if (
+      // One square per monster of the card (the quest's `count`), then one event.
+      const cells = [...adding.cells, cell];
+      if (cells.length < adding.total) {
+        setAdding({ ...adding, cells });
+      } else if (
         run(
-          { type: 'WANDERING_MONSTER', room: adding.room, hero: adding.hero, cell },
+          { type: 'WANDERING_MONSTER', room: adding.room, hero: adding.hero, cells },
           adding.anchor,
         )
       )
@@ -406,7 +417,14 @@ export function PlayScreen({
         ? () => {
             // The players put it next to the hero and tell the app the square (decision 66).
             setRes(null);
-            setAdding({ t: 'wander', room, hero, anchor: res.anchor });
+            setAdding({
+              t: 'wander',
+              room,
+              hero,
+              anchor: res.anchor,
+              total: wandering && 'monster' in wandering ? (wandering.count ?? 1) : 1,
+              cells: [],
+            });
           }
         : undefined;
     const stages = resultStages(res.prompts);
@@ -497,6 +515,9 @@ export function PlayScreen({
           title={canLook ? 'A hero stands here' : 'Corridor square'}
           onClose={closeNote}
         >
+          {roomTilesAt(level, state, sel.at).map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {boardTilesAt(level, state, sel.at).map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}
@@ -586,7 +607,7 @@ export function PlayScreen({
       );
       // A furniture note has three scopes: the element, the room, this quest. A furniture piece
       // with no action of its own says so, and the room actions sit under their own heading.
-      const tile = roomTileOf(level.quest, sel.room);
+      const roomTiles = roomTilesInArea(level, state, sel.room);
       const terrain = boardTilesInArea(level, state, sel.room).filter(
         (t) => BOARD_TILES[t.type].terrain,
       );
@@ -603,7 +624,9 @@ export function PlayScreen({
               This {furnitureName(sel.furniture).toLowerCase()} has no special action.
             </p>
           )}
-          {tile && <TileRule tile={tile} />}
+          {roomTiles.map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {terrain.map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}
@@ -616,11 +639,13 @@ export function PlayScreen({
       ) : (
         <MarginNote
           anchor={anchor}
-          kind={tile ? tile.name : 'Room'}
+          kind={roomTiles[0] ? roomTiles[0].tile.name : 'Room'}
           title="Search this room"
           onClose={closeNote}
         >
-          {tile && <TileRule tile={tile} />}
+          {roomTiles.map((t) => (
+            <TileRule key={`rt${t.index}`} tile={t.tile} />
+          ))}
           {terrain.map((t) => (
             <TileRule key={t.index} tile={BOARD_TILES[t.type]} />
           ))}
@@ -1124,7 +1149,9 @@ export function PlayScreen({
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
             ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
-            : `Tap the square where you put the wandering monster, next to the ${nameOf(adding.hero)}.`}
+            : adding.total > 1
+              ? `Tap the square where you put wandering monster ${adding.cells.length + 1} of ${adding.total}, ${adding.cells.length === 0 ? 'next to' : 'as close as you can to'} the ${nameOf(adding.hero)}.`
+              : `Tap the square where you put the wandering monster, next to the ${nameOf(adding.hero)}.`}
           <button className="link" onClick={() => setAdding(null)}>
             Cancel
           </button>

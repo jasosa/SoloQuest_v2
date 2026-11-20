@@ -164,7 +164,9 @@ export function Inspector({
           {door && <DoorFields store={store} door={door} />}
           {edgeDoor && <ExteriorDoorFields store={store} id={edgeDoor.id} />}
           {selection.kind === 'tile' && <TileFields store={store} index={selection.index} />}
-          {selection.kind === 'roomTile' && <RoomTileFields store={store} area={selection.area} />}
+          {selection.kind === 'roomTile' && (
+            <RoomTileFields store={store} index={selection.index} />
+          )}
           {selection.kind === 'tunnel' && (
             <TunnelFields store={store} id={selection.id} end={selection.end} />
           )}
@@ -246,7 +248,7 @@ function selectionLabel(selection: NonNullable<EditSelection>): string {
     case 'tile':
       return `Tile ${selection.index + 1}`;
     case 'roomTile':
-      return `Room ${selection.area}`;
+      return `Room tile ${selection.index + 1}`;
     case 'tunnel':
       return `${selection.id}, end ${selection.end.toUpperCase()}`;
     default:
