@@ -850,3 +850,72 @@ header .goalline b {
   padding-top: 12px;
   border-top: 1px solid var(--rock-line);
 }
+
+/* ---------- goal line as a button, end sheet (decision 97) ---------- */
+.app.play header button.goalline {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+}
+.app.play header button.goalline .gtext {
+  text-decoration: underline dashed var(--ink-2);
+  text-underline-offset: 4px;
+}
+.app.play header button.goalline .gcount {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+  margin-right: 6px;
+}
+.app.play header button.goalline.dot::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.app.play header button.goalline:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.app.play header .btn.finish {
+  flex: none;
+  width: auto;
+  min-height: 44px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+.note .goals {
+  margin-bottom: 8px;
+}
+.note .goals li {
+  font-style: normal;
+  padding: 4px 0;
+}
+.note .goals li.done span:last-child {
+  text-decoration: line-through;
+}
+.note .goals li.done .tick {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.note .goals .btn {
+  display: block;
+  margin: 6px 0 2px;
+  min-height: 48px;
+}
+.note .endways {
+  border-top: 1px solid var(--rock-line);
+  padding-top: 10px;
+}

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, openQuestSheet } from './helpers';
+import { dismissStart, openEndSheet } from './helpers';
 
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 
@@ -28,9 +28,9 @@ test.describe('editor: Frozen Horror pieces', () => {
 
     await page.getByTestId('playtest').click();
     await dismissStart(page);
-    await openQuestSheet(page);
+    await openEndSheet(page);
     await expect(
-      page.getByRole('dialog', { name: 'Quest sheet' }).getByRole('button', {
+      page.getByRole('dialog', { name: 'Goal and ending' }).getByRole('button', {
         name: 'The heroes left through the cave',
       }),
     ).toBeVisible();

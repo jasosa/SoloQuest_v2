@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { endQuestWith } from './helpers';
 
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 const door = (page: Page, id: string) => page.locator(`[data-door="${id}"]`);
@@ -28,8 +29,7 @@ test.describe('quest 10: magic doors (decision 67)', () => {
 
   test('leaving by the stairs still shows the note about the gold', async ({ page }) => {
     await start(page, 'dwarf');
-    await btn(page, 'End quest').click();
-    await btn(page, 'Heroes left by the stairs').click();
+    await endQuestWith(page, 'Leave without finishing');
     await expect(page.getByText("fool's gold")).toBeVisible();
   });
 });

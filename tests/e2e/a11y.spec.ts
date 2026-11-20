@@ -71,8 +71,12 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
     await page.getByRole('button', { name: /^Zargon's turn/ }).click();
     expect(await violations(page)).toEqual([]); // Zargon's turn
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'End quest', exact: true }).click();
-    expect(await violations(page)).toEqual([]); // the end of the quest
+    await page.getByTestId('goal-line').click();
+    expect(await violations(page)).toEqual([]); // the end sheet
+    await page.getByRole('button', { name: 'Leave without finishing', exact: true }).click();
+    expect(await violations(page)).toEqual([]); // the confirmation
+    await page.getByTestId('end-confirm').click();
+    expect(await violations(page)).toEqual([]); // the end card
   });
 
   test('quest editor: start, every tab, and the dialogs', async ({ page }) => {
