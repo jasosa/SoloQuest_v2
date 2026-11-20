@@ -3,50 +3,78 @@
  * Notes with text and monsters placed on a named square get a sheet instead (see sheets.ts).
  */
 import type { Prompt } from '../../engine/game/prompts';
+import { t } from '../../i18n/t';
 
 export function promptToasts(prompts: readonly Prompt[]): string[] {
   const out: string[] = [];
   for (const p of prompts) {
     switch (p.kind) {
       case 'monsterPlaced':
-        if (p.cell === undefined) out.push(`${p.name} is in play now.`);
+        if (p.cell === undefined)
+          out.push(t('play.toasts.inPlayNow', '{name} is in play now.', { name: p.name }));
         break;
       case 'monsterState':
         if (p.state === 'stone')
           out.push(
-            p.turns !== undefined
-              ? `${p.name} turns to stone for ${p.turns} turn${p.turns === 1 ? '' : 's'}.`
-              : `${p.name} turns to stone.`,
+            p.turns === undefined
+              ? t('play.toasts.turnsToStone', '{name} turns to stone.', { name: p.name })
+              : p.turns === 1
+                ? t('play.toasts.turnsToStoneOne', '{name} turns to stone for 1 turn.', {
+                    name: p.name,
+                  })
+                : t('play.toasts.turnsToStoneMany', '{name} turns to stone for {turns} turns.', {
+                    name: p.name,
+                    turns: p.turns,
+                  }),
           );
-        else if (p.state === 'dormant') out.push(`${p.name} goes still.`);
-        else if (p.state === 'away') out.push(`${p.name} is gone from the map.`);
-        else out.push(`${p.name} is awake.`);
+        else if (p.state === 'dormant')
+          out.push(t('play.toasts.goesStill', '{name} goes still.', { name: p.name }));
+        else if (p.state === 'away')
+          out.push(
+            t('play.toasts.goneFromTheMap', '{name} is gone from the map.', { name: p.name }),
+          );
+        else out.push(t('play.toasts.isAwake', '{name} is awake.', { name: p.name }));
         break;
       case 'crossed':
-        out.push(`The heroes are on ${p.name ?? 'the other map'} now.`);
+        out.push(
+          t('play.toasts.onTheMapNow', 'The heroes are on {map} now.', {
+            map: p.name ?? t('play.toasts.theOtherMap', 'the other map'),
+          }),
+        );
         break;
       case 'doorsOpened':
-        out.push(p.doors.length > 1 ? 'Doors open on the map.' : 'A door opens on the map.');
+        out.push(
+          p.doors.length > 1
+            ? t('play.toasts.doorsOpen', 'Doors open on the map.')
+            : t('play.toasts.doorOpens', 'A door opens on the map.'),
+        );
         break;
       case 'doorStuck': // shown as a result sheet, not a toast
         break;
       case 'secretDoorAdded':
-        out.push('A secret door is on the map now.');
+        out.push(t('play.toasts.secretDoorOnMap', 'A secret door is on the map now.'));
         break;
       case 'blockPlaced':
-        out.push('Blocked squares are on the map now.');
+        out.push(t('play.toasts.blocksOnMap', 'Blocked squares are on the map now.'));
         break;
       case 'counter':
-        out.push(`${p.counter}: ${p.value}.`);
+        out.push(
+          t('play.toasts.counter', '{counter}: {value}.', { counter: p.counter, value: p.value }),
+        );
         break;
       case 'npcSpawned':
-        out.push(`${p.name} joins the heroes.`);
+        out.push(t('play.toasts.joinsTheHeroes', '{name} joins the heroes.', { name: p.name }));
         break;
       case 'objectiveDone': // shown as a sheet
       case 'goalDone':
         break;
       case 'loopStopped':
-        out.push('Too many notes in a row. The rest was skipped.');
+        out.push(t('play.toasts.tooManyNotes', 'Too many notes in a row. The rest was skipped.'));
+        break;
+      case 'layoutShown':
+        out.push(
+          t('play.toasts.layoutShown', 'Drawn without what is inside. Open the door to see it.'),
+        );
         break;
       default:
         break;

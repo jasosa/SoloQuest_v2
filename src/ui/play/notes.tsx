@@ -1,4 +1,5 @@
 /** Bodies of the margin notes for searches and traps. Presentational: no game logic. */
+import { rich } from '../shared/rich';
 import { useState, type ReactNode } from 'react';
 import { nameFromId } from '../../engine/data/team';
 import type { Prompt } from '../../engine/game/prompts';
@@ -232,7 +233,11 @@ export function trapStepBody(props: {
         title: t('play.notes.roll1CombatDie', 'Roll 1 combat die'),
         body: (
           <>
-            <p>{t('play.notes.onlyABlackShield', 'Only a black shield springs the trap.')}</p>
+            <p>
+              {rich(
+                t('play.notes.onlyABlackShield', 'Only a <b>black shield</b> springs the trap.'),
+              )}
+            </p>
             <div className="row">
               <button className="btn" onClick={() => props.onDisarm('dwarf', 'blackShield')}>
                 {t('play.notes.blackShield2', 'Black shield')}

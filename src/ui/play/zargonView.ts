@@ -2,6 +2,7 @@
 import type { Order, TurnProgress } from '../../engine/zargon';
 
 import { nameFromId } from '../../engine/data/team';
+import { t } from '../../i18n/t';
 
 export interface TurnItem {
   readonly order: Order;
@@ -41,10 +42,15 @@ export const tieText = (tie: readonly string[], names?: readonly string[]): stri
 
 /** The line under "Zargon's turn" in the right column. */
 export function progressLabel(p: TurnProgress): string {
-  if (p.total === 0) return 'no monster to act';
-  if (p.allDone) return 'all monsters done';
+  if (p.total === 0) return t('play.zargonView.noMonsterToAct', 'no monster to act');
+  if (p.allDone) return t('play.zargonView.allMonstersDone', 'all monsters done');
   const n = p.remaining.length;
-  return `${n} monster${n === 1 ? '' : 's'} to act`;
+  return n === 1
+    ? t('play.zargonView.oneMonsterToAct', '1 monster to act')
+    : t('play.zargonView.monstersToAct', '{n} monsters to act', { n });
 }
 
-export const leftLabel = (left: number): string => (left === 1 ? '1 left' : `${left} left`);
+export const leftLabel = (left: number): string =>
+  left === 1
+    ? t('play.zargonView.oneLeft', '1 left')
+    : t('play.zargonView.nLeft', '{n} left', { n: left });
