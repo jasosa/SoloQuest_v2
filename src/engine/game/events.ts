@@ -13,6 +13,8 @@ export type GameEvent =
   | { readonly type: 'OPEN_DOOR'; readonly door: string }
   /** Show what a hero standing on a seen corridor square can see. */
   | { readonly type: 'LOOK_FROM'; readonly cell: Cell }
+  /** Show room: draw the floor and walls of the room (or the corridor in sight) of `cell`, with nothing on them. */
+  | { readonly type: 'SHOW_LAYOUT'; readonly cell: Cell }
   /** The heroes cross a stairway link to the other map of a multi-map quest (decision 45). */
   | { readonly type: 'CROSS_MAP'; readonly link: string }
   /** A hero (or monster) used an ice tunnel from end `from`: it comes out at the other end, and what is in sight there shows. */

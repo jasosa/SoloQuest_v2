@@ -24,6 +24,7 @@ import {
   searchTreasure,
   wanderingMonster,
 } from './search';
+import { showLayout } from './layout';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
 import { isMemberId, nameFromId } from '../data/team';
@@ -167,6 +168,8 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
     }
     case 'LOOK_FROM':
       return lookFrom(level, state, event.cell);
+    case 'SHOW_LAYOUT':
+      return showLayout(level, state, event.cell);
     case 'TUNNEL_USE':
       return tunnelUse(level, state, event.tunnel, event.from);
     case 'MONSTER_DAMAGE':
