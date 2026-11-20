@@ -50,6 +50,10 @@ drawing, so a pack can be partial.
 | `trap` | A picture per kind of trap: `pit`, `spear`, `fallingBlock`, `chest` (a trapped chest), `scripted`, and the Frozen Horror kinds `stalactite`, `swingingAxe`, `wanderingTrap`, `slipperyIce`, `iceSlide`. `armed` is what the heroes see before a trap springs. |
 | `monster` | A picture per monster type: `skeleton`, `zombie`, `mummy`, `orc`, `goblin`, `abomination`, `gargoyle`, `dreadWarrior`, `dreadSorcerer`. An enemy with its own picture in the Library keeps it. |
 | `furniture` | A picture per furniture type: `stairs`, `table`, `sorcerersTable`, `alchemistsBench`, `bookcase`, `cupboard`, `chest`, `throne`, `tomb`, `rack`, `weaponsRack`, `fireplace`. |
+| `enemy` | A picture per enemy, by enemy id (`iceGremlin`, `yeti`, `polarWarbear`, `frozenHorror`, `crossbowman`, `swordsman`, `halberdier`, `scout`, or the id of any enemy of a quest). An enemy that has no core type (an Ice Gremlin is not a goblin) can only get a picture this way. It wins over `monster` for that enemy; an enemy's own image in the Library still wins over both. |
+| `edgeDoor` | `ironEntry` and `woodenExit`: the doors in the outer wall of the board. See below. |
+| `tunnel` | An ice tunnel end by design number: `"1"` to `"9"`. A design without a picture keeps the drawn look (a square with its number). |
+| `tile` | Pictures of tiles, drawn once over their squares. See below. |
 | `floor`, `corridor`, `rock`, `wall` | Optional small pieces, for a pack that has no board picture: lists of floor tiles (used in turn by square), one rock tile, and a wall strip one square long. |
 
 ### The board picture
@@ -99,6 +103,29 @@ The heroes never learn the kind of an armed trap, so `armed` is one picture for 
 built-in "?"). After a trap springs, its kind picture is shown: a sprung pit, and the block a falling-block trap
 leaves. Zargon view shows every trap with the picture of its kind. A spear trap leaves nothing behind, so its
 picture shows in Zargon view only.
+
+### Tiles, tunnels and edge doors (Frozen Horror, decision 95)
+
+`tile` is a map from a tile to one picture or a list of pictures. The keys are the room tiles (`iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`), the board tiles that are one fixed piece (`iceCaveEntrance`, `icyRiver`, `iceLedge`, `slipperyIce`) and `iceSlide`. Each picture has `cells: [w, h]`, its size in squares **as the picture is drawn** (an Ice Vault drawn portrait is `[2, 3]`), and may have `scale` and `offset`.
+
+```json
+"tile": {
+  "iceVault": [ { "file": "vault-2x3.png", "cells": [2, 3] }, { "file": "vault-3x4.png", "cells": [3, 4] } ],
+  "scepterRoom": { "file": "scepter.png", "cells": [4, 4] }
+}
+```
+
+- A tile that comes in two sizes (Ice Vault, icy river, slippery ice) has one picture per size. The picture whose `cells` match the tile's footprint is used; if there is none, the tile keeps its dashed outline and name.
+- The picture is stretched over exactly the squares of the tile (it is made for that footprint) and is turned a quarter turn when the tile lies the other way. A tile that is not a full rectangle of squares keeps the outline.
+- `iceSlide` is drawn along the squares of a slide (`cells: [1, 8]`, a straight run of that length). The picture's arrow points down, and it is turned to the way the slide goes. A bent or shorter slide keeps the dashed line.
+- Tunnel pictures fill their square. Edge door pictures are drawn with the arrow pointing right: the picture sits inside the square next to the wall, turned so the arrow points into the board for `ironEntry` and out of it for `woodenExit`; an opened door is drawn at 45%.
+- Magic Ice has no slot: the app ignores blocks that spells place (decision 57).
+
+### Built-in art for a box (decision 95)
+
+Frozen Horror ships its own pack, `src/content/art/frozen-horror.theme.json` (pictures in `public/assets/frozen-horror/`, kept once). It is used while a quest of that box is open (`pack: "frozen-horror"`, or a quest that uses Frozen Horror tiles, tunnels or doors), unless the switch **Frozen Horror pictures** in the Textures dialog is off. Order, bottom to top: the drawn look, the pack chosen for the core game, the Frozen Horror pictures, a pack chosen with `box: "frozen-horror"`. `npm run build:pack -- frozen-horror` writes the same pack as `dist-packs/frozen-horror.sqtextures` (git-ignored, about 3 MB), which can be imported like any pack.
+
+The pictures are served from the app (not copied into the code) and are in the offline cache.
 
 ### Packs for an expansion: `box` and `extends` (decision 85)
 

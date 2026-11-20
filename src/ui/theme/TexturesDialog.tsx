@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PackSummary, ThemeStore } from '../../persist/themes';
-import { Dialog } from '../shared/Frame';
+import { Dialog, Toggle } from '../shared/Frame';
 import { applyPack } from './activate';
+import { FROZEN_HORROR, isBoxArtOn, setBoxArtOn } from './boxArt';
 import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack, type StoredPack } from './pack';
 import { PackPreview } from './PackPreview';
 import { t } from '../../i18n/t';
@@ -29,6 +30,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<StoredPack | null>(null);
+  const [fhArt, setFhArt] = useState(() => isBoxArtOn(FROZEN_HORROR));
   const input = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -132,6 +134,22 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             {message.text}
           </p>
         )}
+        <div className="fr-fld" data-testid="box-art">
+          <Toggle
+            label={t('theme.TexturesDialog.frozenHorrorPictures', 'Frozen Horror pictures')}
+            on={fhArt}
+            onChange={(on) => {
+              setBoxArtOn(FROZEN_HORROR, on);
+              setFhArt(on);
+            }}
+          />
+          <p className="fr-help">
+            {t(
+              'theme.TexturesDialog.usedInFrozenHorror',
+              'Used in Frozen Horror quests. A pack of your own for Frozen Horror is drawn on top of them.',
+            )}
+          </p>
+        </div>
         <ul className="fr-recent" data-testid="pack-list">
           <li>
             <div className="fr-open-static">

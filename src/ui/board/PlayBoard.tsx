@@ -25,15 +25,19 @@ import { color } from '../shared/tokens';
 import type { Fx } from '../store/gameStore';
 import { CELL as S } from './BoardView';
 import { useTheme } from '../theme/activeTheme';
-import { isThemeToken, monsterPicture } from '../theme/theme';
+import { isThemeToken, monsterPicture, type TileKey } from '../theme/theme';
 import {
   BoardArt,
   blockPiece,
   doorPiece,
+  edgeDoorPiece,
   floorCell,
   RockPattern,
+  slidePiece,
   squarePiece,
+  tilePiece,
   tokenBox,
+  tunnelPiece,
   wallSegment,
   type SquareSlot,
 } from '../theme/draw';
@@ -353,59 +357,75 @@ export function PlayBoard({
     into(isFresh).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
-        {d.edge ? (
-          <EdgeDoorMark
-            kind={d.edge}
-            open={open}
-            cx={cx}
-            cy={cy}
-            // from the outside square toward the board: -1 or 1 on one axis
-            dx={d.a[0] - d.b[0]}
-            dy={d.a[1] - d.b[1]}
-          />
-        ) : (
-          (doorPiece(
-            theme,
-            // a found secret door keeps its own picture, closed or open
-            d.kind === 'secret' && theme.door?.secret ? 'secret' : open ? 'open' : 'closed',
-            cx,
-            cy,
-            vertical,
-            S,
-          ) ?? (
-            <>
-              <rect
-                x={cx - w / 2}
-                y={cy - h / 2}
-                width={w}
-                height={h}
-                fill={open ? color.floor : color.white}
-                stroke={color.ink}
-                strokeWidth={1.6}
+        {d.edge
+          ? // from the outside square toward the board: -1 or 1 on one axis
+            ((() => {
+              const art = edgeDoorPiece(
+                theme,
+                d.edge,
+                open,
+                cx,
+                cy,
+                d.a[0] - d.b[0],
+                d.a[1] - d.b[1],
+                S,
+              );
+              return art ? (
+                <g data-edge-door={d.edge} data-open={open ? 'true' : 'false'}>
+                  {art}
+                </g>
+              ) : null;
+            })() ?? (
+              <EdgeDoorMark
+                kind={d.edge}
+                open={open}
+                cx={cx}
+                cy={cy}
+                dx={d.a[0] - d.b[0]}
+                dy={d.a[1] - d.b[1]}
               />
-              {open ? (
-                <line
-                  x1={cx - (vertical ? 0 : 7)}
-                  y1={cy - (vertical ? 7 : 0)}
-                  x2={cx + (vertical ? 0 : 7)}
-                  y2={cy + (vertical ? 7 : 0)}
+            ))
+          : (doorPiece(
+              theme,
+              // a found secret door keeps its own picture, closed or open
+              d.kind === 'secret' && theme.door?.secret ? 'secret' : open ? 'open' : 'closed',
+              cx,
+              cy,
+              vertical,
+              S,
+            ) ?? (
+              <>
+                <rect
+                  x={cx - w / 2}
+                  y={cy - h / 2}
+                  width={w}
+                  height={h}
+                  fill={open ? color.floor : color.white}
                   stroke={color.ink}
-                  strokeWidth={1}
-                  strokeDasharray="2 2"
+                  strokeWidth={1.6}
                 />
-              ) : (
-                <line
-                  x1={cx - (vertical ? 0 : 6)}
-                  y1={cy - (vertical ? 6 : 0)}
-                  x2={cx + (vertical ? 0 : 6)}
-                  y2={cy + (vertical ? 6 : 0)}
-                  stroke={color.ink}
-                  strokeWidth={2.2}
-                />
-              )}
-            </>
-          ))
-        )}
+                {open ? (
+                  <line
+                    x1={cx - (vertical ? 0 : 7)}
+                    y1={cy - (vertical ? 7 : 0)}
+                    x2={cx + (vertical ? 0 : 7)}
+                    y2={cy + (vertical ? 7 : 0)}
+                    stroke={color.ink}
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
+                  />
+                ) : (
+                  <line
+                    x1={cx - (vertical ? 0 : 6)}
+                    y1={cy - (vertical ? 6 : 0)}
+                    x2={cx + (vertical ? 0 : 6)}
+                    y2={cy + (vertical ? 6 : 0)}
+                    stroke={color.ink}
+                    strokeWidth={2.2}
+                  />
+                )}
+              </>
+            ))}
       </g>,
     );
     if (!open)
@@ -538,7 +558,12 @@ export function PlayBoard({
     const selected = selection?.kind === 'trap' && selection.id === t.id;
     into(fresh(keyOf(t.cell))).push(
       <g key={`t${t.id}`} data-trap-mark={t.id}>
-        {t.path && (
+        {t.path && slidePiece(theme, t.path, S) && (
+          <g data-slide={t.id} pointerEvents="none">
+            {slidePiece(theme, t.path, S)}
+          </g>
+        )}
+        {t.path && !slidePiece(theme, t.path, S) && (
           <g data-slide={t.id} pointerEvents="none">
             <polyline
               points={t.path.map(([px, py]) => `${(px + 0.5) * S},${(py + 0.5) * S}`).join(' ')}
@@ -694,6 +719,16 @@ export function PlayBoard({
     const y0 = Math.min(...ys) * S;
     const w = (Math.max(...xs) + 1) * S - x0;
     const h = (Math.max(...ys) + 1) * S - y0;
+    // A texture pack's picture of the tile, over its squares
+    const art = t.type === 'chasm' ? null : tilePiece(theme, t.type as TileKey, t.cells, S);
+    if (art) {
+      layer.push(
+        <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
+          {art}
+        </g>,
+      );
+      continue;
+    }
     // Terrain is drawn square by square: an icy river with waves, an ice ledge with a dashed edge,
     // a chasm dark with a crack.
     if (t.type === 'icyRiver' || t.type === 'iceLedge' || t.type === 'chasm') {
@@ -775,6 +810,15 @@ export function PlayBoard({
   // outline round every square of the room and the tile's name, so it is clear a tile belongs here.
   for (const rt of roomTilesInView(level, state)) {
     const layer = into(rt.cells.some((c) => fresh(keyOf(c))));
+    const roomArt = tilePiece(theme, rt.tile.id, rt.cells, S);
+    if (roomArt) {
+      layer.push(
+        <g key={`rt${rt.index}`} data-room-tile={rt.tile.id} pointerEvents="none">
+          {roomArt}
+        </g>,
+      );
+      continue;
+    }
     const mx = rt.cells.reduce((a, c) => a + c[0], 0) / rt.cells.length;
     const my = rt.cells.reduce((a, c) => a + c[1], 0) / rt.cells.length;
     const mid = rt.cells.reduce((best, c) =>
@@ -826,38 +870,42 @@ export function PlayBoard({
     into(fresh(keyOf(e.cell))).push(
       <g key={`tn${e.tunnel}${e.end}`} data-tunnel={`${e.tunnel}:${e.end}`} data-design={e.design}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
-        <rect
-          x={tx * S + 3}
-          y={ty * S + 3}
-          width={S - 6}
-          height={S - 6}
-          rx={5}
-          fill="var(--ice)"
-          stroke={color.ink}
-          strokeWidth={1.5}
-        />
-        <ellipse
-          cx={cx}
-          cy={cy}
-          rx={9.5}
-          ry={6.5}
-          transform={`rotate(-30 ${cx} ${cy})`}
-          fill="none"
-          stroke={color.tokenText}
-          strokeWidth={1.4}
-          strokeDasharray="3 2"
-        />
-        <text
-          x={cx}
-          y={cy + 4.5}
-          textAnchor="middle"
-          fill={color.tokenText}
-          fontFamily="Bonum"
-          fontWeight={700}
-          fontSize={13}
-        >
-          {e.design}
-        </text>
+        {tunnelPiece(theme, e.design, tx, ty, S) ?? (
+          <>
+            <rect
+              x={tx * S + 3}
+              y={ty * S + 3}
+              width={S - 6}
+              height={S - 6}
+              rx={5}
+              fill="var(--ice)"
+              stroke={color.ink}
+              strokeWidth={1.5}
+            />
+            <ellipse
+              cx={cx}
+              cy={cy}
+              rx={9.5}
+              ry={6.5}
+              transform={`rotate(-30 ${cx} ${cy})`}
+              fill="none"
+              stroke={color.tokenText}
+              strokeWidth={1.4}
+              strokeDasharray="3 2"
+            />
+            <text
+              x={cx}
+              y={cy + 4.5}
+              textAnchor="middle"
+              fill={color.tokenText}
+              fontFamily="Bonum"
+              fontWeight={700}
+              fontSize={13}
+            >
+              {e.design}
+            </text>
+          </>
+        )}
       </g>,
     );
     tunnelHits.push(
@@ -891,8 +939,8 @@ export function PlayBoard({
     const selected = selection?.kind === 'monster' && selection.id === m.id;
     const stampIndex = freshOrder.indexOf(m.id);
     const hurt = m.maxBody > 1 && m.body < m.maxBody;
-    const pic = monsterPicture(theme, m.image, m.pictureType);
-    const whole = isThemeToken(theme, m.image, m.pictureType); // a theme token has its own frame
+    const pic = monsterPicture(theme, m.image, m.pictureType, m.enemy);
+    const whole = isThemeToken(theme, m.image, m.pictureType, m.enemy); // a theme token has its own frame
     tokens.push(
       <g key={`m${m.id}`}>
         {selected && <circle cx={cx} cy={cy} r={19} fill={color.sel} className="selring" />}
@@ -915,7 +963,7 @@ export function PlayBoard({
               {whole ? (
                 <image
                   href={pic}
-                  {...tokenBox(theme, m.type, cx, cy, S)}
+                  {...tokenBox(theme, m.type, cx, cy, S, m.enemy)}
                   preserveAspectRatio="xMidYMid meet"
                   data-token-image={m.id}
                   data-themed="token"

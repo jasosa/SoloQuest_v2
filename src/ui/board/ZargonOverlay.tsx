@@ -5,6 +5,7 @@
  */
 import { areaAt, isWallBetween, type Cell } from '../../engine/board/board';
 import { cellKey, type Level } from '../../engine/board/level';
+import { pictureTypeOf } from '../../engine/data/enemies';
 import type { GameState } from '../../engine/game/state';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { color } from '../shared/tokens';
@@ -137,13 +138,14 @@ export function ZargonOverlay({ level, state }: { level: Level; state: GameState
   const monsters = hv.monsters.map((m) => {
     const cx = (m.cell[0] + 0.5) * S;
     const cy = (m.cell[1] + 0.5) * S;
-    const pic = monsterPicture(theme, undefined, m.type);
-    if (pic && isThemeToken(theme, undefined, m.type))
+    const pt = pictureTypeOf(m, level.quest.enemyDefs);
+    const pic = monsterPicture(theme, undefined, pt, m.enemy);
+    if (pic && isThemeToken(theme, undefined, pt, m.enemy))
       return (
         <g key={`zm${m.id}`} data-zmonster={m.id}>
           <image
             href={pic}
-            {...tokenBox(theme, m.type, cx, cy, S)}
+            {...tokenBox(theme, m.type, cx, cy, S, m.enemy)}
             preserveAspectRatio="xMidYMid meet"
           />
         </g>

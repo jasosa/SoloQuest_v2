@@ -32,6 +32,8 @@ export interface MonsterView {
   readonly box?: string;
   /** The core type whose texture-pack picture it may use; none for an enemy of its own kind. */
   readonly pictureType?: MonsterType;
+  /** The id of its enemy in the quest, so a texture pack can give that enemy its own picture. */
+  readonly enemy?: string;
   /** Its Zargon plan (a thief can escape, a passive monster can leave or be attacked). */
   readonly profile: Profile;
   /** Squares along a side (2 is a large monster). */
@@ -99,6 +101,7 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       ...(pictureTypeOf(m, level.quest.enemyDefs)
         ? { pictureType: pictureTypeOf(m, level.quest.enemyDefs)! }
         : {}),
+      ...(m.enemy ? { enemy: m.enemy } : {}),
       ...(m.size && m.size > 1 ? { size: m.size } : {}),
       ...(m.attackOnly ? { attackOnly: true } : {}),
       special: m.special === true,
@@ -131,6 +134,7 @@ export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
       profile: profileOf(def),
       ...(bx ? { box: bx } : {}),
       ...(pt ? { pictureType: pt } : {}),
+      ...(def.enemy ? { enemy: def.enemy } : {}),
       ...(def.letter ? { letter: def.letter } : {}),
       ...(def.image ? { image: def.image } : {}),
       wandering: w.added !== true,
