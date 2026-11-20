@@ -25,6 +25,19 @@ export async function closeQuestSheet(page: Page): Promise<void> {
   if (await sheet.isVisible()) await page.keyboard.press('Escape');
 }
 
+/** Open the end sheet (goal and ending) from the goal line of the title band. */
+export async function openEndSheet(page: Page): Promise<void> {
+  await page.getByTestId('goal-line').click();
+  await page.getByRole('dialog', { name: 'Goal and ending' }).waitFor();
+}
+
+/** End the quest: open the end sheet, choose a way, answer the one confirmation. */
+export async function endQuestWith(page: Page, way: string): Promise<void> {
+  await openEndSheet(page);
+  await page.getByRole('dialog').getByRole('button', { name: way, exact: true }).click();
+  await page.getByTestId('end-confirm').click();
+}
+
 /** The quest card of a pack's quest page (Quest 1 is not Quest 10). */
 export const questCard = (page: Page, number: number) =>
   page

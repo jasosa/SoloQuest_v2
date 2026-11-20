@@ -320,4 +320,4 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] Merge rooms is a tool of the Map tab (map on show), not a panel of the Quest tab
 - [x] Tiles: one Board Tiles palette (room tiles and board tiles), the shapes of the picked tile right under it (each shape once), Turn (R), drag and drop to move a placed tile (decision 94)
 - [x] Cage Room and Bottomless Chasm Room are the 4 x 4 tiles. No cage piece and no sight-blocking tile (owner: the cage blocking sight is fine with a message): the cage type, `blocks` and `hiddenWhen` are dropped on load, quests 0 and 4 say it in their notes; the laid chasm is out of the palette and chasm squares migrate (decision 94)
-
+- [x] One end flow (decision 97): the goal line opens the end sheet (checklist, inline confirms, ways to end), "Finish the quest" when the goal is done, one confirmation

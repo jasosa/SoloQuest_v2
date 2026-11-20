@@ -1,12 +1,6 @@
 import { useRef, useState } from 'react';
 import { useModal } from '../shared/useModal';
-import type {
-  JournalEntry,
-  LogEntry,
-  ManualTrigger,
-  ObjectiveConfirm,
-  ObjectivesView,
-} from '../../engine/game/view';
+import type { JournalEntry, LogEntry, ManualTrigger, ObjectivesView } from '../../engine/game/view';
 import { t } from '../../i18n/t';
 
 const LOG_SHOWN = 12;
@@ -19,14 +13,12 @@ export interface QuestSheetProps {
   startTexts: readonly string[];
   objectives: ObjectivesView;
   goalDoneText: string;
-  confirms: readonly ObjectiveConfirm[];
   /** Buttons of notes that belong to no element. */
   actions: readonly ManualTrigger[];
   notes: readonly JournalEntry[];
   /** Oldest first, as `eventLog` gives it. */
   log: readonly LogEntry[];
   onClose(): void;
-  onConfirm(objective: string): void;
   onPress(note: string): void;
   onRead(note: string): void;
 }
@@ -38,7 +30,7 @@ const firstLine = (e: JournalEntry) => {
 
 /**
  * The Quest sheet (decision 67): a panel on the right with the start instruction, the goal and
- * the quest intro, its confirm buttons (each under its objective), the Quest actions (buttons of notes with no element), the notes read and the log.
+ * the quest intro, the objectives (read only: the confirm buttons are in the end sheet), the Quest actions (buttons of notes with no element), the notes read and the log.
  * The board stays visible beside it. Esc or Close shuts it.
  */
 export function QuestSheet(p: QuestSheetProps) {
@@ -104,18 +96,6 @@ export function QuestSheet(p: QuestSheetProps) {
                     ? t('play.QuestSheet.done', '(done)')
                     : t('play.QuestSheet.notDone', '(not done)')}
                 </span>
-                {/* the button that confirms this objective sits under it */}
-                {p.confirms
-                  .filter((c) => c.objective === o.id)
-                  .map((c) => (
-                    <button
-                      key={c.objective}
-                      className="btn alt"
-                      onClick={() => p.onConfirm(c.objective)}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
               </span>
             </li>
           ))}
