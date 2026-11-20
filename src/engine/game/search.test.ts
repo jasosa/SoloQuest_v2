@@ -591,6 +591,21 @@ describe('SEARCH_SECRET_DOORS', () => {
       });
     });
 
+    it('a passive monster in sight (a caged one) does not block a corridor search', () => {
+      const passive = buildLevel(
+        testQuest({
+          secretDoors: [{ id: 's2', a: [2, 17], b: [2, 18] }],
+          monsters: [
+            ...testQuest().monsters,
+            { id: 'm4', type: 'goblin', cell: [6, 18], state: 'passive' },
+          ],
+        }),
+      );
+      const s = replay(passive, SEED, base);
+      expect(s.seenMonsters.has('m4')).toBe(true);
+      expect(code(() => reduce(passive, s, secrets(undefined, [3, 18])))).toBeUndefined();
+    });
+
     it('a monster out of sight does not block', () => {
       const d = draftOf(replay(lv, SEED, base));
       d.seenCells.add('9,18');
