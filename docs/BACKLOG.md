@@ -115,14 +115,10 @@ Do these before M8 polish. Quest owner review (M7) comes after step 8.
 - [x] Add a monster in play with a square; a wandering monster asks for its square (decision 71)
 - [x] `questEnds` trigger: notes shown in the end dialog (decision 71)
 - [x] Monster behavior prompts (decision 71): Waits for, Goes toward, in the Monsters tab and on the Zargon order
-- [ ] Designer polish: Quest tab "Start room" field, an image on a hero token in play (heroes are only listed for now), companions used by quests, Designer items that change keep quest copies in step (a quest keeps its own copy by design)
 - [x] Step 5b, added monsters (done): "Add monster" and wandering monster ask the players for a square; the token is drawn static, can be slain, acts on Zargon's turn, highlighted as new
 - [ ] Step 6, map: done: Show room (event `SHOW_LAYOUT`, `layout.test.ts`, `showroom.spec.ts`), highlight on additions (blocks, secret doors, monsters), trap hit area. Left: double blocks in wide corridors need an overlay check with the owner, quest by quest
-- [ ] Step 7, editor: actions attached to doors, furniture, monsters and markers; objective triggers; ability builder; admin edit of bundled quests kept as a draft until replaced; custom trap symbols
 
 - [ ] Designer polish (done: Quest tab "Start room" field, companions from the Library into a quest as characters, enemy copies can be updated from the Designer; open: hero image in play (play side), refresh copies of spells, abilities and companions): Quest tab "Start room" field, an image on a hero token in play (heroes are only listed for now), companions used by quests, Designer items that change keep quest copies in step (a quest keeps its own copy by design)
-- [ ] Step 5b, added monsters: "Add monster" and wandering monster ask the players for a square; the token is drawn static, can be slain, acts on Zargon's turn, highlighted as new
-- [ ] Step 6, map: "Show room" (layout only, free tool with a warning, rock message), highlight on additions, double blocks in wide corridors, trap hit area check (quest 3)
 - [ ] Step 7, editor (audited 2026-11-20: DONE are actions on doors, furniture, monsters, traps, markers, zones and squares (Actions tab, Applies to), objective triggers (`done` and `confirm`), the ability builder (popup); OPEN, need an owner decision: admin edit of bundled quests kept as a draft until replaced, custom trap symbols)
 - [ ] Step 8, owner review round, one quest at a time with the overlay
 

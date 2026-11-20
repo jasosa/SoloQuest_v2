@@ -1636,7 +1636,9 @@ function RosterRow({
 
 function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
   if (m.state === 'stone')
-    return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
+    return m.stoneTurns !== undefined
+      ? t('play.PlayScreen.stoneTurns', 'Stone: {turns} turns', { turns: m.stoneTurns })
+      : t('play.PlayScreen.stone', 'Stone');
   if (m.added) return t('play.PlayScreen.addedInPlay', 'Added in play');
   if (m.wandering && m.fresh && m.wanderAt)
     return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {hero}', {
