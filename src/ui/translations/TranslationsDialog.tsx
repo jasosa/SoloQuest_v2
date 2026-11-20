@@ -112,7 +112,10 @@ export function TranslationsDialog({
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     if (file.size > LANGUAGE_MAX_BYTES) {
-      setMessage({ text: 'This file is too big for a translation (5 MB at most).', bad: true });
+      setMessage({
+        text: t('translations.msgTooBig', 'This file is too big for a translation (5 MB at most).'),
+        bad: true,
+      });
       return;
     }
     const r = parseLanguageFile(await file.text());
@@ -143,7 +146,10 @@ export function TranslationsDialog({
             : r.file,
       );
     } catch {
-      setMessage({ text: 'The translation could not be stored on this device.', bad: true });
+      setMessage({
+        text: t('translations.msgNotStored', 'The translation could not be stored on this device.'),
+        bad: true,
+      });
       return;
     }
     if (isEnglish || active === r.file.language.code) setPending(true);
@@ -160,22 +166,38 @@ export function TranslationsDialog({
 
   const create = async () => {
     const code = form.code.trim();
-    if (!form.name.trim()) return setMessage({ text: 'The language needs a name.', bad: true });
+    if (!form.name.trim())
+      return setMessage({
+        text: t('translations.msgNeedsName', 'The language needs a name.'),
+        bad: true,
+      });
     if (!CODE.test(code) || code === ENGLISH_CODE)
       return setMessage({
-        text: 'The language code looks like "es" or "pt-BR". "en" is the built-in English.',
+        text: t(
+          'translations.msgBadCode',
+          'The language code looks like "es" or "pt-BR". "en" is the built-in English.',
+        ),
         bad: true,
       });
     if (languages.some((l) => l.code === code))
-      return setMessage({ text: 'There is a language with this code already.', bad: true });
+      return setMessage({
+        text: t('translations.msgCodeTaken', 'There is a language with this code already.'),
+        bad: true,
+      });
     try {
       await store.save(copyOfEnglish(englishTexts, form.name, code, form.author.trim()));
     } catch {
-      return setMessage({ text: 'The translation could not be stored on this device.', bad: true });
+      return setMessage({
+        text: t('translations.msgNotStored', 'The translation could not be stored on this device.'),
+        bad: true,
+      });
     }
     setCreating(false);
     setForm({ name: '', code: '', author: '' });
-    setMessage({ text: `Made ${form.name.trim()} from English.`, bad: false });
+    setMessage({
+      text: t('translations.msgMade', 'Made {name} from English.', { name: form.name.trim() }),
+      bad: false,
+    });
     await refresh();
     setEditing(code);
   };

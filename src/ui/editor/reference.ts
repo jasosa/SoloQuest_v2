@@ -8,7 +8,6 @@ export type Pt = readonly [number, number];
 export type Homography = readonly [number, number, number, number, number, number, number, number];
 
 /** The order the corners are asked for: the corners of the board frame on the image. */
-export const CORNER_NAMES = ['top left', 'top right', 'bottom right', 'bottom left'] as const;
 
 /** The four board corners in the same order, for a board of w x h squares of size `unit`, shifted by `pad`. */
 export function boardCorners(w: number, h: number, unit: number, pad = 0): Pt[] {

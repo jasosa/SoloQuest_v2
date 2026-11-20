@@ -3,6 +3,7 @@
  * Export drops `intro.userText` (local only, decisions 8 and QUEST_FORMAT.md). Import checks
  * everything and returns readable errors. Errors block, warnings are returned to the caller.
  */
+import { tr } from '../../i18n/translate';
 import { board } from '../board/board';
 import { isUserQuestId, newUserQuestId } from './ids';
 import { parseQuest, QuestParseError } from '../quest/loader';
@@ -118,14 +119,25 @@ export type ImportResult =
  * `newUserQuestId`, reported in `idRewritten` and in a warning. Without options the id is kept.
  */
 export function importQuest(text: string, options?: ImportOptions): ImportResult {
-  if (typeof text !== 'string') return { ok: false, errors: ['The file is not text.'] };
+  if (typeof text !== 'string')
+    return { ok: false, errors: [tr('editor.io.theFileIsNotText', 'The file is not text.')] };
   if (text.length > MAX_QUEST_FILE_CHARS)
-    return { ok: false, errors: ['The file is too big to be a quest.'] };
+    return {
+      ok: false,
+      errors: [tr('editor.io.theFileIsTooBigToBe', 'The file is too big to be a quest.')],
+    };
   let data: unknown;
   try {
     data = JSON.parse(text);
   } catch (e) {
-    return { ok: false, errors: [`The file is not valid JSON: ${(e as Error).message}`] };
+    return {
+      ok: false,
+      errors: [
+        tr('editor.io.theFileIsNotValidJson', 'The file is not valid JSON: {message}', {
+          message: (e as Error).message,
+        }),
+      ],
+    };
   }
   let quest: Quest;
   try {
@@ -133,13 +145,19 @@ export function importQuest(text: string, options?: ImportOptions): ImportResult
   } catch (e) {
     if (e instanceof QuestVersionError) return { ok: false, errors: [e.message] };
     if (e instanceof QuestParseError) return { ok: false, errors: e.issues };
-    return { ok: false, errors: ['The file is not a readable quest.'] };
+    return {
+      ok: false,
+      errors: [tr('editor.io.theFileIsNotAReadable', 'The file is not a readable quest.')],
+    };
   }
   const warnings: Issue[] = [];
   if (quest.intro.userText !== undefined) {
     warnings.push({
       severity: 'warning',
-      message: 'The file had personal text (userText). It was ignored.',
+      message: tr(
+        'editor.io.theFileHadPersonalTextUsertext',
+        'The file had personal text (userText). It was ignored.',
+      ),
       ref: { kind: 'quest' },
     });
     quest = stripLocal(quest);
@@ -157,7 +175,11 @@ export function importQuest(text: string, options?: ImportOptions): ImportResult
       quest = { ...quest, id: to };
       warnings.push({
         severity: 'warning',
-        message: `The quest id ${idRewritten.from} was changed to ${to} so it does not clash with another quest.`,
+        message: tr(
+          'editor.io.theQuestIdWasChangedTo',
+          'The quest id {from} was changed to {to} so it does not clash with another quest.',
+          { from: idRewritten.from, to },
+        ),
         ref: { kind: 'quest' },
       });
     }

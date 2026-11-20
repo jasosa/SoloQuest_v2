@@ -7,6 +7,7 @@
  * (and `validateQuestIssues` keeps listing them as errors). Only things the schema rejects are
  * refused.
  */
+import { tr } from '../../i18n/translate';
 import type { Condition, Effect, Note, NoteTarget, Quest, Trigger } from '../quest/schema';
 import type { Cell } from './ops';
 import { mapForNewNote } from './maps';
@@ -79,17 +80,34 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
   let letter: string | undefined;
   if (input.letter === 'next') {
     letter = nextNoteLetter(q);
-    if (!letter) return fail('Every letter from A to Z already has a note.');
+    if (!letter)
+      return fail(
+        tr('editor.notes.everyLetterFromAToZ', 'Every letter from A to Z already has a note.'),
+      );
   } else if (input.letter !== undefined) {
     letter = input.letter.trim().toUpperCase();
-    if (!isLetter(letter)) return fail('A note letter is a single capital letter from A to Z.');
+    if (!isLetter(letter))
+      return fail(
+        tr(
+          'editor.notes.aNoteLetterIsASingle',
+          'A note letter is a single capital letter from A to Z.',
+        ),
+      );
     if (q.notes.some((n) => n.letter === letter))
-      return fail(`Letter ${letter} already has a note.`);
+      return fail(
+        tr('editor.notes.letterAlreadyHasANote', 'Letter {letter} already has a note.', { letter }),
+      );
   }
   let id = input.id;
   if (id !== undefined) {
-    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The note id "${id}" is not valid.`);
-    if (q.notes.some((n) => n.id === id)) return fail(`A note with id ${id} already exists.`);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return fail(
+        tr('editor.notes.theNoteIdIsNotValid', 'The note id "{id}" is not valid.', { id }),
+      );
+    if (q.notes.some((n) => n.id === id))
+      return fail(
+        tr('editor.notes.aNoteWithIdAlreadyExists', 'A note with id {id} already exists.', { id }),
+      );
   } else id = newNoteId(q, letter);
   const map =
     input.map ??
@@ -134,7 +152,7 @@ export interface NotePatch {
 
 export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
   const n = q.notes.find((x) => x.id === id);
-  if (!n) return fail(`There is no note ${id}.`);
+  if (!n) return fail(tr('editor.notes.thereIsNoNote', 'There is no note {id}.', { id }));
   const next: Record<string, unknown> = { ...n };
   const set = (key: string, value: unknown) => {
     if (value === null || value === undefined) delete next[key];
@@ -144,9 +162,19 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
     if (patch.letter === null) set('letter', null);
     else {
       const letter = patch.letter.trim().toUpperCase();
-      if (!isLetter(letter)) return fail('A note letter is a single capital letter from A to Z.');
+      if (!isLetter(letter))
+        return fail(
+          tr(
+            'editor.notes.aNoteLetterIsASingle',
+            'A note letter is a single capital letter from A to Z.',
+          ),
+        );
       if (q.notes.some((x) => x.id !== id && x.letter === letter))
-        return fail(`Letter ${letter} already has a note.`);
+        return fail(
+          tr('editor.notes.letterAlreadyHasANote', 'Letter {letter} already has a note.', {
+            letter,
+          }),
+        );
       set('letter', letter);
     }
   }
@@ -175,7 +203,7 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
  */
 export function setNoteText(q: Quest, id: string, text: string): EditResult {
   const n = q.notes.find((x) => x.id === id);
-  if (!n) return fail(`There is no note ${id}.`);
+  if (!n) return fail(tr('editor.notes.thereIsNoNote', 'There is no note {id}.', { id }));
   const t = text.trim();
   const i = n.effects.findIndex((e) => e.type === 'showText');
   let effects: Effect[];
@@ -192,7 +220,8 @@ export function setNoteText(q: Quest, id: string, text: string): EditResult {
  * rule) or a letter on the map now has no note, that comes back in the warnings.
  */
 export function removeNote(q: Quest, id: string): EditResult {
-  if (!q.notes.some((n) => n.id === id)) return fail(`There is no note ${id}.`);
+  if (!q.notes.some((n) => n.id === id))
+    return fail(tr('editor.notes.thereIsNoNote', 'There is no note {id}.', { id }));
   const quest = { ...q, notes: q.notes.filter((n) => n.id !== id) };
   return ok(quest, newIssues(q, quest));
 }

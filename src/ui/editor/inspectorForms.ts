@@ -1,4 +1,5 @@
 /** Pure helpers of the inspector forms: text in, engine patch out. No React. */
+import { tr } from '../../i18n/translate';
 import type { MonsterDef } from '../../engine/quest/schema';
 
 export const STAT_KEYS = ['move', 'att', 'def', 'body', 'mind'] as const;
@@ -16,7 +17,15 @@ export function parseOverrides(
   for (const k of STAT_KEYS) {
     const t = fields[k].trim();
     if (t === '') continue;
-    if (!/^\d+$/.test(t)) return { ok: false, error: `${k} must be a whole number, 0 or more.` };
+    if (!/^\d+$/.test(t))
+      return {
+        ok: false,
+        error: tr(
+          'editor.inspectorForms.mustBeAWholeNumber0',
+          '{k} must be a whole number, 0 or more.',
+          { k },
+        ),
+      };
     out[k] = Number(t);
   }
   return { ok: true, overrides: out };

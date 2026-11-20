@@ -11,6 +11,16 @@ import { t } from '../../i18n/t';
 export const EDITOR_TABS = ['Quest', 'Map', 'Actions', 'Monsters', 'Library'] as const;
 export type EditorTab = (typeof EDITOR_TABS)[number];
 
+/** The words of the tabs, read when drawn (the language is set at startup). */
+export const editorTabLabel = (tab: string): string =>
+  ({
+    Quest: t('shared.Frame.tabQuest', 'Quest'),
+    Map: t('shared.Frame.tabMap', 'Map'),
+    Actions: t('shared.Frame.tabActions', 'Actions'),
+    Monsters: t('shared.Frame.tabMonsters', 'Monsters'),
+    Library: t('shared.Frame.tabLibrary', 'Library'),
+  })[tab] ?? tab;
+
 export function TopBar({
   tabs,
   active,
@@ -42,7 +52,7 @@ export function TopBar({
             aria-selected={t === active}
             onClick={() => onTab?.(t)}
           >
-            {t}
+            {editorTabLabel(t)}
             {(badges[t] ?? 0) > 0 && (
               <span className="ed-badge" data-testid="missing-count">
                 {badges[t]}

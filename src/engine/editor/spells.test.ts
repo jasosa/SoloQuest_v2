@@ -78,4 +78,44 @@ describe('spells in the editor (decision 70)', () => {
     if (r.ok) expect(r.warnings.some((w) => w.message.includes('unknown spell "mud"'))).toBe(true);
     expect(removeSpell(q, 'fear').ok).toBe(false); // a core spell is not the quest's
   });
+
+  it('situations of the spell: add, use as a tag, check the id and the question', () => {
+    let q = good(
+      addSpell(base(), {
+        name: 'Mud',
+        id: 'mud',
+        tags: ['rain', 'any'],
+        situations: [{ id: ' rain ', question: ' Is a hero on a wet square? ' }],
+      }),
+    );
+    expect(q.spellDefs[0]?.situations).toEqual([
+      { id: 'rain', question: 'Is a hero on a wet square?' },
+    ]);
+    // a tag without a definition, a fixed id, a repeated id, a bad id, an empty question
+    expect(addSpell(base(), { name: 'X', tags: ['rain'] }).ok).toBe(false);
+    expect(
+      addSpell(base(), { name: 'X', tags: ['any'], situations: [{ id: 'any', question: 'Q?' }] })
+        .ok,
+    ).toBe(false);
+    const twice = [
+      { id: 'a', question: 'Q?' },
+      { id: 'a', question: 'R?' },
+    ];
+    expect(addSpell(base(), { name: 'X', tags: ['a'], situations: twice }).ok).toBe(false);
+    expect(
+      addSpell(base(), { name: 'X', tags: ['any'], situations: [{ id: 'a b', question: 'Q?' }] })
+        .ok,
+    ).toBe(false);
+    expect(
+      addSpell(base(), { name: 'X', tags: ['any'], situations: [{ id: 'a', question: ' ' }] }).ok,
+    ).toBe(false);
+    // changing the question keeps the tag; dropping a used situation is refused
+    q = good(
+      updateSpell(q, 'mud', { situations: [{ id: 'rain', question: 'Is the floor wet?' }] }),
+    );
+    expect(q.spellDefs[0]?.situations?.[0]?.question).toBe('Is the floor wet?');
+    expect(updateSpell(q, 'mud', { situations: [] }).ok).toBe(false);
+    q = good(updateSpell(q, 'mud', { tags: ['any'], situations: [] }));
+    expect(q.spellDefs[0]?.situations).toBeUndefined();
+  });
 });

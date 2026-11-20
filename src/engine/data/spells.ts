@@ -66,6 +66,16 @@ export function isSpellTag(s: string): s is SpellTag {
   return (SPELL_TAG_IDS as readonly string[]).includes(s);
 }
 
+/**
+ * A situation the author defines (M7c): a short id and a concrete question the players answer.
+ * A spell lists the situations it defines in `situations`, and may use them in `tags` next to the
+ * fixed ones. An id cannot be one of the fixed ids.
+ */
+export interface Situation {
+  readonly id: string;
+  readonly question: string;
+}
+
 /** `always`, or only when the quest has a way to use it (Escape needs an escape point). */
 export type OfferWhen = 'always' | 'escapePoint';
 
@@ -74,7 +84,9 @@ export interface SpellDef {
   readonly name: string;
   /** What the spell does, in the quest's own words. Core spells leave it out (the card is read). */
   readonly text?: string;
-  readonly tags: readonly SpellTag[];
+  readonly tags: readonly string[];
+  /** Situations of its own (id and question), usable in `tags`. */
+  readonly situations?: readonly Situation[];
   /** One question of its own: replaces the tags. */
   readonly question?: string;
   readonly warning?: string;
@@ -122,7 +134,8 @@ export function spellLookup(
         id: s.id,
         name: s.name,
         ...(s.text ? { text: s.text } : {}),
-        tags: (s.tags ?? []) as SpellTag[],
+        tags: s.tags ?? [],
+        ...(s.situations?.length ? { situations: s.situations } : {}),
         ...(s.question ? { question: s.question } : {}),
         ...(s.warning ? { warning: s.warning } : {}),
         offerWhen: s.offerWhen ?? 'always',
@@ -136,7 +149,14 @@ export function spellLookup(
 export function spellQuestions(s: SpellDef): string[] {
   if (s.question) return [s.question];
   if (s.tags.length === 0) return [SPELL_TAG_QUESTIONS.any];
-  return s.tags.map((t) => SPELL_TAG_QUESTIONS[t]);
+  return s.tags.map((t) => spellTagQuestion(s, t));
+}
+
+/** The question of a tag: the spell's own situation first, then the fixed text. */
+export function spellTagQuestion(s: Pick<SpellDef, 'situations'>, tag: string): string {
+  const own = s.situations?.find((x) => x.id === tag);
+  if (own) return own.question;
+  return isSpellTag(tag) ? SPELL_TAG_QUESTIONS[tag] : SPELL_TAG_QUESTIONS.any;
 }
 
 /**

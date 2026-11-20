@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useStore } from 'zustand';
 import {
   addAbility,
+  addNpcFromCompanion,
   removeEnemy,
   addSpell,
   addEnding,
@@ -32,6 +33,7 @@ import {
   type ObjectiveDef,
   type Quest,
 } from '../../engine/quest/schema';
+import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
 import { Choose, ConditionList, Num, Text } from './NotesPanel';
 import { shownName } from './monsterLabel';
@@ -48,6 +50,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
   const show = (part: QuestPart) => only === undefined || only === part;
   const { quest } = useStore(store);
   const st = store.getState();
+  const lib = useLibrary();
   const w = quest.wandering;
   // Local choice only matters while there is no wandering monster in the quest (free text, empty).
   const [pickedText, setMode] = useState<boolean>(false);
@@ -332,6 +335,39 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
           >
             {t('editor.QuestPanel.addACharacter', 'Add a character')}
           </button>
+          {lib.companions.length > 0 && (
+            <select
+              className="es-select"
+              aria-label={t(
+                'editor.QuestPanel.addACompanionFromThe',
+                'Add a companion from the Library',
+              )}
+              data-testid="add-companion"
+              value=""
+              onChange={(e) => {
+                const def = lib.companions.find((c) => c.id === e.target.value);
+                if (!def) return;
+                st.setPicking({
+                  kind: 'cell',
+                  hint: t(
+                    'editor.QuestPanel.clickTheSquareWhere',
+                    'Click the square where the character appears.',
+                  ),
+                  onPick: (v) =>
+                    st.apply((q) => addNpcFromCompanion(q, def, v as [number, number])),
+                });
+              }}
+            >
+              <option value="">
+                {t('editor.QuestPanel.addACompanionFromThe2', 'Add a companion from the Library…')}
+              </option>
+              {lib.companions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
         </section>
       )}
 

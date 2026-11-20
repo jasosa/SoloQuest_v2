@@ -2,13 +2,7 @@ import { useRef, useState } from 'react';
 import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import { removeSpell, updateSpell } from '../../engine/editor';
-import {
-  SPELL_TAG_IDS,
-  SPELL_TAG_QUESTIONS,
-  isSpellTag,
-  type SpellTag,
-  type SpellTiming,
-} from '../../engine/data/spells';
+import { SPELL_TAG_IDS, spellTagQuestion, type SpellTiming } from '../../engine/data/spells';
 import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
 import { t } from '../../i18n/t';
@@ -24,15 +18,18 @@ export function SpellDialog({ store }: { store: EditorStore }) {
   const box = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const [saved, setSaved] = useState('');
+  const [newId, setNewId] = useState('');
+  const [newQuestion, setNewQuestion] = useState('');
   const sp = spellId ? quest.spellDefs.find((x) => x.id === spellId) : undefined;
 
   useModal(box, { active: Boolean(sp), onEscape: () => st.setSpellId(null), focus: 'title' });
 
   if (!sp) return null;
-  const tags = sp.tags.filter(isSpellTag);
-  const free = SPELL_TAG_IDS.filter((t) => !tags.includes(t));
+  const tags = [...sp.tags];
+  const own = sp.situations ?? [];
+  const free = [...SPELL_TAG_IDS, ...own.map((x) => x.id)].filter((t) => !tags.includes(t));
   const used = quest.monsters.filter((m) => (m.spells ?? []).includes(sp.id));
-  const setTags = (next: SpellTag[]) => st.apply((q) => updateSpell(q, sp.id, { tags: next }));
+  const setTags = (next: string[]) => st.apply((q) => updateSpell(q, sp.id, { tags: next }));
 
   return (
     <div className="ed-veil">
@@ -83,7 +80,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             {tags.map((tv) => (
               <li key={tv} data-tag={tv}>
                 <b>{tv}</b>
-                <p className="ed-q">{SPELL_TAG_QUESTIONS[tv]}</p>
+                <p className="ed-q">{spellTagQuestion(sp, tv)}</p>
                 <button
                   className="chip"
                   aria-label={t('editor.SpellDialog.remove2', 'Remove {tv}', { tv })}
@@ -101,13 +98,13 @@ export function SpellDialog({ store }: { store: EditorStore }) {
               data-testid="add-tag"
               value=""
               onChange={(e) => {
-                if (isSpellTag(e.target.value)) setTags([...tags, e.target.value]);
+                if (e.target.value !== '') setTags([...tags, e.target.value]);
               }}
             >
               <option value="">{t('editor.SpellDialog.addASituation2', 'Add a situation…')}</option>
               {free.map((t) => (
                 <option key={t} value={t}>
-                  {t} · {SPELL_TAG_QUESTIONS[t]}
+                  {t} · {spellTagQuestion(sp, t)}
                 </option>
               ))}
             </select>
@@ -115,6 +112,86 @@ export function SpellDialog({ store }: { store: EditorStore }) {
           <p className="ed-note">
             {t('editor.SpellDialog.itFitsWhenAny', 'It fits when any of them is true.')}
           </p>
+
+          <div className="lbl">
+            {t('editor.SpellDialog.situationsOfYourOwn', 'Situations of your own')}
+          </div>
+          <ul className="ed-items" data-testid="spell-situations">
+            {own.map((x) => (
+              <li key={x.id} data-situation={x.id}>
+                <b>{x.id}</b>
+                <input
+                  aria-label={t('editor.SpellDialog.questionOf', 'Question of {id}', { id: x.id })}
+                  key={`${sp.id}:s:${x.id}:${x.question}`}
+                  defaultValue={x.question}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v === x.question) return;
+                    if (
+                      !st.apply((q) =>
+                        updateSpell(q, sp.id, {
+                          situations: own.map((y) =>
+                            y.id === x.id ? { id: x.id, question: v } : y,
+                          ),
+                        }),
+                      )
+                    )
+                      e.target.value = x.question;
+                  }}
+                />
+                <button
+                  className="chip"
+                  aria-label={t('editor.SpellDialog.removeSituation', 'Remove situation {id}', {
+                    id: x.id,
+                  })}
+                  onClick={() =>
+                    st.apply((q) =>
+                      updateSpell(q, sp.id, { situations: own.filter((y) => y.id !== x.id) }),
+                    )
+                  }
+                >
+                  {t('editor.SpellDialog.remove', 'Remove')}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="ed-addrow">
+            <input
+              aria-label={t('editor.SpellDialog.situationId', 'Situation id')}
+              placeholder={t('editor.SpellDialog.idShortNoSpaces', 'Id (short, no spaces)')}
+              value={newId}
+              onChange={(e) => setNewId(e.target.value)}
+            />
+            <input
+              aria-label={t('editor.SpellDialog.situationQuestion', 'Situation question')}
+              placeholder={t(
+                'editor.SpellDialog.aQuestionThePlayersCan',
+                'A question the players can answer',
+              )}
+              value={newQuestion}
+              onChange={(e) => setNewQuestion(e.target.value)}
+            />
+            <button
+              className="btn"
+              disabled={newId.trim() === '' || newQuestion.trim() === ''}
+              onClick={() => {
+                const id = newId.trim();
+                if (
+                  st.apply((q) =>
+                    updateSpell(q, sp.id, {
+                      situations: [...own, { id, question: newQuestion }],
+                      tags: [...tags, id],
+                    }),
+                  )
+                ) {
+                  setNewId('');
+                  setNewQuestion('');
+                }
+              }}
+            >
+              {t('editor.SpellDialog.addSituation', 'Add situation')}
+            </button>
+          </div>
 
           <label className="ed-field">
             {t(

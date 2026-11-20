@@ -3,7 +3,7 @@
  * the English one; users copy it and change the texts. Keys that are missing fall back to English.
  */
 import { z } from 'zod';
-import { placeholdersOf } from './translate';
+import { placeholdersOf, tr } from './translate';
 
 export const LANGUAGE_FORMAT = 'soloquest-language';
 export const LANGUAGE_EXTENSION = '.sqlang.json';
@@ -52,12 +52,24 @@ export type ParsedLanguage =
 /** Reads the text of a translation file. Never throws: the message is for the player. */
 export function parseLanguageFile(text: string): ParsedLanguage {
   if (text.length > LANGUAGE_MAX_BYTES)
-    return { ok: false, message: 'This file is too big for a translation (5 MB at most).' };
+    return {
+      ok: false,
+      message: tr(
+        'translations.msgTooBig',
+        'This file is too big for a translation (5 MB at most).',
+      ),
+    };
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
-    return { ok: false, message: 'This file is not a translation file: it is not valid JSON.' };
+    return {
+      ok: false,
+      message: tr(
+        'translations.msgNotJson',
+        'This file is not a translation file: it is not valid JSON.',
+      ),
+    };
   }
   const r = LanguageFileSchema.safeParse(raw);
   if (!r.success) {
@@ -66,7 +78,10 @@ export function parseLanguageFile(text: string): ParsedLanguage {
     return { ok: false, message: `${issue?.message ?? 'The file is not valid.'}${where}` };
   }
   if (Object.keys(r.data.strings).length > MAX_STRINGS)
-    return { ok: false, message: 'This translation has too many texts.' };
+    return {
+      ok: false,
+      message: tr('translations.msgTooMany', 'This translation has too many texts.'),
+    };
   return { ok: true, file: r.data };
 }
 

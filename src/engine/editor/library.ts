@@ -5,9 +5,11 @@
  * item with that id and the same content it is reused; if the id is taken by something else the
  * copy gets a free id. Pure.
  */
+import { tr } from '../../i18n/translate';
 import { CORE_ABILITIES } from '../data/abilities';
 import { CORE_SPELLS } from '../data/spells';
-import type { AbilityDefData, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+import type { AbilityDefData, CompanionDef, EnemyDef, Quest, SpellDefData } from '../quest/schema';
+import { addNpc } from './meta';
 import { addMonster, updateMonster, type Cell } from './ops';
 import { fail, newIssues, ok, type EditResult } from './result';
 
@@ -38,12 +40,29 @@ export function spellChanged(def: SpellDefData): boolean {
       name: x.name,
       text: x.text ?? null,
       tags: x.tags ?? [],
+      situations: x.situations ?? [],
       question: x.question ?? null,
       warning: x.warning ?? null,
       offerWhen: x.offerWhen ?? 'always',
       timing: x.timing ?? 'either',
     });
   return norm(rest) !== norm(def as unknown as Record<string, unknown>);
+}
+
+/**
+ * Bring a library companion into the quest as a character, on a square the author picks. The
+ * character keeps the companion's id when it is free, else a new id (the quest keeps its own copy).
+ */
+export function addNpcFromCompanion(q: Quest, def: CompanionDef, cell: Cell): EditResult {
+  const free = !q.npcs.some((n) => n.id === def.id) && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(def.id);
+  return addNpc(q, {
+    name: def.name,
+    cell: [cell[0], cell[1]],
+    defend: def.defend,
+    body: def.body,
+    text: def.text,
+    ...(free ? { id: def.id } : {}),
+  });
 }
 
 export interface Added {
@@ -125,10 +144,19 @@ export function addLibraryAbilityToMonster(
   def: AbilityDefData,
 ): EditResult {
   const m = q.monsters.find((x) => x.id === monsterId);
-  if (!m) return fail(`There is no monster ${monsterId}.`);
+  if (!m)
+    return fail(
+      tr('editor.library.thereIsNoMonster', 'There is no monster {monsterId}.', { monsterId }),
+    );
   const t = takeLibraryAbility(q, def);
   const mine = m.abilities ?? [];
-  if (mine.includes(t.id)) return fail('That monster already has that ability.');
+  if (mine.includes(t.id))
+    return fail(
+      tr(
+        'editor.library.thatMonsterAlreadyHasThatAbility',
+        'That monster already has that ability.',
+      ),
+    );
   return updateMonster(t.quest, monsterId, { abilities: [...mine, t.id] });
 }
 
@@ -139,7 +167,10 @@ export function addLibrarySpellToMonster(
   def: SpellDefData,
 ): EditResult {
   const m = q.monsters.find((x) => x.id === monsterId);
-  if (!m) return fail(`There is no monster ${monsterId}.`);
+  if (!m)
+    return fail(
+      tr('editor.library.thereIsNoMonster', 'There is no monster {monsterId}.', { monsterId }),
+    );
   const t = takeLibrarySpell(q, def);
   return updateMonster(t.quest, monsterId, { spells: [...(m.spells ?? []), t.id] });
 }
@@ -192,7 +223,8 @@ export function removeEnemy(
   id: string,
   opts: { withMonsters?: boolean } = {},
 ): EditResult {
-  if (!q.enemyDefs.some((e) => e.id === id)) return fail(`The quest has no enemy ${id}.`);
+  if (!q.enemyDefs.some((e) => e.id === id))
+    return fail(tr('editor.library.theQuestHasNoEnemy', 'The quest has no enemy {id}.', { id }));
   const monsters = opts.withMonsters
     ? q.monsters.filter((m) => m.enemy !== id)
     : q.monsters.map((m) => {
@@ -222,7 +254,10 @@ export function enemyDiffersFromLibrary(q: Quest, def: EnemyDef): boolean {
  * letter, picture). Monsters that use the enemy keep it and show the new values at once.
  */
 export function updateEnemyFromLibrary(q: Quest, def: EnemyDef, lib: LibraryContent): EditResult {
-  if (!q.enemyDefs.some((e) => e.id === def.id)) return fail(`The quest has no enemy ${def.id}.`);
+  if (!q.enemyDefs.some((e) => e.id === def.id))
+    return fail(
+      tr('editor.library.theQuestHasNoEnemy', 'The quest has no enemy {id}.', { id: def.id }),
+    );
   const without = { ...q, enemyDefs: q.enemyDefs.filter((e) => e.id !== def.id) };
   const t = takeLibraryEnemy(without, def, lib);
   // keep the position of the enemy in the list
@@ -249,7 +284,8 @@ export function addMonsterOfEnemy(
   const made = addMonster(t.quest, carrierType(def), cell, opts.hidden ? { hidden: true } : {});
   if (!made.ok) return made;
   const id = made.quest.monsters.at(-1)?.id;
-  if (!id) return fail('The monster could not be added.');
+  if (!id)
+    return fail(tr('editor.library.theMonsterCouldNotBeAdded', 'The monster could not be added.'));
   return updateMonster(made.quest, id, { enemy: t.id });
 }
 
@@ -263,7 +299,10 @@ export function setMonsterEnemyFromLibrary(
   def: EnemyDef,
   lib: LibraryContent,
 ): EditResult {
-  if (!q.monsters.some((x) => x.id === monsterId)) return fail(`There is no monster ${monsterId}.`);
+  if (!q.monsters.some((x) => x.id === monsterId))
+    return fail(
+      tr('editor.library.thereIsNoMonster', 'There is no monster {monsterId}.', { monsterId }),
+    );
   const t = takeLibraryEnemy(q, def, lib);
   return updateMonster(t.quest, monsterId, { type: carrierType(def), enemy: t.id });
 }

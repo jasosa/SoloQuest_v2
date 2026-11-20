@@ -11,6 +11,7 @@
  *
  * The board is the fixed game board.
  */
+import { tr } from '../../i18n/translate';
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
 import { abilityLookup } from '../data/abilities';
 import { spellLookup } from '../data/spells';
@@ -47,7 +48,9 @@ const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 function trimmed(value: string | undefined, what: string): { value?: string; error?: string } {
   if (value === undefined) return {};
   const t = value.trim();
-  return t === '' ? { error: `The ${what} cannot be empty.` } : { value: t };
+  return t === ''
+    ? { error: tr('editor.ops.theCannotBeEmpty', 'The {what} cannot be empty.', { what }) }
+    : { value: t };
 }
 
 function pickId(
@@ -57,12 +60,25 @@ function pickId(
   what: string,
 ): { id: string } | { error: string } {
   if (wanted === undefined) return { id: nextId(prefix, taken) };
-  if (wanted.trim() === '') return { error: `The ${what} id cannot be empty.` };
+  if (wanted.trim() === '')
+    return {
+      error: tr('editor.ops.theIdCannotBeEmpty', 'The {what} id cannot be empty.', { what }),
+    };
   if (!ID_PATTERN.test(wanted))
     return {
-      error: `The ${what} id "${wanted}" can only use letters, numbers, - and _, and must start with a letter or number.`,
+      error: tr(
+        'editor.ops.theIdCanOnlyUseLetters',
+        'The {what} id "{wanted}" can only use letters, numbers, - and _, and must start with a letter or number.',
+        { what, wanted },
+      ),
     };
-  if (new Set(taken).has(wanted)) return { error: `A ${what} with id ${wanted} already exists.` };
+  if (new Set(taken).has(wanted))
+    return {
+      error: tr('editor.ops.aWithIdAlreadyExists', 'A {what} with id {wanted} already exists.', {
+        what,
+        wanted,
+      }),
+    };
   return { id: wanted };
 }
 
@@ -132,8 +148,12 @@ function floorProblem(q: Quest, c: readonly number[], what: string): string | un
     !Number.isInteger(c[1]) ||
     !inBoard(board, c[0] as number, c[1] as number)
   )
-    return `${what}: ${at(c)} is outside the board.`;
-  if (isRockCell(q, c)) return `${what}: ${at(c)} is rock.`;
+    return tr('editor.ops.isOutsideTheBoard', '{what}: {at} is outside the board.', {
+      what,
+      at: at(c),
+    });
+  if (isRockCell(q, c))
+    return tr('editor.ops.isRock', '{what}: {at} is rock.', { what, at: at(c) });
   return undefined;
 }
 
@@ -179,12 +199,14 @@ export function emptyQuest(input: NewQuestInput): Quest {
 // ---- text fields
 
 export function renameQuest(q: Quest, title: string): EditResult {
-  if (title.trim() === '') return fail('The title cannot be empty.');
+  if (title.trim() === '')
+    return fail(tr('editor.ops.theTitleCannotBeEmpty', 'The title cannot be empty.'));
   return ok({ ...q, title: title.trim() });
 }
 
 export function setSummary(q: Quest, summary: string): EditResult {
-  if (summary.trim() === '') return fail('The summary cannot be empty.');
+  if (summary.trim() === '')
+    return fail(tr('editor.ops.theSummaryCannotBeEmpty', 'The summary cannot be empty.'));
   return ok({ ...q, intro: { ...q.intro, summary: summary.trim() } });
 }
 
@@ -192,8 +214,11 @@ export function setSummary(q: Quest, summary: string): EditResult {
 
 export function setStartArea(q: Quest, area: string): EditResult {
   if (!/^R\d{2}$/.test(area) || cellsOf(board, area).length === 0)
-    return fail(`${area} is not a room of the board.`);
-  if (q.rock.rooms.includes(area)) return fail(`${area} is rock. Clear the rock first.`);
+    return fail(tr('editor.ops.isNotARoomOfThe', '{area} is not a room of the board.', { area }));
+  if (q.rock.rooms.includes(area))
+    return fail(
+      tr('editor.ops.isRockClearTheRockFirst', '{area} is rock. Clear the rock first.', { area }),
+    );
   return ok({ ...q, start: { area } });
 }
 
@@ -205,34 +230,53 @@ function rockConflict(q: Quest, cells: ReadonlySet<string>): string | undefined 
   for (const k of cells) {
     const c = k.split(',').map(Number) as Cell;
     const hit = conflict(l, c, ['blocks', 'furniture', 'stairs', 'monsters', 'traps', 'npcs']);
-    if (hit) return `${hit} is on ${at(c)}`;
+    if (hit) return tr('editor.ops.isOn', '{hit} is on {at}', { hit, at: at(c) });
   }
   for (const m of q.monsters)
-    if (m.cell && m.hidden && cells.has(key(m.cell))) return `monster ${m.id} is on ${at(m.cell)}`;
+    if (m.cell && m.hidden && cells.has(key(m.cell)))
+      return tr('editor.ops.monsterIsOn', 'monster {id} is on {at}', { id: m.id, at: at(m.cell) });
   for (const m of q.markers)
-    if (cells.has(key(m.cell))) return `marker ${m.id} is on ${at(m.cell)}`;
+    if (cells.has(key(m.cell)))
+      return tr('editor.ops.markerIsOn', 'marker {id} is on {at}', { id: m.id, at: at(m.cell) });
   for (const d of [...q.doors, ...q.secretDoors])
-    for (const c of [d.a, d.b]) if (cells.has(key(c))) return `door ${d.id} touches ${at(c)}`;
+    for (const c of [d.a, d.b])
+      if (cells.has(key(c)))
+        return tr('editor.ops.doorTouches', 'door {id} touches {at}', { id: d.id, at: at(c) });
   return undefined;
 }
 
 export function setRockCell(q: Quest, cell: Cell, on: boolean): EditResult {
   if (!Number.isInteger(cell[0]) || !Number.isInteger(cell[1]) || !inBoard(board, cell[0], cell[1]))
-    return fail(`${at(cell)} is outside the board.`);
+    return fail(
+      tr('editor.ops.isOutsideTheBoard2', '{at} is outside the board.', { at: at(cell) }),
+    );
   const room = areaAt(board, cell[0], cell[1]) as string;
   const inRockRoom = q.rock.rooms.includes(room);
   const listed = q.rock.cells.some((c) => cellEq(c, cell));
   if (on) {
     if (inRockRoom || listed) return ok(q);
     const hit = rockConflict(q, new Set([key(cell)]));
-    if (hit) return fail(`Cannot make ${at(cell)} rock: ${hit}. Remove it first.`);
+    if (hit)
+      return fail(
+        tr(
+          'editor.ops.cannotMakeRockRemoveItFirst',
+          'Cannot make {at} rock: {hit}. Remove it first.',
+          { at: at(cell), hit },
+        ),
+      );
     return ok({
       ...q,
       rock: { ...q.rock, cells: [...q.rock.cells.map(copy), copy(cell)].sort(byRow) },
     });
   }
   if (inRockRoom)
-    return fail(`${at(cell)} is part of rock room ${room}. Clear the whole room instead.`);
+    return fail(
+      tr(
+        'editor.ops.isPartOfRockRoomClear',
+        '{at} is part of rock room {room}. Clear the whole room instead.',
+        { at: at(cell), room },
+      ),
+    );
   if (!listed) return ok(q);
   return ok({ ...q, rock: { ...q.rock, cells: q.rock.cells.filter((c) => !cellEq(c, cell)) } });
 }
@@ -240,13 +284,26 @@ export function setRockCell(q: Quest, cell: Cell, on: boolean): EditResult {
 export function setRockRoom(q: Quest, room: string, on: boolean): EditResult {
   const roomCells = cellsOf(board, room);
   if (!/^R\d{2}$/.test(room) || roomCells.length === 0)
-    return fail(`${room} is not a room of the board.`);
+    return fail(tr('editor.ops.isNotARoomOfThe2', '{room} is not a room of the board.', { room }));
   if (on) {
     if (q.rock.rooms.includes(room)) return ok(q);
     if (q.start.area === room)
-      return fail(`${room} is the start room. Choose another start first.`);
+      return fail(
+        tr(
+          'editor.ops.isTheStartRoomChooseAnother',
+          '{room} is the start room. Choose another start first.',
+          { room },
+        ),
+      );
     const hit = rockConflict(q, new Set(roomCells.map(key)));
-    if (hit) return fail(`Cannot make ${room} rock: ${hit}. Remove it first.`);
+    if (hit)
+      return fail(
+        tr(
+          'editor.ops.cannotMakeRockRemoveItFirst2',
+          'Cannot make {room} rock: {hit}. Remove it first.',
+          { room, hit },
+        ),
+      );
     const rooms = [...q.rock.rooms, room].sort();
     // Single rock cells inside the room are now redundant.
     const cells = q.rock.cells.filter((c) => areaAt(board, c[0], c[1]) !== room);
@@ -270,25 +327,44 @@ function doorEdgeProblem(
 ): string | undefined {
   for (const c of [a, b])
     if (!Number.isInteger(c[0]) || !Number.isInteger(c[1]) || !inBoard(board, c[0], c[1]))
-      return `${at(c)} is outside the board.`;
+      return tr('editor.ops.isOutsideTheBoard2', '{at} is outside the board.', { at: at(c) });
   if (!neighbours(a, b))
-    return `${at(a)} and ${at(b)} are not next to each other. A door sits between two neighbouring squares.`;
+    return tr(
+      'editor.ops.andAreNotNextToEach',
+      '{at} and {at2} are not next to each other. A door sits between two neighbouring squares.',
+      { at: at(a), at2: at(b) },
+    );
   if (!isWallBetween(board, a, b))
-    return `There is no wall between ${at(a)} and ${at(b)}, so a door cannot go there.`;
+    return tr(
+      'editor.ops.thereIsNoWallBetweenAnd',
+      'There is no wall between {at} and {at2}, so a door cannot go there.',
+      { at: at(a), at2: at(b) },
+    );
   const twin = allDoors(q).find(
     (d) =>
       d.id !== ignoreId &&
       ((cellEq(d.a, a) && cellEq(d.b, b)) || (cellEq(d.a, b) && cellEq(d.b, a))),
   );
-  if (twin) return `Door ${twin.id} is already on that edge.`;
+  if (twin)
+    return tr('editor.ops.doorIsAlreadyOnThatEdge', 'Door {id} is already on that edge.', {
+      id: twin.id,
+    });
   if (kind !== 'false')
     for (const c of [a, b])
       if (isRockCell(q, c))
-        return `A ${kind} door cannot touch rock (${at(c)}). Only a false door may.`;
+        return tr(
+          'editor.ops.aDoorCannotTouchRockOnly',
+          'A {kind} door cannot touch rock ({at}). Only a false door may.',
+          { kind, at: at(c) },
+        );
   const l = layers(q);
   for (const c of [a, b]) {
     const hit = conflict(l, c, ['blocks', 'furniture']);
-    if (hit) return `${hit} is on ${at(c)}, so a door cannot go there.`;
+    if (hit)
+      return tr('editor.ops.isOnSoADoorCannot', '{hit} is on {at}, so a door cannot go there.', {
+        hit,
+        at: at(c),
+      });
   }
   return undefined;
 }
@@ -306,7 +382,7 @@ export function addDoor(q: Quest, a: Cell, b: Cell, kind: DoorKind = 'normal'): 
 
 export function removeDoor(q: Quest, id: string): EditResult {
   const found = allDoors(q).find((d) => d.id === id);
-  if (!found) return fail(`There is no door ${id}.`);
+  if (!found) return fail(tr('editor.ops.thereIsNoDoor', 'There is no door {id}.', { id }));
   const next: Quest = {
     ...q,
     doors: q.doors.filter((d) => d.id !== id),
@@ -319,7 +395,7 @@ export function removeDoor(q: Quest, id: string): EditResult {
 /** Change a door between normal, secret and false. The id changes with the kind (d, s, x). */
 export function setDoorKind(q: Quest, id: string, kind: DoorKind): EditResult {
   const found = allDoors(q).find((d) => d.id === id);
-  if (!found) return fail(`There is no door ${id}.`);
+  if (!found) return fail(tr('editor.ops.thereIsNoDoor', 'There is no door {id}.', { id }));
   const current: DoorKind = q.doors.includes(found)
     ? 'normal'
     : q.secretDoors.includes(found)
@@ -362,7 +438,11 @@ export function setDoorKind(q: Quest, id: string, kind: DoorKind): EditResult {
             if (e.type === 'addSecretDoor' && e.door === newId)
               bad.push({
                 severity: 'warning',
-                message: `note ${n.id} reveals door ${newId} as a secret door, but it is not secret now. Fix the note.`,
+                message: tr(
+                  'editor.ops.noteRevealsDoorAsASecret',
+                  'note {id} reveals door {newId} as a secret door, but it is not secret now. Fix the note.',
+                  { id: n.id, newId },
+                ),
                 ref: { kind: 'note', id: n.id },
               });
             if (e.type === 'promptChoice') e.options.forEach((o) => o.effects.forEach(walk));
@@ -376,9 +456,12 @@ export function setDoorKind(q: Quest, id: string, kind: DoorKind): EditResult {
 // ---- blocks
 
 export function addBlock(q: Quest, cells: Cell[]): EditResult {
-  if (cells.length < 1 || cells.length > 2) return fail('A block is one or two squares.');
+  if (cells.length < 1 || cells.length > 2)
+    return fail(tr('editor.ops.aBlockIsOneOrTwo', 'A block is one or two squares.'));
   if (cells.length === 2 && !neighbours(cells[0] as Cell, cells[1] as Cell))
-    return fail('The two squares of a block must be neighbours.');
+    return fail(
+      tr('editor.ops.theTwoSquaresOfABlock', 'The two squares of a block must be neighbours.'),
+    );
   const l = layers(q);
   for (const c of cells) {
     const p = floorProblem(q, c, 'Block');
@@ -392,7 +475,10 @@ export function addBlock(q: Quest, cells: Cell[]): EditResult {
       'doors',
       'npcs',
     ]);
-    if (hit) return fail(`Block: ${hit} is already on ${at(c)}.`);
+    if (hit)
+      return fail(
+        tr('editor.ops.blockIsAlreadyOn', 'Block: {hit} is already on {at}.', { hit, at: at(c) }),
+      );
   }
   return ok({ ...q, blocks: [...q.blocks, { cells: cells.map(copy) }] });
 }
@@ -400,7 +486,8 @@ export function addBlock(q: Quest, cells: Cell[]): EditResult {
 /** Remove the block that covers this square. */
 export function removeBlock(q: Quest, cell: Cell): EditResult {
   const i = q.blocks.findIndex((b) => b.cells.some((c) => cellEq(c, cell)));
-  if (i < 0) return fail(`There is no block on ${at(cell)}.`);
+  if (i < 0)
+    return fail(tr('editor.ops.thereIsNoBlockOn', 'There is no block on {at}.', { at: at(cell) }));
   return ok({ ...q, blocks: q.blocks.filter((_, j) => j !== i) });
 }
 
@@ -418,8 +505,12 @@ function footprintProblem(
   ignoreId?: string,
 ): string | undefined {
   const what = type === 'stairs' ? 'Stairs' : 'Furniture';
-  if (cells.length === 0) return `${what} needs at least one square.`;
-  if (new Set(cells.map(key)).size !== cells.length) return `${what} lists the same square twice.`;
+  if (cells.length === 0)
+    return tr('editor.ops.needsAtLeastOneSquare', '{what} needs at least one square.', { what });
+  if (new Set(cells.map(key)).size !== cells.length)
+    return tr('editor.ops.listsTheSameSquareTwice', '{what} lists the same square twice.', {
+      what,
+    });
   for (const c of cells) {
     const p = floorProblem(q, c, what);
     if (p) return p;
@@ -433,7 +524,12 @@ function footprintProblem(
       : ['blocks', 'furniture', 'stairs', 'monsters', 'traps', 'doors', 'npcs'];
   for (const c of cells) {
     const hit = conflict(l, c, names);
-    if (hit) return `${what}: ${hit} is already on ${at(c)}.`;
+    if (hit)
+      return tr('editor.ops.isAlreadyOn', '{what}: {hit} is already on {at}.', {
+        what,
+        hit,
+        at: at(c),
+      });
   }
   return undefined;
 }
@@ -466,7 +562,7 @@ export function addFurniture(
 
 function replaceCells(q: Quest, id: string, cells: Cell[]): EditResult {
   const f = q.furniture.find((x) => x.id === id);
-  if (!f) return fail(`There is no furniture ${id}.`);
+  if (!f) return fail(tr('editor.ops.thereIsNoFurniture', 'There is no furniture {id}.', { id }));
   const p = footprintProblem(q, f.type, cells, id);
   if (p) return fail(p);
   return ok({ ...q, furniture: q.furniture.map((x) => (x.id === id ? { ...x, cells } : x)) });
@@ -475,7 +571,7 @@ function replaceCells(q: Quest, id: string, cells: Cell[]): EditResult {
 /** Move a piece so that its first square lands on `to`. The shape stays the same. */
 export function moveFurniture(q: Quest, id: string, to: Cell): EditResult {
   const f = q.furniture.find((x) => x.id === id);
-  if (!f) return fail(`There is no furniture ${id}.`);
+  if (!f) return fail(tr('editor.ops.thereIsNoFurniture', 'There is no furniture {id}.', { id }));
   const first = f.cells[0] as Cell;
   const dx = to[0] - first[0];
   const dy = to[1] - first[1];
@@ -495,7 +591,7 @@ export function moveFurniture(q: Quest, id: string, to: Cell): EditResult {
  */
 export function rotateFurniture(q: Quest, id: string): EditResult {
   const f = q.furniture.find((x) => x.id === id);
-  if (!f) return fail(`There is no furniture ${id}.`);
+  if (!f) return fail(tr('editor.ops.thereIsNoFurniture', 'There is no furniture {id}.', { id }));
   const xs = f.cells.map((c) => c[0]);
   const ys = f.cells.map((c) => c[1]);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
@@ -505,7 +601,12 @@ export function rotateFurniture(q: Quest, id: string): EditResult {
   const snap = (v: number) => (turn % 2 === 0 ? Math.floor(v + 0.5) : Math.ceil(v - 0.5));
   const cells = f.cells.map((c): Cell => [snap(cx - (c[1] - cy)), snap(cy + (c[0] - cx))]);
   if (cells.some((c) => !inBoard(board, c[0], c[1])))
-    return fail('There is no room to turn it here: it would leave the board.');
+    return fail(
+      tr(
+        'editor.ops.thereIsNoRoomToTurn',
+        'There is no room to turn it here: it would leave the board.',
+      ),
+    );
   const next = (turn + 1) % 4;
   const turned: FurnitureDef = { ...f, cells };
   if (next === 0) delete turned.turn;
@@ -515,7 +616,11 @@ export function rotateFurniture(q: Quest, id: string): EditResult {
     ? [
         {
           severity: 'warning',
-          message: `${problem} Turn it again or move it: Save and Playtest need a position that fits.`,
+          message: tr(
+            'editor.ops.turnItAgainOrMoveIt',
+            '{problem} Turn it again or move it: Save and Playtest need a position that fits.',
+            { problem },
+          ),
           ref: { kind: 'furniture', id },
         },
       ]
@@ -529,7 +634,7 @@ export function rotateFurniture(q: Quest, id: string): EditResult {
  */
 export function removeFurniture(q: Quest, id: string): EditResult {
   const f = q.furniture.find((x) => x.id === id);
-  if (!f) return fail(`There is no furniture ${id}.`);
+  if (!f) return fail(tr('editor.ops.thereIsNoFurniture', 'There is no furniture {id}.', { id }));
   const goneTraps = q.traps.filter((t) => t.furniture === id).map((t) => t.id);
   const next: Quest = {
     ...q,
@@ -546,7 +651,11 @@ export function removeFurniture(q: Quest, id: string): EditResult {
         if (n.letter === f.letter && !n.at)
           warnings.push({
             severity: 'warning',
-            message: `note ${n.id} has letter ${f.letter}, which is no longer on the map.`,
+            message: tr(
+              'editor.ops.noteHasLetterWhichIsNo',
+              'note {id} has letter {letter}, which is no longer on the map.',
+              { id: n.id, letter: f.letter },
+            ),
             ref: { kind: 'note', id: n.id },
           });
   }
@@ -571,7 +680,11 @@ function monsterCellProblem(q: Quest, cell: Cell, skipId?: string): string | und
   if (p) return p;
   const l = layers(q, skipId === undefined ? {} : { monster: skipId });
   const hit = conflict(l, cell, ['blocks', 'furniture', 'stairs', 'monsters']);
-  if (hit) return `Monster: ${hit} is already on ${at(cell)}.`;
+  if (hit)
+    return tr('editor.ops.monsterIsAlreadyOn', 'Monster: {hit} is already on {at}.', {
+      hit,
+      at: at(cell),
+    });
   return monsterStackProblem(q, cell);
 }
 
@@ -581,7 +694,12 @@ function monsterCellProblem(q: Quest, cell: Cell, skipId?: string): string | und
  */
 function monsterStackProblem(q: Quest, cell: Cell): string | undefined {
   const hit = conflict(layers(q), cell, ['npcs']);
-  if (hit) return `Monster: ${hit} is on ${at(cell)}, so a monster cannot stand there.`;
+  if (hit)
+    return tr(
+      'editor.ops.monsterIsOnSoAMonster',
+      'Monster: {hit} is on {at}, so a monster cannot stand there.',
+      { hit, at: at(cell) },
+    );
   return undefined;
 }
 
@@ -593,7 +711,13 @@ export function addMonster(
   opts: MonsterOpts = {},
 ): EditResult {
   if (cell === null) {
-    if (!opts.hidden) return fail('A monster needs a square, unless it is hidden.');
+    if (!opts.hidden)
+      return fail(
+        tr(
+          'editor.ops.aMonsterNeedsASquareUnless',
+          'A monster needs a square, unless it is hidden.',
+        ),
+      );
   } else if (opts.hidden) {
     const p = floorProblem(q, cell, 'Monster') ?? monsterStackProblem(q, cell);
     if (p) return fail(p);
@@ -613,10 +737,19 @@ export function addMonster(
   const name = trimmed(opts.name, 'monster name');
   if (name.error) return fail(name.error);
   for (const list of [opts.traits, opts.spells])
-    if (list?.some((t) => t.trim() === '')) return fail('Traits and spells cannot be empty text.');
+    if (list?.some((t) => t.trim() === ''))
+      return fail(
+        tr('editor.ops.traitsAndSpellsCannotBeEmpty', 'Traits and spells cannot be empty text.'),
+      );
   for (const [k, v] of Object.entries(opts.overrides ?? {}))
     if (v !== undefined && (!Number.isInteger(v) || v < 0))
-      return fail(`The ${k} override must be a whole number, 0 or more.`);
+      return fail(
+        tr(
+          'editor.ops.theOverrideMustBeAWhole',
+          'The {k} override must be a whole number, 0 or more.',
+          { k },
+        ),
+      );
   const m: MonsterDef = clean({
     id: picked.id,
     type,
@@ -630,7 +763,7 @@ export function addMonster(
 
 export function moveMonster(q: Quest, id: string, cell: Cell): EditResult {
   const m = q.monsters.find((x) => x.id === id);
-  if (!m) return fail(`There is no monster ${id}.`);
+  if (!m) return fail(tr('editor.ops.thereIsNoMonster', 'There is no monster {id}.', { id }));
   const p = m.hidden
     ? (floorProblem(q, cell, 'Monster') ?? monsterStackProblem(q, cell))
     : monsterCellProblem(q, cell, id);
@@ -642,7 +775,8 @@ export function moveMonster(q: Quest, id: string, cell: Cell): EditResult {
 }
 
 export function removeMonster(q: Quest, id: string): EditResult {
-  if (!q.monsters.some((m) => m.id === id)) return fail(`There is no monster ${id}.`);
+  if (!q.monsters.some((m) => m.id === id))
+    return fail(tr('editor.ops.thereIsNoMonster', 'There is no monster {id}.', { id }));
   const next = { ...q, monsters: q.monsters.filter((m) => m.id !== id) };
   return ok(next, referencesTo(next, 'monster', id));
 }
@@ -663,18 +797,37 @@ export function addTrap(
 ): EditResult {
   let placed: { cell: Cell } | { furniture: string };
   // An ice slide needs a path of squares; the editor cannot draw one yet.
-  if (kind === 'iceSlide') return fail('Ice slides are not in the editor yet.');
+  if (kind === 'iceSlide')
+    return fail(tr('editor.ops.iceSlidesAreNotInThe', 'Ice slides are not in the editor yet.'));
   if ('furniture' in target) {
     if (kind !== 'chest' && kind !== 'scripted')
-      return fail(`A ${kind} trap goes on a square, not on furniture.`);
+      return fail(
+        tr('editor.ops.aTrapGoesOnASquare', 'A {kind} trap goes on a square, not on furniture.', {
+          kind,
+        }),
+      );
     const f = q.furniture.find((x) => x.id === target.furniture);
-    if (!f) return fail(`There is no furniture ${target.furniture}.`);
+    if (!f)
+      return fail(
+        tr('editor.ops.thereIsNoFurniture5', 'There is no furniture {furniture}.', {
+          furniture: target.furniture,
+        }),
+      );
     if (kind === 'chest' && q.traps.some((t) => t.furniture === f.id))
-      return fail(`Furniture ${f.id} already has a trap.`);
+      return fail(
+        tr('editor.ops.furnitureAlreadyHasATrap', 'Furniture {id} already has a trap.', {
+          id: f.id,
+        }),
+      );
     placed = { furniture: f.id };
   } else {
     if (kind === 'chest')
-      return fail('A chest trap goes on a piece of furniture, not on a square.');
+      return fail(
+        tr(
+          'editor.ops.aChestTrapGoesOnA',
+          'A chest trap goes on a piece of furniture, not on a square.',
+        ),
+      );
     const p = floorProblem(q, target.cell, 'Trap');
     if (p) return fail(p);
     // A trap may share a monster's square or a door square, but never stairs or an NPC.
@@ -685,7 +838,13 @@ export function addTrap(
       'stairs',
       'npcs',
     ]);
-    if (hit) return fail(`Trap: ${hit} is on ${at(target.cell)}, so a trap cannot go there.`);
+    if (hit)
+      return fail(
+        tr('editor.ops.trapIsOnSoATrap', 'Trap: {hit} is on {at}, so a trap cannot go there.', {
+          hit,
+          at: at(target.cell),
+        }),
+      );
     placed = { cell: copy(target.cell) };
   }
   const picked = pickId(
@@ -702,7 +861,8 @@ export function addTrap(
 }
 
 export function removeTrap(q: Quest, id: string): EditResult {
-  if (!q.traps.some((t) => t.id === id)) return fail(`There is no trap ${id}.`);
+  if (!q.traps.some((t) => t.id === id))
+    return fail(tr('editor.ops.thereIsNoTrap', 'There is no trap {id}.', { id }));
   const next = { ...q, traps: q.traps.filter((t) => t.id !== id) };
   return ok(next, referencesTo(next, 'trap', id));
 }
@@ -717,7 +877,7 @@ export function addMarker(
   id?: string,
 ): EditResult {
   const text = label.trim();
-  if (text === '') return fail('A marker needs a label.');
+  if (text === '') return fail(tr('editor.ops.aMarkerNeedsALabel', 'A marker needs a label.'));
   const p = floorProblem(q, cell, 'Marker');
   if (p) return fail(p);
   const picked = pickId(
@@ -738,15 +898,16 @@ export function updateMarker(
   patch: { label?: string; visible?: 'editor' | 'players' },
 ): EditResult {
   const m = q.markers.find((x) => x.id === id);
-  if (!m) return fail(`There is no marker ${id}.`);
+  if (!m) return fail(tr('editor.ops.thereIsNoMarker', 'There is no marker {id}.', { id }));
   const label = patch.label === undefined ? m.label : patch.label.trim();
-  if (label === '') return fail('A marker needs a label.');
+  if (label === '') return fail(tr('editor.ops.aMarkerNeedsALabel', 'A marker needs a label.'));
   const next = clean({ ...m, label, visible: patch.visible ?? m.visible });
   return ok({ ...q, markers: q.markers.map((x) => (x.id === id ? next : x)) });
 }
 
 export function removeMarker(q: Quest, id: string): EditResult {
-  if (!q.markers.some((m) => m.id === id)) return fail(`There is no marker ${id}.`);
+  if (!q.markers.some((m) => m.id === id))
+    return fail(tr('editor.ops.thereIsNoMarker', 'There is no marker {id}.', { id }));
   return ok({ ...q, markers: q.markers.filter((m) => m.id !== id) });
 }
 
@@ -769,11 +930,16 @@ export function addZone(q: Quest, cell: Cell, id?: string): EditResult {
 /** Add the square to the zone, or take it out when it is already part of it. */
 export function toggleZoneCell(q: Quest, zoneId: string, cell: Cell): EditResult {
   const z = q.zones.find((x) => x.id === zoneId);
-  if (!z) return fail(`There is no zone ${zoneId}.`);
+  if (!z) return fail(tr('editor.ops.thereIsNoZone', 'There is no zone {zoneId}.', { zoneId }));
   let cells: [number, number][];
   if (z.cells.some((c) => cellEq(c, cell))) {
     if (z.cells.length === 1)
-      return fail('A zone needs at least one square. Delete the zone instead.');
+      return fail(
+        tr(
+          'editor.ops.aZoneNeedsAtLeastOne',
+          'A zone needs at least one square. Delete the zone instead.',
+        ),
+      );
     cells = z.cells.filter((c) => !cellEq(c, cell)).map((c) => [c[0], c[1]]);
   } else {
     const p = floorProblem(q, cell, 'Zone');
@@ -785,7 +951,8 @@ export function toggleZoneCell(q: Quest, zoneId: string, cell: Cell): EditResult
 
 /** Remove a zone. Notes that still point at it come back as warnings. */
 export function removeZone(q: Quest, id: string): EditResult {
-  if (!q.zones.some((z) => z.id === id)) return fail(`There is no zone ${id}.`);
+  if (!q.zones.some((z) => z.id === id))
+    return fail(tr('editor.ops.thereIsNoZone2', 'There is no zone {id}.', { id }));
   const quest = { ...q, zones: q.zones.filter((z) => z.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
@@ -798,13 +965,14 @@ export function removeZone(q: Quest, id: string): EditResult {
  */
 export function setFurnitureLetter(q: Quest, id: string, letter: string | null): EditResult {
   const f = q.furniture.find((x) => x.id === id);
-  if (!f) return fail(`There is no furniture ${id}.`);
+  if (!f) return fail(tr('editor.ops.thereIsNoFurniture', 'There is no furniture {id}.', { id }));
   let next: string | undefined;
   if (letter !== null) {
     const t = trimmed(letter, 'letter');
     if (t.error) return fail(t.error);
     next = t.value;
-    if (f.type === 'stairs') return fail('The stairs do not take a letter.');
+    if (f.type === 'stairs')
+      return fail(tr('editor.ops.theStairsDoNotTakeA', 'The stairs do not take a letter.'));
   }
   const { letter: _old, ...rest } = f;
   void _old;
@@ -849,7 +1017,7 @@ export interface MonsterPatch {
  */
 export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditResult {
   const m = q.monsters.find((x) => x.id === id);
-  if (!m) return fail(`There is no monster ${id}.`);
+  if (!m) return fail(tr('editor.ops.thereIsNoMonster', 'There is no monster {id}.', { id }));
   const next: Record<string, unknown> = { ...m };
   const set = (key: string, value: unknown) => {
     if (value === null || value === undefined) delete next[key];
@@ -868,22 +1036,38 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
     const o = patch.overrides;
     for (const [k, v] of Object.entries(o ?? {}))
       if (v !== undefined && (!Number.isInteger(v) || v < 0))
-        return fail(`The ${k} override must be a whole number, 0 or more.`);
+        return fail(
+          tr(
+            'editor.ops.theOverrideMustBeAWhole',
+            'The {k} override must be a whole number, 0 or more.',
+            { k },
+          ),
+        );
     const kept = o ? clean({ ...o }) : {};
     set('overrides', Object.keys(kept).length ? kept : null);
   }
   if (patch.state !== undefined) set('state', patch.state);
   if (patch.traits !== undefined) {
     if (patch.traits?.some((t) => t.trim() === ''))
-      return fail('Traits and spells cannot be empty text.');
+      return fail(
+        tr('editor.ops.traitsAndSpellsCannotBeEmpty', 'Traits and spells cannot be empty text.'),
+      );
     set('traits', patch.traits?.length ? patch.traits.map((t) => t.trim()) : null);
   }
   if (patch.spells !== undefined) {
     if (patch.spells?.some((t) => t.trim() === ''))
-      return fail('Traits and spells cannot be empty text.');
+      return fail(
+        tr('editor.ops.traitsAndSpellsCannotBeEmpty', 'Traits and spells cannot be empty text.'),
+      );
     const known = spellLookup(q);
     const bad = patch.spells?.find((s) => !known.has(s));
-    if (bad) return fail(`Unknown spell "${bad}". Known spells: ${[...known.keys()].join(', ')}.`);
+    if (bad)
+      return fail(
+        tr('editor.ops.unknownSpellKnownSpells', 'Unknown spell "{bad}". Known spells: {join}.', {
+          bad,
+          join: [...known.keys()].join(', '),
+        }),
+      );
     set('spells', patch.spells?.length ? patch.spells : null);
   }
   if (patch.behavior !== undefined) {
@@ -894,21 +1078,32 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
       !q.markers.some((k) => k.id === b.marker)
     )
       return fail(
-        'Pick a marker for "goes toward a marked square". Add one with the Markers tool.',
+        tr(
+          'editor.ops.pickAMarkerForGoesToward',
+          'Pick a marker for "goes toward a marked square". Add one with the Markers tool.',
+        ),
       );
     const kept = b ? clean({ ...b }) : {};
     set('behavior', Object.keys(kept).length ? kept : null);
   }
   if (patch.enemy !== undefined) {
     if (patch.enemy !== null && !q.enemyDefs.some((e) => e.id === patch.enemy))
-      return fail(`Unknown enemy "${patch.enemy}".`);
+      return fail(
+        tr('editor.ops.unknownEnemy', 'Unknown enemy "{enemy}".', { enemy: patch.enemy }),
+      );
     set('enemy', patch.enemy);
   }
   if (patch.spellLimit !== undefined) set('spellLimit', patch.spellLimit);
   if (patch.spellOrder !== undefined) {
     for (const [k, v] of Object.entries(patch.spellOrder ?? {}))
       if (!Number.isInteger(v) || v < 1 || v > 9)
-        return fail(`The place of ${k} must be a whole number from 1 to 9.`);
+        return fail(
+          tr(
+            'editor.ops.thePlaceOfMustBeA',
+            'The place of {k} must be a whole number from 1 to 9.',
+            { k },
+          ),
+        );
     set(
       'spellOrder',
       patch.spellOrder && Object.keys(patch.spellOrder).length ? patch.spellOrder : null,
@@ -928,25 +1123,36 @@ export function updateMonster(q: Quest, id: string, patch: MonsterPatch): EditRe
   if (patch.attacks !== undefined) {
     const a = patch.attacks;
     if (a !== null && (!Number.isInteger(a) || a < 1 || a > 3))
-      return fail('Attacks per turn is a whole number from 1 to 3.');
+      return fail(
+        tr('editor.ops.attacksPerTurnIsAWhole', 'Attacks per turn is a whole number from 1 to 3.'),
+      );
     set('attacks', a === null || a === 1 ? null : a);
   }
   if (patch.size !== undefined) {
     const z = patch.size;
-    if (z !== null && z !== 1 && z !== 2) return fail('A monster is 1 square or 2 x 2 squares.');
+    if (z !== null && z !== 1 && z !== 2)
+      return fail(tr('editor.ops.aMonsterIs1SquareOr', 'A monster is 1 square or 2 x 2 squares.'));
     set('size', z === null || z === 1 ? null : z);
   }
   if (patch.abilities !== undefined) {
     const known = abilityLookup(q);
     const bad = patch.abilities?.find((a) => !known.has(a));
-    if (bad) return fail(`Unknown ability "${bad}".`);
+    if (bad) return fail(tr('editor.ops.unknownAbility', 'Unknown ability "{bad}".', { bad }));
     set('abilities', patch.abilities?.length ? [...new Set(patch.abilities)] : null);
   }
   if (next.spellLimit && !(next.spells as string[] | undefined)?.length)
-    return fail('A spell limit needs at least one spell.');
+    return fail(
+      tr('editor.ops.aSpellLimitNeedsAtLeast', 'A spell limit needs at least one spell.'),
+    );
   const cell = m.cell;
   if (next.hidden !== true) {
-    if (!cell) return fail('A monster that is shown needs a square. Move it onto the board first.');
+    if (!cell)
+      return fail(
+        tr(
+          'editor.ops.aMonsterThatIsShownNeeds',
+          'A monster that is shown needs a square. Move it onto the board first.',
+        ),
+      );
     const p = monsterCellProblem(q, cell, id);
     if (p) return fail(p);
   }
@@ -973,17 +1179,29 @@ export interface TrapPatch {
 export function updateTrap(q: Quest, id: string, patch: TrapPatch): EditResult {
   const index = q.traps.findIndex((t) => t.id === id);
   const t = q.traps[index];
-  if (!t) return fail(`There is no trap ${id}.`);
+  if (!t) return fail(tr('editor.ops.thereIsNoTrap', 'There is no trap {id}.', { id }));
   const kind = patch.kind ?? t.kind;
   let target: TrapTarget | undefined = patch.target;
   if (!target) {
     if (kind === 'chest' && !t.furniture)
-      return fail('A chest trap goes on a piece of furniture. Pick the furniture.');
+      return fail(
+        tr(
+          'editor.ops.aChestTrapGoesOnA2',
+          'A chest trap goes on a piece of furniture. Pick the furniture.',
+        ),
+      );
     if (kind !== 'chest' && kind !== 'scripted' && !t.cell)
-      return fail(`A ${kind} trap goes on a square. Pick the square.`);
+      return fail(
+        tr('editor.ops.aTrapGoesOnASquare2', 'A {kind} trap goes on a square. Pick the square.', {
+          kind,
+        }),
+      );
     target = t.furniture ? { furniture: t.furniture } : t.cell ? { cell: t.cell } : undefined;
   }
-  if (!target) return fail('Pick a square or a piece of furniture for the trap.');
+  if (!target)
+    return fail(
+      tr('editor.ops.pickASquareOrAPiece', 'Pick a square or a piece of furniture for the trap.'),
+    );
   const effect =
     patch.effect === undefined ? t.effect : patch.effect === null ? undefined : patch.effect;
   const without: Quest = { ...q, traps: q.traps.filter((x) => x.id !== id) };

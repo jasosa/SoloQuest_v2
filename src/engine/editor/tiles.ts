@@ -6,6 +6,7 @@
  * The squares in the quest are the real footprint. A turned tile is just the same footprint with
  * width and height swapped, so the quest format needs no field for it.
  */
+import { tr } from '../../i18n/translate';
 import { board, inBoard } from '../board/board';
 import {
   BOARD_TILES,
@@ -128,7 +129,11 @@ function limitProblem(
   const spec = tileSpec(group, type);
   if (!spec || spec.laid || spec.maxPerSize === undefined) return undefined;
   if (tileSizeUsed(q, group, type, size, skip) < spec.maxPerSize) return undefined;
-  return `${spec.name} ${size[0]} x ${size[1]}: the box has ${limitText(spec)}, and this quest already uses it.`;
+  return tr(
+    'editor.tiles.xTheBoxHasAndThis',
+    '{name} {size0} x {size1}: the box has {limitText}, and this quest already uses it.',
+    { name: spec.name, size0: size[0], size1: size[1], limitText: limitText(spec) },
+  );
 }
 
 /** Why these squares cannot hold this tile, or undefined. `skip` is the tile being changed. */
@@ -141,16 +146,26 @@ function placeProblem(
   const name = BOARD_TILES[type].name;
   for (const c of cells)
     if (!Number.isInteger(c[0]) || !Number.isInteger(c[1]) || !inBoard(board, c[0], c[1]))
-      return `${name}: ${c[0]}, ${c[1]} is off the board.`;
+      return tr('editor.tiles.isOffTheBoard', '{name}: {c0}, {c1} is off the board.', {
+        name,
+        c0: c[0],
+        c1: c[1],
+      });
   const taken = new Map<string, string>();
   q.boardTiles.forEach((t, i) => {
     if (i !== skip) for (const c of t.cells) taken.set(key(c), BOARD_TILES[t.type].name);
   });
   for (const c of cells) {
     const other = taken.get(key(c));
-    if (other) return `${name} would overlap the ${other.toLowerCase()} at ${c[0]}, ${c[1]}.`;
+    if (other)
+      return tr(
+        'editor.tiles.wouldOverlapTheAt',
+        '{name} would overlap the {toLowerCase} at {c0}, {c1}.',
+        { name, toLowerCase: other.toLowerCase(), c0: c[0], c1: c[1] },
+      );
     // the cave entrance is the one tile that lies over rock
-    if (type !== 'iceCaveEntrance' && isRock(q, c)) return `${name}: ${c[0]}, ${c[1]} is rock.`;
+    if (type !== 'iceCaveEntrance' && isRock(q, c))
+      return tr('editor.tiles.isRock', '{name}: {c0}, {c1} is rock.', { name, c0: c[0], c1: c[1] });
   }
   return undefined;
 }
@@ -169,7 +184,8 @@ export function placeBoardTile(
   q: Quest,
   input: { type: BoardTileType; at: Cell; variant?: number; turned?: boolean },
 ): EditResult {
-  if (!BOARD_TILE_TYPES.includes(input.type)) return fail('That is not a board tile.');
+  if (!BOARD_TILE_TYPES.includes(input.type))
+    return fail(tr('editor.tiles.thatIsNotABoardTile', 'That is not a board tile.'));
   const def = BOARD_TILES[input.type];
   const cells = tileCellsFor(input.type, input.at, input.variant ?? 0, input.turned ?? false);
   const problem =
@@ -179,7 +195,11 @@ export function placeBoardTile(
   if (def.shape === 'laid') {
     const here = q.boardTiles.findIndex((t) => t.cells.some((c) => key(c) === key(input.at)));
     if (here >= 0)
-      return fail(`${BOARD_TILES[q.boardTiles[here]!.type].name} is already on that square.`);
+      return fail(
+        tr('editor.tiles.isAlreadyOnThatSquare', '{name} is already on that square.', {
+          name: BOARD_TILES[q.boardTiles[here]!.type].name,
+        }),
+      );
     if (problem) return fail(problem);
     const near = q.boardTiles.findIndex(
       (t) =>
@@ -202,7 +222,7 @@ export function placeBoardTile(
 
 function withTile(q: Quest, index: number, fn: (t: Tile) => Tile): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const next = fn(t);
   const quest = { ...q, boardTiles: q.boardTiles.map((x, i) => (i === index ? next : x)) };
   return ok(quest, newIssues(q, quest));
@@ -211,7 +231,7 @@ function withTile(q: Quest, index: number, fn: (t: Tile) => Tile): EditResult {
 /** Slide a tile so its top left square is on `to`. */
 export function moveBoardTile(q: Quest, index: number, to: Cell): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const box = tileBox(t.cells);
   const cells = ordered(t.cells.map((c) => [c[0] - box.x + to[0], c[1] - box.y + to[1]] as Cell));
   const problem = placeProblem(q, t.type, cells, index);
@@ -222,11 +242,24 @@ export function moveBoardTile(q: Quest, index: number, to: Cell): EditResult {
 /** Give a fixed tile another size, keeping its top left square. The size must be one it comes in. */
 export function resizeBoardTile(q: Quest, index: number, size: Footprint): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const def = BOARD_TILES[t.type];
-  if (def.shape === 'laid') return fail(`${def.name} is laid square by square, it has no size.`);
+  if (def.shape === 'laid')
+    return fail(
+      tr(
+        'editor.tiles.isLaidSquareBySquareIt',
+        '{name} is laid square by square, it has no size.',
+        { name: def.name },
+      ),
+    );
   if (!tileSizes(t.type).some((s) => s[0] === size[0] && s[1] === size[1]))
-    return fail(`${def.name} does not come as ${size[0]} x ${size[1]}.`);
+    return fail(
+      tr('editor.tiles.doesNotComeAsX', '{name} does not come as {size0} x {size1}.', {
+        name: def.name,
+        size0: size[0],
+        size1: size[1],
+      }),
+    );
   const box = tileBox(t.cells);
   const cells = rectCells([box.x, box.y], size[0], size[1]);
   const problem =
@@ -238,12 +271,24 @@ export function resizeBoardTile(q: Quest, index: number, size: Footprint): EditR
 /** Turn a fixed tile a quarter turn: width and height swap, the top left square stays. */
 export function rotateBoardTile(q: Quest, index: number): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const def = BOARD_TILES[t.type];
   if (def.shape === 'laid')
-    return fail(`${def.name} is laid square by square, it cannot be turned.`);
+    return fail(
+      tr(
+        'editor.tiles.isLaidSquareBySquareIt2',
+        '{name} is laid square by square, it cannot be turned.',
+        { name: def.name },
+      ),
+    );
   const box = tileBox(t.cells);
-  if (!box.full) return fail('This tile is not a plain rectangle, so it cannot be turned.');
+  if (!box.full)
+    return fail(
+      tr(
+        'editor.tiles.thisTileIsNotAPlain',
+        'This tile is not a plain rectangle, so it cannot be turned.',
+      ),
+    );
   if (box.w === box.h) return ok(q);
   return resizeBoardTile(q, index, [box.h, box.w]);
 }
@@ -258,20 +303,26 @@ export function setBoardTileFlags(
   flags: { hiddenWhen?: string; blocks?: boolean },
 ): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const hiddenWhen =
     flags.hiddenWhen === undefined ? t.hiddenWhen : flags.hiddenWhen.trim() || undefined;
   const blocks = flags.blocks === undefined ? t.blocks : flags.blocks || undefined;
   if (blocks && !hiddenWhen)
-    return fail('A tile that blocks needs a flag that takes it away. Type the flag first.');
+    return fail(
+      tr(
+        'editor.tiles.aTileThatBlocksNeedsA',
+        'A tile that blocks needs a flag that takes it away. Type the flag first.',
+      ),
+    );
   return withTile(q, index, (x) => clean({ type: x.type, cells: x.cells, hiddenWhen, blocks }));
 }
 
 /** Take one square out of laid terrain. The last square takes the tile with it. */
 export function removeBoardTileCell(q: Quest, index: number, cell: Cell): EditResult {
   const t = q.boardTiles[index];
-  if (!t) return fail('There is no such tile.');
-  if (!t.cells.some((c) => key(c) === key(cell))) return fail('That square is not in the tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
+  if (!t.cells.some((c) => key(c) === key(cell)))
+    return fail(tr('editor.tiles.thatSquareIsNotInThe', 'That square is not in the tile.'));
   const left = t.cells.filter((c) => key(c) !== key(cell));
   if (left.length === 0) {
     const quest = { ...q, boardTiles: q.boardTiles.filter((_, i) => i !== index) };
@@ -318,15 +369,29 @@ function roomPlaceProblem(
   const name = ROOM_TILES[type].name;
   for (const c of cells)
     if (!Number.isInteger(c[0]) || !Number.isInteger(c[1]) || !inBoard(board, c[0], c[1]))
-      return `${name}: ${c[0]}, ${c[1]} is off the board.`;
+      return tr('editor.tiles.isOffTheBoard', '{name}: {c0}, {c1} is off the board.', {
+        name,
+        c0: c[0],
+        c1: c[1],
+      });
   const taken = new Map<string, string>();
   q.roomTiles.forEach((t, i) => {
     if (i !== skip) for (const c of roomTileCells(q, t)) taken.set(key(c), ROOM_TILES[t.type].name);
   });
   for (const c of cells) {
     const other = taken.get(key(c));
-    if (other) return `${name} would overlap the ${other.toLowerCase()} at ${c[0]}, ${c[1]}.`;
-    if (isRock(q, c)) return `${name}: ${c[0]}, ${c[1]} is rock.`;
+    if (other)
+      return tr(
+        'editor.tiles.wouldOverlapTheAt',
+        '{name} would overlap the {toLowerCase} at {c0}, {c1}.',
+        { name, toLowerCase: other.toLowerCase(), c0: c[0], c1: c[1] },
+      );
+    if (isRock(q, c))
+      return tr('editor.tiles.isRock', '{name}: {c0}, {c1} is rock.', {
+        name,
+        c0: c[0],
+        c1: c[1],
+      });
   }
   return undefined;
 }
@@ -339,7 +404,8 @@ export function placeRoomTile(
   q: Quest,
   input: { type: RoomTileType; at: Cell; variant?: number; turned?: boolean },
 ): EditResult {
-  if (!ROOM_TILE_TYPES.includes(input.type)) return fail('That is not a room tile.');
+  if (!ROOM_TILE_TYPES.includes(input.type))
+    return fail(tr('editor.tiles.thatIsNotARoomTile', 'That is not a room tile.'));
   const cells = roomTileCellsFor(input.type, input.at, input.variant ?? 0, input.turned ?? false);
   const b = tileBox(cells);
   const problem =
@@ -351,7 +417,7 @@ export function placeRoomTile(
 
 function withRoomTile(q: Quest, index: number, fn: (t: RoomTile) => RoomTile): EditResult {
   const t = q.roomTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const quest = { ...q, roomTiles: q.roomTiles.map((x, i) => (i === index ? fn(x) : x)) };
   return ok(quest, newIssues(q, quest));
 }
@@ -359,7 +425,7 @@ function withRoomTile(q: Quest, index: number, fn: (t: RoomTile) => RoomTile): E
 /** Slide a room tile so its top left square is on `to`. A tile that filled a room gets squares. */
 export function moveRoomTile(q: Quest, index: number, to: Cell): EditResult {
   const t = q.roomTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const here = roomTileCells(q, t);
   const box = tileBox(here);
   const cells = ordered(here.map((c) => [c[0] - box.x + to[0], c[1] - box.y + to[1]] as Cell));
@@ -371,9 +437,15 @@ export function moveRoomTile(q: Quest, index: number, to: Cell): EditResult {
 /** Give a room tile another size it comes in, keeping its top left square. */
 export function resizeRoomTile(q: Quest, index: number, size: Footprint): EditResult {
   const t = q.roomTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   if (!roomTileSizes(t.type).some((s) => s[0] === size[0] && s[1] === size[1]))
-    return fail(`${ROOM_TILES[t.type].name} does not come as ${size[0]} x ${size[1]}.`);
+    return fail(
+      tr('editor.tiles.doesNotComeAsX', '{name} does not come as {size0} x {size1}.', {
+        name: ROOM_TILES[t.type].name,
+        size0: size[0],
+        size1: size[1],
+      }),
+    );
   const box = tileBox(roomTileCells(q, t));
   const cells = rectCells([box.x, box.y], size[0], size[1]);
   const problem =
@@ -385,16 +457,23 @@ export function resizeRoomTile(q: Quest, index: number, size: Footprint): EditRe
 /** Turn a room tile a quarter turn: width and height swap, the top left square stays. */
 export function rotateRoomTile(q: Quest, index: number): EditResult {
   const t = q.roomTiles[index];
-  if (!t) return fail('There is no such tile.');
+  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const box = tileBox(roomTileCells(q, t));
-  if (!box.full) return fail('This tile is not a plain rectangle, so it cannot be turned.');
+  if (!box.full)
+    return fail(
+      tr(
+        'editor.tiles.thisTileIsNotAPlain',
+        'This tile is not a plain rectangle, so it cannot be turned.',
+      ),
+    );
   if (box.w === box.h) return ok(q);
   return resizeRoomTile(q, index, [box.h, box.w]);
 }
 
 /** Take a room tile away. */
 export function removeRoomTile(q: Quest, index: number): EditResult {
-  if (!q.roomTiles[index]) return fail('There is no such tile.');
+  if (!q.roomTiles[index])
+    return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
   const quest = { ...q, roomTiles: q.roomTiles.filter((_, i) => i !== index) };
   return ok(quest, newIssues(q, quest));
 }

@@ -9,6 +9,7 @@
  * The operations here (`addMap`, `removeMap`, `updateMap`, `addLink`, `removeLink`) work on the
  * canonical quest.
  */
+import { tr } from '../../i18n/translate';
 import { BOARD_KEYS, firstMapId, isMultiMap, questMaps } from '../quest/maps';
 import type { MapDef, Note, Quest } from '../quest/schema';
 import { NEEDS_MAP } from '../quest/validate';
@@ -117,11 +118,21 @@ export function addMap(q: Quest, input: NewMap = {}): EditResult {
   let id = input.id?.trim();
   if (id !== undefined && id !== '') {
     if (!ID_PATTERN.test(id))
-      return fail(`The map id "${id}" can only use letters, numbers, - and _.`);
-    if (taken.includes(id)) return fail(`A map with id ${id} already exists.`);
+      return fail(
+        tr(
+          'editor.maps.theMapIdCanOnlyUse',
+          'The map id "{id}" can only use letters, numbers, - and _.',
+          { id },
+        ),
+      );
+    if (taken.includes(id))
+      return fail(
+        tr('editor.maps.aMapWithIdAlreadyExists', 'A map with id {id} already exists.', { id }),
+      );
   } else id = nextId('map', taken);
   const name = input.name?.trim();
-  if (input.name !== undefined && name === '') return fail('The map name cannot be empty.');
+  if (input.name !== undefined && name === '')
+    return fail(tr('editor.maps.theMapNameCannotBeEmpty', 'The map name cannot be empty.'));
 
   const first = firstMapId(q);
   const extra: MapDef = {
@@ -162,8 +173,10 @@ export function addMap(q: Quest, input: NewMap = {}): EditResult {
  */
 export function removeMap(q: Quest, id: string): EditResult {
   const ids = mapIdsOf(q);
-  if (!ids.includes(id)) return fail(`There is no map ${id}.`);
-  if (ids.length < 2) return fail('A quest needs at least one map.');
+  if (!ids.includes(id))
+    return fail(tr('editor.maps.thereIsNoMap', 'There is no map {id}.', { id }));
+  if (ids.length < 2)
+    return fail(tr('editor.maps.aQuestNeedsAtLeastOne', 'A quest needs at least one map.'));
   const other = ids.find((x) => x !== id) as string;
   let w = firstMapId(q) === id ? swapTo(q, other) : q;
   // `id` is now one of the extra maps
@@ -197,18 +210,31 @@ export interface MapPatch {
 
 export function updateMap(q: Quest, id: string, patch: MapPatch): EditResult {
   const ids = mapIdsOf(q);
-  if (!ids.includes(id)) return fail(`There is no map ${id}.`);
+  if (!ids.includes(id))
+    return fail(tr('editor.maps.thereIsNoMap', 'There is no map {id}.', { id }));
   const first = firstMapId(q) === id;
   const nextIdValue = patch.id?.trim() ?? id;
   if (nextIdValue !== id) {
     if (!ID_PATTERN.test(nextIdValue))
-      return fail(`The map id "${nextIdValue}" can only use letters, numbers, - and _.`);
-    if (ids.includes(nextIdValue)) return fail(`A map with id ${nextIdValue} already exists.`);
+      return fail(
+        tr(
+          'editor.maps.theMapIdCanOnlyUse2',
+          'The map id "{nextIdValue}" can only use letters, numbers, - and _.',
+          { nextIdValue },
+        ),
+      );
+    if (ids.includes(nextIdValue))
+      return fail(
+        tr('editor.maps.aMapWithIdAlreadyExists2', 'A map with id {nextIdValue} already exists.', {
+          nextIdValue,
+        }),
+      );
   }
   let name: string | undefined;
   if (patch.name !== undefined && patch.name !== null) {
     name = patch.name.trim();
-    if (name === '') return fail('The map name cannot be empty.');
+    if (name === '')
+      return fail(tr('editor.maps.theMapNameCannotBeEmpty', 'The map name cannot be empty.'));
   }
   const apply = <T extends { id: string; name?: string | undefined }>(m: T): T => {
     const out: Record<string, unknown> = { ...m, id: nextIdValue };
@@ -247,18 +273,32 @@ export interface LinkEnd {
 /** Join two stairways of two maps (both ways). Both ends must be on a stairway. */
 export function addLink(q: Quest, a: LinkEnd, b: LinkEnd, id?: string): EditResult {
   const maps = questMaps(q);
-  if (maps.length < 2) return fail('Add a second map first.');
-  if (a.map === b.map) return fail('A link joins two different maps.');
+  if (maps.length < 2) return fail(tr('editor.maps.addASecondMapFirst', 'Add a second map first.'));
+  if (a.map === b.map)
+    return fail(tr('editor.maps.aLinkJoinsTwoDifferentMaps', 'A link joins two different maps.'));
   for (const [end, name] of [
     [a, 'first'],
     [b, 'second'],
   ] as const) {
     const m = maps.find((x) => x.id === end.map);
-    if (!m) return fail(`The ${name} end is on a map that does not exist (${end.map}).`);
+    if (!m)
+      return fail(
+        tr(
+          'editor.maps.theEndIsOnAMap',
+          'The {name} end is on a map that does not exist ({map}).',
+          { name, map: end.map },
+        ),
+      );
     const onStairs = m.quest.furniture.some(
       (f) => f.type === 'stairs' && f.cells.some((c) => key(c) === key(end.cell)),
     );
-    if (!onStairs) return fail(`The ${name} end is not on a stairway of map ${m.name ?? m.id}.`);
+    if (!onStairs)
+      return fail(
+        tr('editor.maps.theEndIsNotOnA', 'The {name} end is not on a stairway of map {value}.', {
+          name,
+          value: m.name ?? m.id,
+        }),
+      );
     for (const l of q.links ?? [])
       for (const e of [l.a, l.b])
         if (e.map === end.map) {
@@ -268,14 +308,29 @@ export function addLink(q: Quest, a: LinkEnd, b: LinkEnd, id?: string): EditResu
               f.cells.some((c) => key(c) === key(end.cell)) &&
               f.cells.some((c) => key(c) === key(e.cell)),
           );
-          if (there) return fail(`The ${name} stairway is already linked (${l.id}).`);
+          if (there)
+            return fail(
+              tr(
+                'editor.maps.theStairwayIsAlreadyLinked',
+                'The {name} stairway is already linked ({id}).',
+                { name, id: l.id },
+              ),
+            );
         }
   }
   let linkId = id?.trim();
   const taken = (q.links ?? []).map((l) => l.id);
   if (linkId !== undefined && linkId !== '') {
-    if (!ID_PATTERN.test(linkId)) return fail(`The link id "${linkId}" is not valid.`);
-    if (taken.includes(linkId)) return fail(`A link with id ${linkId} already exists.`);
+    if (!ID_PATTERN.test(linkId))
+      return fail(
+        tr('editor.maps.theLinkIdIsNotValid', 'The link id "{linkId}" is not valid.', { linkId }),
+      );
+    if (taken.includes(linkId))
+      return fail(
+        tr('editor.maps.aLinkWithIdAlreadyExists', 'A link with id {linkId} already exists.', {
+          linkId,
+        }),
+      );
   } else linkId = nextId('l', taken);
   const link = {
     id: linkId,
@@ -288,7 +343,8 @@ export function addLink(q: Quest, a: LinkEnd, b: LinkEnd, id?: string): EditResu
 
 /** Remove a link. A `crossMap` effect that names it is reported in the warnings. */
 export function removeLink(q: Quest, id: string): EditResult {
-  if (!(q.links ?? []).some((l) => l.id === id)) return fail(`There is no link ${id}.`);
+  if (!(q.links ?? []).some((l) => l.id === id))
+    return fail(tr('editor.maps.thereIsNoLink', 'There is no link {id}.', { id }));
   const links = (q.links ?? []).filter((l) => l.id !== id);
   const next: Record<string, unknown> = { ...q, links };
   if (links.length === 0) delete next.links;
