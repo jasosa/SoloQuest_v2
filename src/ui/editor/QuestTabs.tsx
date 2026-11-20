@@ -1,5 +1,6 @@
 import { useStore } from 'zustand';
-import { renameQuest, setSummary } from '../../engine/editor';
+import { renameQuest, setStartArea, setSummary } from '../../engine/editor';
+import { board, roomIds } from '../../engine/board/board';
 import { Col, Fld, Frame, Panel } from '../shared/Frame';
 import { ActionsPanel } from './ActionsPanel';
 import type { EditorStore } from './editorStore';
@@ -52,6 +53,31 @@ export function QuestTab({ store }: { store: EditorStore }) {
               />
             </Fld>
           </div>
+          <Fld label={t('editor.QuestTabs.startRoom', 'Start room')}>
+            {'area' in quest.start ? (
+              <select
+                className="fr-sel"
+                aria-label={t('editor.QuestTabs.startRoom', 'Start room')}
+                value={quest.start.area}
+                onChange={(e) => st.apply((q) => setStartArea(q, e.target.value))}
+              >
+                {roomIds(board)
+                  .filter((r) => r === quest.start.area || !quest.rock.rooms.includes(r))
+                  .map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+              </select>
+            ) : (
+              <p className="fr-help">
+                {t(
+                  'editor.QuestTabs.theHeroesStartOutsideAnIron',
+                  'The heroes start outside an iron entry door (set on the Map tab).',
+                )}
+              </p>
+            )}
+          </Fld>
           <Fld label={t('editor.QuestTabs.summary', 'Summary')}>
             <textarea
               className="fr-ta"

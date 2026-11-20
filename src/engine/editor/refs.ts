@@ -2,6 +2,7 @@
  * Who uses an element? Used by the editor when something is removed or renamed: the notes and
  * objectives that point at it are reported, never silently rewritten or deleted.
  */
+import { tr } from '../../i18n/translate';
 import type { Effect, Note, Quest } from '../quest/schema';
 import type { Issue } from '../quest/validate';
 
@@ -54,7 +55,11 @@ export function referencesTo(quest: Quest, target: RefTarget, id: string): Issue
     if (noteUses(n, target, id))
       out.push({
         severity: 'warning',
-        message: `note ${n.id} still points at ${target} ${id}, which is gone. Fix or delete the note.`,
+        message: tr(
+          'editor.refs.noteStillPointsAtWhichIs',
+          'note {id} still points at {target} {id2}, which is gone. Fix or delete the note.',
+          { id: n.id, target, id2: id },
+        ),
         ref: { kind: 'note', id: n.id },
       });
   if (target === 'monster')
@@ -67,7 +72,11 @@ export function referencesTo(quest: Quest, target: RefTarget, id: string): Issue
       )
         out.push({
           severity: 'warning',
-          message: `objective ${o.id} still points at monster ${id}, which is gone. Fix the objective.`,
+          message: tr(
+            'editor.refs.objectiveStillPointsAtMonsterWhich',
+            'objective {id} still points at monster {id2}, which is gone. Fix the objective.',
+            { id: o.id, id2: id },
+          ),
           ref: { kind: 'objective', id: o.id },
         });
     }

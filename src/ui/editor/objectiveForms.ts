@@ -1,14 +1,54 @@
 /** Pure helpers of the objective form: which done rule an objective has, and a default for each. */
+import { tr } from '../../i18n/translate';
 import type { ObjectiveDef, Quest } from '../../engine/quest/schema';
 import type { Made } from './noteForms';
 
 export const OBJECTIVE_RULES = [
-  { key: 'none', label: 'No rule: an action or the confirm button completes it' },
-  { key: 'monsterKilled', label: 'A monster is slain' },
-  { key: 'allKilled', label: 'All of some monsters are slain' },
-  { key: 'allSeenKilled', label: 'Every monster the heroes have seen is slain' },
-  { key: 'flag', label: 'A flag is set' },
-  { key: 'when', label: 'These conditions hold' },
+  {
+    key: 'none',
+    get label() {
+      return tr(
+        'editor.objectiveForms.noRuleAnActionOrThe',
+        'No rule: an action or the confirm button completes it',
+      );
+    },
+  },
+  {
+    key: 'monsterKilled',
+    get label() {
+      return tr('editor.objectiveForms.aMonsterIsSlain', 'A monster is slain');
+    },
+  },
+  {
+    key: 'allKilled',
+    get label() {
+      return tr(
+        'editor.objectiveForms.allOfSomeMonstersAreSlain',
+        'All of some monsters are slain',
+      );
+    },
+  },
+  {
+    key: 'allSeenKilled',
+    get label() {
+      return tr(
+        'editor.objectiveForms.everyMonsterTheHeroesHaveSeen',
+        'Every monster the heroes have seen is slain',
+      );
+    },
+  },
+  {
+    key: 'flag',
+    get label() {
+      return tr('editor.objectiveForms.aFlagIsSet', 'A flag is set');
+    },
+  },
+  {
+    key: 'when',
+    get label() {
+      return tr('editor.objectiveForms.theseConditionsHold', 'These conditions hold');
+    },
+  },
 ] as const;
 export type ObjectiveRuleKey = (typeof OBJECTIVE_RULES)[number]['key'];
 
@@ -31,11 +71,17 @@ export function ruleOf(q: Quest, key: ObjectiveRuleKey): Made<ObjectiveDef['done
     case 'monsterKilled':
       return m
         ? { ok: true, value: { monsterKilled: m.id } }
-        : { ok: false, error: 'Add a monster first.' };
+        : {
+            ok: false,
+            error: tr('editor.objectiveForms.addAMonsterFirst', 'Add a monster first.'),
+          };
     case 'allKilled':
       return m
         ? { ok: true, value: { allKilled: [m.id] } }
-        : { ok: false, error: 'Add a monster first.' };
+        : {
+            ok: false,
+            error: tr('editor.objectiveForms.addAMonsterFirst', 'Add a monster first.'),
+          };
     case 'allSeenKilled':
       return { ok: true, value: { allSeenKilled: true } };
     case 'flag':

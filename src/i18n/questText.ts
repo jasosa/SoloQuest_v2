@@ -35,6 +35,7 @@ export const QUEST_TEXT_PATTERNS: readonly RegExp[] = [
   /^enemyDefs\.\*\.(?:name|traits\.\*)$/,
   /^abilityDefs\.\*\.(?:name|text)$/,
   /^spellDefs\.\*\.(?:name|text|question|warning)$/,
+  /^spellDefs\.\*\.situations\.\*\.question$/,
   /^npcs\.\*\.(?:name|text)$/,
   /^objectives\.\*\.(?:text|confirm)$/,
   /^endings\.\*\.(?:label|text)$/,

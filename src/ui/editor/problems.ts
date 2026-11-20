@@ -2,6 +2,7 @@
  * Pure helpers of the Problems panel: order the issues (errors first) and turn an issue ref into
  * a jump (what to select, which tab to show, what to flash on the board). No React in here.
  */
+import { tr } from '../../i18n/translate';
 import type { Issue, IssueRef } from '../../engine/quest/validate';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditSelection, Panel } from './editorStore';
@@ -37,7 +38,7 @@ export function countLabel(issues: readonly Issue[]): string {
   const warns = issues.length - errors;
   if (errors > 0) return `${errors} problem${errors === 1 ? '' : 's'}`;
   if (warns > 0) return `${warns} warning${warns === 1 ? '' : 's'}`;
-  return 'No problems';
+  return tr('editor.problems.noProblems', 'No problems');
 }
 
 /** The kind label shown on a row of the panel. */

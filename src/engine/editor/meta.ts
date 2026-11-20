@@ -4,14 +4,9 @@
  * Half done work is allowed (an objective that points at a missing monster): that comes back as
  * warnings, and `validateQuestIssues` keeps listing it as an error.
  */
+import { tr } from '../../i18n/translate';
 import { CORE_ABILITIES } from '../data/abilities';
-import {
-  CORE_SPELLS,
-  isSpellTag,
-  type OfferWhen,
-  type SpellTag,
-  type SpellTiming,
-} from '../data/spells';
+import { CORE_SPELLS, isSpellTag, type OfferWhen, type SpellTiming } from '../data/spells';
 import type {
   Condition,
   EndingDef,
@@ -34,14 +29,20 @@ export interface NewAbility {
 export function addAbility(q: Quest, input: NewAbility): EditResult {
   const name = input.name.trim();
   const text = input.text.trim();
-  if (name === '') return fail('An ability needs a name.');
-  if (text === '') return fail('An ability needs text.');
+  if (name === '') return fail(tr('editor.meta.anAbilityNeedsAName', 'An ability needs a name.'));
+  if (text === '') return fail(tr('editor.meta.anAbilityNeedsText', 'An ability needs text.'));
   let id = input.id;
   if (id !== undefined) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
-      return fail(`The ability id "${id}" is not valid.`);
+      return fail(
+        tr('editor.meta.theAbilityIdIsNotValid', 'The ability id "{id}" is not valid.', { id }),
+      );
     if (CORE_ABILITIES.some((a) => a.id === id) || q.abilityDefs.some((a) => a.id === id))
-      return fail(`An ability with id ${id} already exists.`);
+      return fail(
+        tr('editor.meta.anAbilityWithIdAlreadyExists', 'An ability with id {id} already exists.', {
+          id,
+        }),
+      );
   } else id = nextId('ab', [...CORE_ABILITIES.map((a) => a.id), ...q.abilityDefs.map((a) => a.id)]);
   const def = clean({ id, name, text, kind: input.kind });
   const quest = { ...q, abilityDefs: [...q.abilityDefs, def] };
@@ -54,11 +55,14 @@ export function updateAbility(
   patch: { name?: string; text?: string; kind?: 'ability' | 'weakness' | 'immunity' },
 ): EditResult {
   const a = q.abilityDefs.find((x) => x.id === id);
-  if (!a) return fail(`There is no ability ${id} of this quest.`);
+  if (!a)
+    return fail(
+      tr('editor.meta.thereIsNoAbilityOfThis', 'There is no ability {id} of this quest.', { id }),
+    );
   const name = patch.name === undefined ? a.name : patch.name.trim();
   const text = patch.text === undefined ? a.text : patch.text.trim();
-  if (name === '') return fail('An ability needs a name.');
-  if (text === '') return fail('An ability needs text.');
+  if (name === '') return fail(tr('editor.meta.anAbilityNeedsAName', 'An ability needs a name.'));
+  if (text === '') return fail(tr('editor.meta.anAbilityNeedsText', 'An ability needs text.'));
   const next = clean({ ...a, name, text, kind: patch.kind ?? a.kind });
   const quest = { ...q, abilityDefs: q.abilityDefs.map((x) => (x.id === id ? next : x)) };
   return ok(quest, newIssues(q, quest));
@@ -67,7 +71,9 @@ export function updateAbility(
 /** Remove an ability of the quest. Monsters that still list it come back as warnings. */
 export function removeAbility(q: Quest, id: string): EditResult {
   if (!q.abilityDefs.some((a) => a.id === id))
-    return fail(`There is no ability ${id} of this quest.`);
+    return fail(
+      tr('editor.meta.thereIsNoAbilityOfThis', 'There is no ability {id} of this quest.', { id }),
+    );
   const quest = { ...q, abilityDefs: q.abilityDefs.filter((a) => a.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
@@ -76,7 +82,9 @@ export function removeAbility(q: Quest, id: string): EditResult {
 export interface SpellInput {
   name?: string;
   text?: string | null;
-  tags?: SpellTag[];
+  tags?: string[];
+  /** Situations of the spell's own: an id and a question each. Replaces the list. */
+  situations?: { id: string; question: string }[];
   /** One question of its own; replaces the tags. `null` clears it. */
   question?: string | null;
   warning?: string | null;
@@ -85,25 +93,78 @@ export interface SpellInput {
   timing?: SpellTiming;
 }
 
+/**
+ * Checks the own situations of a spell and the tags that use them. Returns the cleaned list, or
+ * an error text. An id is letters, digits, - and _, not a fixed situation id, not repeated.
+ */
+function checkSituations(
+  situations: readonly { id: string; question: string }[] | undefined,
+  tags: readonly string[],
+): { list: { id: string; question: string }[] } | { error: string } {
+  const list: { id: string; question: string }[] = [];
+  for (const s of situations ?? []) {
+    const id = s.id.trim();
+    const question = s.question.trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return {
+        error: tr(
+          'editor.meta.theSituationIdIsNotValid',
+          'The situation id "{id}" is not valid. Use letters, numbers, - and _.',
+          { id },
+        ),
+      };
+    if (isSpellTag(id) || list.some((x) => x.id === id))
+      return {
+        error: tr(
+          'editor.meta.theSituationIdIsTaken',
+          'The situation id "{id}" is already used. Pick another.',
+          { id },
+        ),
+      };
+    if (question === '')
+      return {
+        error: tr(
+          'editor.meta.aSituationNeedsAQuestion',
+          'The situation "{id}" needs a question the players can answer.',
+          { id },
+        ),
+      };
+    list.push({ id, question });
+  }
+  const bad = tags.find((t) => !isSpellTag(t) && !list.some((x) => x.id === t));
+  if (bad)
+    return { error: tr('editor.meta.unknownSituation', 'Unknown situation "{bad}".', { bad }) };
+  return { list };
+}
+
 export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditResult {
   const name = (input.name ?? '').trim();
-  if (name === '') return fail('A spell needs a name.');
+  if (name === '') return fail(tr('editor.meta.aSpellNeedsAName', 'A spell needs a name.'));
   const tags = input.tags ?? [];
   const question = input.question?.trim() || undefined;
-  if (tags.length === 0 && !question) return fail('A spell needs a situation or a question.');
-  const bad = tags.find((t) => !isSpellTag(t));
-  if (bad) return fail(`Unknown situation "${bad}".`);
+  if (tags.length === 0 && !question)
+    return fail(
+      tr('editor.meta.aSpellNeedsASituationOr', 'A spell needs a situation or a question.'),
+    );
+  const sit = checkSituations(input.situations, tags);
+  if ('error' in sit) return fail(sit.error);
   let id = input.id;
   if (id !== undefined) {
-    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The spell id "${id}" is not valid.`);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return fail(
+        tr('editor.meta.theSpellIdIsNotValid', 'The spell id "{id}" is not valid.', { id }),
+      );
     if (CORE_SPELLS.some((s) => s.id === id) || q.spellDefs.some((s) => s.id === id))
-      return fail(`A spell with id ${id} already exists.`);
+      return fail(
+        tr('editor.meta.aSpellWithIdAlreadyExists', 'A spell with id {id} already exists.', { id }),
+      );
   } else id = nextId('sp', [...CORE_SPELLS.map((s) => s.id), ...q.spellDefs.map((s) => s.id)]);
   const def = clean({
     id,
     name,
     text: input.text?.trim() || undefined,
     tags: [...new Set(tags)],
+    situations: sit.list.length ? sit.list : undefined,
     question,
     warning: input.warning?.trim() || undefined,
     offerWhen: input.offerWhen && input.offerWhen !== 'always' ? input.offerWhen : undefined,
@@ -115,19 +176,25 @@ export function addSpell(q: Quest, input: SpellInput & { id?: string }): EditRes
 
 export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult {
   const s = q.spellDefs.find((x) => x.id === id);
-  if (!s) return fail(`There is no spell ${id} of this quest.`);
+  if (!s)
+    return fail(
+      tr('editor.meta.thereIsNoSpellOfThis', 'There is no spell {id} of this quest.', { id }),
+    );
   const name = patch.name === undefined ? s.name : patch.name.trim();
-  if (name === '') return fail('A spell needs a name.');
+  if (name === '') return fail(tr('editor.meta.aSpellNeedsAName', 'A spell needs a name.'));
   const tags = patch.tags === undefined ? [...s.tags] : [...new Set(patch.tags)];
-  const bad = tags.find((t) => !isSpellTag(t));
-  if (bad) return fail(`Unknown situation "${bad}".`);
+  const sit = checkSituations(patch.situations ?? s.situations, tags);
+  if ('error' in sit) return fail(sit.error);
   const question =
     patch.question === undefined
       ? s.question
       : patch.question === null
         ? undefined
         : patch.question.trim() || undefined;
-  if (tags.length === 0 && !question) return fail('A spell needs a situation or a question.');
+  if (tags.length === 0 && !question)
+    return fail(
+      tr('editor.meta.aSpellNeedsASituationOr', 'A spell needs a situation or a question.'),
+    );
   const pick = (cur: string | undefined, v: string | null | undefined) =>
     v === undefined ? cur : v === null ? undefined : v.trim() || undefined;
   const next = clean({
@@ -135,6 +202,7 @@ export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult
     name,
     text: pick(s.text, patch.text),
     tags,
+    situations: sit.list.length ? sit.list : undefined,
     question,
     warning: pick(s.warning, patch.warning),
     offerWhen:
@@ -150,7 +218,10 @@ export function updateSpell(q: Quest, id: string, patch: SpellInput): EditResult
 
 /** Remove a spell of the quest. Monsters and notes that still use it come back as warnings. */
 export function removeSpell(q: Quest, id: string): EditResult {
-  if (!q.spellDefs.some((s) => s.id === id)) return fail(`There is no spell ${id} of this quest.`);
+  if (!q.spellDefs.some((s) => s.id === id))
+    return fail(
+      tr('editor.meta.thereIsNoSpellOfThis', 'There is no spell {id} of this quest.', { id }),
+    );
   const quest = { ...q, spellDefs: q.spellDefs.filter((s) => s.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
@@ -170,14 +241,25 @@ export function setWandering(q: Quest, wandering: WanderingInput): EditResult {
   if (wandering === null) return ok(rest);
   if ('text' in wandering) {
     const t = wandering.text.trim();
-    if (t === '') return fail('The wandering monster text cannot be empty.');
+    if (t === '')
+      return fail(
+        tr(
+          'editor.meta.theWanderingMonsterTextCannotBe',
+          'The wandering monster text cannot be empty.',
+        ),
+      );
     return ok({ ...rest, wandering: { text: t } });
   }
   const { count, enemy } = wandering;
   if (count !== undefined && (!Number.isInteger(count) || count < 1 || count > 6))
-    return fail('How many wandering monsters come is a whole number from 1 to 6.');
+    return fail(
+      tr(
+        'editor.meta.howManyWanderingMonstersComeIs',
+        'How many wandering monsters come is a whole number from 1 to 6.',
+      ),
+    );
   if (enemy !== undefined && !q.enemyDefs.some((e) => e.id === enemy))
-    return fail(`Unknown enemy "${enemy}".`);
+    return fail(tr('editor.meta.unknownEnemy', 'Unknown enemy "{enemy}".', { enemy }));
   const next = clean({ monster: wandering.monster, count: count === 1 ? undefined : count, enemy });
   const quest = { ...rest, wandering: next };
   return ok(quest, newIssues(q, quest));
@@ -197,13 +279,21 @@ export interface NewObjective {
 
 export function addObjective(q: Quest, input: NewObjective): EditResult {
   const text = input.text.trim();
-  if (text === '') return fail('An objective needs text.');
+  if (text === '') return fail(tr('editor.meta.anObjectiveNeedsText', 'An objective needs text.'));
   let id = input.id;
   if (id !== undefined) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
-      return fail(`The objective id "${id}" is not valid.`);
+      return fail(
+        tr('editor.meta.theObjectiveIdIsNotValid', 'The objective id "{id}" is not valid.', { id }),
+      );
     if (q.objectives.some((o) => o.id === id))
-      return fail(`An objective with id ${id} already exists.`);
+      return fail(
+        tr(
+          'editor.meta.anObjectiveWithIdAlreadyExists',
+          'An objective with id {id} already exists.',
+          { id },
+        ),
+      );
   } else
     id = nextId(
       'o',
@@ -232,11 +322,11 @@ export interface ObjectivePatch {
 
 export function updateObjective(q: Quest, id: string, patch: ObjectivePatch): EditResult {
   const o = q.objectives.find((x) => x.id === id);
-  if (!o) return fail(`There is no objective ${id}.`);
+  if (!o) return fail(tr('editor.meta.thereIsNoObjective', 'There is no objective {id}.', { id }));
   const next: ObjectiveDef = { ...o };
   if (patch.text !== undefined) {
     const t = patch.text.trim();
-    if (t === '') return fail('An objective needs text.');
+    if (t === '') return fail(tr('editor.meta.anObjectiveNeedsText', 'An objective needs text.'));
     next.text = t;
   }
   if (patch.done === null) delete next.done;
@@ -250,7 +340,10 @@ export function updateObjective(q: Quest, id: string, patch: ObjectivePatch): Ed
   }
   if (patch.confirmWhen !== undefined) {
     if (patch.confirmWhen?.length) {
-      if (next.confirm === undefined) return fail('Write the confirm button text first.');
+      if (next.confirm === undefined)
+        return fail(
+          tr('editor.meta.writeTheConfirmButtonTextFirst', 'Write the confirm button text first.'),
+        );
       next.confirmWhen = patch.confirmWhen;
     } else delete next.confirmWhen;
   }
@@ -260,7 +353,8 @@ export function updateObjective(q: Quest, id: string, patch: ObjectivePatch): Ed
 
 /** Remove an objective. Notes that complete it come back as warnings. */
 export function removeObjective(q: Quest, id: string): EditResult {
-  if (!q.objectives.some((o) => o.id === id)) return fail(`There is no objective ${id}.`);
+  if (!q.objectives.some((o) => o.id === id))
+    return fail(tr('editor.meta.thereIsNoObjective', 'There is no objective {id}.', { id }));
   const quest = { ...q, objectives: q.objectives.filter((o) => o.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
@@ -276,7 +370,7 @@ export function setRules(q: Quest, patch: RulesPatch): EditResult {
     if (v === undefined) continue;
     if (v === null) delete next[k];
     else if (typeof v === 'string' && v.trim() === '')
-      return fail(`The ${k} rule cannot be empty.`);
+      return fail(tr('editor.meta.theRuleCannotBeEmpty', 'The {k} rule cannot be empty.', { k }));
     else next[k] = v;
   }
   const quest = { ...q, rules: next as QuestRules };
@@ -301,12 +395,20 @@ function withEndings(q: Quest, endings: EndingDef[]): Quest {
 /** Add a custom quest ending (for example "Sir Ragnar died"). */
 export function addEnding(q: Quest, input: NewEnding): EditResult {
   const label = input.label.trim();
-  if (label === '') return fail('An ending needs a label.');
+  if (label === '') return fail(tr('editor.meta.anEndingNeedsALabel', 'An ending needs a label.'));
   const list = q.endings ?? [];
   let id = input.id;
   if (id !== undefined) {
-    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The ending id "${id}" is not valid.`);
-    if (list.some((e) => e.id === id)) return fail(`An ending with id ${id} already exists.`);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
+      return fail(
+        tr('editor.meta.theEndingIdIsNotValid', 'The ending id "{id}" is not valid.', { id }),
+      );
+    if (list.some((e) => e.id === id))
+      return fail(
+        tr('editor.meta.anEndingWithIdAlreadyExists', 'An ending with id {id} already exists.', {
+          id,
+        }),
+      );
   } else
     id = nextId(
       'e',
@@ -327,11 +429,11 @@ export interface EndingPatch {
 export function updateEnding(q: Quest, id: string, patch: EndingPatch): EditResult {
   const list = q.endings ?? [];
   const e = list.find((x) => x.id === id);
-  if (!e) return fail(`There is no ending ${id}.`);
+  if (!e) return fail(tr('editor.meta.thereIsNoEnding', 'There is no ending {id}.', { id }));
   const next: EndingDef = { ...e };
   if (patch.label !== undefined) {
     const l = patch.label.trim();
-    if (l === '') return fail('An ending needs a label.');
+    if (l === '') return fail(tr('editor.meta.anEndingNeedsALabel', 'An ending needs a label.'));
     next.label = l;
   }
   if (patch.text !== undefined) {
@@ -349,7 +451,8 @@ export function updateEnding(q: Quest, id: string, patch: EndingPatch): EditResu
 /** Remove an ending. Nothing in the quest refers to endings, so there is nothing to warn about. */
 export function removeEnding(q: Quest, id: string): EditResult {
   const list = q.endings ?? [];
-  if (!list.some((e) => e.id === id)) return fail(`There is no ending ${id}.`);
+  if (!list.some((e) => e.id === id))
+    return fail(tr('editor.meta.thereIsNoEnding', 'There is no ending {id}.', { id }));
   const quest = withEndings(
     q,
     list.filter((e) => e.id !== id),
@@ -386,16 +489,35 @@ const wholeOrNone = (v: number | undefined | null) =>
 /** A character the quest brings in with the effect "Bring in a character" (Gothar of Q3). */
 export function addNpc(q: Quest, input: NewNpc): EditResult {
   const name = input.name.trim();
-  if (name === '') return fail('A character needs a name.');
+  if (name === '') return fail(tr('editor.meta.aCharacterNeedsAName', 'A character needs a name.'));
   if (![input.defend, input.body].every((v) => Number.isInteger(v) && v >= 0))
-    return fail('Defend and Body are whole numbers, 0 or more.');
+    return fail(
+      tr(
+        'editor.meta.defendAndBodyAreWholeNumbers',
+        'Defend and Body are whole numbers, 0 or more.',
+      ),
+    );
   if (!wholeOrNone(input.move) || !wholeOrNone(input.attack))
-    return fail('Move and Attack are whole numbers, 0 or more.');
+    return fail(
+      tr(
+        'editor.meta.moveAndAttackAreWholeNumbers',
+        'Move and Attack are whole numbers, 0 or more.',
+      ),
+    );
   let id = input.id;
   if (id !== undefined) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id))
-      return fail(`The character id "${id}" is not valid.`);
-    if (q.npcs.some((n) => n.id === id)) return fail(`A character with id ${id} already exists.`);
+      return fail(
+        tr('editor.meta.theCharacterIdIsNotValid', 'The character id "{id}" is not valid.', { id }),
+      );
+    if (q.npcs.some((n) => n.id === id))
+      return fail(
+        tr(
+          'editor.meta.aCharacterWithIdAlreadyExists',
+          'A character with id {id} already exists.',
+          { id },
+        ),
+      );
   } else
     id = nextId(
       'npc',
@@ -428,23 +550,26 @@ export interface NpcPatch {
 
 export function updateNpc(q: Quest, id: string, patch: NpcPatch): EditResult {
   const n = q.npcs.find((x) => x.id === id);
-  if (!n) return fail(`There is no character ${id}.`);
+  if (!n) return fail(tr('editor.meta.thereIsNoCharacter', 'There is no character {id}.', { id }));
   const next: Record<string, unknown> = { ...n };
   if (patch.name !== undefined) {
-    if (patch.name.trim() === '') return fail('A character needs a name.');
+    if (patch.name.trim() === '')
+      return fail(tr('editor.meta.aCharacterNeedsAName', 'A character needs a name.'));
     next.name = patch.name.trim();
   }
   if (patch.cell !== undefined) next.cell = [patch.cell[0], patch.cell[1]];
   for (const k of ['defend', 'body'] as const) {
     const v = patch[k];
     if (v === undefined) continue;
-    if (!Number.isInteger(v) || v < 0) return fail(`${k} is a whole number, 0 or more.`);
+    if (!Number.isInteger(v) || v < 0)
+      return fail(tr('editor.meta.isAWholeNumber0Or', '{k} is a whole number, 0 or more.', { k }));
     next[k] = v;
   }
   for (const k of ['move', 'attack'] as const) {
     const v = patch[k];
     if (v === undefined) continue;
-    if (!wholeOrNone(v)) return fail(`${k} is a whole number, 0 or more.`);
+    if (!wholeOrNone(v))
+      return fail(tr('editor.meta.isAWholeNumber0Or', '{k} is a whole number, 0 or more.', { k }));
     if (v === null) delete next[k];
     else next[k] = v;
   }
@@ -455,7 +580,8 @@ export function updateNpc(q: Quest, id: string, patch: NpcPatch): EditResult {
 
 /** Remove a character. Actions that bring it in come back as warnings. */
 export function removeNpc(q: Quest, id: string): EditResult {
-  if (!q.npcs.some((n) => n.id === id)) return fail(`There is no character ${id}.`);
+  if (!q.npcs.some((n) => n.id === id))
+    return fail(tr('editor.meta.thereIsNoCharacter', 'There is no character {id}.', { id }));
   const quest = { ...q, npcs: q.npcs.filter((n) => n.id !== id) };
   return ok(quest, newIssues(q, quest));
 }

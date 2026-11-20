@@ -234,11 +234,36 @@ export const SpellDefSchema = z
     expansion,
     name: nonEmpty,
     text: nonEmpty.optional(),
-    tags: z.array(z.enum(SPELL_TAG_IDS)).default([]),
+    tags: z.array(z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/)).default([]),
+    /** Situations of the spell's own (M7c): an id and a concrete question, usable in `tags`. */
+    situations: z
+      .array(
+        z.strictObject({ id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/), question: nonEmpty }),
+      )
+      .optional(),
     question: nonEmpty.optional(),
     warning: nonEmpty.optional(),
     offerWhen: z.enum(['always', 'escapePoint']).optional(),
     timing: z.enum(SPELL_TIMINGS).optional(),
+  })
+  .superRefine((s, ctx) => {
+    const own = new Set<string>();
+    for (const [i, x] of (s.situations ?? []).entries()) {
+      if ((SPELL_TAG_IDS as readonly string[]).includes(x.id) || own.has(x.id))
+        ctx.addIssue({
+          code: 'custom',
+          message: `situation ${x.id}: the id is a fixed situation or is repeated`,
+          path: ['situations', i, 'id'],
+        });
+      own.add(x.id);
+    }
+    for (const [i, tg] of s.tags.entries())
+      if (!(SPELL_TAG_IDS as readonly string[]).includes(tg) && !own.has(tg))
+        ctx.addIssue({
+          code: 'custom',
+          message: `unknown situation "${tg}"`,
+          path: ['tags', i],
+        });
   })
   .refine((s) => s.tags.length > 0 || s.question !== undefined, {
     message: 'a spell needs situation tags or a question of its own',

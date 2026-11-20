@@ -3,6 +3,7 @@
  * tiles, room tiles, edge doors, door flags, the way the heroes leave. Same style as `ops.ts`: pure,
  * the input is never changed, half done work comes back as warnings.
  */
+import { tr } from '../../i18n/translate';
 import { board, inBoard, type Cell } from '../board/board';
 import { outsideOf } from '../board/level';
 import { forEachEffect } from '../quest/effects';
@@ -62,17 +63,38 @@ export function setSuggestedPack(q: Quest, id: string): EditResult {
 export function addTunnel(q: Quest, input: { design: number; a: Cell; b: Cell }): EditResult {
   if (q.tunnels.length >= MAX_TUNNEL_PAIRS)
     return fail(
-      `Ice tunnels: the box has ${MAX_TUNNEL_PAIRS} pairs, and this quest uses them all.`,
+      tr(
+        'editor.features.iceTunnelsTheBoxHasPairs',
+        'Ice tunnels: the box has {MAX_TUNNEL_PAIRS} pairs, and this quest uses them all.',
+        { MAX_TUNNEL_PAIRS },
+      ),
     );
-  if (!onBoard(input.a) || !onBoard(input.b)) return fail('A tunnel end must be on the board.');
+  if (!onBoard(input.a) || !onBoard(input.b))
+    return fail(tr('editor.features.aTunnelEndMustBeOn', 'A tunnel end must be on the board.'));
   if (input.a[0] === input.b[0] && input.a[1] === input.b[1])
-    return fail('The two ends of a tunnel must be different squares.');
+    return fail(
+      tr(
+        'editor.features.theTwoEndsOfATunnel',
+        'The two ends of a tunnel must be different squares.',
+      ),
+    );
   if (isRockCell(q, input.a) || isRockCell(q, input.b))
-    return fail('A tunnel end must be on a floor square, not on rock.');
+    return fail(
+      tr(
+        'editor.features.aTunnelEndMustBeOn2',
+        'A tunnel end must be on a floor square, not on rock.',
+      ),
+    );
   if (!Number.isInteger(input.design) || input.design < 1 || input.design > 9)
-    return fail('The design number is 1 to 9.');
+    return fail(tr('editor.features.theDesignNumberIs1To', 'The design number is 1 to 9.'));
   if (q.tunnels.some((t) => t.design === input.design))
-    return fail(`Design ${input.design} is used by another tunnel.`);
+    return fail(
+      tr(
+        'editor.features.designIsUsedByAnotherTunnel',
+        'Design {design} is used by another tunnel.',
+        { design: input.design },
+      ),
+    );
   const id = nextId(
     'tun',
     q.tunnels.map((t) => t.id),
@@ -101,17 +123,24 @@ export function pickTunnelDesign(q: Quest, wanted: number): number {
 /** Give a tunnel another design number (1 to 9) that no other tunnel uses. */
 export function setTunnelDesign(q: Quest, id: string, design: number): EditResult {
   const t = q.tunnels.find((x) => x.id === id);
-  if (!t) return fail(`There is no tunnel ${id}.`);
+  if (!t) return fail(tr('editor.features.thereIsNoTunnel', 'There is no tunnel {id}.', { id }));
   if (!Number.isInteger(design) || design < 1 || design > 9)
-    return fail('The design number is 1 to 9.');
+    return fail(tr('editor.features.theDesignNumberIs1To', 'The design number is 1 to 9.'));
   if (q.tunnels.some((x) => x.id !== id && x.design === design))
-    return fail(`Design ${design} is used by another tunnel.`);
+    return fail(
+      tr(
+        'editor.features.designIsUsedByAnotherTunnel',
+        'Design {design} is used by another tunnel.',
+        { design },
+      ),
+    );
   const quest = { ...q, tunnels: q.tunnels.map((x) => (x.id === id ? { ...x, design } : x)) };
   return ok(quest, newIssues(q, quest));
 }
 
 export function removeTunnel(q: Quest, id: string): EditResult {
-  if (!q.tunnels.some((t) => t.id === id)) return fail(`There is no tunnel ${id}.`);
+  if (!q.tunnels.some((t) => t.id === id))
+    return fail(tr('editor.features.thereIsNoTunnel', 'There is no tunnel {id}.', { id }));
   const quest = { ...q, tunnels: q.tunnels.filter((t) => t.id !== id) };
   return ok(quest, newIssues(q, quest));
 }
@@ -120,12 +149,20 @@ export function addBoardTile(
   q: Quest,
   input: { type: BoardTileType; cells: Cell[]; hiddenWhen?: string; blocks?: boolean },
 ): EditResult {
-  if (!BOARD_TILE_TYPES.includes(input.type)) return fail('That is not a board tile.');
+  if (!BOARD_TILE_TYPES.includes(input.type))
+    return fail(tr('editor.features.thatIsNotABoardTile', 'That is not a board tile.'));
   if (input.cells.length === 0 || !input.cells.every(onBoard))
-    return fail('A tile needs squares that are on the board.');
+    return fail(
+      tr('editor.features.aTileNeedsSquaresThatAre', 'A tile needs squares that are on the board.'),
+    );
   const hiddenWhen = input.hiddenWhen?.trim() || undefined;
   if (input.blocks && !hiddenWhen)
-    return fail('A tile that blocks needs a flag that takes it away.');
+    return fail(
+      tr(
+        'editor.features.aTileThatBlocksNeedsA',
+        'A tile that blocks needs a flag that takes it away.',
+      ),
+    );
   const tile = clean({
     type: input.type,
     cells: input.cells.map((c) => [c[0], c[1]] as [number, number]),
@@ -137,15 +174,18 @@ export function addBoardTile(
 }
 
 export function removeBoardTile(q: Quest, index: number): EditResult {
-  if (!q.boardTiles[index]) return fail('There is no such tile.');
+  if (!q.boardTiles[index])
+    return fail(tr('editor.features.thereIsNoSuchTile', 'There is no such tile.'));
   const quest = { ...q, boardTiles: q.boardTiles.filter((_, i) => i !== index) };
   return ok(quest, newIssues(q, quest));
 }
 
 /** Put a tile in a room, or take it away (`null`). One tile per room. */
 export function setRoomTile(q: Quest, area: string, type: RoomTileType | null): EditResult {
-  if (!/^R\d\d$/.test(area)) return fail(`${area} is not a room.`);
-  if (type !== null && !ROOM_TILE_TYPES.includes(type)) return fail('That is not a room tile.');
+  if (!/^R\d\d$/.test(area))
+    return fail(tr('editor.features.isNotARoom', '{area} is not a room.', { area }));
+  if (type !== null && !ROOM_TILE_TYPES.includes(type))
+    return fail(tr('editor.features.thatIsNotARoomTile', 'That is not a room tile.'));
   const rest = q.roomTiles.filter((t) => t.area !== area);
   const quest = { ...q, roomTiles: type === null ? rest : [...rest, { type, area }] };
   return ok(quest, newIssues(q, quest));
@@ -190,19 +230,33 @@ function edgeDoorProblem(
   kind: EdgeKind,
   skipId?: string,
 ): string | undefined {
-  if (!onBoard(cell)) return 'The door square must be on the board.';
+  if (!onBoard(cell))
+    return tr('editor.features.theDoorSquareMustBeOn', 'The door square must be on the board.');
   const out = outsideOf(cell, side);
   if (inBoard(board, out[0], out[1]) && !isRockCell(q, out))
-    return 'An exterior door goes on the outer edge of the board, or on an edge that touches rock.';
-  if (isRockCell(q, cell)) return 'An exterior door cannot sit on a rock square.';
+    return tr(
+      'editor.features.anExteriorDoorGoesOnThe',
+      'An exterior door goes on the outer edge of the board, or on an edge that touches rock.',
+    );
+  if (isRockCell(q, cell))
+    return tr(
+      'editor.features.anExteriorDoorCannotSitOn',
+      'An exterior door cannot sit on a rock square.',
+    );
   if (
     q.edgeDoors.some(
       (e) => e.id !== skipId && e.cell[0] === cell[0] && e.cell[1] === cell[1] && e.side === side,
     )
   )
-    return 'There is an exterior door on that edge already.';
+    return tr(
+      'editor.features.thereIsAnExteriorDoorOn',
+      'There is an exterior door on that edge already.',
+    );
   if (kind === 'ironEntry' && q.edgeDoors.some((e) => e.id !== skipId && e.kind === 'ironEntry'))
-    return 'The quest has an iron entry door already. There is only one.';
+    return tr(
+      'editor.features.theQuestHasAnIronEntry',
+      'The quest has an iron entry door already. There is only one.',
+    );
   return undefined;
 }
 
@@ -211,7 +265,8 @@ export function addEdgeDoor(
   q: Quest,
   input: { cell: Cell; side: 'n' | 'e' | 's' | 'w'; kind: EdgeKind },
 ): EditResult {
-  if (!EDGE_DOOR_KINDS.includes(input.kind)) return fail('That is not an exterior door.');
+  if (!EDGE_DOOR_KINDS.includes(input.kind))
+    return fail(tr('editor.features.thatIsNotAnExteriorDoor', 'That is not an exterior door.'));
   const problem = edgeDoorProblem(q, input.cell, input.side, input.kind);
   if (problem) return fail(problem);
   const id = freeDoorId(q, EDGE_ID[input.kind]);
@@ -228,10 +283,18 @@ export function addEdgeDoor(
 /** Change an exterior door between iron entry and wooden exit. The start door must stay iron. */
 export function setEdgeDoorKind(q: Quest, id: string, kind: EdgeKind): EditResult {
   const e = q.edgeDoors.find((x) => x.id === id);
-  if (!e) return fail(`There is no exterior door ${id}.`);
+  if (!e)
+    return fail(
+      tr('editor.features.thereIsNoExteriorDoor', 'There is no exterior door {id}.', { id }),
+    );
   if (e.kind === kind) return ok(q);
   if (kind !== 'ironEntry' && q.start.door === id)
-    return fail('The heroes start outside this door. Pick another start first.');
+    return fail(
+      tr(
+        'editor.features.theHeroesStartOutsideThisDoor',
+        'The heroes start outside this door. Pick another start first.',
+      ),
+    );
   const problem = edgeDoorProblem(q, e.cell, e.side, kind, id);
   if (problem) return fail(problem);
   const quest = {
@@ -242,7 +305,8 @@ export function setEdgeDoorKind(q: Quest, id: string, kind: EdgeKind): EditResul
 }
 
 export function removeEdgeDoor(q: Quest, id: string): EditResult {
-  if (!q.edgeDoors.some((e) => e.id === id)) return fail(`There is no edge door ${id}.`);
+  if (!q.edgeDoors.some((e) => e.id === id))
+    return fail(tr('editor.features.thereIsNoEdgeDoor', 'There is no edge door {id}.', { id }));
   const quest = { ...q, edgeDoors: q.edgeDoors.filter((e) => e.id !== id) };
   return ok(quest, [...referencesTo(quest, 'door', id), ...newIssues(q, quest)]);
 }
@@ -254,8 +318,19 @@ export function setStart(
 ): EditResult {
   if ('door' in start) {
     const door = q.edgeDoors.find((e) => e.id === start.door);
-    if (!door) return fail(`There is no edge door ${start.door}.`);
-    if (door.kind !== 'ironEntry') return fail('The heroes start outside an iron entry door.');
+    if (!door)
+      return fail(
+        tr('editor.features.thereIsNoEdgeDoor2', 'There is no edge door {door}.', {
+          door: start.door,
+        }),
+      );
+    if (door.kind !== 'ironEntry')
+      return fail(
+        tr(
+          'editor.features.theHeroesStartOutsideAnIron',
+          'The heroes start outside an iron entry door.',
+        ),
+      );
   }
   const quest = { ...q, start: clean(start) } as Quest;
   return ok(quest, newIssues(q, quest));
@@ -269,7 +344,8 @@ export function setDoorFlags(
 ): EditResult {
   const lists = ['doors', 'secretDoors', 'falseDoors'] as const;
   const list = lists.find((l) => q[l].some((d) => d.id === doorId));
-  if (!list) return fail(`There is no door ${doorId}.`);
+  if (!list)
+    return fail(tr('editor.features.thereIsNoDoor', 'There is no door {doorId}.', { doorId }));
   const door = q[list].find((d) => d.id === doorId)!;
   const pick = (v: string | undefined, old: string | undefined) =>
     v === undefined ? old : v.trim() || undefined;

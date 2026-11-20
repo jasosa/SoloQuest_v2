@@ -91,6 +91,22 @@ test.describe('designer: the library', () => {
     await shot(page, 'designer-enemy');
   });
 
+  test('a spell defines a situation of its own and uses it', async ({ page }) => {
+    await open(page);
+    await kind(page, /^Spells/);
+    await make(page, 'spell');
+    await name(page, 'Wet');
+    await card(page).getByLabel('Situation id').fill('wet');
+    await card(page).getByLabel('Situation question').fill('Is a hero on a wet square?');
+    await card(page).getByRole('button', { name: 'Add situation' }).click();
+    await expect(page.getByTestId('dz-situations').getByText('wet', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('dz-tags').getByText('Is a hero on a wet square?')).toBeVisible();
+    // a fixed id is refused
+    await card(page).getByLabel('Situation id').fill('any');
+    await card(page).getByLabel('Situation question').fill('Q?');
+    await expect(card(page).getByRole('button', { name: 'Add situation' })).toBeDisabled();
+  });
+
   test('New ability… in an enemy opens the popup and saves to the library', async ({ page }) => {
     await open(page);
     await make(page, 'enemy');

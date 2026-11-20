@@ -172,7 +172,7 @@ When it is cast (`timing`, per spell, default `either`): `either` = it may move 
 | Escape | `selfNearDeath` | Only offered when the quest has an escape point |
 | Rust | custom: "Does a hero in sight carry a metal sword or helmet that is not an artifact?" | |
 
-Pack spells: `FROZEN_HORROR.md`. Fan-made spells are made in the editor (name, own text, tags or custom question, optional warning).
+Pack spells: `FROZEN_HORROR.md`. Fan-made spells are made in the editor (name, own text, tags or custom question, optional warning). A spell can also define situations of its own (`situations`: a short id and a concrete question, no app check); they sit in `tags` next to the fixed ones and their question is shown on the order like any other. A situation belongs to the spell that defines it and is copied with it to the quest. The fixed situations that the app could check (`selfHurt`, `selfNearDeath`, `allyHurt`) are still asked, because monster Body Points are not tracked.
 
 ## Determinism
 
