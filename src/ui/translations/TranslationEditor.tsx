@@ -168,22 +168,6 @@ export function TranslationEditor({
           )}
         </p>
       )}
-      <div className="chips" role="group" aria-label={t('translations.progress', 'Progress')}>
-        {progress.map((p) => (
-          <button
-            key={p.area}
-            className="chip"
-            aria-pressed={area === p.area}
-            onClick={() => {
-              setArea(area === p.area ? AREA_ALL : p.area);
-              setShown(PAGE);
-            }}
-          >
-            {areaName(p.area)}{' '}
-            {t('translations.areaProgress', '{done} of {total}', { done: p.done, total: p.total })}
-          </button>
-        ))}
-      </div>
       <div className="chips">
         <label className="fr-fld">
           <span>{t('translations.show', 'Show')}</span>
@@ -198,7 +182,11 @@ export function TranslationEditor({
             <option value={AREA_ALL}>{t('translations.all', 'All')}</option>
             {areas.map((a) => (
               <option key={a} value={a}>
-                {areaName(a)}
+                {areaName(a)}{' '}
+                {t('translations.areaProgress', '{done} of {total}', {
+                  done: progress.find((p) => p.area === a)?.done ?? 0,
+                  total: progress.find((p) => p.area === a)?.total ?? 0,
+                })}
               </option>
             ))}
           </select>
