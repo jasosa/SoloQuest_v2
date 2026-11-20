@@ -43,6 +43,7 @@ import type { GameStore } from '../store/gameStore';
 import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
+import { additionCells } from './additions';
 import type { NoteTarget } from '../../engine/quest/schema';
 import { BOARD_TILES } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
@@ -1144,6 +1145,8 @@ export function PlayScreen({
           onLetter={(id) => setReread(id)}
           highlight={[
             ...(sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []),
+            // blocks and secret doors the last event put on the map
+            ...additionCells(level, prompts),
             // the other end of a tunnel that was just used
             ...(res?.prompts.flatMap((p) => (p.kind === 'tunnelUsed' ? [p.to] : [])) ?? []),
           ]}
