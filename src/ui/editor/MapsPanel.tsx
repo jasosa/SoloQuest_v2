@@ -62,14 +62,14 @@ export function MapsPanel({ store }: { store: EditorStore }) {
                 <button
                   className="chip"
                   aria-pressed={m.id === mapId}
-                  aria-label={`Show map ${m.id}`}
+                  aria-label={t('editor.MapsPanel.showMap', 'Show map {id}', { id: m.id })}
                   onClick={() => st.setMap(m.id)}
                 >
                   {t('editor.MapsPanel.showOnMap', 'Show on map')}
                 </button>{' '}
                 <button
                   className="chip"
-                  aria-label={`Delete map ${m.id}`}
+                  aria-label={t('editor.MapsPanel.deleteMap2', 'Delete map {id}', { id: m.id })}
                   onClick={() => st.applyQuest((q) => removeMap(q, m.id))}
                 >
                   {t('editor.MapsPanel.deleteMap', 'Delete map')}
@@ -145,7 +145,7 @@ export function MapsPanel({ store }: { store: EditorStore }) {
                 </span>
                 <button
                   className="chip"
-                  aria-label={`Remove link ${l.id}`}
+                  aria-label={t('editor.MapsPanel.removeLink', 'Remove link {id}', { id: l.id })}
                   onClick={() => st.applyQuest((q) => removeLink(q, l.id))}
                 >
                   {t('editor.MapsPanel.remove', 'Remove')}
@@ -230,7 +230,7 @@ export function MergesPanel({ store }: { store: EditorStore }) {
             </span>
             <button
               className="chip"
-              aria-label={`Split room ${m.merge[1]}`}
+              aria-label={t('editor.MapsPanel.splitRoom', 'Split room {v1}', { v1: m.merge[1] })}
               onClick={() => st.apply((q) => removeAreaMerge(q, m.merge[1]))}
             >
               {t('editor.MapsPanel.split', 'Split')}

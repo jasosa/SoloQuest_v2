@@ -94,6 +94,7 @@ export function codemod(
             ? e.name.text
             : `v${++n}`;
         if (base === 'length' || base === 'size') base = 'count';
+        if (base === 't') base = 'item';
         if (!/^\w+$/.test(base)) base = `v${++n}`;
         let name = base;
         for (let i = 2; used.has(name); i++) name = `${base}${i}`;
@@ -177,10 +178,22 @@ export function codemod(
         }
         return; // children done: do not visit their expressions
       }
-      if (hasText && !onlyInline)
-        for (const c of kids)
-          if (ts.isJsxText(c) && hasLetters(c.text))
+      if (hasText) {
+        // text next to elements: one text piece is a label by itself (`Name<input />`); several are a
+        // sentence cut by elements and need a hand-made text
+        const pieces = kids.filter((c): c is ts.JsxText => ts.isJsxText(c) && hasLetters(c.text));
+        const only = pieces.length === 1 ? pieces[0]! : undefined;
+        const text = only ? jsxText(only.text) : '';
+        if (only && !/[&<>]/.test(text))
+          edits.push({
+            start: only.pos,
+            end: only.end,
+            text: `${/^ /.test(text) ? "{' '}" : ''}{${call(text.trim(), [])}}${/ $/.test(text) ? "{' '}" : ''}`,
+          });
+        else
+          for (const c of pieces)
             skipped.push({ text: jsxText(c.text).trim(), line: line(c), kind: 'mixed' });
+      }
     } else if (ts.isJsxAttribute(n)) {
       const v = n.initializer;
       if (TEXT_ATTRS.has(n.name.getText(sf)) && v) {

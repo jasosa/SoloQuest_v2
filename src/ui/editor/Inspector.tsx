@@ -117,7 +117,7 @@ export function Inspector({
         aria-pressed={panel === 'problems'}
         onClick={() => st.setPanel('problems')}
       >
-        Problems
+        {t('editor.Inspector.problems', 'Problems')}
         {issues.length > 0 && (
           <>
             {' '}
@@ -202,7 +202,7 @@ function MarkerFields({ store, marker }: { store: EditorStore; marker: Quest['ma
   return (
     <>
       <label className="ed-field">
-        Label
+        {t('editor.Inspector.label', 'Label')}
         <input
           key={`${marker.id}:${marker.label}`}
           defaultValue={marker.label}
@@ -321,7 +321,7 @@ function FurnitureFields({ store, furniture }: { store: EditorStore; furniture: 
   return (
     <>
       <label className="ed-field">
-        Letter
+        {t('editor.Inspector.letter', 'Letter')}
         <input
           key={`${furniture.id}:${furniture.letter ?? ''}`}
           defaultValue={furniture.letter ?? ''}
@@ -488,7 +488,7 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
 
       {onFurniture ? (
         <label className="ed-field">
-          Furniture
+          {t('editor.Inspector.furniture', 'Furniture')}
           <select
             className="es-select"
             value={trap.furniture ?? ''}
@@ -520,7 +520,7 @@ function TrapFields({ store, trap, quest }: { store: EditorStore; trap: TrapDef;
       )}
 
       <label className="ed-field">
-        Effect
+        {t('editor.Inspector.effect', 'Effect')}
         <textarea
           key={`${trap.id}:${trap.effect ?? ''}`}
           defaultValue={trap.effect ?? ''}
@@ -560,7 +560,7 @@ function CellFields({
   return (
     <div className="ed-stats">
       <label className="ed-field">
-        Across
+        {t('editor.Inspector.across', 'Across')}
         <input
           inputMode="numeric"
           value={x}
@@ -570,7 +570,7 @@ function CellFields({
         />
       </label>
       <label className="ed-field">
-        Down
+        {t('editor.Inspector.down', 'Down')}
         <input
           inputMode="numeric"
           value={y}

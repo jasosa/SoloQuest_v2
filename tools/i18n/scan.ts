@@ -101,13 +101,7 @@ export function literals(file: string, source: string): Literal[] {
       if (TEXT_ATTRS.has(name) && v) {
         if (ts.isStringLiteral(v) && hasLetters(v.text)) add(v, v.text, 'attribute');
         else if (ts.isJsxExpression(v) && v.expression) scanExpr(v.expression, 'attribute');
-      } else if (
-        v &&
-        ts.isJsxExpression(v) &&
-        v.expression &&
-        !/^(className|style|key|id|data-|role|type|href|src)/.test(name)
-      )
-        scanExpr(v.expression, 'sentence', true);
+      } else if (v) visit(v);
       return;
     } else if (ts.isJsxExpression(n) && n.parent && !ts.isJsxAttribute(n.parent) && n.expression) {
       scanExpr(n.expression, 'jsx-text');
@@ -119,16 +113,26 @@ export function literals(file: string, source: string): Literal[] {
       add(n, n.head.text, 'sentence');
     ts.forEachChild(n, visit);
   };
-  /** Strings inside an expression shown as text: `{ok ? 'Yes' : 'No'}`, `{'text'}`. */
-  const scanExpr = (e: ts.Node, kind: Literal['kind'], sentencesOnly = false) => {
-    const walk = (n: ts.Node) => {
-      if (isTCall(n)) return;
-      if (isStr(n) && hasLetters(n.text) && (!sentencesOnly || isSentence(n.text)))
-        add(n, n.text, kind);
-      else if (ts.isTemplateExpression(n) && hasLetters(n.head.text)) add(n, n.head.text, kind);
-      else ts.forEachChild(n, walk);
-    };
-    walk(e);
+  /** Strings that are shown as text: `{ok ? 'Yes' : 'No'}`, `{a && 'x'}`, `{'text'}`. Other code is scanned as usual. */
+  const scanExpr = (e: ts.Node, kind: Literal['kind']): void => {
+    if (ts.isParenthesizedExpression(e)) return scanExpr(e.expression, kind);
+    if (ts.isConditionalExpression(e)) {
+      visit(e.condition);
+      scanExpr(e.whenTrue, kind);
+      scanExpr(e.whenFalse, kind);
+    } else if (
+      ts.isBinaryExpression(e) &&
+      [
+        ts.SyntaxKind.AmpersandAmpersandToken,
+        ts.SyntaxKind.BarBarToken,
+        ts.SyntaxKind.QuestionQuestionToken,
+      ].includes(e.operatorToken.kind)
+    ) {
+      visit(e.left);
+      scanExpr(e.right, kind);
+    } else if (isStr(e) && hasLetters(e.text)) add(e, e.text, kind);
+    else if (ts.isTemplateExpression(e) && hasLetters(e.head.text)) add(e, e.head.text, kind);
+    else visit(e);
   };
   visit(sf);
   // a sentence found twice (as a node and inside an expression) is listed once

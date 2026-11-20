@@ -220,7 +220,11 @@ export function EditorScreen({
             className="chip"
             data-testid="playtest"
             disabled={errors > 0}
-            title={errors > 0 ? 'Fix the problems first' : 'Play this quest to try it'}
+            title={
+              errors > 0
+                ? t('editor.EditorScreen.fixTheProblemsFirst', 'Fix the problems first')
+                : t('editor.EditorScreen.playThisQuestTo', 'Play this quest to try it')
+            }
             onClick={() => onPlaytest(s.canon)}
           >
             {t('editor.EditorScreen.playtest', 'Playtest')}
@@ -580,7 +584,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
         <>
           <div className="lbl">{t('editor.EditorScreen.marker', 'Marker')}</div>
           <label className="ed-field">
-            Label
+            {t('editor.EditorScreen.label', 'Label')}
             <input
               value={opts.markerLabel}
               maxLength={40}

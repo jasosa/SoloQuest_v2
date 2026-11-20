@@ -5,7 +5,7 @@
  * redraw its texts and the bundled quests are built once, in the language in use.
  */
 import { DexieLanguageStore, MemoryLanguageStore, type LanguageStore } from '../persist/languages';
-import { applyDataStrings } from './dataText';
+import { applyDataStrings, dataStrings } from './dataText';
 import { setActiveStrings, activeStrings } from './translate';
 import { translateQuest } from './questText';
 
@@ -15,6 +15,13 @@ export const languageStore: LanguageStore =
     : new DexieLanguageStore();
 
 let started = false;
+/** The English data texts, taken before a language is laid over the tables. */
+let englishData: Record<string, string> | undefined;
+
+/** The English texts of the data tables and the Core library (never translated). */
+export function englishDataStrings(): Record<string, string> {
+  return englishData ?? dataStrings();
+}
 
 export async function initI18n(store: LanguageStore = languageStore): Promise<void> {
   if (started) return;
@@ -23,6 +30,7 @@ export async function initI18n(store: LanguageStore = languageStore): Promise<vo
     const code = await store.getActive();
     const file = code ? await store.load(code) : undefined;
     if (!file) return;
+    englishData = dataStrings();
     setActiveStrings(file.strings);
     applyDataStrings(file.strings);
   } catch {

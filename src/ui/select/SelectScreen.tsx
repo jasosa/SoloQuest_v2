@@ -55,6 +55,10 @@ export interface SelectScreenProps {
   onEditor?: (() => void) | undefined;
   /** Open the texture packs dialog. */
   onTextures?: (() => void) | undefined;
+  /** Opens the Translations dialog (decision 92). */
+  onTranslations?: (() => void) | undefined;
+  /** The name of the language in use (undefined: English). */
+  languageName?: string | null | undefined;
   /** The name of the texture pack in use, or null/undefined for the built-in look. */
   textureName?: string | null | undefined;
   /** Edited copies of bundled quests replace them in the list. */
@@ -83,6 +87,8 @@ export function SelectScreen({
   notice,
   onEditor,
   onTextures,
+  onTranslations,
+  languageName,
   textureName,
   userStore,
 }: SelectScreenProps) {
@@ -249,10 +255,33 @@ export function SelectScreen({
             >
               {textureName ? (
                 <>
-                  Textures: <b className="tex-name">{textureName}</b>
+                  {t('select.texturesLabel', 'Textures:')} <b className="tex-name">{textureName}</b>
                 </>
               ) : (
                 t('select.textures', 'Textures')
+              )}
+            </button>
+          )}
+          {onTranslations && (
+            <button
+              className="link"
+              onClick={onTranslations}
+              data-testid="translations-link"
+              aria-label={
+                languageName
+                  ? t('select.translationsInUse', 'Translations: {languageName} in use', {
+                      languageName,
+                    })
+                  : t('select.translations', 'Translations')
+              }
+            >
+              {languageName ? (
+                <>
+                  {t('select.translationsLabel', 'Translations:')}{' '}
+                  <b className="tex-name">{languageName}</b>
+                </>
+              ) : (
+                t('select.translations', 'Translations')
               )}
             </button>
           )}

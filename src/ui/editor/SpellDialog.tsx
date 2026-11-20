@@ -51,7 +51,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
         </div>
         <div className="ed-dialog-body">
           <label className="ed-field">
-            Name
+            {t('editor.SpellDialog.name', 'Name')}
             <input
               key={`${sp.id}:n:${sp.name}`}
               defaultValue={sp.name}
@@ -63,7 +63,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             />
           </label>
           <label className="ed-field">
-            What it does (your own words, optional)
+            {t('editor.SpellDialog.whatItDoesYour', 'What it does (your own words, optional)')}
             <textarea
               key={`${sp.id}:t:${sp.text ?? ''}`}
               defaultValue={sp.text ?? ''}
@@ -86,7 +86,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
                 <p className="ed-q">{SPELL_TAG_QUESTIONS[tv]}</p>
                 <button
                   className="chip"
-                  aria-label={`Remove ${tv}`}
+                  aria-label={t('editor.SpellDialog.remove2', 'Remove {tv}', { tv })}
                   onClick={() => setTags(tags.filter((x) => x !== tv))}
                 >
                   {t('editor.SpellDialog.remove', 'Remove')}
@@ -117,7 +117,10 @@ export function SpellDialog({ store }: { store: EditorStore }) {
           </p>
 
           <label className="ed-field">
-            Or one question of your own (replaces the situations)
+            {t(
+              'editor.SpellDialog.orOneQuestionOf',
+              'Or one question of your own (replaces the situations)',
+            )}
             <input
               key={`${sp.id}:q:${sp.question ?? ''}`}
               defaultValue={sp.question ?? ''}
@@ -129,7 +132,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             />
           </label>
           <label className="ed-field">
-            Offer it only when
+            {t('editor.SpellDialog.offerItOnlyWhen', 'Offer it only when')}
             <select
               className="es-select"
               value={sp.offerWhen ?? 'always'}
@@ -146,7 +149,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             </select>
           </label>
           <label className="ed-field">
-            When it is cast
+            {t('editor.SpellDialog.whenItIsCast', 'When it is cast')}
             <select
               className="es-select"
               aria-label={t('editor.SpellDialog.whenItIsCast', 'When it is cast')}
@@ -170,7 +173,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             </select>
           </label>
           <label className="ed-field">
-            Warning for the players (optional)
+            {t('editor.SpellDialog.warningForThePlayers', 'Warning for the players (optional)')}
             <input
               key={`${sp.id}:w:${sp.warning ?? ''}`}
               defaultValue={sp.warning ?? ''}

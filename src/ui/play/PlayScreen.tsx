@@ -1054,7 +1054,7 @@ export function PlayScreen({
           </div>
         </div>
         <span className="turn">
-          Turn <b>{state.turn}</b>
+          {t('play.PlayScreen.turn', 'Turn')} <b>{state.turn}</b>
         </span>
         <button className="chip hdr" disabled={events.length === 0} onClick={() => undo()}>
           {t('play.PlayScreen.undo', 'Undo')}
@@ -1183,7 +1183,7 @@ export function PlayScreen({
           )}
           {wandering && (
             <p className="wander">
-              Wandering monster:{' '}
+              {t('play.PlayScreen.wanderingMonster2', 'Wandering monster:')}{' '}
               <b>
                 {'monster' in wandering
                   ? ((wandering.enemy
@@ -1196,7 +1196,7 @@ export function PlayScreen({
           {adding?.t === 'type' ? (
             <div className="add-monster" data-testid="add-monster">
               <label>
-                Monster
+                {t('play.PlayScreen.monster', 'Monster')}
                 <select
                   aria-label={t('play.PlayScreen.monsterToAdd', 'Monster to add')}
                   value={adding.type}

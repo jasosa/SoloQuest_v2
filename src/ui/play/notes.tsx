@@ -253,7 +253,8 @@ export function trapStepBody(props: {
         body: (
           <>
             <p>
-              A <b>{t('play.notes.skull2', 'skull')}</b> springs the trap.
+              A <b>{t('play.notes.skull2', 'skull')}</b>{' '}
+              {t('play.notes.springsTheTrap', 'springs the trap.')}
             </p>
             <div className="row">
               <button className="btn" onClick={() => props.onDisarm('toolkit', 'skull')}>

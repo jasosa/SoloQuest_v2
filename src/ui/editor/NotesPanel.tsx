@@ -507,7 +507,7 @@ function LetterField({
 }) {
   return (
     <label className="ed-field">
-      Letter
+      {t('editor.NotesPanel.letter', 'Letter')}
       <input
         defaultValue={value ?? ''}
         maxLength={1}
@@ -764,7 +764,7 @@ export function ConditionList({
             <span>{CONDITION_TYPES.find((x) => x.key === conditionKey(c))?.label}</span>
             <button
               className="chip"
-              aria-label="Remove condition"
+              aria-label={t('editor.NotesPanel.removeCondition', 'Remove condition')}
               onClick={() => onChange(removeAt(conditions, i))}
             >
               {t('editor.NotesPanel.remove', 'Remove')}
@@ -955,7 +955,9 @@ function EffectList({
             <span>{EFFECT_TYPES.find((x) => x.type === e.type)?.label}</span>
             <button
               className="chip"
-              aria-label={`Remove effect ${EFFECT_TYPES.find((x) => x.type === e.type)?.label}`}
+              aria-label={t('editor.NotesPanel.removeEffect', 'Remove effect {label}', {
+                label: EFFECT_TYPES.find((x) => x.type === e.type)?.label ?? '',
+              })}
               onClick={() => onChange(removeAt(effects, i))}
             >
               {t('editor.NotesPanel.remove', 'Remove')}
@@ -1187,7 +1189,9 @@ function EffectFields({
               <button
                 className="chip"
                 disabled={e.cells.length === 1}
-                aria-label={`Remove square ${cellText(c)}`}
+                aria-label={t('editor.NotesPanel.removeSquare', 'Remove square {v1}', {
+                  v1: cellText(c),
+                })}
                 onClick={() => onChange({ ...e, cells: removeAt(e.cells, i) })}
               >
                 {t('editor.NotesPanel.remove', 'Remove')}
@@ -1277,7 +1281,9 @@ function EffectFields({
                 <button
                   className="chip"
                   disabled={e.options.length === 1}
-                  aria-label={`Remove answer ${i + 1}`}
+                  aria-label={t('editor.NotesPanel.removeAnswer', 'Remove answer {v1}', {
+                    v1: i + 1,
+                  })}
                   onClick={() => onChange({ ...e, options: removeAt(e.options, i) })}
                 >
                   {t('editor.NotesPanel.remove', 'Remove')}

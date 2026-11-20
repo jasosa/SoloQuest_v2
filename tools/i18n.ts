@@ -46,6 +46,13 @@ if (cmd === 'write' || cmd === 'check') {
         for (const l of found) console.log(`    ${l.line} [${l.kind}] ${l.text.slice(0, 70)}`);
     }
   }
+  if (args.includes('--clean'))
+    console.log(
+      [
+        'clean files:',
+        ...files.filter((f) => !literals(f, readFileSync(join(ROOT, f), 'utf8')).length),
+      ].join(String.fromCharCode(10)),
+    );
   console.log(`${total} literals left`);
 } else if (cmd === 'codemod') {
   const [area, ...files] = args;

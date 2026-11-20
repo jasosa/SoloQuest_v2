@@ -227,7 +227,7 @@ describe('language file', () => {
 
 describe('the English file', () => {
   it('holds the quests, the library and the interface', () => {
-    const e = englishStrings(raws);
+    const e = englishStrings(raws, dataStrings());
     expect(Object.keys(e).length).toBeGreaterThan(800);
     expect(Object.values(e).every((v) => typeof v === 'string' && v.length > 0)).toBe(true);
   });

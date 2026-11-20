@@ -2,6 +2,10 @@ import { inActiveLanguage } from '../i18n/runtime';
 import { restorePack } from './theme/activate';
 import { setActiveTheme } from './theme/activeTheme';
 import { TexturesDialog } from './theme/TexturesDialog';
+import { TranslationsDialog } from './translations/TranslationsDialog';
+import { bundledQuestFiles } from './quests';
+import { englishStrings } from '../i18n/english';
+import { englishDataStrings, languageStore } from '../i18n/runtime';
 import { DexieThemeStore, MemoryThemeStore, type ThemeStore } from '../persist/themes';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { board } from '../engine/board/board';
@@ -185,6 +189,23 @@ function Game({ params }: { params: URLSearchParams }) {
       live = false;
     };
   }, [themeStore, readTextureName]);
+  // Translations (decision 92): the language in use is chosen here and set when the app starts.
+  const [translations, setTranslations] = useState(false);
+  const [languageName, setLanguageName] = useState<string | null>(null);
+  const readLanguageName = useCallback(async (): Promise<string | null> => {
+    const code = await languageStore.getActive();
+    if (!code) return null;
+    return (await languageStore.list()).find((l) => l.code === code)?.name ?? null;
+  }, []);
+  useEffect(() => {
+    let live = true;
+    void readLanguageName().then((name) => {
+      if (live) setLanguageName(name);
+    });
+    return () => {
+      live = false;
+    };
+  }, [readLanguageName]);
   const referenceStore = useMemo<ReferenceStore>(
     () => (params.has('nosave') ? new MemoryReferenceStore() : new DexieReferenceStore()),
     [params],
@@ -203,6 +224,11 @@ function Game({ params }: { params: URLSearchParams }) {
     }
     return out;
   }, [userStore]);
+  /** The English file: the interface, the library and the quests (bundled and of this device). */
+  const english = useCallback(async () => {
+    const own = (await questSource()).map((q) => q.quest);
+    return englishStrings([...bundledQuestFiles, ...own], englishDataStrings());
+  }, [questSource]);
   const [playtest, setPlaytest] = useState<{ game: GameStore; editor: EditorStore } | null>(null);
   const [editor, setEditor] = useState<'start' | EditorStore | null>(() =>
     params.has('editor') ? 'start' : null,
@@ -400,9 +426,21 @@ function Game({ params }: { params: URLSearchParams }) {
         notice={notice}
         onEditor={() => setEditor('start')}
         onTextures={() => setTextures(true)}
+        onTranslations={() => setTranslations(true)}
+        languageName={languageName}
         textureName={textureName}
         userStore={userStore}
       />
+      {translations && (
+        <TranslationsDialog
+          store={languageStore}
+          english={english}
+          onClose={() => {
+            setTranslations(false);
+            void readLanguageName().then(setLanguageName);
+          }}
+        />
+      )}
       {textures && (
         <TexturesDialog
           store={themeStore}

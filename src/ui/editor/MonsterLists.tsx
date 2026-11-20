@@ -73,7 +73,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
               <p>{a?.text ?? t('editor.MonsterLists.unknownAbility', 'Unknown ability.')}</p>
               <button
                 className="x"
-                aria-label={`Remove ${a?.name ?? id}`}
+                aria-label={t('editor.MonsterLists.remove2', 'Remove {v1}', { v1: a?.name ?? id })}
                 onClick={() => patch({ abilities: mine.filter((x) => x !== id) })}
               >
                 {t('editor.MonsterLists.remove', 'Remove')}
@@ -193,7 +193,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
               </p>
               <button
                 className="x"
-                aria-label={`Remove ${sp?.name ?? id}`}
+                aria-label={t('editor.MonsterLists.remove2', 'Remove {v1}', { v1: sp?.name ?? id })}
                 onClick={() => withCount(id, 0)}
               >
                 {t('editor.MonsterLists.remove', 'Remove')}
@@ -298,7 +298,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
         onClick={() => patch({ spellLimit: monster.spellLimit ? null : 'onePerTurn' })}
       >
         <i />
-        One spell each turn
+        {t('editor.MonsterLists.oneSpellEachTurn', 'One spell each turn')}
       </button>
     </section>
   );
@@ -321,7 +321,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
   return (
     <section data-testid="monster-enemy">
       <label className="ed-field">
-        Enemy
+        {t('editor.MonsterLists.enemy', 'Enemy')}
         <select
           className="fr-sel"
           aria-label={t('editor.MonsterLists.enemy', 'Enemy')}

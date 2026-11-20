@@ -19,7 +19,10 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
           {t('editor.FeaturesPanel.howTheHeroesLeave', 'How the heroes leave')}
         </div>
         <label className="ed-field">
-          Words, for example "through the cave". Empty: by the stairs.
+          {t(
+            'editor.FeaturesPanel.wordsForExampleThrough',
+            'Words, for example "through the cave". Empty: by the stairs.',
+          )}
           <input
             aria-label={t('editor.FeaturesPanel.leave', 'Leave')}
             key={quest.leave ?? ''}
@@ -35,8 +38,10 @@ export function FeaturesPanel({ store }: { store: EditorStore }) {
       <section>
         <div className="lbl">{t('editor.FeaturesPanel.texturePack', 'Texture pack')}</div>
         <label className="ed-field">
-          Id of the texture pack this quest looks best with. Only a hint, never applied for the
-          player.
+          {t(
+            'editor.FeaturesPanel.idOfTheTexture',
+            'Id of the texture pack this quest looks best with. Only a hint, never applied for the player.',
+          )}
           <input
             aria-label={t('editor.FeaturesPanel.suggestedTexturePack', 'Suggested texture pack')}
             key={quest.suggestedPack ?? ''}

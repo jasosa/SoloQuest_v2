@@ -395,7 +395,7 @@ function SpellFields({
             <button
               className="x"
               disabled={disabled}
-              aria-label={`Remove ${tv}`}
+              aria-label={t('designer.DesignerScreen.remove2', 'Remove {tv}', { tv })}
               onClick={() =>
                 onChange(
                   put(
@@ -431,7 +431,7 @@ function SpellFields({
         <button
           className="btn"
           disabled={disabled || pick === ''}
-          aria-label="Add the situation"
+          aria-label={t('designer.DesignerScreen.addTheSituation', 'Add the situation')}
           onClick={() => {
             onChange(put(data, 'tags', [...tags, pick]));
             setPick('');
@@ -1117,7 +1117,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 <button
                   className="x"
                   disabled={locked}
-                  aria-label={`Remove ${abilityName(id)}`}
+                  aria-label={t('designer.DesignerScreen.remove3', 'Remove {v1}', {
+                    v1: abilityName(id),
+                  })}
                   onClick={() =>
                     change(
                       put(
@@ -1153,7 +1155,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             <button
               className="btn"
               disabled={locked || abPick === ''}
-              aria-label="Add the ability"
+              aria-label={t('designer.DesignerScreen.addTheAbility', 'Add the ability')}
               onClick={() => {
                 change(put(d, 'abilities', [...abilities, abPick]));
                 setAbPick('');
@@ -1191,7 +1193,9 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   <button
                     className="x"
                     disabled={locked}
-                    aria-label={`Remove ${sp?.name ?? id}`}
+                    aria-label={t('designer.DesignerScreen.remove3', 'Remove {v1}', {
+                      v1: sp?.name ?? id,
+                    })}
                     onClick={() => setCount(id, 0)}
                   >
                     {t('designer.DesignerScreen.remove', 'Remove')}
@@ -1233,7 +1237,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
             <button
               className="btn"
               disabled={locked || spPick === ''}
-              aria-label="Add the spell"
+              aria-label={t('designer.DesignerScreen.addTheSpell', 'Add the spell')}
               onClick={() => {
                 change(put(d, 'spells', [...spells, spPick]));
                 setSpPick('');
@@ -1636,7 +1640,10 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           {owner && (
             <Panel title={t('designer.DesignerScreen.coreFile', 'Core file')} testId="dz-core-file">
               <p className="fr-help">
-                Your changes to Core (changed, new official and deleted items) go into one file for{' '}
+                {t(
+                  'designer.DesignerScreen.yourChangesToCore',
+                  'Your changes to Core (changed, new official and deleted items) go into one file for',
+                )}{' '}
                 <code>
                   {t('designer.DesignerScreen.srcContentLibrary', 'src/content/library/')}
                 </code>

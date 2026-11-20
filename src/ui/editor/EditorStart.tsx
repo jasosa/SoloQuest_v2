@@ -338,7 +338,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           }
         >
           <label className="btn alt es-file" style={{ width: '100%' }}>
-            Choose a .hqquest.json file
+            {t('editor.EditorStart.chooseAHqquestJson', 'Choose a .hqquest.json file')}
             <input
               type="file"
               accept=".json,application/json"

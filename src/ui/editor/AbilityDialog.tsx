@@ -46,7 +46,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
         </div>
         <div className="ed-dialog-body">
           <label className="ed-field">
-            Name
+            {t('editor.AbilityDialog.name', 'Name')}
             <input
               key={`${a.id}:n:${a.name}`}
               defaultValue={a.name}
@@ -58,7 +58,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
             />
           </label>
           <label className="ed-field">
-            Kind
+            {t('editor.AbilityDialog.kind', 'Kind')}
             <select
               className="es-select"
               value={a.kind ?? 'ability'}
@@ -78,7 +78,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
             </select>
           </label>
           <label className="ed-field">
-            What it does
+            {t('editor.AbilityDialog.whatItDoes', 'What it does')}
             <textarea
               key={`${a.id}:t:${a.text}`}
               defaultValue={a.text}

@@ -400,7 +400,7 @@ export function ReferencePanel({
               : t('editor.ReferenceImage.showImage', 'Show image')}
           </button>
           <label className="ed-field ed-range">
-            Opacity
+            {t('editor.ReferenceImage.opacity', 'Opacity')}
             <input
               type="range"
               min={0.1}

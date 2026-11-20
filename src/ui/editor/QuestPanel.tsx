@@ -84,14 +84,16 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                   <span data-testid="objective-id">{o.id}</span>
                   <button
                     className="chip"
-                    aria-label={`Remove objective ${o.id}`}
+                    aria-label={t('editor.QuestPanel.removeObjective', 'Remove objective {id}', {
+                      id: o.id,
+                    })}
                     onClick={() => st.apply((q) => removeObjective(q, o.id))}
                   >
                     {t('editor.QuestPanel.remove', 'Remove')}
                   </button>
                 </div>
                 <label className="ed-field">
-                  What the heroes must do
+                  {t('editor.QuestPanel.whatTheHeroesMust', 'What the heroes must do')}
                   <textarea
                     key={`${o.id}:${o.text}`}
                     defaultValue={o.text}
@@ -135,14 +137,16 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 <span>{e.id}</span>
                 <button
                   className="chip"
-                  aria-label={`Remove ending ${e.id}`}
+                  aria-label={t('editor.QuestPanel.removeEnding', 'Remove ending {id}', {
+                    id: e.id,
+                  })}
                   onClick={() => st.apply((q) => removeEnding(q, e.id))}
                 >
                   {t('editor.QuestPanel.remove', 'Remove')}
                 </button>
               </div>
               <label className="ed-field">
-                Label
+                {t('editor.QuestPanel.label', 'Label')}
                 <input
                   key={`${e.id}:l:${e.label}`}
                   defaultValue={e.label}
@@ -156,7 +160,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 />
               </label>
               <label className="ed-field">
-                Text for the players
+                {t('editor.QuestPanel.textForThePlayers', 'Text for the players')}
                 <textarea
                   key={`${e.id}:t:${e.text ?? ''}`}
                   defaultValue={e.text ?? ''}
@@ -172,7 +176,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
             </div>
           ))}
           <label className="ed-field">
-            Text on the end screen after every ending
+            {t('editor.QuestPanel.textOnTheEnd', 'Text on the end screen after every ending')}
             <textarea
               key={quest.endText ?? ''}
               defaultValue={quest.endText ?? ''}
@@ -208,7 +212,9 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 <span>{n.id}</span>
                 <button
                   className="chip"
-                  aria-label={`Remove character ${n.id}`}
+                  aria-label={t('editor.QuestPanel.removeCharacter', 'Remove character {id}', {
+                    id: n.id,
+                  })}
                   onClick={() => st.apply((q) => removeNpc(q, n.id))}
                 >
                   {t('editor.QuestPanel.remove', 'Remove')}
@@ -334,7 +340,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 </p>
                 <button
                   className="chip"
-                  aria-label={`Edit ability ${a.id}`}
+                  aria-label={t('editor.QuestPanel.editAbility', 'Edit ability {id}', { id: a.id })}
                   onClick={() => st.setAbilityId(a.id)}
                 >
                   {t('editor.QuestPanel.edit', 'Edit')}
@@ -351,7 +357,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                 </p>
                 <button
                   className="chip"
-                  aria-label={`Edit spell ${sp.id}`}
+                  aria-label={t('editor.QuestPanel.editSpell', 'Edit spell {id}', { id: sp.id })}
                   onClick={() => st.setSpellId(sp.id)}
                 >
                   {t('editor.QuestPanel.edit', 'Edit')}
@@ -392,7 +398,11 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
                       {n > 0 && (
                         <button
                           className="chip"
-                          aria-label={`Remove enemy ${e.id} with its monsters`}
+                          aria-label={t(
+                            'editor.QuestPanel.removeEnemyWithIts',
+                            'Remove enemy {id} with its monsters',
+                            { id: e.id },
+                          )}
                           onClick={() =>
                             st.apply((q) => removeEnemy(q, e.id, { withMonsters: true }))
                           }
@@ -489,7 +499,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
           </div>
           {mode === 'monster' && (
             <label className="ed-field">
-              Monster
+              {t('editor.QuestPanel.monster', 'Monster')}
               <select
                 className="es-select"
                 value={wMonster}
@@ -530,7 +540,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
           )}
           {mode === 'text' && (
             <label className="ed-field">
-              What appears
+              {t('editor.QuestPanel.whatAppears', 'What appears')}
               <input
                 key={wText}
                 defaultValue={wText}
@@ -551,7 +561,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
         <section>
           <div className="lbl">{t('editor.QuestPanel.rules', 'Rules')}</div>
           <label className="ed-field">
-            Falling block rule
+            {t('editor.QuestPanel.fallingBlockRule', 'Falling block rule')}
             <input
               key={quest.rules.fallingBlock ?? ''}
               defaultValue={quest.rules.fallingBlock ?? ''}
@@ -564,7 +574,7 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
             />
           </label>
           <label className="ed-field">
-            No equipment until note
+            {t('editor.QuestPanel.noEquipmentUntilNote', 'No equipment until note')}
             <select
               className="es-select"
               value={quest.rules.noEquipmentUntil ?? ''}
@@ -626,7 +636,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
             <span>{MONSTER_NAMES[type]}</span>
             <button
               className="chip"
-              aria-label={`Remove bounty ${type}`}
+              aria-label={t('editor.QuestPanel.removeBounty', 'Remove bounty {type}', { type })}
               onClick={() => {
                 const { [type]: _gone, ...rest } = bounty;
                 void _gone;
@@ -637,7 +647,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
             </button>
           </div>
           <label className="ed-field">
-            Gold
+            {t('editor.QuestPanel.gold', 'Gold')}
             <input
               key={`${type}:${gold}`}
               inputMode="numeric"
@@ -659,7 +669,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
       ))}
       {free.length > 0 && (
         <label className="ed-field">
-          Add a bounty
+          {t('editor.QuestPanel.addABounty', 'Add a bounty')}
           <select
             className="es-select"
             aria-label={t('editor.QuestPanel.addABounty', 'Add a bounty')}
@@ -679,7 +689,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
       )}
       <div className="lbl">{t('editor.QuestPanel.doorTeleport', 'Door teleport')}</div>
       <label className="ed-field">
-        Dice
+        {t('editor.QuestPanel.dice', 'Dice')}
         <input
           key={`dice:${tele?.dice ?? ''}`}
           defaultValue={tele?.dice ?? ''}
@@ -691,7 +701,7 @@ function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
         />
       </label>
       <label className="ed-field">
-        Squares
+        {t('editor.QuestPanel.squares', 'Squares')}
         <input
           key={`squares:${tele?.squares ?? ''}`}
           defaultValue={tele?.squares ?? ''}
