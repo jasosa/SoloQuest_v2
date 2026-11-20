@@ -34,5 +34,69 @@ export function dropLegacy(raw: unknown): unknown {
         ? { ...m, visible: 'editor' }
         : m,
     );
-  return rest;
+  const out = moveChasmToRoomTile(dropCage(rest));
+  if (Array.isArray(out.maps))
+    out.maps = out.maps.map((m: unknown) => moveChasmToRoomTile(dropCage(m)));
+  return out;
+}
+
+/**
+ * Decision 94: chasm squares laid one by one are gone from the editor. A chasm that fills a plain
+ * 4 x 4 square becomes the Bottomless Chasm Room tile (when the map has none yet). Anything else
+ * stays as it is: the validator warns about it and the owner decides.
+ */
+function moveChasmToRoomTile(map: unknown): Record<string, unknown> {
+  if (typeof map !== 'object' || map === null) return map as Record<string, unknown>;
+  const m = { ...map } as Record<string, unknown>;
+  if (!Array.isArray(m.boardTiles)) return m;
+  const tiles = m.boardTiles as { type?: unknown; cells?: unknown }[];
+  const rooms: { type?: unknown; cells?: unknown }[] = Array.isArray(m.roomTiles)
+    ? [...(m.roomTiles as { type?: unknown }[])]
+    : [];
+  const keep: unknown[] = [];
+  for (const t of tiles) {
+    // a chasm with a flag or `blocks` stays as it is: the room tile has no such fields
+    const plain = Object.keys(t).every((k) => k === 'type' || k === 'cells');
+    const cells =
+      t.type === 'chasm' && plain && Array.isArray(t.cells) ? (t.cells as number[][]) : null;
+    if (cells && cells.length === 16 && !rooms.some((r) => r.type === 'chasmRoom')) {
+      const xs = cells.map((c) => c[0]!);
+      const ys = cells.map((c) => c[1]!);
+      const [x0, y0] = [Math.min(...xs), Math.min(...ys)];
+      const full =
+        Math.max(...xs) - x0 === 3 &&
+        Math.max(...ys) - y0 === 3 &&
+        new Set(cells.map((c) => `${c[0]},${c[1]}`)).size === 16;
+      if (full) {
+        rooms.push({ type: 'chasmRoom', cells: cells.map((c) => [c[0], c[1]]) });
+        continue;
+      }
+    }
+    keep.push(t);
+  }
+  if (keep.length !== tiles.length) {
+    m.boardTiles = keep;
+    m.roomTiles = rooms;
+  }
+  return m;
+}
+
+/**
+ * Decision 94: there is no cage piece and no sight-blocking tile. Old files may still have a
+ * `cage` board tile, or `blocks` and `hiddenWhen` on a tile: they are dropped on load (the quest
+ * notes tell the players, like the old bounty rule).
+ */
+function dropCage(map: unknown): Record<string, unknown> {
+  if (typeof map !== 'object' || map === null) return map as Record<string, unknown>;
+  const m = { ...map } as Record<string, unknown>;
+  if (!Array.isArray(m.boardTiles)) return m;
+  m.boardTiles = (m.boardTiles as Record<string, unknown>[])
+    .filter((t) => t.type !== 'cage')
+    .map((t) => {
+      const { blocks: _blocks, hiddenWhen: _hidden, ...rest } = t;
+      void _blocks;
+      void _hidden;
+      return rest;
+    });
+  return m;
 }

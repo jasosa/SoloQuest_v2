@@ -2,13 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
-import {
-  lettersMissingNotes,
-  tileSizeUsed,
-  tileUsage,
-  validateQuestIssues,
-  type MonsterKind,
-} from '../../engine/editor';
+import { lettersMissingNotes, validateQuestIssues, type MonsterKind } from '../../engine/editor';
 import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
@@ -16,22 +10,15 @@ import { useFitMode } from '../FitToScreen';
 import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { DoorTool, EditorStore, EditorTabName, Tool } from './editorStore';
-import {
-  BOARD_TILES,
-  BOARD_TILE_TYPES,
-  ROOM_TILES,
-  ROOM_TILE_TYPES,
-  MAX_TUNNEL_PAIRS,
-  limitText,
-  tileSpec,
-} from '../../engine/data/roomTiles';
+import { MAX_TUNNEL_PAIRS } from '../../engine/data/roomTiles';
 import { EDITOR_TABS, TopBar } from '../shared/Frame';
 import { DesignerBody, type QuestSource, type QuestUpdater } from '../designer/DesignerScreen';
 import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
 import { MonstersTab } from './MonstersTab';
-import { MapChips } from './MapsPanel';
+import { MapChips, MergesPanel } from './MapsPanel';
+import { TilePalette } from './TilePalette';
 import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
@@ -48,11 +35,6 @@ import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
 import { t } from '../../i18n/t';
 
-/** "Ice Vault 1 of 2": a tile chip with how many the quest has and the limit of the box. */
-function tileChipName(name: string, u: { used: number; max: number | undefined }): string {
-  return u.max === undefined ? name : `${name} ${u.used} of ${u.max}`;
-}
-
 const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'select', label: 'Select', key: 's' },
   { tool: 'rock', label: 'Rock', key: 'k' },
@@ -64,6 +46,7 @@ const TOOLS: readonly { tool: Tool; label: string; key: string }[] = [
   { tool: 'traps', label: 'Traps', key: 't' },
   { tool: 'markers', label: 'Markers', key: 'l' },
   { tool: 'zones', label: 'Zones', key: 'z' },
+  { tool: 'merge', label: t('editor.EditorScreen.mergeRooms', 'Merge rooms'), key: 'g' },
   { tool: 'start', label: 'Start', key: 'h' },
 ];
 
@@ -309,6 +292,7 @@ export function EditorScreen({
             className="ed-inspector"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
+            {tool === 'tiles' && <TilePalette store={store} />}
             <Inspector store={store} issues={issues} saveErrors={saveErrors} />
           </aside>
         </div>
@@ -433,95 +417,6 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </button>
         </>
       )}
-      {tool === 'tiles' && (
-        <>
-          <div className="lbl">{t('editor.EditorScreen.boardTiles', 'Board tiles')}</div>
-          <div className="ed-chips ed-small" data-testid="board-tile-chips">
-            {BOARD_TILE_TYPES.map((t) => {
-              const u = tileUsage(quest, 'board', t);
-              return chip(
-                tileChipName(BOARD_TILES[t].name, u),
-                opts.tile.group === 'board' && opts.tile.type === t,
-                () => set({ tile: { group: 'board', type: t }, tileVariant: 0, tileTurned: false }),
-              );
-            })}
-          </div>
-          <div className="lbl">{t('editor.EditorScreen.roomTiles', 'Room tiles')}</div>
-          <div className="ed-chips ed-small" data-testid="room-tile-chips">
-            {ROOM_TILE_TYPES.map((t) => {
-              const u = tileUsage(quest, 'room', t);
-              return chip(
-                tileChipName(ROOM_TILES[t].name, u),
-                opts.tile.group === 'room' && opts.tile.type === t,
-                () => set({ tile: { group: 'room', type: t }, tileVariant: 0, tileTurned: false }),
-              );
-            })}
-          </div>
-          {(() => {
-            const pick = opts.tile;
-            const spec = tileSpec(pick.group, pick.type);
-            if (!spec || spec.laid)
-              return (
-                <p className="ed-note">
-                  {t(
-                    'editor.EditorScreen.tapSquaresToLay',
-                    'Tap squares to lay it. Squares that touch make one tile.',
-                  )}
-                </p>
-              );
-            return (
-              <>
-                {spec.footprints.length > 1 && (
-                  <>
-                    <div className="lbl">{t('editor.EditorScreen.size', 'Size')}</div>
-                    <div className="ed-chips" data-testid="tile-sizes">
-                      {spec.footprints.map(([w, h], i) => {
-                        const full =
-                          spec.maxPerSize !== undefined &&
-                          tileSizeUsed(quest, pick.group, pick.type, [w, h]) >= spec.maxPerSize;
-                        return (
-                          <button
-                            key={`${w}x${h}`}
-                            className="chip"
-                            aria-pressed={opts.tileVariant === i}
-                            disabled={full}
-                            title={
-                              full
-                                ? t(
-                                    'editor.EditorScreen.usedUpTheBox',
-                                    'Used up: the box has {v1}',
-                                    { v1: limitText(spec) },
-                                  )
-                                : undefined
-                            }
-                            onClick={() => set({ tileVariant: i })}
-                          >
-                            {w} x {h}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-                <button
-                  className="btn alt"
-                  onClick={() => set({ tileTurned: !opts.tileTurned })}
-                  aria-pressed={opts.tileTurned}
-                >
-                  {t('editor.EditorScreen.turnR', 'Turn (R)')}
-                </button>
-                <p className="ed-note" data-testid="tile-limit">
-                  {t(
-                    'editor.EditorScreen.tapASquareFor',
-                    '{name}: {v1}. Tap a square for the top left of the tile.',
-                    { name: spec.name, v1: limitText(spec) },
-                  )}
-                </p>
-              </>
-            );
-          })()}
-        </>
-      )}
       {tool === 'monsters' && (
         <>
           <div className="lbl">{t('editor.EditorScreen.monster', 'Monster')}</div>
@@ -609,6 +504,20 @@ function ToolOptions({ store }: { store: EditorStore }) {
               opts.markerVisible === 'players',
               () => set({ markerVisible: 'players' }),
             )}
+          </div>
+        </>
+      )}
+      {tool === 'merge' && (
+        <>
+          <div className="lbl">{t('editor.EditorScreen.mergeRooms', 'Merge rooms')}</div>
+          <p className="ed-note">
+            {t(
+              'editor.EditorScreen.mergeHelp',
+              'A tile laid over two rooms makes them one room in this quest. This map only.',
+            )}
+          </p>
+          <div data-testid="map-merges">
+            <MergesPanel store={store} />
           </div>
         </>
       )}

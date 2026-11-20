@@ -38,4 +38,16 @@ describe('the Frozen Horror quests keep to the tile sizes and limits', () => {
     }
     expect(found.sort()).toEqual([...KNOWN].sort());
   });
+
+  it('has no laid chasm squares and no cage piece (decision 94)', () => {
+    for (const f of files) {
+      const raw = JSON.parse(readFileSync(resolve(dir, f), 'utf8'));
+      const quest = parseQuest(raw);
+      expect(
+        quest.boardTiles.filter((t) => t.type === 'chasm'),
+        f,
+      ).toEqual([]);
+      expect(JSON.stringify(raw.boardTiles ?? []), f).not.toMatch(/"cage"|hiddenWhen|"blocks"/);
+    }
+  });
 });

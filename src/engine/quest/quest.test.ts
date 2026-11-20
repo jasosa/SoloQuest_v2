@@ -37,7 +37,7 @@ describe('parseQuest', () => {
       markers: [{ id: 'k1', label: 'X', cell: [4, 2], visible: 'editor' }],
       wandering: { monster: 'orc' },
       objectives: [{ id: 'o1', text: 'Kill it', done: { monsterKilled: 'm1' } }],
-      rules: { fallingBlock: 'q13', bounty: { goblin: 10 } },
+      rules: { fallingBlock: 'q13', doorTeleport: { dice: '1 red die', squares: 'that many' } },
       notes: [
         {
           id: 'n-A',

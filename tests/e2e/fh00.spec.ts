@@ -53,14 +53,17 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
     await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
   });
 
-  test('the lever asks first; No keeps the cage shut, Yes opens it (bug)', async ({ page }) => {
+  test('the lever asks first; the note tells the players the cage blocks sight (no cage on the board)', async ({
+    page,
+  }) => {
     await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3');
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Quest note C' }).click();
+    await expect(page.getByText(/blocks line of sight, until it is opened/)).toBeVisible();
     await page.getByRole('button', { name: 'Look at the lever' }).click();
     await expect(page.getByText(/Does a hero pull the lever/)).toBeVisible();
     await page.getByRole('button', { name: 'No, leave it' }).click();
-    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(1);
+    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Quest note C' }).click();
     await page.getByRole('button', { name: 'Look at the lever' }).click();
     await page.getByRole('button', { name: 'Yes, pull the lever' }).click();
@@ -68,32 +71,17 @@ test.describe('Frozen Horror quest 0 (Into the Northlands)', () => {
     await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(0);
   });
 
-  test('the cave entrance and the cage are drawn, Frozen Horror tokens are blue', async ({
+  test('the cave entrance is drawn and the cage is not, Frozen Horror tokens are blue', async ({
     page,
   }) => {
     await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2,d3');
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
-    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(1);
+    await expect(page.locator('[data-board-tile="cage"]')).toHaveCount(0);
     const fill = await page
       .locator('[data-token-image], g.tok circle')
       .first()
       .evaluate((el) => getComputedStyle(el).fill);
     expect(fill).toBe('rgb(59, 107, 140)'); // --ice: the Polar Warbear in its cage
-  });
-
-  test('the cage is drawn with the room that reveals it, not under its floor (bug)', async ({
-    page,
-  }) => {
-    await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1&open=in,d1,look@9:9,d2');
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.locator('[data-door="d3"]').click();
-    await page.getByRole('button', { name: 'Open the door', exact: true }).click();
-    // while the room is washing in, its cage is in the same (masked) layer as its floor
-    const inFreshLayer = await page.evaluate(
-      () =>
-        !!document.querySelector('[data-board-tile="cage"]')?.parentElement?.getAttribute('mask'),
-    );
-    expect(inFreshLayer).toBe(true);
   });
 });

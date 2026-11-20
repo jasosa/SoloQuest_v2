@@ -11,6 +11,20 @@ const make = (store = new MemoryUserQuestStore()) =>
   });
 
 describe('editor store', () => {
+  it('a pick shows the Map tab and the tab it came from comes back when it ends', () => {
+    const s = make();
+    s.getState().setTab('Actions');
+    s.getState().setPicking({ kind: 'cell', hint: 'Click a square.', onPick: () => {} });
+    expect(s.getState().tab).toBe('Map');
+    s.getState().setPicking(null);
+    expect(s.getState().tab).toBe('Actions');
+    expect(s.getState().pickReturn).toBeNull();
+    s.getState().setPicking({ kind: 'cell', hint: 'Click a square.', onPick: () => {} });
+    s.getState().setTab('Quest');
+    s.getState().setPicking(null);
+    expect(s.getState().tab).toBe('Quest');
+  });
+
   it('applies an operation, keeps history, and clears redo on a new change', () => {
     const s = make();
     expect(s.getState().apply((q) => setRockCell(q, [10, 2], true))).toBe(true);

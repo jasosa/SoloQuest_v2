@@ -24,7 +24,7 @@ import {
 } from '../data/roomTiles';
 import type { Quest } from '../quest/schema';
 import { roomTileCells } from '../quest/roomTileCells';
-import { clean, fail, isRockCell as isRock, newIssues, ok, type EditResult } from './result';
+import { fail, isRockCell as isRock, newIssues, ok, type EditResult } from './result';
 
 type Cell = [number, number];
 type Tile = Quest['boardTiles'][number];
@@ -39,6 +39,23 @@ export function tileSizes(type: BoardTileType): Footprint[] {
     for (const f of [[w, h] as Footprint, [h, w] as Footprint])
       if (!out.some((o) => o[0] === f[0] && o[1] === f[1])) out.push(f);
   return out;
+}
+
+/**
+ * The size to lay when the author picks shape `variant` of a tile on a tile that is `box` big
+ * now: the same quarter turn as now (a tile that lies on its side stays on its side).
+ */
+export function sizeKeepingTurn(
+  footprints: readonly Footprint[],
+  variant: number,
+  box: { w: number; h: number },
+): Footprint {
+  const [w, h] = footprints[Math.min(Math.max(variant, 0), footprints.length - 1)]!;
+  const now = footprints.find(
+    ([fw, fh]) => (fw === box.w && fh === box.h) || (fw === box.h && fh === box.w),
+  );
+  const turned = now !== undefined && now[0] !== now[1] && now[0] !== box.w;
+  return turned ? [h, w] : [w, h];
 }
 
 /** The squares of a w x h rectangle whose top left square is `at`. */
@@ -291,30 +308,6 @@ export function rotateBoardTile(q: Quest, index: number): EditResult {
     );
   if (box.w === box.h) return ok(q);
   return resizeBoardTile(q, index, [box.h, box.w]);
-}
-
-/**
- * The flag that takes a tile away (`hiddenWhen`) and whether it blocks sight and squares until
- * then. An empty text clears the flag. A tile that blocks needs a flag.
- */
-export function setBoardTileFlags(
-  q: Quest,
-  index: number,
-  flags: { hiddenWhen?: string; blocks?: boolean },
-): EditResult {
-  const t = q.boardTiles[index];
-  if (!t) return fail(tr('editor.tiles.thereIsNoSuchTile', 'There is no such tile.'));
-  const hiddenWhen =
-    flags.hiddenWhen === undefined ? t.hiddenWhen : flags.hiddenWhen.trim() || undefined;
-  const blocks = flags.blocks === undefined ? t.blocks : flags.blocks || undefined;
-  if (blocks && !hiddenWhen)
-    return fail(
-      tr(
-        'editor.tiles.aTileThatBlocksNeedsA',
-        'A tile that blocks needs a flag that takes it away. Type the flag first.',
-      ),
-    );
-  return withTile(q, index, (x) => clean({ type: x.type, cells: x.cells, hiddenWhen, blocks }));
 }
 
 /** Take one square out of laid terrain. The last square takes the tile with it. */

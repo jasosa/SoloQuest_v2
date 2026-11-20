@@ -75,40 +75,25 @@ describe('board tiles', () => {
       [1, 7],
     ],
   };
-  const cage = {
-    type: 'cage',
-    cells: [
-      [6, 15],
-      [6, 16],
-    ],
-    hiddenWhen: 'open',
-  };
-
-  it('the cave shows from the start, a cage when a square of it is seen, until its flag is set', () => {
-    const l = buildLevel(
-      make({
-        boardTiles: [cave, cage],
-        notes: [
-          {
-            id: 'n',
-            trigger: { type: 'manual', label: 'Open' },
-            effects: [{ type: 'setFlag', flag: 'open', value: true }],
-          },
-        ],
-      }),
-    );
+  it('the cave shows from the start, a ledge when a square of it is seen', () => {
+    const ledge = {
+      type: 'iceLedge',
+      cells: [
+        [6, 15],
+        [6, 16],
+      ],
+    };
+    const l = buildLevel(make({ boardTiles: [cave, ledge] }));
     expect(boardTilesInView(l, replay(l, 1, [])).map((t) => t.type)).toEqual(['iceCaveEntrance']);
     const seen = replay(l, 1, [
       { type: 'OPEN_DOOR', door: 'd1' },
       { type: 'OPEN_DOOR', door: 'd2' },
     ]);
-    expect(boardTilesInView(l, seen).map((t) => t.type)).toEqual(['iceCaveEntrance', 'cage']);
-    const gone = reduce(l, seen, { type: 'MANUAL_TRIGGER', note: 'n' }).state;
-    expect(boardTilesInView(l, gone).map((t) => t.type)).toEqual(['iceCaveEntrance']);
+    expect(boardTilesInView(l, seen).map((t) => t.type)).toEqual(['iceCaveEntrance', 'iceLedge']);
   });
 
   it('every square must be on the board', () => {
-    expect(problems({ boardTiles: [{ type: 'cage', cells: [[40, 2]] }] })).toMatch(
+    expect(problems({ boardTiles: [{ type: 'iceLedge', cells: [[40, 2]] }] })).toMatch(
       /outside the board|board/i,
     );
   });

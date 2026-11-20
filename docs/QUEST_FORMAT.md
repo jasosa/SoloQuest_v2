@@ -173,10 +173,11 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 "rules": {
   "fallingBlock": "q13",            // Q13: roll 1 red die on entering, not blocking
   "doorTeleport": { "dice": "2red", "squares": "markers" },   // Q10
-  "noEquipmentUntil": "n-A",        // Q6 banner
-  "bounty": { "goblin": 10, "orc": 20, "abomination": 30, "dreadWarrior": 50 }   // Q11, shown as text
+  "noEquipmentUntil": "n-A"         // Q6 banner
 }
 ```
+
+`doorTeleport` is a short text for the table: when a hero crosses a magic door, which dice to roll and which squares the hero can land on. The app shows it, it does not move anyone. The old `bounty` rule was removed (the players track it); quests that still carry it load without it.
 
 ## NPCs
 
@@ -189,9 +190,11 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 
 `tunnels: [{ "id": "tun1", "design": 1, "a": [15, 12], "b": [18, 10] }]`: two squares of bare floor that lead to each other. `design` (1 to 9) is the number drawn on both, one pair per design. A tap on a seen end gives the button "A hero used this tunnel" (event `TUNNEL_USE`, `from` is `a` or `b`): the other end is looked from, as after "Look from here".
 
-Terrain is a board tile too: `icyRiver`, `iceLedge` and `chasm` (squares of the quest map), with the rule in the note of the square or room (see Rule hints in `DESIGN.md`). Terrain changes no sight. Only `chasm` is laid square by square; the river and the ledge are tiles of a fixed size (see the table below).
+Terrain is a board tile too: `icyRiver` and `iceLedge`, with the rule in the note of the square or room (see Rule hints in `DESIGN.md`). Terrain changes no sight. The river and the ledge are tiles of a fixed size (see the table below). The old `chasm` board tile (squares laid one by one) is gone from the editor: a file that has a 4 x 4 block of chasm squares loads as the Bottomless Chasm Room tile (`roomTiles`, `chasmRoom`) on the same squares, and any other chasm squares load as they are with a validator warning (decision 94).
 
-`boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. A tile with `"blocks": true` (needs `hiddenWhen`) also blocks line of sight and squares until that flag is set (decision 56: the cage of Q0 until the lever). Rooms still reveal whole: the monsters inside a cage are seen with the room.
+`boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock.
+
+There is no cage tile and no sight-blocking tile (decision 94). Quests 0 and 4 have a cage that blocks line of sight and squares until it is opened: the quest note says it in plain words and the players apply it, the app does not. Old files with a `cage` board tile, or with `blocks` or `hiddenWhen` on a tile, still load: those are dropped on load (like the old `bounty` rule). Rooms reveal whole: the monsters inside a cage are seen with the room.
 
 `wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count`: a wandering monster trap and a wandering monster card both bring `count` monsters. The players give a square per monster (`WANDERING_MONSTER` takes `cells`); all attack the searching hero at once.
 
@@ -208,7 +211,7 @@ Types (`src/engine/data/roomTiles.ts`): `iceVault`, `scepterRoom`, `livingFog`, 
 
 ### Tile sizes and limits (decision 88)
 
-The box holds a limited number of each tile, in fixed sizes (a tile can lie turned, so 3 x 2 is also 2 x 3). The limits are per quest, and a quest of two maps counts each map on its own (the book gives each half its own set).
+The box holds a limited number of each tile, in fixed sizes (a tile can lie turned, so 3 x 2 is also 2 x 3: the editor lists each shape once and turns it with Turn). The limits are per quest, and a quest of two maps counts each map on its own (the book gives each half its own set).
 
 | Tile | Sizes in the box | Per quest |
 |---|---|---|
@@ -216,8 +219,6 @@ The box holds a limited number of each tile, in fixed sizes (a tile can lie turn
 | Ice ledge (board) | 5 x 3 | 1 |
 | Icy river (board) | 1 x 8, 1 x 3 | 1 of each |
 | Slippery ice (board) | 1 x 1, 2 x 1, 3 x 1, 3 x 2 | no limit stated |
-| Cage (board) | 2 x 2 | no limit stated |
-| Chasm (board) | square by square | none |
 | Ice Vault (room) | 3 x 2, 4 x 3 | 1 of each |
 | Living Fog, Scepter, Bottomless Chasm and Cage rooms | 4 x 4 | 1 each |
 | Frozen Crypt room | 5 x 3 | 1 |

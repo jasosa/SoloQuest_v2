@@ -9,17 +9,15 @@ import {
   removeBoardTileCell,
   resizeBoardTile,
   resizeRoomTile,
-  roomTileSizes,
   rotateRoomTile,
+  sizeKeepingTurn,
   tileUsage,
   rotateBoardTile,
-  setBoardTileFlags,
   setDoorFlags,
   setEdgeDoorKind,
   setStart,
   setTunnelDesign,
   tileBox,
-  tileSizes,
 } from '../../engine/editor';
 import {
   BOARD_TILES,
@@ -27,9 +25,9 @@ import {
   footprintText,
   sizesText,
   tileSpec,
+  type Footprint,
 } from '../../engine/data/roomTiles';
 import { roomTileCells } from '../../engine/quest/roomTileCells';
-import { Toggle } from '../shared/Frame';
 import type { EditorStore } from './editorStore';
 import { t } from '../../i18n/t';
 
@@ -116,7 +114,6 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
   if (!tile) return null;
   const def = BOARD_TILES[tile.type];
   const box = tileBox(tile.cells);
-  const flags = knownFlags(quest);
   return (
     <>
       <p className="ed-note" data-testid="tile-size">
@@ -141,44 +138,13 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
             })}
       </p>
       {def.shape === 'fixed' && (
-        <>
-          <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
-          <div
-            className="ed-chips"
-            role="group"
-            aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
-          >
-            {tileSizes(tile.type).map(([w, h]) => (
-              <button
-                key={`${w}x${h}`}
-                className="chip"
-                aria-pressed={box.w === w && box.h === h}
-                onClick={() => st.apply((q) => resizeBoardTile(q, index, [w, h]))}
-              >
-                {w} x {h}
-              </button>
-            ))}
-          </div>
-          <button className="btn alt" onClick={() => st.apply((q) => rotateBoardTile(q, index))}>
-            {t('editor.FeatureFields.turn', 'Turn')}
-          </button>
-        </>
+        <SizeChips
+          footprints={def.footprints}
+          box={box}
+          onSize={(size) => st.apply((q) => resizeBoardTile(q, index, size))}
+          onTurn={() => st.apply((q) => rotateBoardTile(q, index))}
+        />
       )}
-      <FlagField
-        label={t('editor.FeatureFields.goneWhenThisFlag', 'Gone when this flag is set')}
-        value={tile.hiddenWhen ?? ''}
-        flags={flags}
-        listId={`flags-t-${index}`}
-        onSave={(v) => st.apply((q) => setBoardTileFlags(q, index, { hiddenWhen: v }))}
-      />
-      <Toggle
-        label={t(
-          'editor.FeatureFields.blocksSightAndSquares',
-          'Blocks sight and squares until then',
-        )}
-        on={tile.blocks === true}
-        onChange={(on) => st.apply((q) => setBoardTileFlags(q, index, { blocks: on }))}
-      />
       {def.shape === 'laid' && (
         <>
           <p className="ed-note">
@@ -199,6 +165,56 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
             {t('editor.FeatureFields.removeTheLastSquare', 'Remove the last square')}
           </button>
         </>
+      )}
+    </>
+  );
+}
+
+/**
+ * The sizes a tile comes in, each shape once (a 3 x 2 and a 2 x 3 are the same tile turned), and
+ * Turn. A tile with one size and a square shape shows nothing to pick.
+ */
+function SizeChips({
+  footprints,
+  box,
+  onSize,
+  onTurn,
+}: {
+  footprints: readonly Footprint[];
+  box: { w: number; h: number };
+  onSize(size: Footprint): void;
+  onTurn(): void;
+}) {
+  const matches = (f: Footprint) =>
+    (f[0] === box.w && f[1] === box.h) || (f[0] === box.h && f[1] === box.w);
+  const canTurn = footprints.some((f) => f[0] !== f[1]);
+  return (
+    <>
+      {footprints.length > 1 && (
+        <>
+          <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
+          <div
+            className="ed-chips"
+            role="group"
+            aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
+          >
+            {footprints.map((f, i) => (
+              <button
+                key={`${f[0]}x${f[1]}`}
+                className="chip"
+                aria-pressed={matches(f)}
+                onClick={() => onSize(sizeKeepingTurn(footprints, i, box))}
+              >
+                {f[0]} x {f[1]}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {canTurn && (
+        <button className="btn alt" onClick={onTurn}>
+          {t('editor.FeatureFields.turn', 'Turn')}
+        </button>
       )}
     </>
   );
@@ -229,26 +245,12 @@ export function RoomTileFields({ store, index }: { store: EditorStore; index: nu
           },
         )}
       </p>
-      <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
-      <div
-        className="ed-chips"
-        role="group"
-        aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
-      >
-        {roomTileSizes(tv.type).map(([w, h]) => (
-          <button
-            key={`${w}x${h}`}
-            className="chip"
-            aria-pressed={box.w === w && box.h === h}
-            onClick={() => st.apply((q) => resizeRoomTile(q, index, [w, h]))}
-          >
-            {w} x {h}
-          </button>
-        ))}
-      </div>
-      <button className="btn alt" onClick={() => st.apply((q) => rotateRoomTile(q, index))}>
-        {t('editor.FeatureFields.turn', 'Turn')}
-      </button>
+      <SizeChips
+        footprints={def.footprints}
+        box={box}
+        onSize={(size) => st.apply((q) => resizeRoomTile(q, index, size))}
+        onTurn={() => st.apply((q) => rotateRoomTile(q, index))}
+      />
       {def.rule.map((line, i) => (
         <p className="ed-note" key={i}>
           {line}

@@ -7,7 +7,7 @@ import { testQuestData } from '../quest/testQuest';
 import { validateQuest } from '../quest/validate';
 import { reduce, replay, startGame } from './reducer';
 
-// A "cage" of two squares in the bottom corridor that blocks sight until the flag `open` is set,
+// Old data with a "cage" of two squares in the bottom corridor (it no longer blocks sight),
 // and the throne of the test quest's R17 that becomes a door.
 const manual = (id: string, effects: unknown[]) => ({
   id,
@@ -20,7 +20,7 @@ const make = (patch: Record<string, unknown> = {}) =>
     blocks: [],
     boardTiles: [
       {
-        type: 'cage',
+        type: 'cage', // old data: dropped on load
         cells: [
           [6, 18],
           [7, 18],
@@ -36,38 +36,28 @@ const make = (patch: Record<string, unknown> = {}) =>
     ...patch,
   });
 
-describe('a tile that blocks sight until a flag (decision 56)', () => {
-  const lv = buildLevel(make());
+describe('an old cage tile no longer blocks anything (decision 94)', () => {
+  // `make` has the old data: a cage tile with blocks and a flag. It loads without it.
+  const quest = make();
+  const lv = buildLevel(quest);
 
-  it('blocks from the start and stops a look along the corridor', () => {
-    const s = startGame(lv, 1).state;
-    expect([...s.sightBlockers].sort()).toEqual(['6,18', '7,18']);
-    const map = sightMap(lv, s.openDoors, s.placedBlocks, s.sightBlockers);
-    expect(lineOfSight(map, [4, 18], [9, 18])).toBe(false);
-    const seen = replay(lv, 1, [{ type: 'OPEN_DOOR', door: 'd1' }]);
-    expect(seen.seenCells.has('5,18')).toBe(true);
-    expect(seen.seenCells.has('9,18')).toBe(false);
+  it('the cage tile and its blocks and flag are dropped on load', () => {
+    expect(quest.boardTiles).toEqual([]);
   });
 
-  it('opens when the flag is set, and sight passes', () => {
-    const s = reduce(lv, replay(lv, 1, [{ type: 'OPEN_DOOR', door: 'd1' }]), {
-      type: 'MANUAL_TRIGGER',
-      note: 'lever',
-    }).state;
+  it('nothing blocks sight: a look along the corridor passes the old cage squares', () => {
+    const s = startGame(lv, 1).state;
     expect(s.sightBlockers.size).toBe(0);
     const map = sightMap(lv, s.openDoors, s.placedBlocks, s.sightBlockers);
     expect(lineOfSight(map, [4, 18], [9, 18])).toBe(true);
+    const seen = replay(lv, 1, [{ type: 'OPEN_DOOR', door: 'd1' }]);
+    expect(seen.seenCells.has('9,18')).toBe(true);
   });
 
-  it('the validator wants a flag for it, and that some note sets it', () => {
-    const msgs = (p: Record<string, unknown>) => validateQuest(make(p), board).join(' | ');
-    expect(msgs({ boardTiles: [{ type: 'cage', cells: [[6, 18]], blocks: true }] })).toMatch(
-      /blocks needs a hiddenWhen flag/,
-    );
-    expect(
-      msgs({ boardTiles: [{ type: 'cage', cells: [[6, 18]], hiddenWhen: 'zz', blocks: true }] }),
-    ).toMatch(/hiddenWhen flag zz is never set/);
-    expect(msgs({})).toBe('');
+  it('the lever flag still sets, as story, and changes no sight', () => {
+    const s = reduce(lv, startGame(lv, 1).state, { type: 'MANUAL_TRIGGER', note: 'lever' }).state;
+    expect(s.flags['open']).toBe(true);
+    expect(s.sightBlockers.size).toBe(0);
   });
 });
 

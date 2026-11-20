@@ -151,8 +151,8 @@ describe('quest 4: data', () => {
     expect(quest.wandering).toEqual({ monster: 'abomination', count: 2 });
   });
 
-  it('every tile of the map is listed: ledge, river, cage and the cage room', () => {
-    expect(quest.boardTiles.map((t) => t.type).sort()).toEqual(['cage', 'iceLedge', 'icyRiver']);
+  it('every tile of the map is listed: ledge, river and the cage room', () => {
+    expect(quest.boardTiles.map((t) => t.type).sort()).toEqual(['iceLedge', 'icyRiver']);
     expect(quest.roomTiles).toEqual([{ type: 'cageRoom', area: 'R20' }]);
   });
 
@@ -246,11 +246,10 @@ describe('quest 4: the south-west rooms', () => {
     const g = mons(s).find((m) => m.id === 'm-gremlin')!;
     expect(g.name).toBe('Ice Gremlin');
     expect(g.state).toBe('passive');
-    expect(
-      boardTilesInView(level, s)
-        .map((t) => t.type)
-        .includes('cage'),
-    ).toBe(true);
+    expect(boardTilesInView(level, s).map((t) => t.type)).not.toContain('cage');
+    // the cage is a message, not a piece: the note tells the players it blocks sight
+    expect(JSON.stringify(quest.notes)).toContain('it blocks line of sight, until it is opened');
+    expect(s.sightBlockers.size).toBe(0);
   });
 
   it('B: freeing the gremlin asks a question; Yes removes cage and gremlin, No changes nothing', () => {
@@ -265,11 +264,7 @@ describe('quest 4: the south-west rooms', () => {
     expect(JSON.stringify(yes.prompts)).toContain('steals one item');
     expect(mons(yes.state).some((m) => m.id === 'm-gremlin')).toBe(false);
     expect(yes.state.monsters['m-gremlin']?.dead).toBe(false);
-    expect(
-      boardTilesInView(level, yes.state)
-        .map((t) => t.type)
-        .includes('cage'),
-    ).toBe(false);
+    expect(yes.state.sightBlockers.size).toBe(0);
   });
 
   it('R12 has a table and no monsters; R17 has two Goblins and four Orcs and the bookcase', () => {

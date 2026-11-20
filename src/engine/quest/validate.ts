@@ -525,19 +525,8 @@ export function validateQuestIssues(
     if (twin) err(`trap ${t.id}: same cell as trap ${twin}`, ref);
     else trapCells.set(key(t.cell), t.id);
   }
-  const flagsSetEarly = new Set<string>();
-  eachEffect((e) => {
-    if (e.type === 'setFlag') flagsSetEarly.add(e.flag);
-  });
   const tileRef = (i: number, c?: C): IssueRef =>
     c ? { kind: 'tile', id: String(i), cell: cellOf(c) } : { kind: 'tile', id: String(i) };
-  quest.boardTiles.forEach((t, i) => {
-    const ref = tileRef(i, t.cells[0]);
-    if (t.blocks && t.hiddenWhen === undefined)
-      err(`board tile ${i + 1} (${t.type}): blocks needs a hiddenWhen flag`, ref);
-    if (t.hiddenWhen !== undefined && !flagsSetEarly.has(t.hiddenWhen))
-      err(`board tile ${i + 1} (${t.type}): hiddenWhen flag ${t.hiddenWhen} is never set`, ref);
-  });
   // Board tiles: every square is on the board (the cave entrance may lie over rock), no other tile
   // lies over rock, two tiles never share a square, and a tile of a fixed size has that size.
   {
@@ -553,20 +542,6 @@ export function validateQuestIssues(
           err(`board tile ${i + 1} (${t.type}) overlaps board tile ${other + 1} at ${key(c)}`, ref);
         else owner.set(key(c), i);
       });
-    });
-    // A tile that blocks must not sit where the heroes start.
-    const startCells = new Set<string>();
-    if (quest.start.area) for (const c of cellsOf(board, quest.start.area)) startCells.add(key(c));
-    const entry = quest.edgeDoors.find((e) => e.id === quest.start.door);
-    if (entry) startCells.add(key(entry.cell));
-    quest.boardTiles.forEach((t, i) => {
-      if (!t.blocks) return;
-      const hit = t.cells.find((c) => startCells.has(key(c)));
-      if (hit)
-        err(
-          `board tile ${i + 1} (${t.type}) blocks the square ${key(hit)} where the heroes start`,
-          tileRef(i, hit),
-        );
     });
     // Sizes, limits per quest, room tile squares, tunnels and slides (decision 88).
     for (const i of tileLimitIssues(quest, board, isRock))

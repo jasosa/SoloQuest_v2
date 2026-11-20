@@ -90,10 +90,10 @@ describe('objectives', () => {
 
 describe('setRules', () => {
   it('sets, keeps others, and clears with null', () => {
-    let q = ok(setRules(base(), { fallingBlock: 'Some rule', bounty: { orc: 10 } }));
+    let q = ok(setRules(base(), { fallingBlock: 'Some rule', noEquipmentUntil: 'n-A' }));
     q = ok(setRules(q, { fallingBlock: null }));
-    expect(q.rules).toEqual({ bounty: { orc: 10 } });
-    expect(ok(setRules(q, {})).rules).toEqual({ bounty: { orc: 10 } });
+    expect(q.rules).toEqual({ noEquipmentUntil: 'n-A' });
+    expect(ok(setRules(q, {})).rules).toEqual({ noEquipmentUntil: 'n-A' });
   });
   it('refuses empty text', () => {
     expect(setRules(base(), { fallingBlock: ' ' }).ok).toBe(false);

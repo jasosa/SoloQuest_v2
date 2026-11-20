@@ -43,22 +43,6 @@ function sizeOf(d: Draft): number {
 /** True when the draft learned anything since `before` (a value from `progress`). */
 export const progress = sizeOf;
 
-/**
- * Tiles that block sight and squares until a flag is set (the cage): the squares are in
- * `sightBlockers` while the flag is unset. Call after the flags change, and at the start.
- */
-export function syncBlockers(level: Level, d: Draft): void {
-  for (const t of level.quest.boardTiles) {
-    if (!t.blocks || t.hiddenWhen === undefined) continue;
-    const active = d.flags[t.hiddenWhen] !== true;
-    for (const c of t.cells) {
-      const k = cellKey(c[0], c[1]);
-      if (active) d.sightBlockers.add(k);
-      else d.sightBlockers.delete(k);
-    }
-  }
-}
-
 /** A door that a note removed, or that waits for a flag, is not drawn. */
 export function doorMayShow(door: DoorInfo, d: Pick<Draft, 'removedDoors' | 'flags'>): boolean {
   if (d.removedDoors.includes(door.id)) return false;

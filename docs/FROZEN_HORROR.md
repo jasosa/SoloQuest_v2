@@ -53,7 +53,7 @@ Ignored (players handle it): potions and alchemist shop, Mind Points and shock, 
 
 **Large monsters (#55).** Placement `size` (2x2) and anchor. Visible if any cell is revealed. Editor checks the footprint. Special rule text: the Frozen Horror can squeeze through 1-square corridors.
 
-**Terrain (#57, #60).** Icy river, ice ledge, chasm, ice vault: no effect on sight. Rule reminder on first reveal when Rule hints are on; always on tap.
+**Terrain (#57, #60).** Icy river, ice ledge, ice vault and the chasm room: no effect on sight. Rule reminder on first reveal when Rule hints are on; always on tap.
 
 **Ice tunnels (#58).** Paired markers with a design id (1, 2, 3...) drawn on the map. Note question "Did someone use it?" reveals the area at the other end. Tunnel rule (incl. landing on an occupied square pushes that figure to an adjacent square) shown with Rule hints and on tap.
 
@@ -204,7 +204,7 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Door not on the map until a flag, door that stays stuck until a flag | Q0 throne, Q5 C, Q9 key door | door `hiddenUntil`, `lockedUntil`, effect `setFlag` | yes: flags in Board features (door flags), `setFlag` in the effect list |
 | Secret door that shows | core | effect `addSecretDoor` | yes |
 | Furniture that turns into an open door | Q0 throne | effect `replaceFurnitureWithDoor` | yes |
-| Block placed by an event, sight-blocking tile until a flag | Q12 block, Q0 cage | effect `placeBlock`, board tile `blocks` with `hiddenWhen` | yes (`placeBlock`; tiles in Board features) |
+| Block placed by an event | Q12 block | effect `placeBlock` | yes (`placeBlock`). The Q0 and Q4 cage is a note message only (decision 94) |
 | "Look from this square" | Q0, Q12 | effect `lookFrom`, condition `lookDone` | yes |
 | Character that joins the heroes | Q0 wolf, Q3 Gothar | `npcs`, effect `spawnNpc` | the effect yes; the character itself had no form: new Characters panel (Quest tab) |
 | A question to the players with different results | Q0 C, Q4 B, Q5 B, Q8 G | `manual` action with `promptChoice`, nested effects | yes |
@@ -213,9 +213,9 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Wandering monster with a count and an enemy | Q0 to Q8 | `wandering` `{ monster, count, enemy }` | yes: count and enemy were lost on every edit before (new) |
 | Objective done rule, confirm button and its conditions | all | objective `done`, `confirm`, `confirmWhen` | yes: full objective form (new); before only the text |
 | Endings, end text, leave text | Q3, Q0, Q8 | `endings`, `endText`, `leave` | yes: `endText` is new in the Ending panel; `leave` is in Board features |
-| Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools. Merging rooms (`areaOverrides`): Merged rooms panel in the Quest tab (map on show) |
+| Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools. Merging rooms (`areaOverrides`): the Merge rooms tool of the Map tab (map on show) |
 | Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer, and per monster in the Monsters tab (Size) |
-| Quest rules `bounty`, `doorTeleport` | core only | `rules` | yes: Rules panel of the Quest tab |
+| Quest rule `doorTeleport` | core only | `rules` | yes: Rules panel of the Quest tab |
 
 Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a condition on a tile.
 

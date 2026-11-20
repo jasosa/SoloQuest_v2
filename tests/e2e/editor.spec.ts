@@ -10,7 +10,7 @@ const btn = (page: Page, name: string) => page.getByRole('button', { name, exact
 // A tile chip may end with its count, "Ice Vault 0 of 2".
 const tool = (page: Page, name: string) =>
   page
-    .locator('.ed-tools')
+    .locator('.ed-tools, .ed-palette')
     .getByRole('button', { name: new RegExp(String.raw`^${name}( \d+ of \d+)?$`) });
 const board = (page: Page) => page.locator('#editor-board');
 
@@ -534,11 +534,15 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(dlg(page)).toHaveCount(0);
     await expect(page.getByTestId('pick-bar')).toBeVisible();
     await clickAt(page, 4, 16);
-    await expect(dlg(page)).toContainText('Square 4, 16');
+    // the pick sends us back to the Actions tab, no popup over the map
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await expect(actionsTab(page)).toHaveAttribute('aria-selected', 'true');
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.getByTestId('action-card')).toContainText('Square 4, 16');
 
     // a condition and effects
-    const addEffect = dlg(page).getByLabel('Add an effect').last();
-    await dlg(page).getByLabel('Add a condition').selectOption('firstTime');
+    const addEffect = page.getByTestId('action-card').getByLabel('Add an effect').last();
+    await page.getByTestId('action-card').getByLabel('Add a condition').selectOption('firstTime');
     await expect(page.getByTestId('condition-row')).toHaveCount(1);
     await addEffect.selectOption('setFlag');
     await addEffect.selectOption('addCounter');
@@ -554,7 +558,11 @@ test.describe('editor: actions (decision 68)', () => {
     await shot(page, 'editor-action-popup');
 
     // an effect that needs a monster says so
-    await dlg(page).getByLabel('Add an effect').last().selectOption('placeMonster');
+    await page
+      .getByTestId('action-card')
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('placeMonster');
     await expect(page.locator('.toast')).toContainText('Add a monster first');
 
     // undo (the title band stays usable) goes back one change at a time
@@ -562,12 +570,31 @@ test.describe('editor: actions (decision 68)', () => {
     await expect(page.getByTestId('option-row')).toHaveCount(1);
 
     // the list groups it under the room
-    await btn(page, 'Close').click();
-    await expect(dlg(page)).toHaveCount(0);
-    await actionsTab(page).click(); // picking a square on the board moved us to the Map tab
+    await actionsTab(page).click();
     await expect(page.getByTestId('actions-area')).toContainText('A dusty chest.');
     await expect(page.getByTestId('actions-area')).toContainText('Hero enters');
     await shot(page, 'editor-actions-list');
+  });
+
+  test('Cancel while picking the letter square returns to the Actions tab, no popup', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await chestWithLetter(page, 'A');
+    await actionsTab(page).click();
+    await btn(page, 'Add action A').click();
+    await page
+      .getByTestId('action-card')
+      .getByRole('button', { name: 'Click it on the board' })
+      .first()
+      .click();
+    await expect(page.getByTestId('pick-bar')).toBeVisible();
+    await page.getByTestId('pick-bar').getByRole('button', { name: 'Cancel' }).click();
+    await expect(page.getByTestId('pick-bar')).toHaveCount(0);
+    await expect(actionsTab(page)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('action-card')).toBeVisible();
+    await expect(dlg(page)).toHaveCount(0);
+    await expect(page.locator('.ed-veil')).toHaveCount(0);
   });
 
   test('a letter on the board: missing style, then solid; a tap opens the action', async ({
@@ -1353,7 +1380,14 @@ test.describe('editor: Frozen Horror features', () => {
     // turn (the inspector button), then change the size
     await inspector(page).getByRole('button', { name: 'Turn', exact: true }).click();
     await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
-    await inspector(page).getByRole('button', { name: '2 x 3', exact: true }).click();
+    // each shape is listed once (3 x 2), and the size keeps the turn of the tile
+    await expect(
+      page.getByTestId('inspector-selection').getByRole('button', { name: '2 x 3', exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByTestId('inspector-selection')
+      .getByRole('button', { name: '3 x 2', exact: true })
+      .click();
     await expect(page.getByTestId('tile-size')).toContainText('2 x 3');
     await btn(page, 'Undo').click();
     await btn(page, 'Undo').click();
@@ -1363,7 +1397,7 @@ test.describe('editor: Frozen Horror features', () => {
 
     // a tile that overlaps is refused with a reason
     await tool(page, 'Tiles').click();
-    await tool(page, 'Cage').click();
+    await tool(page, 'Ice ledge').click();
     await clickAt(page, 10, 12);
     await expect(page.locator('.toast')).toContainText('overlap');
 
@@ -1373,33 +1407,15 @@ test.describe('editor: Frozen Horror features', () => {
     await page.keyboard.press('r');
     await expect(page.getByTestId('tile-size')).toContainText('1 x 2');
 
-    // a flag takes it away; blocking needs the flag first
-    await inspector(page)
-      .getByRole('switch', { name: /Blocks sight/ })
-      .click();
-    await expect(page.locator('.toast')).toContainText('flag');
-    await inspector(page).getByLabel('Gone when this flag is set').fill('iceMelted');
-    await inspector(page).getByLabel('Gone when this flag is set').blur();
-    await expect(page.locator('[data-tile-flag="iceMelted"]')).toHaveCount(1);
-    await inspector(page)
-      .getByRole('switch', { name: /Blocks sight/ })
-      .click();
-    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    // the flag is never set by an action: the Problems list says so
-    await inspector(page)
-      .getByRole('button', { name: /^Problems/ })
-      .click();
-    await expect(page.locator('.ed-inspector')).toContainText('iceMelted is never set');
+    // a tile has no sight flag any more (decision 94)
+    await expect(inspector(page).getByLabel('Gone when this flag is set')).toHaveCount(0);
+    await expect(inspector(page).getByRole('switch', { name: /Blocks sight/ })).toHaveCount(0);
 
-    await btn(page, 'Element').click();
     await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.locator('[data-board-tile]')).toHaveCount(0);
   });
 
-  test('tiles: fixed sizes, limits per quest, laid chasm that grows, room tiles over squares', async ({
+  test('tiles: fixed sizes, limits per quest, the 4 x 4 chasm room, room tiles over squares', async ({
     page,
   }) => {
     await newQuest(page);
@@ -1426,12 +1442,13 @@ test.describe('editor: Frozen Horror features', () => {
       page.getByTestId('tile-sizes').getByRole('button', { name: '1 x 3' }),
     ).toBeDisabled();
 
-    // chasm is laid square by square
-    await tool(page, 'Chasm').click();
+    // the Bottomless Chasm Room is one 4 x 4 tile (no chasm squares laid one by one)
+    await tool(page, 'Bottomless Chasm Room').click();
+    await expect(page.getByTestId('tile-sizes')).toHaveCount(0); // one size only
     await clickAt(page, 12, 14);
-    await clickAt(page, 13, 14);
-    await expect(page.locator('[data-board-tile="chasm"]')).toHaveCount(1);
-    await expect(page.getByTestId('tile-size')).toContainText('2 squares');
+    await expect(page.locator('[data-room-tile="chasmRoom"]')).toHaveCount(1);
+    await expect(page.getByTestId('room-tile-info')).toContainText('4 x 4');
+    await expect(page.locator('[data-board-tile="chasm"]')).toHaveCount(0);
 
     // an Ice Vault 3 x 2 over a room and a corridor
     await tool(page, 'Ice Vault').click();
@@ -1452,6 +1469,129 @@ test.describe('editor: Frozen Horror features', () => {
     await inspector(page).getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.locator('[data-room-tile="livingFog"]')).toHaveCount(0);
     await expect(page.locator('[data-room-tile="iceVault"]')).toHaveCount(1);
+  });
+
+  test('Board tiles palette: one block, sizes next to it, each shape once, no cage or chasm squares', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Tiles').click();
+    const palette = page.getByTestId('tile-palette');
+    await expect(page.getByText('Room tiles', { exact: true })).toHaveCount(0);
+    await expect(palette.locator(':scope > button')).toHaveCount(12); // the shapes row is not a tile
+    await expect(palette.getByRole('button', { name: /^Cage( \d+ of \d+)?$/ })).toHaveCount(0);
+    await expect(palette.getByRole('button', { name: /^Chasm( \d+ of \d+)?$/ })).toHaveCount(0);
+    await expect(palette.getByRole('button', { name: /^Cage Room/ })).toHaveCount(1);
+    await expect(palette.getByRole('button', { name: /^Bottomless Chasm Room/ })).toHaveCount(1);
+
+    await tool(page, 'Ice Vault').click();
+    const sizes = page.getByTestId('tile-sizes');
+    // a 3 x 2 and a 2 x 3 are one tile turned: only 3 x 2 and 4 x 3
+    await expect(sizes.getByRole('button')).toHaveText(['3 x 2', '4 x 3']);
+    // the sizes are right under the palette and on screen, with no scrolling
+    const first = sizes.getByRole('button').first();
+    await expect(first).toBeInViewport({ ratio: 1 });
+    // right under the picked chip: the row of the shapes starts less than 60 px below it
+    const chip = (await palette.getByRole('button', { name: /^Ice Vault/ }).boundingBox())!;
+    const z = (await first.boundingBox())!;
+    expect(z.y - (chip.y + chip.height)).toBeLessThan(20);
+    for (const c of await page.locator('.ed-inspector .ed-palette button').all())
+      expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    // at 1194 x 834 the whole palette fits: last chip, shapes row and limit note, no scrolling
+    await expect(
+      palette.getByRole('button', { name: /^Ice Gremlin Treasure Room/ }),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(page.getByTestId('tile-limit')).toBeInViewport({ ratio: 1 });
+    await tool(page, 'Cage Room').click();
+    await expect(page.getByTestId('tile-limit')).toBeInViewport({ ratio: 1 });
+    await tool(page, 'Ice Vault').click();
+    await shot(page, 'editor-tiles-palette');
+
+    // the ghost has the picked shape, and Turn (R) swaps it, as for furniture
+    await sizes.getByRole('button', { name: '4 x 3' }).click();
+    const at = await pointAt(page, 6, 6);
+    await page.mouse.move(at.x, at.y);
+    await expect(board(page).locator('rect[stroke-dasharray="4 3"]')).toHaveCount(12);
+    await page.keyboard.press('r');
+    await clickAt(page, 6, 6);
+    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 3 x 4');
+    // the inspector lists each shape once too, and keeps the turn
+    await expect(
+      page.getByTestId('inspector-selection').getByRole('button', { name: /^(4 x 3|3 x 4)$/ }),
+    ).toHaveCount(1);
+    await page
+      .getByTestId('inspector-selection')
+      .getByRole('button', { name: '3 x 2', exact: true })
+      .click();
+    await expect(page.getByTestId('room-tile-info')).toContainText('Ice Vault, 2 x 3');
+  });
+
+  test('a placed tile moves by drag and drop; a refused drop changes nothing; undo', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Living Fog Room').click();
+    await clickAt(page, 2, 2);
+    await tool(page, 'Scepter Room').click();
+    await clickAt(page, 12, 2);
+    const fog = page.locator('[data-room-tile="livingFog"]');
+    await expect(fog).toHaveCount(1);
+
+    // drag the fog room with the Select tool: the ghost shows where it would go
+    await tool(page, 'Select').click();
+    const from = await pointAt(page, 3, 3);
+    const to = await pointAt(page, 7, 8);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(to.x, to.y, { steps: 6 });
+    await expect(board(page).locator('rect[stroke-dasharray="4 3"]')).toHaveCount(16);
+    await page.mouse.up();
+    await expect(page.getByTestId('room-tile-info')).toContainText('Living Fog Room, 4 x 4');
+    const moved = page.locator('[data-room-tile="livingFog"]');
+    await expect(moved).toHaveCount(1);
+    await btn(page, 'Undo').click();
+    await clickAt(page, 3, 3);
+    await expect(page.getByTestId('room-tile-info')).toContainText('Living Fog Room');
+    await btn(page, 'Redo').click();
+
+    // a drop on the other tile is refused: nothing changes and the reason shows
+    const a = await pointAt(page, 8, 9);
+    const b = await pointAt(page, 13, 3);
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    await page.mouse.move(b.x, b.y, { steps: 6 });
+    await page.mouse.up();
+    await expect(page.locator('.toast')).toContainText('overlap');
+
+    // the Tiles tool drags the tiles of the picked kind as well
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Ice cave entrance').click();
+    await clickAt(page, 18, 10);
+    await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
+    const c = await pointAt(page, 19, 11);
+    const d = await pointAt(page, 19, 7);
+    await page.mouse.move(c.x, c.y);
+    await page.mouse.down();
+    await page.mouse.move(d.x, d.y, { steps: 6 });
+    await page.mouse.up();
+    await expect(page.getByTestId('tile-size')).toContainText('6 x 5');
+    await expect(page.locator('[data-board-tile="iceCaveEntrance"]')).toHaveCount(1);
+  });
+
+  test('the Cage Room is only the 4 x 4 room tile: no cage piece, no cage button, no sight flag', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Tiles').click();
+    await tool(page, 'Cage Room').click();
+    await clickAt(page, 12, 3);
+    await expect(page.locator('[data-room-tile="cageRoom"]')).toHaveCount(1);
+    await expect(page.getByTestId('room-tile-info')).toContainText('Cage Room, 4 x 4');
+    await expect(inspector(page).getByRole('button', { name: /the cage/i })).toHaveCount(0);
+    await expect(inspector(page).getByLabel('Gone when this flag is set')).toHaveCount(0);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(0);
+    await shot(page, 'editor-cage-room');
   });
 
   test('doors: an ice tunnel is two taps, with a design number you can change', async ({
@@ -1559,10 +1699,9 @@ test.describe('editor: Frozen Horror features', () => {
     });
     await expect(page.locator('.fr-title')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
-    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-room-tile]')).toHaveCount(2);
     await expect(page.locator('[data-edge-door="in"]')).toHaveCount(1);
-    await expect(page.locator('[data-tile-flag="cageOpen"]')).toHaveCount(1);
     await shot(page, 'editor-fh00');
 
     // the box holds three pairs: a fourth is refused, then export
@@ -1592,7 +1731,7 @@ test.describe('editor: Frozen Horror features', () => {
     });
     await expect(page.locator('.fr-title')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
-    await expect(page.locator('[data-board-tile]')).toHaveCount(2);
+    await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-edge-door]')).toHaveCount(original.edgeDoors.length);
   });
 

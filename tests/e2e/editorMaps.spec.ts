@@ -42,17 +42,21 @@ test.describe('editor: double quests', () => {
     await expect(page.locator('[data-trap]')).toHaveCount(17);
     await expect(page.locator('[data-furniture="f-c-stairs"]')).toHaveCount(1);
     await expect(page.locator('[data-furniture="f-h-stairs"]')).toHaveCount(0);
-    // the Quest tab: two maps, the link, and the merged rooms of the map on show
+    // the Map tab: the Merge rooms tool shows the merged rooms of the map on show
+    await page
+      .locator('.ed-tools')
+      .getByRole('button', { name: 'Merge rooms', exact: true })
+      .click();
+    await expect(page.getByTestId('merge-row')).toContainText('R14 is part of R13');
+    await maps.getByRole('tab', { name: 'The Frozen Halls' }).click();
+    await expect(page.getByTestId('merge-row')).toHaveCount(0);
+    // the Quest tab: two maps and the link, and no merged rooms there
     await tab(page, 'Quest').click();
     await expect(page.getByTestId('map-row')).toHaveCount(2);
     await expect(page.getByTestId('link-row')).toHaveCount(1);
     await expect(page.getByTestId('link-row')).toContainText('The Frozen Halls');
     await expect(page.getByTestId('link-row')).toContainText('The Catacombs');
-    await expect(page.getByTestId('merge-row')).toContainText('R14 is part of R13');
-    await tab(page, 'Map').click();
-    await maps.getByRole('tab', { name: 'The Frozen Halls' }).click();
-    await tab(page, 'Quest').click();
-    await expect(page.getByTestId('merge-row')).toHaveCount(0);
+    await expect(page.getByTestId('merges-panel')).toHaveCount(0);
   });
 
   test('a link can be removed and joined again from two stairways, and undone', async ({
@@ -142,8 +146,11 @@ test.describe('editor: double quests', () => {
     page,
   }) => {
     await newQuest(page);
-    await tab(page, 'Quest').click();
-    const merges = page.getByTestId('quest-merges');
+    await page
+      .locator('.ed-tools')
+      .getByRole('button', { name: 'Merge rooms', exact: true })
+      .click();
+    const merges = page.getByTestId('map-merges');
     await merges.getByLabel('Main room').selectOption('R20');
     await merges.getByLabel('Room that joins it').selectOption('R17');
     await merges.getByTestId('merge-rooms').click();
@@ -157,19 +164,9 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-row')).toHaveCount(0);
   });
 
-  test('rules: bounty and door teleport, and a large monster', async ({ page }) => {
+  test('rules: door teleport, and a large monster', async ({ page }) => {
     await newQuest(page);
     await tab(page, 'Quest').click();
-    await page.getByLabel('Add a bounty').selectOption('goblin');
-    const row = page.getByTestId('bounty-row');
-    await expect(row).toHaveCount(1);
-    const gold = row.getByLabel('Bounty goblin gold');
-    await gold.fill('25');
-    await gold.blur();
-    await expect(gold).toHaveValue('25');
-    await btn(page, 'Remove bounty goblin').click();
-    await expect(page.getByTestId('bounty-row')).toHaveCount(0);
-
     const dice = page.getByLabel('Door teleport dice');
     const squares = page.getByLabel('Door teleport squares');
     await dice.fill('1 red die');

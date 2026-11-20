@@ -155,15 +155,14 @@ export interface BoardTileView {
 
 /**
  * Board tiles the players can see: a tile that is always shown (the cave under the start), or one
- * with a square they have seen, unless its `hiddenWhen` flag is set.
+ * with a square they have seen.
  */
 export function boardTilesInView(level: Level, state: GameState): BoardTileView[] {
   return level.quest.boardTiles
     .map((t, index) => ({ t, index }))
     .filter(
       ({ t }) =>
-        !(t.hiddenWhen !== undefined && state.flags[t.hiddenWhen] === true) &&
-        (BOARD_TILES[t.type].always || t.cells.some((c) => state.seenCells.has(`${c[0]},${c[1]}`))),
+        BOARD_TILES[t.type].always || t.cells.some((c) => state.seenCells.has(`${c[0]},${c[1]}`)),
     )
     .map(({ t, index }) => ({
       index,

@@ -109,7 +109,7 @@ export interface GameState {
   readonly seenTraps: ReadonlySet<string>;
   /** Traps that sprung or were disarmed. Armed traps are not listed. */
   readonly trapStates: Readonly<Record<string, TrapState>>;
-  /** Squares of a tile that blocks sight and movement until its flag is set (the cage of Q0). */
+  /** Not used any more (decision 94: no sight-blocking tile); always empty, the sight map still takes it. */
   readonly sightBlockers: ReadonlySet<CellKey>;
   /** Furniture a note replaced (a throne that became a door): never drawn again. */
   readonly removedFurniture: readonly string[];

@@ -121,6 +121,13 @@ export function tileLimitIssues(
       );
     }
   }
+  // Chasm squares were replaced by the 4 x 4 Bottomless Chasm Room (decision 94).
+  for (const t of items)
+    if (t.group === 'board' && t.type === 'chasm')
+      warn(
+        `${tileLabel(t)}: chasm squares are replaced by the Bottomless Chasm Room tile (4 x 4)`,
+        ref(t),
+      );
   // Room tiles are physical pieces: two of them never share a square.
   const owner = new Map<string, TileItem>();
   for (const t of items) {

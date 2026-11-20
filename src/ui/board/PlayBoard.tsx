@@ -683,10 +683,10 @@ export function PlayBoard({
     );
   }
 
-  // Board tiles (Frozen Horror): the ice cave entrance under the start, a cage. A labeled outline.
+  // Board tiles (Frozen Horror): the ice cave entrance under the start. A labeled outline.
   for (const t of boardTilesInView(level, state)) {
     // Drawn in the same layer as its squares: while they are fresh (inside the ink wash) they cover
-    // anything in the old layer, which hid a cage until the next event.
+    // anything in the old layer.
     const layer = into(t.cells.some((c) => fresh(keyOf(c))));
     const xs = t.cells.map((c) => c[0]);
     const ys = t.cells.map((c) => c[1]);
@@ -742,21 +742,6 @@ export function PlayBoard({
       );
       continue;
     }
-    const bars: ReactNode[] = [];
-    if (t.type === 'cage')
-      for (let bx = x0 + 7; bx < x0 + w - 3; bx += 9)
-        bars.push(
-          <line
-            key={bx}
-            x1={bx}
-            y1={y0 + 3}
-            x2={bx}
-            y2={y0 + h - 3}
-            stroke={color.ink}
-            strokeWidth={1.6}
-            opacity={0.55}
-          />,
-        );
     layer.push(
       <g key={`bt${t.index}`} data-board-tile={t.type} pointerEvents="none">
         <rect
@@ -764,24 +749,20 @@ export function PlayBoard({
           y={y0 + 2}
           width={w - 4}
           height={h - 4}
-          fill={t.type === 'cage' ? 'none' : 'var(--ice)'}
-          fillOpacity={t.type === 'cage' ? 0 : 0.3}
-          stroke={t.type === 'cage' ? color.ink : 'var(--ice)'}
-          strokeWidth={t.type === 'cage' ? 3 : 2.5}
-          strokeDasharray={t.type === 'cage' ? undefined : '7 4'}
+          fill="var(--ice)"
+          fillOpacity={0.3}
+          stroke="var(--ice)"
+          strokeWidth={2.5}
+          strokeDasharray="7 4"
         />
-        {bars}
         <text
           x={x0 + w / 2}
-          y={t.type === 'cage' ? y0 + h + 11 : y0 + h / 2 + 4}
+          y={y0 + h / 2 + 4}
           textAnchor="middle"
-          fill={t.type === 'cage' ? color.ink : color.tokenText}
-          stroke={t.type === 'cage' ? color.paper : 'none'}
-          strokeWidth={t.type === 'cage' ? 3 : 0}
-          paintOrder="stroke"
+          fill={color.tokenText}
           fontFamily="Bonum"
           fontWeight={700}
-          fontSize={t.type === 'cage' ? 10 : 13}
+          fontSize={13}
           letterSpacing={1}
         >
           {t.name.toUpperCase()}

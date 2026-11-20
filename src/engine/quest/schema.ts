@@ -508,12 +508,22 @@ const ObjectiveSchema = z.strictObject({
   confirmWhen: z.array(ConditionSchema).min(1).optional(),
 });
 
-const RulesSchema = z.strictObject({
-  fallingBlock: nonEmpty.optional(),
-  doorTeleport: z.strictObject({ dice: nonEmpty, squares: nonEmpty }).optional(),
-  noEquipmentUntil: id.optional(),
-  bounty: z.partialRecord(MonsterType, z.number().int().min(0)).optional(),
-});
+/** The old `bounty` rule was dropped (players track it): quests that still carry it load without it. */
+function dropBounty(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || !('bounty' in raw)) return raw;
+  const { bounty: _bounty, ...rest } = raw as Record<string, unknown>;
+  void _bounty;
+  return rest;
+}
+
+const RulesSchema = z.preprocess(
+  dropBounty,
+  z.strictObject({
+    fallingBlock: nonEmpty.optional(),
+    doorTeleport: z.strictObject({ dice: nonEmpty, squares: nonEmpty }).optional(),
+    noEquipmentUntil: id.optional(),
+  }),
+);
 
 const EndingSchema = z.strictObject({
   id,
@@ -577,20 +587,14 @@ const boardFields = {
     )
     .default([]),
   /**
-   * Tiles drawn on squares: the ice cave entrance, a cage. `hiddenWhen` is a quest flag that takes
-   * the tile off the board when it is set (the cage opens).
+   * Tiles drawn on squares: the ice cave entrance, the river, the ledge, slippery ice. (The cage and
+   * the `blocks` / `hiddenWhen` fields are gone, decision 94: old files load without them.)
    */
   boardTiles: z
     .array(
       z.strictObject({
         type: z.enum(BOARD_TILE_TYPES),
         cells,
-        hiddenWhen: nonEmpty.optional(),
-        /**
-         * The tile blocks line of sight and nobody can stand on it, until `hiddenWhen` is set
-         * (the cage of Q0: decision 56). Needs `hiddenWhen`.
-         */
-        blocks: z.boolean().optional(),
       }),
     )
     .default([]),

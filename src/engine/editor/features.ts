@@ -145,29 +145,16 @@ export function removeTunnel(q: Quest, id: string): EditResult {
   return ok(quest, newIssues(q, quest));
 }
 
-export function addBoardTile(
-  q: Quest,
-  input: { type: BoardTileType; cells: Cell[]; hiddenWhen?: string; blocks?: boolean },
-): EditResult {
+export function addBoardTile(q: Quest, input: { type: BoardTileType; cells: Cell[] }): EditResult {
   if (!BOARD_TILE_TYPES.includes(input.type))
     return fail(tr('editor.features.thatIsNotABoardTile', 'That is not a board tile.'));
   if (input.cells.length === 0 || !input.cells.every(onBoard))
     return fail(
       tr('editor.features.aTileNeedsSquaresThatAre', 'A tile needs squares that are on the board.'),
     );
-  const hiddenWhen = input.hiddenWhen?.trim() || undefined;
-  if (input.blocks && !hiddenWhen)
-    return fail(
-      tr(
-        'editor.features.aTileThatBlocksNeedsA',
-        'A tile that blocks needs a flag that takes it away.',
-      ),
-    );
   const tile = clean({
     type: input.type,
     cells: input.cells.map((c) => [c[0], c[1]] as [number, number]),
-    hiddenWhen,
-    blocks: input.blocks || undefined,
   });
   const quest = { ...q, boardTiles: [...q.boardTiles, tile] };
   return ok(quest, newIssues(q, quest));
