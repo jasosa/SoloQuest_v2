@@ -39,6 +39,8 @@ const TeamMemberSchema = z.object({
 export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
   z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
+  z.object({ type: z.literal('REVEAL_AREA'), cell: CellSchema }),
+  // Old saves (decision 95): replays as nothing.
   z.object({ type: z.literal('SHOW_LAYOUT'), cell: CellSchema }),
   z.object({ type: z.literal('CROSS_MAP'), link: z.string() }),
   z.object({ type: z.literal('TUNNEL_USE'), tunnel: z.string(), from: z.enum(['a', 'b']) }),

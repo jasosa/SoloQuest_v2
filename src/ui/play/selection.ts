@@ -4,6 +4,8 @@ import type { FurnitureDef } from '../../engine/quest/schema';
 export type Selection =
   | { readonly kind: 'door'; readonly id: string }
   | { readonly kind: 'cell'; readonly at: readonly [number, number] }
+  /** A square the heroes cannot see (fog): the note offers to reveal what is there. */
+  | { readonly kind: 'fog'; readonly at: readonly [number, number] }
   | { readonly kind: 'monster'; readonly id: string }
   /** `furniture` is set when the tap was on a piece of furniture: its name leads the note. */
   | {

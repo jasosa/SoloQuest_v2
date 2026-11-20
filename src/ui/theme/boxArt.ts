@@ -4,7 +4,7 @@ import { PackManifestSchema, themeFromPack, type PackManifest } from './pack';
 import { mergeThemes, type Theme } from './theme';
 
 /**
- * The art layer of a quest pack that ships with the app (decisions 78, 85 and 95). Frozen Horror has one: a
+ * The art layer of a quest pack that ships with the app (decisions 78, 85 and 96). Frozen Horror has one: a
  * texture pack (`src/content/art/frozen-horror.theme.json`, pictures in `public/assets/frozen-horror/`)
  * that builds on the core look. It is used while a quest of that box is open, unless the player turned
  * it off, and a pack the player chose for that box is drawn on top of it.

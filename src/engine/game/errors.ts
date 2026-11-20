@@ -47,8 +47,8 @@ export type EventErrorCode =
   | 'NOT_A_LOOK_SQUARE'
   | 'UNKNOWN_LINK'
   | 'WRONG_MAP'
-  | 'LAYOUT_ROCK'
-  | 'LAYOUT_KNOWN';
+  | 'REVEAL_ROCK'
+  | 'REVEAL_SEEN';
 
 export class EventError extends Error {
   readonly code: EventErrorCode;

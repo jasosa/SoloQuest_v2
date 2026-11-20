@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { dismissStart, openSettings } from './helpers';
 
-// Frozen Horror pictures (decision 95): the built-in art layer of the Frozen Horror box.
+// Frozen Horror pictures (decision 96): the built-in art layer of the Frozen Horror box.
 const OPEN = 'in,d1,look@9:9,d2,d3';
 const FH0 = `/?quest=0&team=dwarf&nosave=1&seed=1&open=${OPEN}`;
 

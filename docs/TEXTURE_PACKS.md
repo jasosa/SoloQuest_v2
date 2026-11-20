@@ -104,7 +104,7 @@ built-in "?"). After a trap springs, its kind picture is shown: a sprung pit, an
 leaves. Zargon view shows every trap with the picture of its kind. A spear trap leaves nothing behind, so its
 picture shows in Zargon view only.
 
-### Tiles, tunnels and edge doors (Frozen Horror, decision 95)
+### Tiles, tunnels and edge doors (Frozen Horror, decision 96)
 
 `tile` is a map from a tile to one picture or a list of pictures. The keys are the room tiles (`iceVault`, `scepterRoom`, `livingFog`, `chasmRoom`, `frozenCrypt`, `seatOfPower`, `cageRoom`, `gremlinTreasure`), the board tiles that are one fixed piece (`iceCaveEntrance`, `icyRiver`, `iceLedge`, `slipperyIce`) and `iceSlide`. Each picture has `cells: [w, h]`, its size in squares **as the picture is drawn** (an Ice Vault drawn portrait is `[2, 3]`), and may have `scale` and `offset`.
 
@@ -121,7 +121,7 @@ picture shows in Zargon view only.
 - Tunnel pictures fill their square. Edge door pictures are drawn with the arrow pointing right: the picture sits inside the square next to the wall, turned so the arrow points into the board for `ironEntry` and out of it for `woodenExit`; an opened door is drawn at 45%.
 - Magic Ice has no slot: the app ignores blocks that spells place (decision 57).
 
-### Built-in art for a box (decision 95)
+### Built-in art for a box (decision 96)
 
 Frozen Horror ships its own pack, `src/content/art/frozen-horror.theme.json` (pictures in `public/assets/frozen-horror/`, kept once). It is used while a quest of that box is open (`pack: "frozen-horror"`, or a quest that uses Frozen Horror tiles, tunnels or doors), unless the switch **Frozen Horror pictures** in the Textures dialog is off. Order, bottom to top: the drawn look, the pack chosen for the core game, the Frozen Horror pictures, a pack chosen with `box: "frozen-horror"`. `npm run build:pack -- frozen-horror` writes the same pack as `dist-packs/frozen-horror.sqtextures` (git-ignored, about 3 MB), which can be imported like any pack.
 

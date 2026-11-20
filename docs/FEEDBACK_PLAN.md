@@ -53,7 +53,7 @@ Today every note has either a trigger on a game event or sits at a square. Propo
 - When anything is added to the map or the roster (monster, block, door found, trap sprung), it gets a brief highlight pulse (respecting reduced motion).
 
 ### 3.6 Reveal layout without contents
-- A **Show room** tool: tap any room or corridor square on the board. The area's floor and walls are drawn dimmed ("layout only") without furniture, monsters, traps or doors that are still hidden. Opening a door or seeing it later reveals the contents as usual.
+- **Reveal what is here** (was "Show room", rebuilt, decision 95): tap a square the heroes cannot see, press "Reveal what is here" in its note and confirm. A room is revealed whole with its contents as a door would; a corridor square shows what is in sight from it. Notes fire as usual.
 - If the tapped square is rock, show a message ("That is solid rock, nothing to show").
 - Spells that reveal a room can use the same tool. Players decide when to use it; the app does not check spells.
 - Engine: a new event `SHOW_LAYOUT { area }` stored in state as `seenLayout`. Pure, tested. The renderer treats it as a third level between fog and revealed.
@@ -72,7 +72,7 @@ Today every note has either a trigger on a game event or sits at a square. Propo
 3. **Engine/format small additions**: `monsterSeen` trigger, manual-trigger conditions, `allSeenKilled` objective rule, rock-door exception for `doorTeleport`, throne next to a secret door, objectives with their own `done` triggers.
 4. **UI: messages and journal**: message sheet, Quest sheet, start sheet, journal as full log, less scrolling.
 5. **UI: monsters**: special mark, tooltips, abilities (data, tooltip, editor builder), Add monster button and New highlight.
-6. **UI: map**: Show room (layout only), highlight on add, double blocks, trap hit-area fix.
+6. **UI: map**: Reveal what is here (was Show room), highlight on add, double blocks, trap hit-area fix.
 7. **Editor**: actions on elements (inspector section), objective triggers, ability builder, author-notes label, admin editing.
 8. **Owner review round**: with the quest overlays, one quest at a time. Only then the status table gets "owner review: done".
 
@@ -157,7 +157,7 @@ Checked by reading the code, the tests and the app (Playwright). "Done" names th
 | 5. Special flag, abilities, tooltips, margin note | done | `monsterTip.ts`, `abilities.ts` |
 | 5. Behavior prompts, `questEnds` trigger, Add monster with a square | done | decision 71, `addMonster.test.ts`, `play.spec.ts` |
 | 5b. Added and wandering monsters: square, drawn, can be slain, acts on Zargon's turn, shown as new | done | `addMonster.test.ts`, `wandererEnemy.test.ts`, roster `new` class |
-| 6. Show room (layout only, warning, rock message) | done now | `layout.ts`, `layout.test.ts`, `tests/e2e/showroom.spec.ts` |
+| 6. Reveal what is here (rebuilt from Show room, decision 95) | done now | `revealArea` in `reducer.ts`, `revealArea.test.ts`, `tests/e2e/revealarea.spec.ts` |
 | 6. Highlight on additions | done now (monsters before; blocks and secret doors added) | `additions.ts`, `additions.test.ts`, `PlayScreen` highlight |
 | 6. Trap hit area wins over "Look from here" | done | no eye on a trap square (`occupiedCells` has `trapAt`), trap hit rects sit above square hits in `PlayBoard.tsx` |
 | 6. Double blocks | see step 3 row | owner overlay check |
@@ -178,5 +178,5 @@ Smallest next step: make every element tap show its actions in one place. In pla
 
 1. Double blocks: overlay check, one quest at a time, to say which wide corridors need a 2-square block.
 2. "Things to confirm" block: the owner chose confirm buttons under the objective. Say if that closes the item.
-3. Show room on a corridor draws the corridor squares in sight of the tapped square (rule interpretation): confirm.
-4. Show room on a room drawn dimmed even if a door of it is open but the room was not revealed: it cannot happen (opening reveals), so no rule needed.
+3. Reveal on a corridor square shows what is in sight from it, as Look from here does (rule interpretation): confirm.
+4. Reveal works on any unseen square that is not rock, even a room behind a closed door (the tool is for what the table shows): confirm.
