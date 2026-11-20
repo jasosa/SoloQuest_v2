@@ -31,6 +31,7 @@ import { newRuleHints } from '../../engine/game/ruleHints';
 import { newTiles, putTilesText } from '../../engine/game/tiles';
 import { getQuestSettings } from '../settings';
 import { t } from '../../i18n/t';
+import { errorText } from '../play/errorTexts';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
 export interface Fx {
@@ -154,7 +155,10 @@ export function createGameStore(init: GameStoreInit): GameStore {
           reduced = reduce(root, before, event);
         } catch (e) {
           if (e instanceof EventError) {
-            set({ toast: toastOf(e.message), error: { code: e.code, message: e.message } });
+            set({
+              toast: toastOf(errorText(e.code, e.message)),
+              error: { code: e.code, message: e.message },
+            });
             return false;
           }
           throw e;
