@@ -269,7 +269,7 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [x] Quest list: tabs per pack
 - [x] Texture packs: `box` and `extends` (decision 85). Still to do: choose a pack per box (core pack and expansion pack at once), built-in art per expansion as its own layer
 - [x] Encode Frozen Horror quests 1 to 8 (map read from the scan, checked by script overlays; the owner still reviews each in the editor). Quests 9 and 10 need multi-map quests (M10 slice 6)
-- [ ] Editor map: draw and place tunnels, tiles and edge doors on the board (today they are typed in the Quest tab)
+- [x] Editor map: draw and place tunnels, tiles and edge doors on the board (done 2026-11-20: Tiles tool, door kinds and flags in the inspector; the Quest tab keeps only the way out and the texture pack)
 - [x] Editor can model the Frozen Horror behaviors (audit table in `FROZEN_HORROR.md`, section 9): `attackOnly`, `passive`, attacks per turn, objective done rules and confirm buttons, wandering count and enemy, characters (NPCs), end text, entry and exit doors in door lists, the general `monsterLeft` trigger, enemy attacks and size in the Designer. The unused `surrendered` leave reason is gone: a surrender is an action
 - [ ] Editor, still without a form: merged rooms (`areaOverrides`), maps and links of a double quest (slice 7), monster-level `size`, the rules `bounty` and `doorTeleport`
 
