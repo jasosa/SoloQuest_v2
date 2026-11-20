@@ -1,5 +1,5 @@
 import { inActiveLanguage } from '../i18n/runtime';
-import { restorePack } from './theme/activate';
+import { restorePack, selectionLine } from './theme/activate';
 import { setActiveTheme } from './theme/activeTheme';
 import { TexturesDialog } from './theme/TexturesDialog';
 import { TranslationsDialog } from './translations/TranslationsDialog';
@@ -176,9 +176,7 @@ function Game({ params }: { params: URLSearchParams }) {
   /** The name of the texture pack in use (null: the built-in look), shown on the quest select screen. */
   const [textureName, setTextureName] = useState<string | null>(null);
   const readTextureName = useCallback(async (): Promise<string | null> => {
-    const id = await themeStore.getActive();
-    if (!id) return null;
-    return (await themeStore.list()).find((p) => p.id === id)?.name ?? null;
+    return selectionLine(await themeStore.getSelection(), await themeStore.list());
   }, [themeStore]);
   // The texture pack chosen last time is used from the start.
   useEffect(() => {

@@ -1,5 +1,5 @@
 import type { Quest } from '../../engine/quest/schema';
-import { CLASSIC_THEME, type Theme } from './theme';
+import type { Theme } from './theme';
 
 /**
  * The quest pack ("box") of the quest that is open, so a texture pack made for one box (`box` in its
@@ -46,9 +46,14 @@ export function subscribeQuestBox(cb: () => void): () => void {
 }
 
 /**
- * The theme a board draws with. A pack made for a box dresses only the quests of that box: in any other
- * quest the built-in look is drawn. A pack with no `box` dresses every quest.
+ * The theme a board draws with: in a quest of a box that has an active expansion pack, the theme of that
+ * pack (merged over the core theme); in every other quest the core theme. A core quest never gets an
+ * expansion theme.
  */
-export function themeForBox(app: Theme, box: string | undefined = questBox): Theme {
-  return app.box !== undefined && app.box !== box ? CLASSIC_THEME : app;
+export function themeForBox(
+  core: Theme,
+  expansions: Readonly<Record<string, Theme>>,
+  box: string | undefined = questBox,
+): Theme {
+  return (box !== undefined ? expansions[box] : undefined) ?? core;
 }

@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PackSummary, ThemeStore } from '../../persist/themes';
+import {
+  NO_SELECTION,
+  type ActiveSelection,
+  type PackSummary,
+  type ThemeStore,
+} from '../../persist/themes';
 import { Dialog } from '../shared/Frame';
-import { applyPack } from './activate';
+import {
+  expansionProblem,
+  fits,
+  normalizeSelection,
+  refreshTheme,
+  removePack,
+  selectionLine,
+  stopPack,
+  applyPack,
+  type Change,
+} from './activate';
 import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack, type StoredPack } from './pack';
 import { PackPreview } from './PackPreview';
 import { t } from '../../i18n/t';
@@ -25,40 +40,45 @@ const size = (n: number) =>
 /** Choose the look of the board: the built-in one or an imported texture pack (decision 78). */
 export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(): void }) {
   const [packs, setPacks] = useState<PackSummary[]>([]);
-  const [active, setActive] = useState<string | null>(null);
+  const [selection, setSelection] = useState<ActiveSelection>(NO_SELECTION);
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<StoredPack | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
-    setPacks(await store.list());
-    setActive(await store.getActive());
+    const list = await store.list();
+    setPacks(list);
+    setSelection(normalizeSelection(await store.getSelection(), list));
   }, [store]);
   useEffect(() => {
     let live = true;
     void (async () => {
       const list = await store.list();
-      const current = await store.getActive();
+      const current = normalizeSelection(await store.getSelection(), list);
       if (!live) return;
       setPacks(list);
-      setActive(current);
+      setSelection(current);
     })();
     return () => {
       live = false;
     };
   }, [store]);
 
-  const choose = async (id: string | null) => {
-    const ok = await applyPack(store, id);
-    if (ok === false)
-      setMessage({
-        text: t(
-          'textures.packCouldNotBeLoaded',
-          'This texture pack could not be loaded. Check your connection and try again.',
-        ),
-        bad: true,
-      });
+  const inUse = (id: string) => selection.core === id || selection.expansions.includes(id);
+
+  const report = (r: Change) => {
+    if (r.message) setMessage({ text: r.message, bad: !r.ok });
+    else setMessage(null);
+  };
+
+  const use = async (id: string) => {
+    report(await applyPack(store, id));
+    setDeleting(null);
+    await refresh();
+  };
+  const stop = async (id: string) => {
+    report(await stopPack(store, id));
     setDeleting(null);
     await refresh();
   };
@@ -94,12 +114,100 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
       return;
     }
     // a replaced pack that is in use is loaded again, so the board shows the new pictures
-    if (replaced && active === r.pack.manifest.id) await applyPack(store, r.pack.manifest.id);
+    if (replaced && inUse(r.pack.manifest.id)) await refreshTheme(store);
     setMessage({
       text: `${replaced ? 'Updated' : 'Added'} ${r.pack.manifest.name}.`,
       bad: false,
     });
     await refresh();
+  };
+
+  // The list by family: each core pack, then the expansion packs made for it; expansion packs whose core
+  // pack is not installed come last.
+  const cores = packs.filter((p) => !p.box);
+  const families: { pack: PackSummary; sub: boolean }[] = [];
+  for (const c of cores) {
+    families.push({ pack: c, sub: false });
+    for (const e of packs.filter((p) => p.box && fits(p, c))) families.push({ pack: e, sub: true });
+  }
+  for (const e of packs.filter((p) => p.box && !cores.some((c) => fits(p, c))))
+    families.push({ pack: e, sub: true });
+
+  const packRow = (p: PackSummary, sub: boolean) => {
+    // an expansion pack can be used only while the core pack it is made for is in use
+    const needs = p.box ? expansionProblem(p, selection.core, packs) : null;
+    return (
+      <li key={p.id} data-pack={p.id} className={sub ? 'sub' : undefined}>
+        <div className="fr-open-static">
+          <span className="fr-qnum">
+            {p.box
+              ? t('theme.TexturesDialog.for', 'For {box}', { box: p.box })
+              : t('theme.TexturesDialog.forTheCoreGame', 'Core pack')}{' '}
+            ·{' '}
+            {p.origin === 'official'
+              ? t('theme.TexturesDialog.official', 'Official')
+              : t('theme.TexturesDialog.fanMade', 'Fan-made')}
+            {p.family
+              ? ` · ${t('theme.TexturesDialog.family', 'Family {family}', { family: p.family })}`
+              : ''}
+            {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
+            {p.included
+              ? ` · ${t('theme.TexturesDialog.includedWithTheApp', 'Included with the app')}`
+              : ''}
+          </span>
+          <span className="fr-qtitle">{p.name}</span>
+          {needs && !inUse(p.id) && (
+            <span className="fr-qnote" data-testid={`needs-${p.id}`}>
+              {needs}
+            </span>
+          )}
+        </div>
+        {inUse(p.id) ? (
+          <>
+            <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
+            <button className="chip" onClick={() => void stop(p.id)}>
+              {t('theme.TexturesDialog.stopUsingIt', 'Stop using it')}
+            </button>
+          </>
+        ) : (
+          <button className="chip" disabled={needs !== null} onClick={() => void use(p.id)}>
+            {t('theme.TexturesDialog.use', 'Use')}
+          </button>
+        )}
+        <button
+          className="chip"
+          data-testid={`preview-${p.id}`}
+          onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
+        >
+          {t('theme.TexturesDialog.preview', 'Preview')}
+        </button>
+        <button
+          className="chip"
+          onClick={async () => {
+            const pack = await store.load(p.id);
+            if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
+          }}
+        >
+          {t('theme.TexturesDialog.export', 'Export')}
+        </button>
+        {p.included ? null : deleting === p.id ? (
+          <button
+            className="chip main"
+            onClick={async () => {
+              report(await removePack(store, p.id));
+              setDeleting(null);
+              await refresh();
+            }}
+          >
+            {t('theme.TexturesDialog.reallyDelete', 'Really delete')}
+          </button>
+        ) : (
+          <button className="chip" onClick={() => setDeleting(p.id)}>
+            {t('theme.TexturesDialog.delete', 'Delete')}
+          </button>
+        )}
+      </li>
+    );
   };
 
   return (
@@ -140,91 +248,25 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             {message.text}
           </p>
         )}
+        <p className="fr-help" data-testid="applied">
+          {selectionLine(selection, packs) ??
+            t('theme.TexturesDialog.builtInLook', 'Built-in look: no pack in use.')}
+        </p>
         <ul className="fr-recent" data-testid="pack-list">
           <li>
             <div className="fr-open-static">
               <span className="fr-qnum">{t('theme.TexturesDialog.builtIn', 'Built in')}</span>
               <span className="fr-qtitle">{t('theme.TexturesDialog.classic', 'Classic')}</span>
             </div>
-            {active === null ? (
+            {selection.core === null ? (
               <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
             ) : (
-              <button className="chip" onClick={() => void choose(null)}>
+              <button className="chip" onClick={() => void stop(selection.core ?? '')}>
                 {t('theme.TexturesDialog.useClassic', 'Use Classic')}
               </button>
             )}
           </li>
-          {packs.map((p) => (
-            <li key={p.id} data-pack={p.id}>
-              <div className="fr-open-static">
-                <span className="fr-qnum">
-                  {p.box
-                    ? t('theme.TexturesDialog.for', 'For {box}', { box: p.box })
-                    : t('theme.TexturesDialog.forTheCoreGame', 'For the core game')}{' '}
-                  ·{' '}
-                  {p.origin === 'official'
-                    ? t('theme.TexturesDialog.official', 'Official')
-                    : t('theme.TexturesDialog.fanMade', 'Fan-made')}
-                  {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
-                  {p.included
-                    ? ` · ${t('theme.TexturesDialog.includedWithTheApp', 'Included with the app')}`
-                    : ''}
-                </span>
-                <span className="fr-qtitle">{p.name}</span>
-              </div>
-              {active === p.id ? (
-                <>
-                  <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
-                  <button className="chip" onClick={() => void choose(null)}>
-                    {t('theme.TexturesDialog.stopUsingIt', 'Stop using it')}
-                  </button>
-                </>
-              ) : p.extends && !packs.some((x) => x.id === p.extends) ? (
-                <span className="fr-qnote" data-testid={`needs-${p.id}`}>
-                  {t('theme.TexturesDialog.needsThePack', 'Needs the pack {extends}', {
-                    extends: p.extends,
-                  })}
-                </span>
-              ) : (
-                <button className="chip" onClick={() => void choose(p.id)}>
-                  {t('theme.TexturesDialog.use', 'Use')}
-                </button>
-              )}
-              <button
-                className="chip"
-                data-testid={`preview-${p.id}`}
-                onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
-              >
-                {t('theme.TexturesDialog.preview', 'Preview')}
-              </button>
-              <button
-                className="chip"
-                onClick={async () => {
-                  const pack = await store.load(p.id);
-                  if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
-                }}
-              >
-                {t('theme.TexturesDialog.export', 'Export')}
-              </button>
-              {p.included ? null : deleting === p.id ? (
-                <button
-                  className="chip main"
-                  onClick={async () => {
-                    if (active === p.id) await applyPack(store, null);
-                    await store.remove(p.id);
-                    setDeleting(null);
-                    await refresh();
-                  }}
-                >
-                  {t('theme.TexturesDialog.reallyDelete', 'Really delete')}
-                </button>
-              ) : (
-                <button className="chip" onClick={() => setDeleting(p.id)}>
-                  {t('theme.TexturesDialog.delete', 'Delete')}
-                </button>
-              )}
-            </li>
-          ))}
+          {families.map(({ pack, sub }) => packRow(pack, sub))}
         </ul>
         {packs.length === 0 && (
           <p className="fr-help">
@@ -255,7 +297,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
               return;
             }
             // a pack in use is loaded again, so the game shows the new sizes at once
-            if (active === manifest.id) await applyPack(store, manifest.id);
+            if (inUse(manifest.id)) await refreshTheme(store);
             setPreviewing(next);
             setMessage({
               text: t('theme.TexturesDialog.savedTheChangesTo', 'Saved the changes to {name}.', {

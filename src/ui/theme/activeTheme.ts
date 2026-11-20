@@ -8,13 +8,26 @@ import {
 import { getQuestBox, getQuestBoxVersion, subscribeQuestBox, themeForBox } from './questBox';
 import { CLASSIC_THEME, type Theme } from './theme';
 
-/** The theme in use. A small store, so the board redraws when it changes. */
+/**
+ * The themes in use. A small store, so the board redraws when it changes: the theme of the core pack
+ * (every quest) and, by box, the theme of each expansion pack on top of it (that box's quests only).
+ */
 let active: Theme = CLASSIC_THEME;
+let byBox: Readonly<Record<string, Theme>> = {};
 const listeners = new Set<() => void>();
 
-export function setActiveTheme(theme: Theme): void {
+export function setActiveTheme(
+  theme: Theme,
+  expansions: Readonly<Record<string, Theme>> = {},
+): void {
   active = theme;
+  byBox = expansions;
   listeners.forEach((l) => l());
+}
+
+/** The theme of the expansion pack of a box, already merged over the core theme. */
+export function getExpansionThemes(): Readonly<Record<string, Theme>> {
+  return byBox;
 }
 
 export function getActiveTheme(): Theme {
@@ -43,7 +56,7 @@ export function ThemeScope({ theme, children }: { theme: Theme | undefined; chil
 export function useTheme(): Theme {
   const scoped = useContext(ScopeCtx);
   const app = useActiveTheme();
-  // a pack made for one box dresses only the quests of that box
+  // an expansion pack dresses only the quests of its box
   useSyncExternalStore(subscribeQuestBox, getQuestBoxVersion);
-  return scoped ?? themeForBox(app, getQuestBox());
+  return scoped ?? themeForBox(app, byBox, getQuestBox());
 }

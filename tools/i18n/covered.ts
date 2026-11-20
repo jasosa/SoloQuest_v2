@@ -47,6 +47,7 @@ export const COVERED: readonly string[] = [
   'src/ui/shared/NoteCard.tsx',
   'src/ui/shared/QuestSettingsCard.tsx',
   'src/ui/shared/Toast.tsx',
+  'src/ui/theme/activate.ts',
   'src/ui/theme/draw.tsx',
   'src/ui/theme/PackPreview.tsx',
   'src/ui/theme/TexturesDialog.tsx',

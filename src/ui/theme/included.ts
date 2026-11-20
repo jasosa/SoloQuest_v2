@@ -1,4 +1,4 @@
-import frozenHorrorManifest from '../../content/art/frozen-horror.theme.json';
+import frozenHorrorManifest from '../../content/art/fz-ah-2021.theme.json';
 import type { PackSummary, ThemeStore } from '../../persist/themes';
 import {
   manifestFiles,
@@ -46,11 +46,15 @@ export async function fetchIncluded(
 ): Promise<StoredPack | undefined> {
   const files: Record<string, PackFile> = {};
   try {
-    for (const name of manifestFiles(inc.manifest)) {
-      const r = await fetcher(`${base}${inc.folder}${name}`);
-      if (!r.ok) return undefined;
-      files[name] = { mime: mimeOf(name), bytes: new Uint8Array(await r.arrayBuffer()) };
-    }
+    // all pictures at once: the pack is about 3 MB in 32 files
+    const got = await Promise.all(
+      manifestFiles(inc.manifest).map(async (name) => {
+        const r = await fetcher(`${base}${inc.folder}${name}`);
+        if (!r.ok) throw new Error(name);
+        return [name, new Uint8Array(await r.arrayBuffer())] as const;
+      }),
+    );
+    for (const [name, bytes] of got) files[name] = { mime: mimeOf(name), bytes };
   } catch {
     return undefined;
   }
@@ -69,7 +73,10 @@ export function withIncluded(
   const cache = new Map<string, StoredPack>();
   return {
     async list() {
-      const mine = await store.list();
+      // a stored copy of a shipped pack from before the family rule (no `extends`) is out of date
+      const mine = (await store.list()).filter(
+        (p) => !(p.box && !p.extends && INCLUDED_PACKS.some((i) => i.manifest.id === p.id)),
+      );
       const shipped: PackSummary[] = INCLUDED_PACKS.filter(
         (i) => !mine.some((p) => p.id === i.manifest.id),
       ).map(({ manifest: m, bytes }) => ({
@@ -78,6 +85,7 @@ export function withIncluded(
         origin: m.origin,
         ...(m.author ? { author: m.author } : {}),
         ...(m.box ? { box: m.box } : {}),
+        ...(m.family ? { family: m.family } : {}),
         ...(m.extends ? { extends: m.extends } : {}),
         bytes,
         included: true,
@@ -86,7 +94,7 @@ export function withIncluded(
     },
     async load(id) {
       const stored = await store.load(id);
-      if (stored) return stored;
+      if (stored && !(stored.manifest.box && !stored.manifest.extends)) return stored;
       const hit = cache.get(id);
       if (hit) return hit;
       const inc = INCLUDED_PACKS.find((i) => i.manifest.id === id);
@@ -96,7 +104,7 @@ export function withIncluded(
     },
     save: (pack) => store.save(pack),
     remove: (id) => store.remove(id),
-    getActive: () => store.getActive(),
-    setActive: (id) => store.setActive(id),
+    getSelection: () => store.getSelection(),
+    setSelection: (s) => store.setSelection(s),
   };
 }

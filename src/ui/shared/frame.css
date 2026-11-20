@@ -461,6 +461,10 @@
   align-items: center;
   min-height: 44px;
 }
+/* an expansion texture pack, under the core pack it is made for */
+.fr-recent li.sub {
+  margin-left: 16px;
+}
 .fr-recent li > button.fr-open {
   all: unset;
   cursor: pointer;
