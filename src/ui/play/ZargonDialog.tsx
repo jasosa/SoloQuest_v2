@@ -239,8 +239,9 @@ function Spell({ order: o, onYes, onNo }: { order: Order; onYes(): void; onNo():
       <div className="scond">
         {sp.place < sp.of
           ? t('play.ZargonDialog.ifNoneIsTrue', 'If none is true, try the next spell.')
-          : t('play.ZargonDialog.ifNoneIsTrue2', 'If none is true, no spell this turn: {v1}', {
-              v1: o.fallbackPlan ?? 'use the normal plan',
+          : t('play.ZargonDialog.ifNoneIsTrue2', 'If none is true, no spell this turn: {plan}', {
+              plan:
+                o.fallbackPlan ?? t('play.ZargonDialog.useTheNormalPlan', 'use the normal plan'),
             })}
       </div>
       <div className="row">

@@ -89,6 +89,8 @@ export interface GameState {
   readonly mapMemory: Readonly<Record<string, MapMemory>>;
   /** Cells whose floor is known (room cells, corridor cells in sight). Never rock. */
   readonly seenCells: ReadonlySet<CellKey>;
+  /** Squares drawn "layout only" by Show room: floor and walls, nothing on them (decision 66). */
+  readonly layoutCells: ReadonlySet<CellKey>;
   /** Rooms revealed whole (start room, rooms behind opened doors). */
   readonly revealedRooms: ReadonlySet<AreaId>;
   /** Corridor squares the players already looked from. */
@@ -175,6 +177,7 @@ export function emptyState(
     turn: 1,
     mapMemory: {},
     seenCells: new Set(),
+    layoutCells: new Set(),
     revealedRooms: new Set(),
     looked: new Set(),
     openDoors: new Set(),
@@ -247,6 +250,7 @@ export function draftOf(s: GameState): Draft {
   return {
     ...s,
     seenCells: new Set(s.seenCells),
+    layoutCells: new Set(s.layoutCells),
     revealedRooms: new Set(s.revealedRooms),
     looked: new Set(s.looked),
     openDoors: new Set(s.openDoors),

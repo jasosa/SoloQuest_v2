@@ -1,4 +1,5 @@
 import { wandererDef } from './roster';
+import { tr } from '../../i18n/translate';
 import { activeLevel, type Level } from '../board/level';
 import { MONSTER_NAMES } from '../data/monsters';
 import type { GameEvent } from './events';
@@ -37,7 +38,9 @@ function monsterName(level: Level, state: GameState, id: string): string {
   const m = level.quest.monsters.find((x) => x.id === id);
   if (m) return m.name ?? MONSTER_NAMES[m.type];
   const w = state.wanderers[id];
-  return w ? (wandererDef(level, w, id).name ?? MONSTER_NAMES[w.type]) : 'A monster';
+  return w
+    ? (wandererDef(level, w, id).name ?? MONSTER_NAMES[w.type])
+    : tr('game.log.aMonster', 'A monster');
 }
 
 /** Lines that the prompts of one event add (notes, goals, new monsters). */
@@ -45,32 +48,58 @@ function fromPrompts(prompts: readonly Prompt[], turn: number): LogEntry[] {
   const out: LogEntry[] = [];
   for (const p of prompts) {
     if (p.kind === 'note') {
-      const what = p.title ?? (p.texts[0] ? first(p.texts[0]) : 'A note');
+      const what = p.title ?? (p.texts[0] ? first(p.texts[0]) : tr('game.log.aNote', 'A note'));
       out.push({
         turn,
         kind: 'note',
         note: p.noteId,
-        text: p.letter ? `Note ${p.letter}: ${what}` : what,
+        text: p.letter
+          ? tr('game.log.noteLetter', 'Note {letter}: {what}', { letter: p.letter, what })
+          : what,
       });
     } else if (p.kind === 'crossed') {
-      out.push({ turn, kind: 'look', text: `The heroes crossed to ${p.name ?? 'the other map'}` });
+      out.push({
+        turn,
+        kind: 'look',
+        text: tr('game.log.crossed', 'The heroes crossed to {map}', {
+          map: p.name ?? tr('game.log.theOtherMap', 'the other map'),
+        }),
+      });
     } else if (p.kind === 'monsterPlaced') {
-      out.push({ turn, kind: 'monster', text: `${p.name} joins the fight` });
+      out.push({
+        turn,
+        kind: 'monster',
+        text: tr('game.log.joins', '{name} joins the fight', { name: p.name }),
+      });
     } else if (p.kind === 'objectiveDone') {
-      out.push({ turn, kind: 'goal', text: `Goal done: ${p.text}` });
+      out.push({
+        turn,
+        kind: 'goal',
+        text: tr('game.log.goalDone', 'Goal done: {text}', { text: p.text }),
+      });
     } else if (p.kind === 'secretDoorsFound') {
-      out.push({ turn, kind: 'search', text: 'A secret door was found' });
+      out.push({
+        turn,
+        kind: 'search',
+        text: tr('game.log.secretDoor', 'A secret door was found'),
+      });
     } else if (p.kind === 'trapSprung') {
-      out.push({ turn, kind: 'trap', text: 'A trap sprang' });
+      out.push({ turn, kind: 'trap', text: tr('game.log.trapSprang', 'A trap sprang') });
     } else if (p.kind === 'trapDisarmed') {
-      out.push({ turn, kind: 'trap', text: 'A trap was disarmed' });
+      out.push({ turn, kind: 'trap', text: tr('game.log.trapDisarmed', 'A trap was disarmed') });
     } else if (p.kind === 'trapJumped') {
-      out.push({ turn, kind: 'trap', text: 'A hero jumped over a trap' });
+      out.push({
+        turn,
+        kind: 'trap',
+        text: tr('game.log.trapJumped', 'A hero jumped over a trap'),
+      });
     } else if (p.kind === 'wanderingMonster') {
       out.push({
         turn,
         kind: 'monster',
-        text: `A wandering ${MONSTER_NAMES[p.monsterType]} appears`,
+        text: tr('game.log.wandering', 'A wandering {name} appears', {
+          name: MONSTER_NAMES[p.monsterType],
+        }),
       });
     }
   }
@@ -82,35 +111,67 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
   const turn = before.turn;
   switch (e.type) {
     case 'OPEN_DOOR':
-      return { turn, kind: 'door', text: 'A door was opened' };
+      return { turn, kind: 'door', text: tr('game.log.doorOpened', 'A door was opened') };
     case 'TUNNEL_USE':
-      return { turn, kind: 'look', text: 'A hero used an ice tunnel' };
+      return { turn, kind: 'look', text: tr('game.log.tunnel', 'A hero used an ice tunnel') };
     case 'LOOK_FROM':
-      return { turn, kind: 'look', text: 'A hero looked along the corridor' };
+      return { turn, kind: 'look', text: tr('game.log.look', 'A hero looked along the corridor') };
     case 'MONSTER_KILL':
-      return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} slain` };
+      return {
+        turn,
+        kind: 'monster',
+        text: tr('game.log.slain', '{name} slain', { name: monsterName(level, before, e.monster) }),
+      };
     case 'MONSTER_LEAVE': {
-      const how = { escaped: 'escaped', freed: 'was freed' }[e.reason];
-      return { turn, kind: 'monster', text: `${monsterName(level, before, e.monster)} ${how}` };
+      const name = monsterName(level, before, e.monster);
+      const text =
+        e.reason === 'escaped'
+          ? tr('game.log.escaped', '{name} escaped', { name })
+          : tr('game.log.freed', '{name} was freed', { name });
+      return { turn, kind: 'monster', text };
     }
     case 'MONSTER_WAKE':
       return {
         turn,
         kind: 'monster',
-        text: `${monsterName(level, before, e.monster)} was attacked`,
+        text: tr('game.log.attacked', '{name} was attacked', {
+          name: monsterName(level, before, e.monster),
+        }),
       };
     case 'SEARCH_TREASURE':
-      return { turn, kind: 'search', text: `The ${nameFromId(e.hero)} searched for treasure` };
+      return {
+        turn,
+        kind: 'search',
+        text: tr('game.log.searchedTreasure', 'The {hero} searched for treasure', {
+          hero: nameFromId(e.hero),
+        }),
+      };
     case 'SEARCH_SECRET_DOORS':
-      return { turn, kind: 'search', text: 'A search for secret doors' };
+      return {
+        turn,
+        kind: 'search',
+        text: tr('game.log.searchSecret', 'A search for secret doors'),
+      };
     case 'SEARCH_TRAPS':
-      return { turn, kind: 'search', text: 'A chest was searched for traps' };
+      return {
+        turn,
+        kind: 'search',
+        text: tr('game.log.searchTraps', 'A chest was searched for traps'),
+      };
     case 'HERO_DIED':
-      return { turn, kind: 'hero', text: `The ${nameFromId(e.hero)} fell` };
+      return {
+        turn,
+        kind: 'hero',
+        text: tr('game.log.heroFell', 'The {hero} fell', { hero: nameFromId(e.hero) }),
+      };
     case 'ZARGON_TURN_END':
-      return { turn, kind: 'turn', text: `Zargon's turn ${turn} ended` };
+      return {
+        turn,
+        kind: 'turn',
+        text: tr('game.log.turnEnded', "Zargon's turn {turn} ended", { turn }),
+      };
     case 'END_QUEST':
-      return { turn, kind: 'end', text: 'The quest ended' };
+      return { turn, kind: 'end', text: tr('game.log.questEnded', 'The quest ended') };
     default:
       return undefined;
   }
@@ -127,7 +188,9 @@ export function eventLog(
   startFlags: Readonly<Record<string, boolean>> = {},
 ): LogEntry[] {
   const start = startGame(root, seed, startFlags);
-  const out: LogEntry[] = [{ turn: start.state.turn, kind: 'start', text: 'The quest starts' }];
+  const out: LogEntry[] = [
+    { turn: start.state.turn, kind: 'start', text: tr('game.log.start', 'The quest starts') },
+  ];
   out.push(...fromPrompts(start.prompts, start.state.turn));
   let state = start.state;
   for (const e of events) {

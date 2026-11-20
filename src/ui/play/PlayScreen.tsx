@@ -43,6 +43,7 @@ import type { GameStore } from '../store/gameStore';
 import { TRAP_NAMES } from './texts';
 import { monsterCodes } from './monsterCodes';
 import { sheetsOf } from './promptToasts';
+import { additionCells } from './additions';
 import type { NoteTarget } from '../../engine/quest/schema';
 import { BOARD_TILES } from '../../engine/data/roomTiles';
 import { unthreatenedMovement } from '../../engine/game/ruleHints';
@@ -385,6 +386,11 @@ export function PlayScreen({
       }
     | null
   >(null);
+  // Show room (decision 66): a free tool, with a warning, that draws a room or corridor without contents.
+  const [showRoom, setShowRoom] = useState<'warn' | 'pick' | null>(null);
+  const pickedRoom = (cell: readonly [number, number]) => {
+    if (dispatch({ type: 'SHOW_LAYOUT', cell: [cell[0], cell[1]] })) setShowRoom(null);
+  };
   const pickedCell = (picked: readonly [number, number]) => {
     const cell: [number, number] = [picked[0], picked[1]];
     if (!adding) return;
@@ -651,8 +657,8 @@ export function PlayScreen({
         >
           {!(fv && fv.buttons.length > 0) && (
             <p className="hint">
-              {t('play.PlayScreen.thisHasNoSpecial', 'This {v1} has no special action.', {
-                v1: furnitureName(sel.furniture).toLowerCase(),
+              {t('play.PlayScreen.thisHasNoSpecial', 'This {furniture} has no special action.', {
+                furniture: furnitureName(sel.furniture).toLowerCase(),
               })}
             </p>
           )}
@@ -929,8 +935,8 @@ export function PlayScreen({
           {m.wandering && (
             <p className="warn">
               {m.fresh && m.wanderAt
-                ? t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
-                    v1: nameOf(m.wanderAt),
+                ? t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {hero}', {
+                    hero: nameOf(m.wanderAt),
                   })
                 : t('play.PlayScreen.wanderingMonster', 'Wandering monster')}
             </p>
@@ -942,8 +948,13 @@ export function PlayScreen({
           )}
           {m.state === 'stone' && (
             <p className="warn">
-              {t('play.PlayScreen.itDoesNotAct', '{v1}. It does not act.', {
-                v1: m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone',
+              {t('play.PlayScreen.itDoesNotAct', '{state}. It does not act.', {
+                state:
+                  m.stoneTurns !== undefined
+                    ? t('play.PlayScreen.stoneTurns', 'Stone: {turns} turns', {
+                        turns: m.stoneTurns,
+                      })
+                    : t('play.PlayScreen.stone', 'Stone'),
               })}
             </p>
           )}
@@ -1110,8 +1121,8 @@ export function PlayScreen({
                 onClose={nextSheet}
               >
                 <p>
-                  {t('play.PlayScreen.putTheOnThe', 'Put the {v1} on the marked square.', {
-                    v1: MONSTER_NAMES[sheet.p.monsterType],
+                  {t('play.PlayScreen.putTheOnThe', 'Put the {monster} on the marked square.', {
+                    monster: MONSTER_NAMES[sheet.p.monsterType],
                   })}
                 </p>
                 <button className="btn" onClick={nextSheet}>
@@ -1134,10 +1145,13 @@ export function PlayScreen({
           onLetter={(id) => setReread(id)}
           highlight={[
             ...(sheet?.t === 'place' && sheet.p.cell ? [sheet.p.cell] : []),
+            // blocks and secret doors the last event put on the map
+            ...additionCells(level, prompts),
             // the other end of a tunnel that was just used
             ...(res?.prompts.flatMap((p) => (p.kind === 'tunnelUsed' ? [p.to] : [])) ?? []),
           ]}
           {...(adding?.t === 'pick' || adding?.t === 'wander' ? { onPickCell: pickedCell } : {})}
+          {...(showRoom === 'pick' ? { onPickAny: pickedRoom } : {})}
           zargonView={zargonView}
         />
       </ZoomLayer>
@@ -1229,6 +1243,30 @@ export function PlayScreen({
               {t('play.PlayScreen.addAMonster', 'Add a monster')}
             </button>
           )}
+          {showRoom === 'warn' ? (
+            <div className="add-monster" data-testid="show-room-warning">
+              <p className="hint">
+                {t(
+                  'play.PlayScreen.showRoomWarning',
+                  'Use this for a spell or a quest note that shows a room. It draws the floor and walls only, not what is inside.',
+                )}
+              </p>
+              <button className="btn" onClick={() => setShowRoom('pick')}>
+                {t('play.PlayScreen.chooseASquare', 'Choose a square')}
+              </button>
+              <button className="btn alt" onClick={() => setShowRoom(null)}>
+                {t('play.PlayScreen.cancel', 'Cancel')}
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn alt add-monster-btn"
+              data-testid="show-room-btn"
+              onClick={() => setShowRoom('warn')}
+            >
+              {t('play.PlayScreen.showRoom', 'Show room')}
+            </button>
+          )}
           <button className="zargon-btn" onClick={() => setZOpen(true)}>
             {t('play.PlayScreen.zargonsTurn', "Zargon's turn")}
             <small>{progressLabel(progress)}</small>
@@ -1239,26 +1277,45 @@ export function PlayScreen({
       {(adding?.t === 'pick' || adding?.t === 'wander') && (
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
-            ? t('play.PlayScreen.tapTheSquareWhere', 'Tap the square where you put the {v1}.', {
-                v1: MONSTER_NAMES[adding.type],
-              })
+            ? t(
+                'play.PlayScreen.tapTheSquareWhere',
+                'Tap the square where you put the {monster}.',
+                {
+                  monster: MONSTER_NAMES[adding.type],
+                },
+              )
             : adding.total > 1
               ? t(
                   'play.PlayScreen.tapTheSquareWhere2',
-                  'Tap the square where you put wandering monster {v1} of {total}, {v2} the {v3}.',
+                  'Tap the square where you put wandering monster {number} of {total}, {where} the {hero}.',
                   {
-                    v1: adding.cells.length + 1,
+                    number: adding.cells.length + 1,
                     total: adding.total,
-                    v2: adding.cells.length === 0 ? 'next to' : 'as close as you can to',
-                    v3: nameOf(adding.hero),
+                    where:
+                      adding.cells.length === 0
+                        ? t('play.PlayScreen.nextTo', 'next to')
+                        : t('play.PlayScreen.asCloseAs', 'as close as you can to'),
+                    hero: nameOf(adding.hero),
                   },
                 )
               : t(
                   'play.PlayScreen.tapTheSquareWhere3',
-                  'Tap the square where you put the wandering monster, next to the {v1}.',
-                  { v1: nameOf(adding.hero) },
+                  'Tap the square where you put the wandering monster, next to the {hero}.',
+                  { hero: nameOf(adding.hero) },
                 )}
           <button className="link" onClick={() => setAdding(null)}>
+            {t('play.PlayScreen.cancel', 'Cancel')}
+          </button>
+        </div>
+      )}
+
+      {showRoom === 'pick' && (
+        <div className="pick-banner" role="status" data-testid="show-room-banner">
+          {t(
+            'play.PlayScreen.tapASquareOfThe',
+            'Tap a square of the room or corridor to show. Rock has nothing to show.',
+          )}
+          <button className="link" onClick={() => setShowRoom(null)}>
             {t('play.PlayScreen.cancel', 'Cancel')}
           </button>
         </div>
@@ -1339,11 +1396,13 @@ export function PlayScreen({
             {sheet.all
               ? t(
                   'play.PlayScreen.allObjectivesAreDone',
-                  'All objectives are done. {v1}, then end the quest.',
+                  'All objectives are done. {next}, then end the quest.',
                   {
-                    v1: level.quest.leave
-                      ? `The heroes leave ${level.quest.leave}`
-                      : 'Bring the heroes back to the stairs',
+                    next: level.quest.leave
+                      ? t('play.PlayScreen.theHeroesLeave', 'The heroes leave {way}', {
+                          way: level.quest.leave,
+                        })
+                      : t('play.PlayScreen.bringHeroesBack', 'Bring the heroes back to the stairs'),
                   },
                 )
               : t(
@@ -1395,7 +1454,7 @@ export function PlayScreen({
               dispatch({ type: 'END_QUEST', outcome: 'stairs' });
             }}
           >
-            {t('play.PlayScreen.heroesLeft', 'Heroes left {v1}', { v1: leaveWay(level) })}
+            {t('play.PlayScreen.heroesLeft', 'Heroes left {way}', { way: leaveWay(level) })}
           </button>
           {endings.map((e) => (
             <button
@@ -1577,11 +1636,13 @@ function RosterRow({
 
 function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
   if (m.state === 'stone')
-    return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
+    return m.stoneTurns !== undefined
+      ? t('play.PlayScreen.stoneTurns', 'Stone: {turns} turns', { turns: m.stoneTurns })
+      : t('play.PlayScreen.stone', 'Stone');
   if (m.added) return t('play.PlayScreen.addedInPlay', 'Added in play');
   if (m.wandering && m.fresh && m.wanderAt)
-    return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
-      v1: nameOf(m.wanderAt),
+    return t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {hero}', {
+      hero: nameOf(m.wanderAt),
     });
   if (m.placeAt) return t('play.PlayScreen.placedByAQuest2', 'Placed by a quest note');
   return t('play.PlayScreen.moveAttDef', 'Move {move} · Att {att} · Def {def}', {
@@ -1645,10 +1706,10 @@ function RereadSheet({
       ))}
       {entry.choices.map((c, i) => (
         <p key={i} className="extra">
-          {t('play.PlayScreen.youChose', '{text} You chose: {picked}.{v1}', {
+          {t('play.PlayScreen.youChose', '{text} You chose: {picked}.{extra}', {
             text: c.text,
             picked: c.picked,
-            v1: c.texts.length > 0 ? ` ${c.texts.join(' ')}` : '',
+            extra: c.texts.length > 0 ? ` ${c.texts.join(' ')}` : '',
           })}
         </p>
       ))}

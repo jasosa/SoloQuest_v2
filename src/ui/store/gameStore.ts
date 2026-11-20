@@ -30,6 +30,8 @@ import { promptToasts } from '../play/promptToasts';
 import { newRuleHints } from '../../engine/game/ruleHints';
 import { newTiles, putTilesText } from '../../engine/game/tiles';
 import { getQuestSettings } from '../settings';
+import { t } from '../../i18n/t';
+import { errorText } from '../play/errorTexts';
 
 /** What the board animates after an event: an ink reveal from `origin`, new tokens stamping in. */
 export interface Fx {
@@ -153,7 +155,10 @@ export function createGameStore(init: GameStoreInit): GameStore {
           reduced = reduce(root, before, event);
         } catch (e) {
           if (e instanceof EventError) {
-            set({ toast: toastOf(e.message), error: { code: e.code, message: e.message } });
+            set({
+              toast: toastOf(errorText(e.code, e.message)),
+              error: { code: e.code, message: e.message },
+            });
             return false;
           }
           throw e;
@@ -175,7 +180,8 @@ export function createGameStore(init: GameStoreInit): GameStore {
               if (state.seenBlocks.has(b.id) && !before.seenBlocks.has(b.id))
                 for (const c of b.cells) cells.add(keyOf(c));
             fx = { id: ++counter, origin: p.origin, cells, freshMonsters };
-          } else if (p.kind === 'nothingNew') toast = toastOf('Nothing new here.');
+          } else if (p.kind === 'nothingNew')
+            toast = toastOf(t('store.nothingNew', 'Nothing new here.'));
         }
         // A monster that woke or was placed by a note stamps in even with no reveal.
         if (!fx && freshMonsters.length > 0)
@@ -184,18 +190,35 @@ export function createGameStore(init: GameStoreInit): GameStore {
         if (lines.length > 0) toast = toastOf(lines.join(' '));
         if (event.type === 'MONSTER_KILL')
           toast = toastOf(
-            `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} slain.`,
+            t('store.slain', '{code} slain.', {
+              code:
+                monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ??
+                t('store.monster', 'Monster'),
+            }),
             true,
           );
         if (event.type === 'MONSTER_LEAVE')
           toast = toastOf(
-            `${monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ?? 'Monster'} ${event.reason === 'freed' ? 'was freed' : event.reason}. Not a kill.`,
+            event.reason === 'freed'
+              ? t('store.freed', '{code} was freed. Not a kill.', {
+                  code:
+                    monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ??
+                    t('store.monster', 'Monster'),
+                })
+              : t('store.escaped', '{code} escaped. Not a kill.', {
+                  code:
+                    monsterCodes(level, state.seenMonsters, state.wanderers).get(event.monster) ??
+                    t('store.monster', 'Monster'),
+                }),
             true,
           );
-        // The real Zargon page (orders per monster) is milestone M5. For now the button only
-        // ends the turn; notes that fire on a turn come back as prompts and show as sheets.
         if (event.type === 'ZARGON_TURN_END')
-          toast = toastOf([`Heroes' turn ${state.turn}.`, ...lines].join(' '), true);
+          toast = toastOf(
+            [t('store.heroesTurn', "Heroes' turn {turn}.", { turn: state.turn }), ...lines].join(
+              ' ',
+            ),
+            true,
+          );
 
         // Rule hints (decision 60): a reminder the first time a terrain or a room tile comes into view.
         const hints = getQuestSettings(level.quest.id).ruleHints

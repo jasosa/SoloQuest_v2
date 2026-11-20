@@ -3,6 +3,7 @@
  * where; it never needs the tile to play. Pure.
  */
 import { areaAt, type Cell } from '../board/board';
+import { tr } from '../../i18n/translate';
 import type { Level } from '../board/level';
 import { BOARD_TILES, ROOM_TILES, type RoomTileDef } from '../data/roomTiles';
 import { roomTileCells } from '../quest/roomTileCells';
@@ -59,7 +60,9 @@ export function newTiles(level: Level, before: GameState, after: GameState): str
 
 /** The sentence that asks the players to put tiles on the board. */
 export function putTilesText(names: readonly string[]): string {
-  return `Put on the board: ${names.map((n) => `the ${n} tile`).join(', ')}.`;
+  return tr('game.putTiles', 'Put on the board: {tiles}.', {
+    tiles: names.map((n) => tr('game.theTile', 'the {name} tile', { name: n })).join(', '),
+  });
 }
 
 /** Tiles that are on the board before the first move (the cave under the start). */

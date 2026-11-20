@@ -417,9 +417,9 @@ export function SelectScreen({
               <section className="saved">
                 <div className="lbl">{t('select.savedGame', 'Saved game')}</div>
                 <p>
-                  {t('select.turn', 'Turn {turn} · {v1}', {
+                  {t('select.turn', 'Turn {turn} · {heroes}', {
                     turn: resumed.state.turn,
-                    v1: resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', '),
+                    heroes: resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', '),
                   })}
                 </p>
                 <button
@@ -597,8 +597,8 @@ export function SelectScreen({
             <p className="hint">
               {t(
                 'select.fellInTheLast',
-                'Fell in the last quest: {v1}. Tap a chip to bring them back.',
-                { v1: fellLast.join(', ') },
+                'Fell in the last quest: {heroes}. Tap a chip to bring them back.',
+                { heroes: fellLast.join(', ') },
               )}
             </p>
           )}

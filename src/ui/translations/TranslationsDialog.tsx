@@ -439,10 +439,10 @@ export function TranslationsDialog({
           <li key={l.code} data-language={l.code}>
             <div className="fr-open-static">
               <span className="fr-qnum">
-                {t('translations.ofTranslated', '{code}{v1} · {v2} of {total} translated', {
+                {t('translations.ofTranslated', '{code}{author} · {done} of {total} translated', {
                   code: l.code,
-                  v1: l.author ? ` · ${l.author}` : '',
-                  v2: done[l.code] ?? 0,
+                  author: l.author ? ` · ${l.author}` : '',
+                  done: done[l.code] ?? 0,
                   total,
                 })}
               </span>

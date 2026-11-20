@@ -60,8 +60,8 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
               )}
               {n.attack !== undefined && (
                 <>
-                  {t('play.sidebar.attackDice', 'Attack dice {v1} ·', {
-                    v1: n.attack === 0 ? 'N/A' : n.attack,
+                  {t('play.sidebar.attackDice', 'Attack dice {dice} ·', {
+                    dice: n.attack === 0 ? t('play.sidebar.notApplicable', 'N/A') : n.attack,
                   })}{' '}
                 </>
               )}

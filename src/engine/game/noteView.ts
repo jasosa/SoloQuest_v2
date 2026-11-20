@@ -1,5 +1,6 @@
 /** Read-only selectors for the quest notes, objectives and NPCs. Pure, derived from the state. */
 import type { AreaId, Cell } from '../board/board';
+import { tr } from '../../i18n/translate';
 import { keyOf, parseKey, type Level } from '../board/level';
 import { forEachEffect, textsOf } from '../quest/effects';
 import type { NoteTarget, ObjectiveDef } from '../quest/schema';
@@ -329,8 +330,8 @@ export function objectivesStatus(level: Level, state: GameState): ObjectivesView
 /** What to tell the players once the goal is done: how the heroes leave. */
 export function goalDoneText(level: Level): string {
   return level.quest.leave
-    ? `Goal done. The heroes leave ${level.quest.leave}.`
-    : 'Goal done. Bring the heroes back to the stairs.';
+    ? tr('game.goalDoneLeave', 'Goal done. The heroes leave {way}.', { way: level.quest.leave })
+    : tr('game.goalDoneStairs', 'Goal done. Bring the heroes back to the stairs.');
 }
 
 /** A way to end the quest that the quest itself names (paraphrased label and text). */
@@ -368,8 +369,8 @@ export interface EndSummary {
 export function leaveWay(level: Level): string {
   if (level.quest.leave) return level.quest.leave;
   return level.quest.edgeDoors.some((e) => e.kind === 'woodenExit')
-    ? 'through the exit door'
-    : 'by the stairs';
+    ? tr('game.throughTheExit', 'through the exit door')
+    : tr('game.byTheStairs', 'by the stairs');
 }
 
 /** The end screen data. Undefined until END_QUEST. */

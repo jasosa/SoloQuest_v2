@@ -4,6 +4,7 @@
  * reload. Nothing here reads or changes `state.rng`, and no positions or hero Body Points exist.
  */
 import type { Level } from '../board/level';
+import { tr } from '../../i18n/translate';
 import type { AbilityDef } from '../data/abilities';
 import { HEROES } from '../data/heroes';
 import {
@@ -181,17 +182,25 @@ function drawRule(
  * Special rules from the quest data: its `traits` first, then a line for every stat override that
  * is present in the def (even when equal to the base table: named monsters carry their own stats).
  */
-const WAITS_TEXT = {
-  heroInSight: 'Waits: it does nothing until a hero is in its line of sight.',
-  heroInRoom: 'Waits: it does nothing until a hero is in its room.',
-  heroAdjacent: 'Waits: it does nothing until a hero is next to it.',
-} as const;
+const waitsText = (k: 'heroInSight' | 'heroInRoom' | 'heroAdjacent'): string =>
+  k === 'heroInSight'
+    ? tr('zargon.waitsSight', 'Waits: it does nothing until a hero is in its line of sight.')
+    : k === 'heroInRoom'
+      ? tr('zargon.waitsRoom', 'Waits: it does nothing until a hero is in its room.')
+      : tr('zargon.waitsAdjacent', 'Waits: it does nothing until a hero is next to it.');
 
-const TOWARD_TEXT = {
-  strongestHero: 'Goes toward the hero with the most Body Points left, not the nearest.',
-  weakestHero: 'Goes toward the hero with the fewest Body Points left, not the nearest.',
-  stayPut: 'Stays where it is. It only attacks a hero next to it.',
-} as const;
+const towardText = (k: 'strongestHero' | 'weakestHero' | 'stayPut'): string =>
+  k === 'strongestHero'
+    ? tr(
+        'zargon.towardStrongest',
+        'Goes toward the hero with the most Body Points left, not the nearest.',
+      )
+    : k === 'weakestHero'
+      ? tr(
+          'zargon.towardWeakest',
+          'Goes toward the hero with the fewest Body Points left, not the nearest.',
+        )
+      : tr('zargon.stayPut', 'Stays where it is. It only attacks a hero next to it.');
 
 /** The behavior prompts of a monster (decision 71), as lines for the players. */
 export function behaviorLines(
@@ -201,16 +210,33 @@ export function behaviorLines(
   const b = def?.behavior;
   if (!b) return [];
   const out: string[] = [];
-  if (b.waitsFor) out.push(WAITS_TEXT[b.waitsFor]);
+  if (b.waitsFor) out.push(waitsText(b.waitsFor));
   if (b.goesToward === 'marker') {
     const m = markers.find((k) => k.id === b.marker);
-    out.push(`Goes toward the marked square${m ? ` "${m.label}"` : ''}, not the nearest hero.`);
+    out.push(
+      m
+        ? tr(
+            'zargon.towardMarkerNamed',
+            'Goes toward the marked square "{label}", not the nearest hero.',
+            { label: m.label },
+          )
+        : tr('zargon.towardMarker', 'Goes toward the marked square, not the nearest hero.'),
+    );
   } else if (b.goesToward === 'guardMarker') {
     const m = markers.find((k) => k.id === b.marker);
     out.push(
-      `Guards the marked square${m ? ` "${m.label}"` : ''}: it stays close to it and only attacks a hero who comes near.`,
+      m
+        ? tr(
+            'zargon.guardsMarkerNamed',
+            'Guards the marked square "{label}": it stays close to it and only attacks a hero who comes near.',
+            { label: m.label },
+          )
+        : tr(
+            'zargon.guardsMarker',
+            'Guards the marked square: it stays close to it and only attacks a hero who comes near.',
+          ),
     );
-  } else if (b.goesToward) out.push(TOWARD_TEXT[b.goesToward]);
+  } else if (b.goesToward) out.push(towardText(b.goesToward));
   return out;
 }
 
@@ -290,7 +316,7 @@ function planOf(
     }
     rules.push(RULE_TEXT[chosen]);
   }
-  return `${plan} ${multiAttackLines(['The target above', ...rules])}`;
+  return `${plan} ${multiAttackLines([tr('zargon.targetAbove', 'The target above'), ...rules])}`;
 }
 
 function buildOrder(
@@ -339,7 +365,10 @@ function buildOrder(
       tie: alive.map((m) => m.id),
       tieNames: alive.map((m) => labelOf(full, m.id)),
       special: [],
-      note: 'Passive: no orders. If the heroes free it or it leaves, tap "It left". If a hero attacks it, tap "A hero attacked it".',
+      note: tr(
+        'zargon.passiveNote',
+        'Passive: no orders. If the heroes free it or it leaves, tap "It left". If a hero attacks it, tap "A hero attacked it".',
+      ),
       turn: state.turn,
       done,
     };
@@ -390,11 +419,18 @@ function buildOrder(
     special: [
       ...specialRules(def, view.abilities, level.quest.markers),
       ...(profile === 'grappler' && opts.noHugInSolo && level.quest.team?.solo
-        ? ['Solo quest: it does not hug. Ignore the hug rule above.']
+        ? [tr('zargon.soloNoHug', 'Solo quest: it does not hug. Ignore the hug rule above.')]
         : []),
-      ...(opts.raiment && RAIMENT_LINES[profile] ? [RAIMENT_LINES[profile]!] : []),
+      ...(opts.raiment ? raimentLines(profile) : []),
     ],
-    ...(fresh ? { note: 'It already attacked this round. Its order starts next turn.' } : {}),
+    ...(fresh
+      ? {
+          note: tr(
+            'zargon.freshNote',
+            'It already attacked this round. Its order starts next turn.',
+          ),
+        }
+      : {}),
     turn,
     done,
   };
@@ -412,11 +448,19 @@ function buildOrder(
   if (!fresh && state.castThisTurn.includes(id)) {
     const { plan: _plan, ...rest } = order;
     void _plan;
-    return { ...rest, declined: [], spellNote: 'It already cast a spell this turn.' };
+    return {
+      ...rest,
+      declined: [],
+      spellNote: tr('zargon.alreadyCast', 'It already cast a spell this turn.'),
+    };
   }
   const declined = state.spellsFailed[id] ?? [];
   if (Object.keys(left).length === 0)
-    return { ...order, declined: [...declined], spellNote: 'No spells left.' };
+    return {
+      ...order,
+      declined: [...declined],
+      spellNote: tr('zargon.noSpellsLeft', 'No spells left.'),
+    };
   // A caster always tries a spell first (decision 72). Each "no" shows the next spell it has; when
   // none is left the order is the normal plan, with no note.
   const pick = pickSpell(seed, turn, id, Object.keys(left), declined, def?.spellOrder);
@@ -431,7 +475,9 @@ function buildOrder(
       name: lookup.get(pick)?.name ?? pick,
       left: left[pick]!,
       effect: lookup.get(pick)?.text ?? SPELL_EFFECT_TEXT,
-      questions: lookup.get(pick) ? spellQuestions(lookup.get(pick)!) : ['Can it see a hero?'],
+      questions: lookup.get(pick)
+        ? spellQuestions(lookup.get(pick)!)
+        : [tr('zargon.canItSee', 'Can it see a hero?')],
       ...(lookup.get(pick)?.warning ? { warning: lookup.get(pick)!.warning } : {}),
       timing: SPELL_TIMING_TEXT[lookup.get(pick)?.timing ?? 'either'],
       place: declined.length + 1,
@@ -453,11 +499,23 @@ export interface OrderOptions {
 }
 
 /** Warning lines of the Raiment setting, by profile. */
-const RAIMENT_LINES: Partial<Record<Profile, string>> = {
-  thief:
-    'Raiment of the Frozen Champion: it cannot steal from a hero wearing the Cold Iron Plate Mail.',
-  grappler: 'Raiment of the Frozen Champion: it cannot hug a hero carrying the Spiked Shield.',
-};
+function raimentLines(profile: Profile): string[] {
+  if (profile === 'thief')
+    return [
+      tr(
+        'zargon.raimentThief',
+        'Raiment of the Frozen Champion: it cannot steal from a hero wearing the Cold Iron Plate Mail.',
+      ),
+    ];
+  if (profile === 'grappler')
+    return [
+      tr(
+        'zargon.raimentGrappler',
+        'Raiment of the Frozen Champion: it cannot hug a hero carrying the Spiked Shield.',
+      ),
+    ];
+  return [];
+}
 
 /**
  * One order per ACTIVE monster seen by the heroes, in reveal order, for `state.turn`.
