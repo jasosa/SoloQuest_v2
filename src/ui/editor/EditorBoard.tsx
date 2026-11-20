@@ -22,7 +22,10 @@ import {
   roomTileCellsFor,
   roomTileIndexAt,
   tileCellsFor,
+  moveBoardTile,
   moveFurniture,
+  moveRoomTile,
+  tileBox,
   moveMonster,
   setRockCell,
   setRockRoom,
@@ -77,7 +80,10 @@ const VBW = BOARD_W * U + 4;
 const VBH = BOARD_H * U + 4;
 
 type Edge = { a: Cell; b: Cell };
-type Drag = { kind: 'furniture' | 'monster'; id: string; grab: Cell; first: Cell };
+type Drag =
+  | { kind: 'furniture' | 'monster'; id: string; grab: Cell; first: Cell }
+  /** A placed tile, by its place in `boardTiles` or `roomTiles`; `first` is its top left square. */
+  | { kind: 'tile' | 'roomTile'; index: number; grab: Cell; first: Cell };
 
 const sameCell = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
@@ -254,6 +260,16 @@ export function EditorBoard({
     const rt = roomTileIndexAt(quest, cell);
     if (rt >= 0) return { kind: 'roomTile', index: rt };
     return null;
+  };
+
+  /** The placed tile of one group on a square (the Tiles tool moves tiles of the picked group). */
+  const pickTile = (cell: Cell, group: 'board' | 'room'): EditSelection | null => {
+    if (group === 'board') {
+      const ti = boardTileAt(quest, cell);
+      return ti >= 0 ? { kind: 'tile', index: ti } : null;
+    }
+    const rt = roomTileIndexAt(quest, cell);
+    return rt >= 0 ? { kind: 'roomTile', index: rt } : null;
   };
 
   /** A click (or Enter) on a square or edge. */
@@ -465,10 +481,23 @@ export function EditorBoard({
 
   const onPointerDown = (e: React.PointerEvent) => {
     svgRef.current?.focus();
-    if (tool !== 'select' || picking) return;
+    if ((tool !== 'select' && tool !== 'tiles') || picking) return;
     const { cell, edge, outer } = position(e);
     if (!cell) return;
-    const hit = pick(cell, edge, outer);
+    // the Tiles tool moves only tiles, the Select tool moves tiles, furniture and monsters
+    const hit = tool === 'tiles' ? pickTile(cell, opts.tile.group) : pick(cell, edge, outer);
+    if (hit && (hit.kind === 'tile' || hit.kind === 'roomTile')) {
+      const cells =
+        hit.kind === 'tile'
+          ? (quest.boardTiles[hit.index]?.cells as Cell[] | undefined)
+          : quest.roomTiles[hit.index] && roomTileCells(quest, quest.roomTiles[hit.index]!);
+      if (cells && cells.length > 0) {
+        const box = tileBox(cells);
+        setDrag({ kind: hit.kind, index: hit.index, grab: cell, first: [box.x, box.y] });
+        svgRef.current?.setPointerCapture(e.pointerId);
+      }
+      return;
+    }
     if (hit && (hit.kind === 'furniture' || hit.kind === 'monster')) {
       const first =
         hit.kind === 'furniture'
@@ -491,12 +520,22 @@ export function EditorBoard({
       setDrag(null);
       if (cell && !sameCell(cell, d.grab)) {
         const to: Cell = [d.first[0] + cell[0] - d.grab[0], d.first[1] + cell[1] - d.grab[1]];
+        if ('index' in d) {
+          const { index, kind } = d;
+          // a refused drop changes nothing and the toast says why; the tile stays selected
+          store
+            .getState()
+            .apply((q) =>
+              kind === 'tile' ? moveBoardTile(q, index, to) : moveRoomTile(q, index, to),
+            );
+          store.getState().select({ kind, index });
+          return;
+        }
+        const { id, kind } = d;
         store
           .getState()
-          .apply((q) =>
-            d.kind === 'furniture' ? moveFurniture(q, d.id, to) : moveMonster(q, d.id, to),
-          );
-        store.getState().select({ kind: d.kind, id: d.id });
+          .apply((q) => (kind === 'furniture' ? moveFurniture(q, id, to) : moveMonster(q, id, to)));
+        store.getState().select({ kind, id });
         return;
       }
     }
@@ -1150,14 +1189,28 @@ export function EditorBoard({
       drag.first[0] + hover.cell[0] - drag.grab[0],
       drag.first[1] + hover.cell[1] - drag.grab[1],
     ];
-    const r =
-      drag.kind === 'furniture'
-        ? moveFurniture(quest, drag.id, to)
-        : moveMonster(quest, drag.id, to);
-    const f = quest.furniture.find((x) => x.id === drag.id);
-    const shape: Cell[] = f
-      ? f.cells.map((c) => [c[0] - drag.first[0] + to[0], c[1] - drag.first[1] + to[1]] as Cell)
-      : [to];
+    let r: EditResult;
+    let shape: Cell[];
+    if ('index' in drag) {
+      const cs =
+        drag.kind === 'tile'
+          ? ((quest.boardTiles[drag.index]?.cells ?? []) as Cell[])
+          : quest.roomTiles[drag.index]
+            ? roomTileCells(quest, quest.roomTiles[drag.index]!)
+            : [];
+      r =
+        drag.kind === 'tile'
+          ? moveBoardTile(quest, drag.index, to)
+          : moveRoomTile(quest, drag.index, to);
+      shape = cs.map((c) => [c[0] - drag.first[0] + to[0], c[1] - drag.first[1] + to[1]] as Cell);
+    } else {
+      const id = drag.id;
+      r = drag.kind === 'furniture' ? moveFurniture(quest, id, to) : moveMonster(quest, id, to);
+      const f = quest.furniture.find((x) => x.id === id);
+      shape = f
+        ? f.cells.map((c) => [c[0] - drag.first[0] + to[0], c[1] - drag.first[1] + to[1]] as Cell)
+        : [to];
+    }
     ghost.push(...ghostCells(shape, r.ok));
   } else if (active && tool === 'furniture')
     ghost.push(

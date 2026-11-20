@@ -726,3 +726,35 @@
   padding: 0 14px;
   min-height: 44px;
 }
+
+/* Tiles tool: one palette of tiles; the shapes of the picked tile sit in a row under its chip. */
+.ed-palette .chip {
+  font-size: 11px;
+  line-height: 1.15;
+  padding: 2px 3px;
+}
+.ed-palette .chip small {
+  display: block;
+  font: 700 9px 'Bonum';
+  letter-spacing: 0.04em;
+}
+.ed-palette .chip[aria-pressed='true'] small[data-full] {
+  color: var(--sel);
+}
+.ed-palette-shapes {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 6px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-2);
+}
+.ed-shapes {
+  display: contents;
+}
+.ed-palette-shapes .chip {
+  min-height: 44px;
+  font-size: 13px;
+  padding: 0 2px;
+}

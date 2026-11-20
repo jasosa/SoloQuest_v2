@@ -53,7 +53,7 @@ Ignored (players handle it): potions and alchemist shop, Mind Points and shock, 
 
 **Large monsters (#55).** Placement `size` (2x2) and anchor. Visible if any cell is revealed. Editor checks the footprint. Special rule text: the Frozen Horror can squeeze through 1-square corridors.
 
-**Terrain (#57, #60).** Icy river, ice ledge, chasm, ice vault: no effect on sight. Rule reminder on first reveal when Rule hints are on; always on tap.
+**Terrain (#57, #60).** Icy river, ice ledge, ice vault and the chasm room: no effect on sight. Rule reminder on first reveal when Rule hints are on; always on tap.
 
 **Ice tunnels (#58).** Paired markers with a design id (1, 2, 3...) drawn on the map. Note question "Did someone use it?" reveals the area at the other end. Tunnel rule (incl. landing on an occupied square pushes that figure to an adjacent square) shown with Rule hints and on tap.
 

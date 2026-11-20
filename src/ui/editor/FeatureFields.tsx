@@ -7,10 +7,12 @@ import { useStore } from 'zustand';
 import {
   knownFlags,
   removeBoardTileCell,
+  addCageToRoomTile,
+  cageOfRoomTile,
   resizeBoardTile,
   resizeRoomTile,
-  roomTileSizes,
   rotateRoomTile,
+  sizeKeepingTurn,
   tileUsage,
   rotateBoardTile,
   setBoardTileFlags,
@@ -19,7 +21,6 @@ import {
   setStart,
   setTunnelDesign,
   tileBox,
-  tileSizes,
 } from '../../engine/editor';
 import {
   BOARD_TILES,
@@ -27,6 +28,7 @@ import {
   footprintText,
   sizesText,
   tileSpec,
+  type Footprint,
 } from '../../engine/data/roomTiles';
 import { roomTileCells } from '../../engine/quest/roomTileCells';
 import { Toggle } from '../shared/Frame';
@@ -141,28 +143,12 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
             })}
       </p>
       {def.shape === 'fixed' && (
-        <>
-          <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
-          <div
-            className="ed-chips"
-            role="group"
-            aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
-          >
-            {tileSizes(tile.type).map(([w, h]) => (
-              <button
-                key={`${w}x${h}`}
-                className="chip"
-                aria-pressed={box.w === w && box.h === h}
-                onClick={() => st.apply((q) => resizeBoardTile(q, index, [w, h]))}
-              >
-                {w} x {h}
-              </button>
-            ))}
-          </div>
-          <button className="btn alt" onClick={() => st.apply((q) => rotateBoardTile(q, index))}>
-            {t('editor.FeatureFields.turn', 'Turn')}
-          </button>
-        </>
+        <SizeChips
+          footprints={def.footprints}
+          box={box}
+          onSize={(size) => st.apply((q) => resizeBoardTile(q, index, size))}
+          onTurn={() => st.apply((q) => rotateBoardTile(q, index))}
+        />
       )}
       <FlagField
         label={t('editor.FeatureFields.goneWhenThisFlag', 'Gone when this flag is set')}
@@ -204,6 +190,85 @@ export function TileFields({ store, index }: { store: EditorStore; index: number
   );
 }
 
+/**
+ * The sizes a tile comes in, each shape once (a 3 x 2 and a 2 x 3 are the same tile turned), and
+ * Turn. A tile with one size and a square shape shows nothing to pick.
+ */
+function SizeChips({
+  footprints,
+  box,
+  onSize,
+  onTurn,
+}: {
+  footprints: readonly Footprint[];
+  box: { w: number; h: number };
+  onSize(size: Footprint): void;
+  onTurn(): void;
+}) {
+  const matches = (f: Footprint) =>
+    (f[0] === box.w && f[1] === box.h) || (f[0] === box.h && f[1] === box.w);
+  const canTurn = footprints.some((f) => f[0] !== f[1]);
+  return (
+    <>
+      {footprints.length > 1 && (
+        <>
+          <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
+          <div
+            className="ed-chips"
+            role="group"
+            aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
+          >
+            {footprints.map((f, i) => (
+              <button
+                key={`${f[0]}x${f[1]}`}
+                className="chip"
+                aria-pressed={matches(f)}
+                onClick={() => onSize(sizeKeepingTurn(footprints, i, box))}
+              >
+                {f[0]} x {f[1]}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {canTurn && (
+        <button className="btn alt" onClick={onTurn}>
+          {t('editor.FeatureFields.turn', 'Turn')}
+        </button>
+      )}
+    </>
+  );
+}
+
+/** The cage a Cage Room may hold: it blocks sight until its flag is set (decision 93). */
+function CageOfRoom({ store, index }: { store: EditorStore; index: number }) {
+  const { quest } = useStore(store);
+  const st = store.getState();
+  const cage = cageOfRoomTile(quest, index);
+  const tile = quest.boardTiles[cage];
+  return (
+    <>
+      <div className="lbl">{t('editor.FeatureFields.cage', 'Cage')}</div>
+      {tile ? (
+        <>
+          <p className="ed-note" data-testid="cage-info">
+            {t('editor.FeatureFields.theCageIsOnSquares', 'The cage is on squares {cells}.', {
+              cells: tile.cells.map((c) => `${c[0]}, ${c[1]}`).join(' and '),
+            })}
+          </p>
+          <button className="btn alt" onClick={() => st.select({ kind: 'tile', index: cage })}>
+            {t('editor.FeatureFields.editTheCage', 'Edit the cage')}
+          </button>
+        </>
+      ) : (
+        <button className="btn alt" onClick={() => st.apply((q) => addCageToRoomTile(q, index))}>
+          {t('editor.FeatureFields.addTheCage', 'Add the cage')}
+        </button>
+      )}
+    </>
+  );
+}
+
 export function RoomTileFields({ store, index }: { store: EditorStore; index: number }) {
   const { quest } = useStore(store);
   const st = store.getState();
@@ -229,26 +294,13 @@ export function RoomTileFields({ store, index }: { store: EditorStore; index: nu
           },
         )}
       </p>
-      <div className="lbl">{t('editor.FeatureFields.size', 'Size')}</div>
-      <div
-        className="ed-chips"
-        role="group"
-        aria-label={t('editor.FeatureFields.tileSize', 'Tile size')}
-      >
-        {roomTileSizes(tv.type).map(([w, h]) => (
-          <button
-            key={`${w}x${h}`}
-            className="chip"
-            aria-pressed={box.w === w && box.h === h}
-            onClick={() => st.apply((q) => resizeRoomTile(q, index, [w, h]))}
-          >
-            {w} x {h}
-          </button>
-        ))}
-      </div>
-      <button className="btn alt" onClick={() => st.apply((q) => rotateRoomTile(q, index))}>
-        {t('editor.FeatureFields.turn', 'Turn')}
-      </button>
+      <SizeChips
+        footprints={def.footprints}
+        box={box}
+        onSize={(size) => st.apply((q) => resizeRoomTile(q, index, size))}
+        onTurn={() => st.apply((q) => rotateRoomTile(q, index))}
+      />
+      {tv.type === 'cageRoom' && <CageOfRoom store={store} index={index} />}
       {def.rule.map((line, i) => (
         <p className="ed-note" key={i}>
           {line}
