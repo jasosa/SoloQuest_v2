@@ -9,6 +9,8 @@
  */
 import type { Condition, Effect, Note, NoteTarget, Quest, Trigger } from '../quest/schema';
 import type { Cell } from './ops';
+import { mapForNewNote } from './maps';
+import { isMultiMap } from '../quest/maps';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
 /** X marks a spot on the map, so it is never handed out as a note letter. */
@@ -61,6 +63,8 @@ export interface NewNote {
   consumesTreasure?: boolean;
   /** Treasure search only: show the note, draw no card, and do not use up the search. */
   blocksSearch?: boolean;
+  /** Multi-map quests: the map the note is about. Default: the map on show for a map note. */
+  map?: string;
   id?: string;
 }
 
@@ -87,8 +91,17 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) return fail(`The note id "${id}" is not valid.`);
     if (q.notes.some((n) => n.id === id)) return fail(`A note with id ${id} already exists.`);
   } else id = newNoteId(q, letter);
+  const map =
+    input.map ??
+    mapForNewNote(q, {
+      letter,
+      at: input.at,
+      target: input.target,
+      trigger: input.trigger ?? { type: 'manual' },
+    });
   const note: Note = clean({
     id,
+    map,
     letter,
     at: input.at ? ([input.at[0], input.at[1]] as Cell) : undefined,
     target: input.target ? { kind: input.target.kind, id: input.target.id } : undefined,
@@ -115,6 +128,8 @@ export interface NotePatch {
   /** Square and zone notes: the mark stays on the map after the note fired. */
   keepMark?: boolean | null;
   blocksSearch?: boolean | null;
+  /** Multi-map quests: the map the note is about. `null` makes it a quest-wide note. */
+  map?: string | null;
 }
 
 export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
@@ -139,6 +154,11 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
   if (patch.target !== undefined)
     set('target', patch.target ? { kind: patch.target.kind, id: patch.target.id } : null);
   if (patch.trigger !== undefined) next.trigger = patch.trigger;
+  if (patch.map !== undefined) set('map', patch.map);
+  else if (patch.trigger !== undefined && n.map === undefined && isMultiMap(q)) {
+    const m = mapForNewNote(q, { trigger: patch.trigger });
+    if (m !== undefined) next.map = m;
+  }
   if (patch.when !== undefined) set('when', patch.when?.length ? patch.when : null);
   if (patch.effects !== undefined) next.effects = patch.effects;
   if (patch.consumesTreasure !== undefined)

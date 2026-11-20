@@ -545,9 +545,118 @@ export function QuestPanel({ store, only }: { store: EditorStore; only?: QuestPa
               ))}
             </select>
           </label>
+          <RuleExtras store={store} quest={quest} />
         </section>
       )}
     </div>
+  );
+}
+
+/** The rules `bounty` (gold per kind of monster) and `doorTeleport` (dice and squares). */
+function RuleExtras({ store, quest }: { store: EditorStore; quest: Quest }) {
+  const st = store.getState();
+  const bounty = quest.rules.bounty ?? {};
+  const tele = quest.rules.doorTeleport;
+  const free = MONSTER_TYPES.filter((t) => bounty[t] === undefined);
+  const setBounty = (next: Partial<Record<MonsterType, number>>) =>
+    st.apply((q) => setRules(q, { bounty: Object.keys(next).length === 0 ? null : next }));
+  const setTele = (patch: { dice?: string; squares?: string }) => {
+    const dice = (patch.dice ?? tele?.dice ?? '').trim();
+    const squares = (patch.squares ?? tele?.squares ?? '').trim();
+    if (dice === '' && squares === '') return st.apply((q) => setRules(q, { doorTeleport: null }));
+    if (dice === '' || squares === '') {
+      st.say('The door teleport rule needs both the dice and the squares.');
+      return false;
+    }
+    return st.apply((q) => setRules(q, { doorTeleport: { dice, squares } }));
+  };
+  return (
+    <>
+      <div className="lbl">Bounty (gold for a kind of monster)</div>
+      {(Object.entries(bounty) as [MonsterType, number][]).map(([type, gold]) => (
+        <div className="ed-row" key={type} data-testid="bounty-row" data-type={type}>
+          <div className="ed-row-head">
+            <span>{MONSTER_NAMES[type]}</span>
+            <button
+              className="chip"
+              aria-label={`Remove bounty ${type}`}
+              onClick={() => {
+                const { [type]: _gone, ...rest } = bounty;
+                void _gone;
+                setBounty(rest);
+              }}
+            >
+              Remove
+            </button>
+          </div>
+          <label className="ed-field">
+            Gold
+            <input
+              key={`${type}:${gold}`}
+              inputMode="numeric"
+              defaultValue={String(gold)}
+              aria-label={`Bounty ${type} gold`}
+              onBlur={(e) => {
+                const v = Number(e.target.value);
+                if (v === gold) return;
+                if (!Number.isInteger(v) || v < 0) {
+                  st.say('Gold is a whole number, 0 or more.');
+                  e.target.value = String(gold);
+                  return;
+                }
+                setBounty({ ...bounty, [type]: v });
+              }}
+            />
+          </label>
+        </div>
+      ))}
+      {free.length > 0 && (
+        <label className="ed-field">
+          Add a bounty
+          <select
+            className="es-select"
+            aria-label="Add a bounty"
+            value=""
+            onChange={(e) => {
+              if (e.target.value) setBounty({ ...bounty, [e.target.value]: 10 });
+            }}
+          >
+            <option value="">Pick a monster</option>
+            {free.map((t) => (
+              <option key={t} value={t}>
+                {MONSTER_NAMES[t]}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <div className="lbl">Door teleport</div>
+      <label className="ed-field">
+        Dice
+        <input
+          key={`dice:${tele?.dice ?? ''}`}
+          defaultValue={tele?.dice ?? ''}
+          placeholder="None"
+          aria-label="Door teleport dice"
+          onBlur={(e) => {
+            if (e.target.value.trim() !== (tele?.dice ?? '')) setTele({ dice: e.target.value });
+          }}
+        />
+      </label>
+      <label className="ed-field">
+        Squares
+        <input
+          key={`squares:${tele?.squares ?? ''}`}
+          defaultValue={tele?.squares ?? ''}
+          placeholder="None"
+          aria-label="Door teleport squares"
+          onBlur={(e) => {
+            if (e.target.value.trim() !== (tele?.squares ?? ''))
+              setTele({ squares: e.target.value });
+          }}
+        />
+      </label>
+    </>
   );
 }
 

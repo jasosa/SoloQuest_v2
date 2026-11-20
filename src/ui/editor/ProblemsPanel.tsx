@@ -29,7 +29,10 @@ export function ProblemsPanel({ store, issues }: { store: EditorStore; issues: r
         <ul className="ed-issues-list">
           {sorted.map((i, n) => (
             <li key={`${n}:${i.message}`} className={i.severity}>
-              <button data-testid="problem-row" onClick={() => store.getState().jump(i.ref)}>
+              <button
+                data-testid="problem-row"
+                onClick={() => store.getState().jump(i.ref, i.message)}
+              >
                 <b>{i.severity === 'error' ? 'Problem' : 'Warning'}</b>
                 <span className="ed-issue-kind">{refLabel(i.ref)}</span>
                 <span className="ed-issue-text">{i.message}</span>

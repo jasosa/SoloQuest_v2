@@ -198,10 +198,10 @@ Order of work. Slices 1 to 6 need no book; slice 7 needs the Frozen Horror PDFs 
   - [x] 4d: terrain tiles (ice ledge, icy river, chasm) with their rule in the note of the square or room, the Rule hints setting (reminder on first reveal of terrain and room tiles, and the free-movement hint). Rule hints are a per-quest setting (see decision 84)
   - [x] 4e: sight-blocking tiles until a flag (`blocks` on a board tile, the Q0 cage) and the `replaceFurnitureWithDoor` effect (the Q0 throne). Quest 0 uses both
   - [x] 4f: ice tunnels as a quest field with design numbers, drawn on the board, `TUNNEL_USE` (decision 81). The editor cannot place tunnels, tiles or edge doors yet (slice 7)
-  - [ ] 4g: the wandering monster list with counts for a wandering monster CARD
-- [ ] Slice 5: notes: a question on a letter and a hidden part (decision 53) and the new effects (`removeDoor`, `showDoor`, `removeMonster`, `excludeTarget`, `replaceFurnitureWithDoor`, clear a sight blocker, `crossMap`)
+  - [x] 4g: the wandering monster CARD brings the quest's `count` monsters like the trap (a square per monster, all attack the searching hero at once)
+- [x] Slice 5: notes (audit done 2026-11-20): everything in the list already exists: a question on a letter with a hidden part is a `manual` note with `promptChoice` (decision 53, QUEST_FORMAT.md), `removeDoor`, `showDoor` (door `hiddenUntil` plus `setFlag`: no separate effect), `removeMonster` (`setMonsterState` away; `monsterLeft` trigger), `replaceFurnitureWithDoor`, clear a sight blocker (board tile `blocks` with `hiddenWhen` a flag), `crossMap`. Skipped on purpose: `excludeTarget` (and the quest field `excludeTargets`). Targets are heroes only today, because the team list and NPC/mercenary targets (M9 slices 3 and 4) are not built, so there is nothing to exclude; Gothar of Frozen Horror quest 3 stays a note text ("monsters go only for the Barbarian"). Build it with M9 slice 4
 - [x] Slice 6: multi-map quests (Q9 and Q10): `maps` and links, crossing as one event (the `crossMap` effect and the `CROSS_MAP` event), the map name in the header, one entry in the quest list. The editor tab per map and the link tool are slice 7
-- [ ] Slice 7: editor: pack tools, a tab per map, the link tool, the spell builder; then encode Q0 and Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
+- [ ] Slice 7: editor for double quests is DONE (2026-11-20): a tab per map, New map and Delete map, map name and id, the link tool (join two stairways, refused unless both ends are on stairs), notes scoped to a map (the `map` dropdown in the action form), merged rooms (`areaOverrides`), monster `size`, rules `bounty` and `doorTeleport`; the editor opens the whole bundled double quest (the copy used to take map 1 only). Still open: pack tools, then encode Q1 to Q10 with overlays and walk-through tests (needs the book PDFs); confirm the dark square near F in Q0
 
 ## Bugs from the quest 0 review (owner, 2026-11-18)
 
@@ -271,7 +271,7 @@ Goal: a user changes the look of play mode by applying a texture pack, for an ex
 - [x] Encode Frozen Horror quests 1 to 8 (map read from the scan, checked by script overlays; the owner still reviews each in the editor). Quests 9 and 10 need multi-map quests (M10 slice 6)
 - [x] Editor map: draw and place tunnels, tiles and edge doors on the board (done 2026-11-20: Tiles tool, door kinds and flags in the inspector; the Quest tab keeps only the way out and the texture pack)
 - [x] Editor can model the Frozen Horror behaviors (audit table in `FROZEN_HORROR.md`, section 9): `attackOnly`, `passive`, attacks per turn, objective done rules and confirm buttons, wandering count and enemy, characters (NPCs), end text, entry and exit doors in door lists, the general `monsterLeft` trigger, enemy attacks and size in the Designer. The unused `surrendered` leave reason is gone: a surrender is an action
-- [ ] Editor, still without a form: merged rooms (`areaOverrides`), maps and links of a double quest (slice 7), monster-level `size`, the rules `bounty` and `doorTeleport`
+- [x] Editor forms for merged rooms (`areaOverrides`), maps and links of a double quest, monster-level `size`, the rules `bounty` and `doorTeleport` (done 2026-11-20, M10 slice 7)
 
 ## Tile limits and fixed sizes (owner, 2026-11-20)
 

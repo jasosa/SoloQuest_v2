@@ -52,6 +52,8 @@ export type GameEvent =
       readonly hero: Hero;
       /** The square the players put it on, next to the hero (decision 66). */
       readonly cell?: Cell | undefined;
+      /** One square per monster when the quest brings several (`wandering.count`). */
+      readonly cells?: readonly Cell[] | undefined;
     }
   /** A monster the players add in play (a spell, an event): a type and the square they put it on. */
   | { readonly type: 'ADD_MONSTER'; readonly monsterType: MonsterType; readonly cell: Cell }

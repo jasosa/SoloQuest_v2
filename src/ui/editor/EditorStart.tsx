@@ -334,7 +334,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 className="btn alt"
                 disabled={copyOf === ''}
                 onClick={() => {
-                  const q = bundled.find((b) => String(b.slot) === copyOf)?.level?.quest;
+                  const found = bundled.find((b) => String(b.slot) === copyOf);
+                  const q = found?.source ?? found?.level?.quest;
                   if (q) {
                     setPopup(null);
                     void take(exportQuest(q));
@@ -348,7 +349,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 disabled={copyOf === ''}
                 onClick={() => {
                   const entry = bundled.find((b) => String(b.slot) === copyOf);
-                  const q = entry?.level?.quest;
+                  const q = entry?.source ?? entry?.level?.quest;
                   if (!q || !entry) return;
                   setPopup(null);
                   void take(exportQuest(q)).then((made) => {

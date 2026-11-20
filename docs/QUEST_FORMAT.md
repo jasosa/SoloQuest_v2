@@ -193,7 +193,7 @@ Terrain is a board tile too: `icyRiver`, `iceLedge` and `chasm` (squares of the 
 
 `boardTiles: [{ "type": "iceCaveEntrance", "cells": [[0,7],[1,7]] }, { "type": "cage", "cells": [[6,2],[7,2],[6,3],[7,3]], "hiddenWhen": "cageOpen" }]` draws a labeled tile on squares (types in `src/engine/data/roomTiles.ts`). The cave entrance shows from the start and may lie over rock; a cage shows with its squares and goes when the flag `hiddenWhen` is set. A tile with `"blocks": true` (needs `hiddenWhen`) also blocks line of sight and squares until that flag is set (decision 56: the cage of Q0 until the lever). Rooms still reveal whole: the monsters inside a cage are seen with the room.
 
-`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count` for a wandering monster trap.
+`wandering` may name an enemy of the quest: `{ "monster": "goblin", "enemy": "iceGremlin" }` (`monster` is the carrier type, the enemy gives name, stats, plan and abilities), also with `count`: a wandering monster trap and a wandering monster card both bring `count` monsters. The players give a square per monster (`WANDERING_MONSTER` takes `cells`); all attack the searching hero at once.
 
 An NPC such as an animal ally (`npcs`, with `spawnNpc` on the first note) shows with its stats in the Companions list.
 
@@ -267,3 +267,8 @@ One quest can have more than one map. The board fields at the top of the quest (
 ## Pack
 
 A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose manifest lists it (`PACKS.md`); a quest made in the editor is in no pack. `number` is 1 to 14 in the core book and may be 0 (a prelude).
+
+
+## Editing a double quest
+
+The editor shows one map at a time (a chip per map on the Map tab). Inside, the map on show is swapped into the top-level fields, so every single-map edit works on it, and the saved draft, undo and the exported file always keep map 1 on top. New ids skip the ids of the other maps. A new note about a letter, a square or a room names the map on show (`map`); a quest-wide note names none. The link tool refuses a link unless both ends are on stairs furniture of two different maps. Deleting a map also deletes the notes that name it and the links that end on it; a quest left with one map has no `maps`, `links`, `mapId` or note `map` any more.

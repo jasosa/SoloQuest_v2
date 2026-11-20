@@ -218,7 +218,7 @@ function Game({ params }: { params: URLSearchParams }) {
         }
       }
       if (open && openId) {
-        const ok = open.getState().apply((q) => {
+        const ok = open.getState().applyQuest((q) => {
           const next = fn(q);
           return next ? { ok: true, quest: next, warnings: [] } : { ok: false, error: 'unchanged' };
         });

@@ -43,6 +43,10 @@ export function wanderingLines(p: Extract<Prompt, { kind: 'wanderingMonster' }>)
   const hero = HERO_NAMES[p.hero];
   const name = p.name ?? MONSTER_NAMES[p.monsterType as MonsterType];
   const dice = p.attackDice ?? MONSTER_STATS[p.monsterType].att;
+  if (p.of && p.of > 1)
+    return [
+      `${name} ${p.number} of ${p.of}: put it ${p.number === 1 ? 'on a free square next to' : 'as close as you can to'} the ${hero}. It attacks the ${hero} at once with ${dice} attack dice. This round it attacks nobody else.`,
+    ];
   return [
     `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${dice} attack dice. This round it attacks nobody else.`,
   ];

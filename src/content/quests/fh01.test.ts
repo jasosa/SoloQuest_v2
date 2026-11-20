@@ -303,14 +303,14 @@ describe('quest 1: the east side', () => {
 });
 
 describe('quest 1: wandering monsters and hazards', () => {
-  it('the wandering monsters are Skeletons: the card brings one, the trap in R01 brings the pair', () => {
+  it('the wandering monsters are Skeletons: the card and the trap in R01 both bring the pair', () => {
     const card = reduce(level, run(...toR18), {
       type: 'WANDERING_MONSTER',
       room: 'R18',
       hero: 'barbarian',
     });
-    const one = monstersInPlay(level, card.state).filter((m) => m.id.startsWith('w'));
-    expect(one.map((m) => m.type)).toEqual(['skeleton']);
+    const two = monstersInPlay(level, card.state).filter((m) => m.id.startsWith('w'));
+    expect(two.map((m) => m.type)).toEqual(['skeleton', 'skeleton']);
     const trap = reduce(level, run(...toR01), { type: 'TRAP_STEP', trap: 't-wander-1' });
     const pair = monstersInPlay(level, trap.state).filter((m) => m.id.startsWith('w'));
     expect(pair.map((m) => m.type)).toEqual(['skeleton', 'skeleton']);

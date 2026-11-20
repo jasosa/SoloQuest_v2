@@ -209,15 +209,15 @@ Audit of the nine shipped Frozen Horror quests (Q0 to Q8) plus core quest 12 (fa
 | Character that joins the heroes | Q0 wolf, Q3 Gothar | `npcs`, effect `spawnNpc` | the effect yes; the character itself had no form: new Characters panel (Quest tab) |
 | A question to the players with different results | Q0 C, Q4 B, Q5 B, Q8 G | `manual` action with `promptChoice`, nested effects | yes |
 | Conditions on flags, monsters alive or slain, doors open, rooms revealed, monsters seen | Q0, Q3, Q4, Q5, Q8 | `when` | yes; entry and exit doors are now in the door lists |
-| Cross to the other map | Q9, Q10 | effect `crossMap`, `maps`, `links` | the effect yes; creating maps and links is slice 7 (tab per map), not yet |
+| Cross to the other map | Q9, Q10 | effect `crossMap`, `maps`, `links` | yes: effect, a tab per map, New map, Delete map and the link tool (slice 7) |
 | Wandering monster with a count and an enemy | Q0 to Q8 | `wandering` `{ monster, count, enemy }` | yes: count and enemy were lost on every edit before (new) |
 | Objective done rule, confirm button and its conditions | all | objective `done`, `confirm`, `confirmWhen` | yes: full objective form (new); before only the text |
 | Endings, end text, leave text | Q3, Q0, Q8 | `endings`, `endText`, `leave` | yes: `endText` is new in the Ending panel; `leave` is in Board features |
-| Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools (separate work). Merging rooms (`areaOverrides`): file only, kept on import and export, no form |
-| Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer (new field); not per monster |
-| Quest rules `bounty`, `doorTeleport` | core only | `rules` | no form (no Frozen Horror quest uses them) |
+| Rooms merged into one, tunnels, tiles, edge doors | Q10 K, Q0, Q2, Q5, Q8 | `areaOverrides`, `tunnels`, `boardTiles`, `roomTiles`, `edgeDoors` | tunnels, tiles, edge doors: map tools. Merging rooms (`areaOverrides`): Merged rooms panel in the Quest tab (map on show) |
+| Large monster (2 x 2) | Frozen Horror | `size` on the enemy | yes: per enemy in the Designer, and per monster in the Monsters tab (Size) |
+| Quest rules `bounty`, `doorTeleport` | core only | `rules` | yes: Rules panel of the Quest tab |
 
-Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a wandering monster CARD that brings several monsters (backlog 4g: only the trap uses `count`; the owner decides if the card should too), a condition on a tile.
+Pieces the audit did NOT need, so they were not built: a `monsterAttacked` trigger (the "A hero attacked it" button on the monster is a `manual` action, and the app does not track attacks), an effect that unlocks a door (a flag does it), a `removeMonster` effect (`setMonsterState` away), a condition on a tile.
 
 ---
 

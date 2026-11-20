@@ -343,7 +343,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const [adding, setAdding] = useState<
     | { t: 'type'; type: MonsterType }
     | { t: 'pick'; type: MonsterType }
-    | { t: 'wander'; room: string; hero: Hero; anchor: Anchor }
+    | {
+        t: 'wander';
+        room: string;
+        hero: Hero;
+        anchor: Anchor;
+        total: number;
+        cells: [number, number][];
+      }
     | null
   >(null);
   const pickedCell = (picked: readonly [number, number]) => {
@@ -358,9 +365,13 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       )
         setAdding(null);
     } else if (adding.t === 'wander') {
-      if (
+      // One square per monster of the card (the quest's `count`), then one event.
+      const cells = [...adding.cells, cell];
+      if (cells.length < adding.total) {
+        setAdding({ ...adding, cells });
+      } else if (
         run(
-          { type: 'WANDERING_MONSTER', room: adding.room, hero: adding.hero, cell },
+          { type: 'WANDERING_MONSTER', room: adding.room, hero: adding.hero, cells },
           adding.anchor,
         )
       )
@@ -377,7 +388,14 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         ? () => {
             // The players put it next to the hero and tell the app the square (decision 66).
             setRes(null);
-            setAdding({ t: 'wander', room, hero, anchor: res.anchor });
+            setAdding({
+              t: 'wander',
+              room,
+              hero,
+              anchor: res.anchor,
+              total: wandering && 'monster' in wandering ? (wandering.count ?? 1) : 1,
+              cells: [],
+            });
           }
         : undefined;
     const stages = resultStages(res.prompts);
@@ -1099,7 +1117,9 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
             ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
-            : `Tap the square where you put the wandering monster, next to the ${HERO_NAMES[adding.hero]}.`}
+            : adding.total > 1
+              ? `Tap the square where you put wandering monster ${adding.cells.length + 1} of ${adding.total}, ${adding.cells.length === 0 ? 'next to' : 'as close as you can to'} the ${HERO_NAMES[adding.hero]}.`
+              : `Tap the square where you put the wandering monster, next to the ${HERO_NAMES[adding.hero]}.`}
           <button className="link" onClick={() => setAdding(null)}>
             Cancel
           </button>

@@ -34,7 +34,7 @@ function download(name: string, text: string) {
 }
 
 export function exportDraft(store: EditorStore) {
-  const { quest, say } = store.getState();
+  const { canon: quest, say } = store.getState();
   const r = exportQuestChecked(quest);
   if (!r.ok) {
     say(
@@ -53,10 +53,10 @@ type Pending =
   | { kind: 'confirm'; quest: Quest; notes: readonly string[]; warnings: Issue[] };
 
 function load(store: EditorStore, quest: Quest, warnings: Issue[]) {
-  const cur = store.getState().quest;
+  const cur = store.getState().canon;
   // The draft keeps its own id, so Save writes to the same quest.
   const next: Quest = { ...quest, id: cur.id };
-  const ok = store.getState().apply(() => ({ ok: true, quest: next, warnings }));
+  const ok = store.getState().applyQuest(() => ({ ok: true, quest: next, warnings }));
   if (ok) {
     store.getState().select(null);
     store.getState().say(`Imported ${next.title}. Undo brings the old draft back.`);
@@ -77,7 +77,7 @@ export function ImportButton({ store }: { store: EditorStore }) {
       return;
     }
     const notes = r.warnings.map((w) => w.message);
-    if (isBlank(s.quest)) {
+    if (isBlank(s.canon)) {
       load(store, r.quest, r.warnings);
       return;
     }

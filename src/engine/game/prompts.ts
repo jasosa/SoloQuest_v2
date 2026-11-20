@@ -132,6 +132,9 @@ export type Prompt =
       readonly attackDice?: number;
       readonly hero: Hero;
       readonly room: AreaId;
+      /** When the card brings several monsters: this is number `number` of `of`. */
+      readonly number?: number;
+      readonly of?: number;
       readonly placement: {
         readonly nextToHero: Hero;
         readonly attacksAtOnce: true;
