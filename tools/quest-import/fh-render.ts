@@ -1,5 +1,5 @@
 /**
- * Render the Frozen Horror quest maps: `npm run render:maps -- fh [N ...]` (N from 0 to 8, all when
+ * Render the Frozen Horror quest maps: `npm run render:maps -- fh [N ...]` (N from 0 to 10, all when
  * left out). Writes reference/maps/fhNN.png (the whole page, upright, 300 dpi) and fhNN-map.png
  * (the crop around the board). reference/ is git-ignored (copyrighted material).
  * Needs Poppler (`pdftoppm`) and Playwright's Chromium (it does the turn and crop).

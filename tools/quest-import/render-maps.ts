@@ -4,7 +4,7 @@
  *
  *   npm run render:maps            all 14 quests
  *   npm run render:maps -- 3 5     only quests 3 and 5
- *   npm run render:maps -- fh [N]  Frozen Horror quests 0 to 8 (see fh-render.ts)
+ *   npm run render:maps -- fh [N]  Frozen Horror quests 0 to 10 (see fh-render.ts)
  *
  * Writes reference/maps/qNN.png (full page, 300 dpi) and qNN-map.png (crop of the map frame).
  */
@@ -51,11 +51,11 @@ export function pdftoppmArgs(pdf: string, quest: number, outBase: string, crop: 
 export function parseFhArgs(args: string[]): number[] | undefined {
   if (args[0] !== 'fh') return undefined;
   const nums = args.slice(1).map(Number);
-  if (nums.some((q) => !Number.isInteger(q) || q < 0 || q > 8)) {
-    console.error('Frozen Horror quest numbers go from 0 to 8.');
+  if (nums.some((q) => !Number.isInteger(q) || q < 0 || q > 10)) {
+    console.error('Frozen Horror quest numbers go from 0 to 10.');
     process.exit(1);
   }
-  return nums.length ? nums : Array.from({ length: 9 }, (_, i) => i);
+  return nums.length ? nums : Array.from({ length: 11 }, (_, i) => i);
 }
 
 async function main(): Promise<void> {

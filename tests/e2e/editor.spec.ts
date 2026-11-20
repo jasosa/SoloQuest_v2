@@ -299,7 +299,7 @@ test.describe('editor: storage and files', () => {
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.locator('.qcard', { hasText: 'Trial by Ice, edited' })).toHaveCount(1);
-    await expect(page.locator('.qcard')).toHaveCount(9);
+    await expect(page.locator('.qcard')).toHaveCount(10);
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
   });
@@ -1606,7 +1606,7 @@ test('the editor lists the Frozen Horror quests that share a number with a core 
   await page.goto('/?editor=1&nosave=1');
   await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
   const options = page.getByLabel('Bundled quest').locator('option');
-  await expect(options).toHaveCount(1 + 14 + 9);
+  await expect(options).toHaveCount(1 + 14 + 10);
   await page.getByLabel('Bundled quest').selectOption('103');
   await page.getByRole('button', { name: 'Edit it now' }).click();
   await expect(board(page)).toBeVisible();

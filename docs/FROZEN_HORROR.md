@@ -153,6 +153,8 @@ New effects: `removeDoor`, door `hiddenUntil: flag`, `replaceFurnitureWithDoor`,
 - End: Frozen Horror killed, wherever the heroes are.
 - Editor: one tab per map, link tool, validation that every link has both ends.
 
+As built (`fh09-the-heart-of-ice.json`, maps "The Frozen Halls" and "The Catacombs"): the crossing is a `manual` note on each stairway (button on the stairs, question "Are all heroes on the stairway?", `crossMap` last). The key is two flags: `crystalKey` (the heroes hold it, set by the chest M or by taking it back in the Gremlin hoard, cleared when a Gremlin escapes with it) and `keyTurned` (set by the door button of F, the flag the door `lockedUntil` waits for). `keyFound` stays set for the goal. A `monsterLeft` note (reason `escaped`, only while `crystalKey` is set) asks "Was the stolen item the Crystal Key?"; the hoard room K then has a button (target: the room) that gives it back. The Frozen Horror and its guards are on map 1 (room R11); the key chest is on map 2 (room R21).
+
 ---
 
 ## 8. Q0 prelude: Into the Northlands (#36, #38, #51, #56, #58)

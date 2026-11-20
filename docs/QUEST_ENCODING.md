@@ -31,14 +31,14 @@ Green circles with faces on the quest maps (see the "Design Your Own Quest Adven
 
 ## Frozen Horror quests
 
-File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rendering and overlay work like the core quests, with an `fh` first argument (quests 0 to 8):
+File names are `fhNN-<slug>.json` (the pack id is in the quest as `pack`). Rendering and overlay work like the core quests, with an `fh` first argument (quests 0 to 10):
 
 ```bash
 npm run render:maps -- fh [N ...]   # reference/maps/fhNN.png (whole page, upright) and fhNN-map.png (crop of the board)
 npm run overlay -- fh N [--grid]    # reference/overlays/fhNN.png and fhNN-zoom-{nw,ne,sw,se}.png
 ```
 
-Where each map sits is in the table `tools/quest-import/fh-maps.ts` (PDF, page, turn, grid, all at 300 dpi). Quest 0 is page 1 of the online prelude (letter page, upright, grid corner (349, 482), about 71.6 x 71.8 px a square). Quests 1 to 8 are on pages 8 to 15 of the quest pack: each page is a print spread of 3900 x 3000 pixels with the real page turned a quarter turn, so the tool turns it 90 degrees clockwise (3000 x 3900) before cropping. The squares there are about 82.5 to 83.1 px wide. The grid corner and pitch of each quest were fitted on the grid lines and checked on the overlays (all nine line up within a few pixels). `render:maps -- fh` needs Poppler and Playwright's Chromium (it does the turn and crop). Set `FH_BOOK_PDF` or `FH_PRELUDE_PDF` if the PDFs are not in the default folder. The overlay also draws edge doors (iron entry in green, wooden exit in red), tunnel ends (`T` and the design number), board tiles and room tiles. The symbols are in the "Design Your Own" legend of each book.
+Where each map sits is in the table `tools/quest-import/fh-maps.ts` (PDF, page, turn, grid, all at 300 dpi). Quest 0 is page 1 of the online prelude (letter page, upright, grid corner (349, 482), about 71.6 x 71.8 px a square). Quests 1 to 10 are on pages 8 to 17 of the quest pack: each page is a print spread of 3900 x 3000 pixels with the real page turned a quarter turn, so the tool turns it 90 degrees clockwise (3000 x 3900) before cropping. The squares there are about 82.5 to 83.1 px wide. The grid corner and pitch of each quest were fitted on the grid lines and checked on the overlays (all of them line up within a few pixels). Quests 9 and 10 are the two maps of ONE quest file, `fh09-the-heart-of-ice.json`: `overlay -- fh 9` draws map 1 and `overlay -- fh 10` draws map 2 of that file (`fhFile` in `fh-maps.ts`). `render:maps -- fh` needs Poppler and Playwright's Chromium (it does the turn and crop). Set `FH_BOOK_PDF` or `FH_PRELUDE_PDF` if the PDFs are not in the default folder. The overlay also draws edge doors (iron entry in green, wooden exit in red), tunnel ends (`T` and the design number), board tiles and room tiles. The symbols are in the "Design Your Own" legend of each book. A white L-shaped slab with a cracked corner, with its thick bar along one wall of a square, is a SECRET DOOR on that wall (the book draws them, for example quest 8 at (21,8), (18,17) and quest 9 at (9,17), (18,17), (21,5)). An orange diagonal with a leaf-shaped head is a spear, an orange wavy diagonal with holes is a stalactite, an orange box with a bowtie is a swinging axe, a green hand on a corridor square is the wandering monster trap, green cracked stone is slippery ice (tiles: 1 x 1, 2 x 1, 3 x 1, 3 x 2), a dark textured strip is an icy river, and a cupboard looks like a bookcase without the book. A door symbol on the board edge with the arrow pointing at it is the iron entry, with the arrow pointing away the wooden exit.
 
 | # | Quest | Map | Notes | Validate | Overlay | Walk-through | Owner review |
 |---|---|---|---|---|---|---|---|
@@ -51,7 +51,7 @@ Where each map sits is in the table `tools/quest-import/fh-maps.ts` (PDF, page, 
 | 6 | The Frosted Path | done | start, A to G | ok | ok (by script) | ok (fh06.test.ts) | |
 | 7 | The Halls of Kelvinos | done | start, A to D, living fog | ok | ok (by script) | ok (fh07.test.ts) | |
 | 8 | The Search for the Scepter | done | start, B, C, F, G, scepter question | ok | ok (by script) | ok (fh08.test.ts) | |
-| 9 and 10 | double quest | not started | needs multi-map quests (M10 slice 6) | | | | |
+| 9 and 10 | The Heart of Ice (double quest, one file `fh09`) | done, both maps | start, A to F (map 1), G to M (map 2), crossing, Crystal Key and key door, Gremlin steals the key | ok | ok (by script, `fh 9` and `fh 10`) | ok (fh09.test.ts, tests/e2e/fh09.spec.ts) | |
 
 ## Status
 

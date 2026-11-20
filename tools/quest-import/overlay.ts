@@ -3,7 +3,7 @@
  *
  * Reads reference/maps/qNN-map.png and src/content/quests/qNN-*.json (if it exists),
  * writes reference/overlays/qNN.png and four quarter crops qNN-zoom-{nw,ne,sw,se}.png at 100%.
- * `npm run overlay -- fh N [--grid]` does the same for Frozen Horror quest N (0 to 8): fhNN-map.png,
+ * `npm run overlay -- fh N [--grid]` does the same for Frozen Horror quest N (0 to 10; 9 and 10 are the two maps of fh09): fhNN-map.png,
  * fhNN-*.json, fhNN.png (calibration in fh-maps.ts).
  * `--grid` also draws the cell coordinates (use it to read the scan before the JSON exists).
  * reference/ is git-ignored.
@@ -13,8 +13,9 @@ import { join, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 import { board } from '../../src/engine/board/board';
 import { parseQuest } from '../../src/engine/quest/loader';
+import { questMaps } from '../../src/engine/quest/maps';
 import type { Quest } from '../../src/engine/quest/schema';
-import { fhCalibration } from './fh-maps';
+import { fhCalibration, fhFile } from './fh-maps';
 import { buildOverlaySvg, DEFAULT_CALIBRATION } from './overlay-svg';
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -22,11 +23,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
 function loadQuest(n: number, prefix: string): Quest | undefined {
   const dir = resolve('src', 'content', 'quests');
   if (!existsSync(dir)) return undefined;
+  const [fileNo, mapNo] = prefix === 'fh' ? fhFile(n) : [n, 0];
   const file = readdirSync(dir).find(
-    (f) => f.startsWith(`${prefix}${pad(n)}-`) && f.endsWith('.json'),
+    (f) => f.startsWith(`${prefix}${pad(fileNo)}-`) && f.endsWith('.json'),
   );
   if (!file) return undefined;
-  return parseQuest(JSON.parse(readFileSync(join(dir, file), 'utf8')));
+  const quest = parseQuest(JSON.parse(readFileSync(join(dir, file), 'utf8')));
+  return questMaps(quest)[mapNo]?.quest;
 }
 
 async function main(): Promise<void> {
@@ -35,11 +38,11 @@ async function main(): Promise<void> {
   const fh = args[0] === 'fh';
   const prefix = fh ? 'fh' : 'q';
   const n = Number(args.find((a) => /^\d+$/.test(a)));
-  const [lo, hi] = fh ? [0, 8] : [1, 14];
+  const [lo, hi] = fh ? [0, 10] : [1, 14];
   if (!Number.isInteger(n) || n < lo || n > hi) {
     console.error(
       fh
-        ? 'usage: npm run overlay -- fh N [--grid]   (N from 0 to 8)'
+        ? 'usage: npm run overlay -- fh N [--grid]   (N from 0 to 10)'
         : 'usage: npm run overlay -- N [--grid]   (N from 1 to 14)',
     );
     process.exit(1);
