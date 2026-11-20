@@ -428,4 +428,6 @@ This replaces the quest list with pack tabs, its right column and the New game p
 
 **Settings.** A page with two menu buttons: **Textures** (caption: the pack in use or "Built-in look") and **Translations** (caption: the language in use or "English"). They open the same dialogs as before.
 
-**Returning.** After leaving a game the app returns to the page it started from: the start page of the quest, or the campaign overview, so the next quest is one tap away.
+**Returning.** After leaving a game the app returns to the page it started from: the start page of the quest, or the campaign overview, so the next quest is one tap away. The page is not kept across a reload: a reload goes to Home, saved games stay. The page only changes once the game has opened. The status of a quest is only Done, Saved game or Next, and the overview names only who fell in the last quest (hard rule 2 and decision 32: no casualties per quest).
+
+**Deleting a campaign.** "Delete this campaign" asks first and says it forgets the saved games of that campaign too; they are deleted with it. A saved game of a campaign that no longer exists is not offered by Continue. A campaign whose pack is not installed is listed disabled with its own Delete link.

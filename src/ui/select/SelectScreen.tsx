@@ -3,7 +3,13 @@ import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
 import { nextCampaignSlot } from '../../engine/pack/campaign';
 import type { CampaignStore } from '../../persist/campaigns';
-import { orphanSaves, resume, type OrphanSave, type SaveStore } from '../../persist/saves';
+import {
+  campaignOfSave,
+  orphanSaves,
+  resume,
+  type OrphanSave,
+  type SaveStore,
+} from '../../persist/saves';
 import { clearOverride, getOverrides } from '../../persist/questOverrides';
 import type { UserQuestStore } from '../../persist/userQuests';
 import { useFitMode } from '../FitToScreen';
@@ -55,7 +61,8 @@ export interface SelectScreenProps {
   saves: SaveStore;
   /** The campaigns of this device. */
   campaigns: CampaignStore;
-  onStart(choice: StartChoice): void;
+  /** Returns false when the game could not be opened. */
+  onStart(choice: StartChoice): boolean;
   /** The page shown. The app keeps it, so a finished game returns to the page it started from. */
   route: Route;
   onRoute(route: Route): void;
@@ -186,6 +193,8 @@ export function SelectScreen({
   }, [edited, mine]);
   const byKey = useMemo(() => new Map(playables.map((p) => [p.key, p])), [playables]);
 
+  // Counts up when a campaign is deleted: the lists are read again.
+  const [tick, setTick] = useState(0);
   // Saved games: the newest one that opens (Home), and those no quest here matches.
   const [saveList, setSaveList] = useState<readonly { questId: string; campaignId?: string }[]>([]);
   const [last, setLast] = useState<LastGame | null | undefined>();
@@ -208,6 +217,9 @@ export function SelectScreen({
       for (const g of all) {
         const p = playables.find((x) => x.level.quest.id === g.questId);
         if (!p) continue;
+        // a game of a campaign that is gone would play without a campaign: not offered
+        const cid = campaignOfSave(g);
+        if (cid !== undefined && !campaigns.get(cid)) continue;
         const r = await resume(saves, p.level);
         if (r.ok) {
           newest = { playable: p, resumed: r };
@@ -218,9 +230,7 @@ export function SelectScreen({
       setSaveList(
         all.map((g) => ({
           questId: g.questId,
-          ...((g.campaignId ?? (g.campaign ? g.pack : undefined)) !== undefined
-            ? { campaignId: (g.campaignId ?? g.pack)! }
-            : {}),
+          ...(campaignOfSave(g) !== undefined ? { campaignId: campaignOfSave(g)! } : {}),
         })),
       );
       setOrphans(found);
@@ -229,10 +239,9 @@ export function SelectScreen({
     return () => {
       live = false;
     };
-  }, [saves, playables]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saves, playables, tick]);
 
-  const [tick, setTick] = useState(0);
-  void tick; // the campaigns are read again after a change
   const go = onRoute;
 
   const encodedIn = (packId: string) =>
@@ -246,6 +255,18 @@ export function SelectScreen({
   const others = playables.filter((p) => p.pack === undefined);
 
   const startChoice = (choice: StartChoice) => onStart(choice);
+  /** Forget a campaign and the saved games that belong to it (they must not show up in the next campaign of that id). */
+  const deleteCampaign = async (id: string) => {
+    try {
+      for (const g of await saves.list())
+        if (campaignOfSave(g) === id) await saves.remove(g.questId);
+    } catch {
+      /* saved games cannot be read here: the campaign goes anyway */
+    }
+    campaigns.clear(id);
+    setTick((n) => n + 1);
+    go({ page: 'campaignPacks' });
+  };
 
   const publish = (p: Playable) => {
     const orig = bundledEntries.find((b) => b.slot === p.slot)?.level;
@@ -356,6 +377,7 @@ export function SelectScreen({
             saved={saved}
             onPack={(pack) => go({ page: 'campaignNew', pack })}
             onCampaign={(id) => go({ page: 'campaign', id })}
+            onDeleteCampaign={(id) => void deleteCampaign(id)}
             onBack={() => go(HOME)}
           />
         </div>
@@ -384,9 +406,8 @@ export function SelectScreen({
             }}
             notice={notice}
             onStart={(choice) => {
-              if (choice.kind === 'new' && choice.campaign)
+              if (startChoice(choice) && choice.kind === 'new' && choice.campaign)
                 go({ page: 'campaign', id: choice.campaign.id });
-              startChoice(choice);
             }}
             onBack={() => go({ page: 'campaignPacks' })}
           />
@@ -423,11 +444,7 @@ export function SelectScreen({
             campaigns={campaigns}
             onQuest={(key) => go({ page: 'campaignQuest', id: campaign.id, key })}
             onNewCampaign={() => go({ page: 'campaignNew', pack: campaign.pack })}
-            onDelete={() => {
-              campaigns.clear(campaign.id);
-              setTick((n) => n + 1);
-              go({ page: 'campaignPacks' });
-            }}
+            onDelete={() => void deleteCampaign(campaign.id)}
             onBack={() => go({ page: 'campaignPacks' })}
           />
         </div>
@@ -449,8 +466,7 @@ export function SelectScreen({
             campaign={campaign}
             notice={notice}
             onStart={(choice) => {
-              go({ page: 'campaign', id: campaign.id });
-              startChoice(choice);
+              if (startChoice(choice)) go({ page: 'campaign', id: campaign.id });
             }}
             onBack={() => go({ page: 'campaign', id: campaign.id })}
           />
@@ -470,14 +486,14 @@ export function SelectScreen({
             onContinue={() => {
               if (!last) return;
               const { playable, resumed } = last;
-              if (resumed.campaignId) go({ page: 'campaign', id: resumed.campaignId });
-              startChoice({
+              const ok = startChoice({
                 kind: 'resume',
                 level: playable.level,
                 resumed,
                 questId: playable.key,
                 pack: playable.pack,
               });
+              if (ok && resumed.campaignId) go({ page: 'campaign', id: resumed.campaignId });
             }}
             onSettings={() => go({ page: 'settings' })}
             onEditor={onEditor}

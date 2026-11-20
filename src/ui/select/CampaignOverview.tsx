@@ -170,7 +170,7 @@ export function CampaignOverview({
           <p>
             {t(
               'select.thisForgetsTheFinished2',
-              'This forgets the finished quests, the carried flags, the heroes and the settings of this campaign. It cannot be brought back.',
+              'This forgets the finished quests, the carried flags, the heroes, the settings and the saved games of this campaign. It cannot be brought back.',
             )}
           </p>
         </Dialog>

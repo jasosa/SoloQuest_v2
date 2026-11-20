@@ -137,4 +137,91 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await dismissStart(page);
     await expect(page.locator('header h1')).toHaveText('The Cellar');
   });
+
+  test('heroes for a new campaign never offer Resume for a single game save', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await openQuest(page, 1);
+    await newGame(page, ['Dwarf']);
+    await dismissStart(page);
+    await page.waitForTimeout(400); // let the autosave finish
+    await page.reload();
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    // the save of quest 1 would be replaced: said so, but not resumed here
+    await expect(page.getByTestId('replace-hint')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Resume' })).toHaveCount(0);
+  });
+
+  test('deleting a campaign deletes its saved games; a new campaign starts clean', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await page.getByRole('button', { name: 'Elf', exact: true }).click();
+    await page.getByTestId('start-game').click();
+    await dismissStart(page);
+    await page.waitForTimeout(400);
+    await page.getByRole('button', { name: 'Quests', exact: true }).click();
+    await expect(questCard(page, 1)).toContainText('Saved game');
+    await page.getByTestId('delete-campaign').click();
+    await expect(page.getByRole('dialog')).toContainText('saved games');
+    await page.getByTestId('confirm-delete').click();
+    // no save is left: Continue is off, and a new campaign has no saved game
+    await page.getByTestId('back').click();
+    await expect(page.getByTestId('home-continue')).toBeDisabled();
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await expect(page.getByTestId('replace-hint')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Resume' })).toHaveCount(0);
+  });
+
+  test('Continue skips a save whose campaign is gone', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await page.getByRole('button', { name: 'Elf', exact: true }).click();
+    await page.getByTestId('start-game').click();
+    await dismissStart(page);
+    await page.waitForTimeout(400);
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await expect(page.getByTestId('home-continue')).toBeDisabled();
+  });
+
+  test('a campaign of a pack that is not installed is listed, disabled, with a Delete link', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.evaluate(() =>
+      localStorage.setItem(
+        'soloquest-campaigns',
+        JSON.stringify({
+          gone: {
+            version: 1,
+            id: 'gone',
+            name: 'Campaign 1',
+            pack: 'gone',
+            seed: 1,
+            finished: [],
+            flags: {},
+            team: ['elf'],
+            fallen: [],
+            settings: {},
+          },
+        }),
+      ),
+    );
+    await page.reload();
+    await page.getByTestId('home-campaign').click();
+    await expect(page.getByTestId('campaign-gone')).toBeDisabled();
+    await page.getByTestId('delete-campaign-gone').click();
+    await expect(page.getByTestId('campaign-gone')).toHaveCount(0);
+  });
 });

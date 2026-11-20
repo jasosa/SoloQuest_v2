@@ -4,7 +4,7 @@ import { newCampaign } from '../../engine/pack/campaign';
 import { parsePackManifest } from '../../engine/pack/registry';
 import { testQuest } from '../../engine/quest/testQuest';
 import { LocalCampaignStore, MemoryCampaignStore } from '../../persist/campaigns';
-import { MemorySaveStore, resume } from '../../persist/saves';
+import { MemorySaveStore, campaignOfSave, resume } from '../../persist/saves';
 import { createGameStore } from './gameStore';
 import { trackCampaign } from './campaignTracker';
 
@@ -138,6 +138,15 @@ describe('the campaign while a quest is played', () => {
     await saves.save(older);
     const again = await resume(saves, level);
     expect(again.ok && again.campaignId).toBe('ice');
+  });
+});
+
+describe('campaignOfSave', () => {
+  it('is the campaign id, the pack id for an older campaign save, and nothing for a one-shot', () => {
+    expect(campaignOfSave({ campaign: true, campaignId: 'ice-2', pack: 'ice' })).toBe('ice-2');
+    expect(campaignOfSave({ campaign: true, pack: 'ice' })).toBe('ice');
+    expect(campaignOfSave({ pack: 'ice' })).toBeUndefined();
+    expect(campaignOfSave({})).toBeUndefined();
   });
 });
 

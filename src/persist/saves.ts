@@ -165,6 +165,13 @@ export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events' | 'team'>
   events: GameEvent[];
 };
 
+/** The campaign a saved game belongs to (an older campaign save has no id: the pack id), or undefined for a one-shot. */
+export function campaignOfSave(
+  g: Pick<SavedGame, 'campaign' | 'campaignId' | 'pack'>,
+): string | undefined {
+  return g.campaignId ?? (g.campaign ? g.pack : undefined);
+}
+
 export interface SaveStore {
   save(game: SavedGame): Promise<void>;
   load(questId: string): Promise<SavedGame | undefined>;

@@ -1436,7 +1436,7 @@
   "select.startTheQuest": "Start the quest",
   "select.textures": "Textures",
   "select.texturesTranslations": "Textures, translations",
-  "select.thisForgetsTheFinished2": "This forgets the finished quests, the carried flags, the heroes and the settings of this campaign. It cannot be brought back.",
+  "select.thisForgetsTheFinished2": "This forgets the finished quests, the carried flags, the heroes, the settings and the saved games of this campaign. It cannot be brought back.",
   "select.thisIsYourEdited": "This is your edited copy.",
   "select.translations": "Translations",
   "select.turn": "Turn {turn} · {heroes}",

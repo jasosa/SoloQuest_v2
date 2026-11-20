@@ -296,12 +296,15 @@ export function CampaignPacksPage({
   saved,
   onPack,
   onCampaign,
+  onDeleteCampaign,
   onBack,
 }: {
   cards: readonly PackCard[];
   saved: readonly { campaign: Campaign; caption: string; usable: boolean }[];
   onPack(id: string): void;
   onCampaign(id: string): void;
+  /** For a campaign whose pack is not installed: it cannot be opened, only deleted. */
+  onDeleteCampaign(id: string): void;
   onBack(): void;
 }) {
   return (
@@ -316,14 +319,24 @@ export function CampaignPacksPage({
         )}
         <div className="menu-grid wide">
           {saved.map(({ campaign: c, caption, usable }) => (
-            <MenuButton
-              key={c.id}
-              title={c.name || t('select.campaign', 'Campaign')}
-              caption={caption}
-              disabled={!usable}
-              testId={`campaign-${c.id}`}
-              onClick={() => onCampaign(c.id)}
-            />
+            <div key={c.id}>
+              <MenuButton
+                title={c.name || t('select.campaign', 'Campaign')}
+                caption={caption}
+                disabled={!usable}
+                testId={`campaign-${c.id}`}
+                onClick={() => onCampaign(c.id)}
+              />
+              {!usable && (
+                <button
+                  className="link"
+                  data-testid={`delete-campaign-${c.id}`}
+                  onClick={() => onDeleteCampaign(c.id)}
+                >
+                  {t('select.deleteThisCampaign', 'Delete this campaign')}
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </main>

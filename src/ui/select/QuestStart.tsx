@@ -74,7 +74,9 @@ export function QuestStart({
   const exists = last?.ok === true;
   // A saved game is resumed in the mode it was played in; otherwise starting replaces it.
   const resumed =
-    last?.ok && (mode === 'single' ? last.campaignId === undefined : last.campaignId === saved?.id)
+    last?.ok &&
+    mode !== 'new' &&
+    (mode === 'single' ? last.campaignId === undefined : last.campaignId === saved?.id)
       ? last
       : undefined;
   const turn = last?.ok ? last.state.turn : 0;

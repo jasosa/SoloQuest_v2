@@ -318,7 +318,8 @@ function Game({ params }: { params: URLSearchParams }) {
     stopTracking.current = trackCampaign(store, campaigns, campaign, questId);
   };
 
-  const start = (choice: StartChoice) => {
+  /** Opens the game. False when it could not be opened (the page does not change then). */
+  const start = (choice: StartChoice): boolean => {
     stopTracking.current?.();
     stopTracking.current = null;
     if (choice.kind === 'resume') {
@@ -333,31 +334,43 @@ function Game({ params }: { params: URLSearchParams }) {
         const c = campaignId ? campaigns.get(campaignId) : undefined;
         if (wasCampaign && c) track(store, c, choice.questId);
         setGame(store);
+        return true;
       } catch {
         setNotice(SAVED_GAME_FAILED);
+        return false;
       }
     } else {
       const manifest = choice.pack ? packs.byId.get(choice.pack)?.manifest : undefined;
       let campaign: Campaign | undefined;
-      if (choice.campaign && manifest) {
-        // A new campaign gets its seed now; the team of this quest is what the next one starts from.
-        const { id, name, settings } = choice.campaign;
-        const c = campaigns.get(id) ?? {
-          ...newCampaign(manifest, freshSeed(), { id, name }),
-          settings: { ...settings },
-        };
-        campaign = { ...c, team: choice.team.map(toStored), fallen: [] };
-        campaigns.set(campaign);
+      let made = false;
+      try {
+        if (choice.campaign && manifest) {
+          // A new campaign gets its seed now; the team of this quest is what the next one starts from.
+          const { id, name, settings } = choice.campaign;
+          made = campaigns.get(id) === undefined;
+          const c = campaigns.get(id) ?? {
+            ...newCampaign(manifest, freshSeed(), { id, name }),
+            settings: { ...settings },
+          };
+          campaign = { ...c, team: choice.team.map(toStored), fallen: [] };
+          campaigns.set(campaign);
+        }
+        const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true, {
+          pack: choice.pack,
+          startFlags: startFlagsFor(choice.level.quest, campaign),
+          campaign: campaign !== undefined,
+          campaignId: campaign?.id,
+        });
+        void store.getState().save(); // a new game replaces the old save at once
+        if (campaign) track(store, campaign, choice.questId);
+        setGame(store);
+        return true;
+      } catch {
+        // a campaign made for this start is not kept when the game did not open
+        if (made && campaign) campaigns.clear(campaign.id);
+        setNotice(SAVED_GAME_FAILED);
+        return false;
       }
-      const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true, {
-        pack: choice.pack,
-        startFlags: startFlagsFor(choice.level.quest, campaign),
-        campaign: campaign !== undefined,
-        campaignId: campaign?.id,
-      });
-      void store.getState().save(); // a new game replaces the old save at once
-      if (campaign) track(store, campaign, choice.questId);
-      setGame(store);
     }
   };
 
