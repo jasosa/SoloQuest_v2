@@ -26,7 +26,7 @@ import {
 } from './search';
 import { trapEvent } from './traps';
 import { statsOf } from '../data/monsters';
-import { HEROES } from '../data/heroes';
+import { isMemberId, nameFromId } from '../data/team';
 import { lookHintCells } from './hints';
 import type { MonsterDef } from '../quest/schema';
 import { isDormant, monsterStateOf } from './monstersIn';
@@ -239,10 +239,11 @@ function reduceEvent(level: Level, state: GameState, event: GameEvent): Reduced 
       return { state: d, prompts: choose(level, state, d, event.note, event.option).prompts };
     }
     case 'HERO_DIED': {
-      if (!(HEROES as readonly string[]).includes(event.hero))
-        throw new EventError('UNKNOWN_HERO', `Unknown hero ${String(event.hero)}`);
+      // Any team entry can die (decision 38): a hero, a mercenary or an animal ally.
+      if (!isMemberId(event.hero))
+        throw new EventError('UNKNOWN_HERO', `Unknown team member ${String(event.hero)}`);
       if (state.deadHeroes.includes(event.hero))
-        throw new EventError('ALREADY_DEAD', `The ${event.hero} is already dead`);
+        throw new EventError('ALREADY_DEAD', `${nameFromId(event.hero)} is already dead`);
       const d = draftOf(state);
       d.deadHeroes = [...state.deadHeroes, event.hero];
       return { state: d, prompts: [{ kind: 'heroDied', hero: event.hero }] };

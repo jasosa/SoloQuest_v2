@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { namer } from '../../engine/data/team';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import { MONSTER_TYPES, type MonsterType } from '../../engine/quest/schema';
 import type { GameEvent } from '../../engine/game/events';
@@ -97,7 +97,7 @@ type Step =
 interface Result {
   prompts: readonly Prompt[];
   anchor: Anchor;
-  hero?: Hero;
+  hero?: string;
   room?: string;
   /** Which part of the result is shown: a trap first, then the rest of the search. */
   stage?: number;
@@ -141,6 +141,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const ruleHintsOn = useQuestSettings(level.quest.id).ruleHints;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const living = useMemo(() => livingHeroes(team, state), [team, state]);
+  const nameOf = useMemo(() => namer(team), [team]);
   const hints = useMemo(() => lookHintCells(level, state), [level, state]);
   const [sel, setSel] = useState<Selection | null>(() => parseSelection(initialSelect));
   const [step, setStep] = useState<Step>({ t: 'menu' });
@@ -315,7 +316,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   };
 
   /** Run an event whose prompts are shown as a result sheet at `anchor`. */
-  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: Hero; room?: string } = {}) => {
+  const run = (event: GameEvent, anchor: Anchor, ctx: { hero?: string; room?: string } = {}) => {
     const ok = dispatch(event);
     if (!ok) return false;
     setSel(null);
@@ -343,7 +344,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
   const [adding, setAdding] = useState<
     | { t: 'type'; type: MonsterType }
     | { t: 'pick'; type: MonsterType }
-    | { t: 'wander'; room: string; hero: Hero; anchor: Anchor }
+    | { t: 'wander'; room: string; hero: string; anchor: Anchor }
     | null
   >(null);
   const pickedCell = (picked: readonly [number, number]) => {
@@ -387,10 +388,11 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <MarginNote
         anchor={res.anchor}
         kind={resultKind(current)}
-        title={current.map(headingOf)[0] ?? 'Done'}
+        title={current.map((p) => headingOf(p, nameOf))[0] ?? 'Done'}
         onClose={closeNote}
       >
         <ResultBody
+          nameOf={nameOf}
           prompts={current}
           onDone={at + 1 < stages.length ? () => setRes({ ...res, stage: at + 1 }) : closeNote}
           onWandering={askWandering}
@@ -515,6 +517,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           onClose={closeNote}
         >
           <PickHero
+            nameOf={nameOf}
             team={living}
             searched={ss.searchedBy}
             monsters={roomCodes}
@@ -603,10 +606,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
       <MarginNote
         anchor={{ x: 880, y: 420 }}
         kind="Heroes"
-        title={`${HERO_NAMES[sel.hero]} fell?`}
+        title={`${nameOf(sel.hero)} fell?`}
         onClose={closeNote}
       >
-        <p>Only the fact is kept. The hero leaves every tie list.</p>
+        <p>Only the fact is kept. It leaves every tie list.</p>
         <button className="btn" onClick={() => act({ type: 'HERO_DIED', hero: sel.hero })}>
           Yes, fell
         </button>
@@ -812,7 +815,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
           {m.wandering && (
             <p className="warn">
               {m.fresh && m.wanderAt
-                ? `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`
+                ? `Wandering · next to the ${nameOf(m.wanderAt)}`
                 : 'Wandering monster'}
             </p>
           )}
@@ -1025,6 +1028,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
                     (sel?.kind === 'monster' && sel.id === m.id) || (zActive && zMonster === m.id)
                   }
                   focus={zActive && zMonster === m.id}
+                  nameOf={nameOf}
                   onTap={() => choose({ kind: 'monster', id: m.id })}
                 />
               ))}
@@ -1092,7 +1096,7 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
             ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
-            : `Tap the square where you put the wandering monster, next to the ${HERO_NAMES[adding.hero]}.`}
+            : `Tap the square where you put the wandering monster, next to the ${nameOf(adding.hero)}.`}
           <button className="link" onClick={() => setAdding(null)}>
             Cancel
           </button>
@@ -1282,8 +1286,10 @@ function RosterRow({
   acted,
   selected,
   focus,
+  nameOf,
   onTap,
 }: {
+  nameOf: (id: string) => string;
   m: MonsterView;
   code: string;
   fresh: boolean;
@@ -1338,7 +1344,7 @@ function RosterRow({
             )}
           </span>
           <br />
-          <span className="st">{rosterLine(m)}</span>
+          <span className="st">{rosterLine(m, nameOf)}</span>
           {m.abilities.length > 0 && (
             <>
               <br />
@@ -1359,12 +1365,11 @@ function RosterRow({
   );
 }
 
-function rosterLine(m: MonsterView): string {
+function rosterLine(m: MonsterView, nameOf: (id: string) => string): string {
   if (m.state === 'stone')
     return m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone';
   if (m.added) return 'Added in play';
-  if (m.wandering && m.fresh && m.wanderAt)
-    return `Wandering · next to the ${HERO_NAMES[m.wanderAt]}`;
+  if (m.wandering && m.fresh && m.wanderAt) return `Wandering · next to the ${nameOf(m.wanderAt)}`;
   if (m.placeAt) return 'Placed by a quest note';
   return `Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`;
 }

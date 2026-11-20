@@ -884,6 +884,7 @@
     "monster": "goblin",
     "enemy": "iceGremlin"
   },
+  "team": { "solo": true, "grantsAlly": "snowdasher" },
   "objectives": [
     {
       "id": "o1",

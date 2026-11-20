@@ -5,6 +5,7 @@ import type { GameEvent } from './events';
 import type { Prompt } from './prompts';
 import { reduce, startGame } from './reducer';
 import type { GameState } from './state';
+import { nameFromId } from '../data/team';
 
 /** One line of "What happened" in the Quest sheet. */
 export interface LogEntry {
@@ -27,7 +28,6 @@ export interface LogEntry {
   readonly note?: string;
 }
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const first = (text: string) => {
   const s = text.split(/(?<=[.!?])\s/)[0] ?? text;
   return s.length > 90 ? `${s.slice(0, 87)}...` : s;
@@ -100,13 +100,13 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
         text: `${monsterName(level, before, e.monster)} was attacked`,
       };
     case 'SEARCH_TREASURE':
-      return { turn, kind: 'search', text: `The ${cap(e.hero)} searched for treasure` };
+      return { turn, kind: 'search', text: `The ${nameFromId(e.hero)} searched for treasure` };
     case 'SEARCH_SECRET_DOORS':
       return { turn, kind: 'search', text: 'A search for secret doors' };
     case 'SEARCH_TRAPS':
       return { turn, kind: 'search', text: 'A chest was searched for traps' };
     case 'HERO_DIED':
-      return { turn, kind: 'hero', text: `The ${cap(e.hero)} fell` };
+      return { turn, kind: 'hero', text: `The ${nameFromId(e.hero)} fell` };
     case 'ZARGON_TURN_END':
       return { turn, kind: 'turn', text: `Zargon's turn ${turn} ended` };
     case 'END_QUEST':

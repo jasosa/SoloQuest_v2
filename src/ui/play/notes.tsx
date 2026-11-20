@@ -1,6 +1,6 @@
 /** Bodies of the margin notes for searches and traps. Presentational: no game logic. */
 import { useState, type ReactNode } from 'react';
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { nameFromId } from '../../engine/data/team';
 import type { Prompt } from '../../engine/game/prompts';
 import { TRAP_NAMES, sprungLines, sprungTitle, wanderingLines } from './texts';
 
@@ -8,16 +8,18 @@ export function HeroChips({
   team,
   disabled,
   onPick,
+  nameOf = nameFromId,
 }: {
-  team: readonly Hero[];
-  disabled: (h: Hero) => boolean;
-  onPick(h: Hero): void;
+  team: readonly string[];
+  disabled: (h: string) => boolean;
+  onPick(h: string): void;
+  nameOf?: ((id: string) => string) | undefined;
 }) {
   return (
     <div className="chips">
       {team.map((h) => (
         <button key={h} className="chip" disabled={disabled(h)} onClick={() => onPick(h)}>
-          {HERO_NAMES[h]}
+          {nameOf(h)}
         </button>
       ))}
     </div>
@@ -67,16 +69,17 @@ export function RoomMenu({
 }
 
 export function PickHero(props: {
-  team: readonly Hero[];
+  team: readonly string[];
   /** Heroes that cannot search (they already searched this room for treasure). */
-  searched: readonly Hero[];
+  searched: readonly string[];
+  nameOf?: ((id: string) => string) | undefined;
   /** Codes of living monsters in the way, empty when there are none. */
   monsters: readonly string[];
   /** Monsters are in sight but the engine does not say which. */
   blocked: boolean;
   override: boolean;
   onOverride(): void;
-  onPick(h: Hero): void;
+  onPick(h: string): void;
 }) {
   const warned = props.monsters.length > 0 || props.blocked;
   const guarded = warned && !props.override;
@@ -98,6 +101,7 @@ export function PickHero(props: {
         team={props.team}
         disabled={(h) => guarded || (props.searched.includes(h) && !again)}
         onPick={props.onPick}
+        nameOf={props.nameOf}
       />
       {(guarded || askAgain) && (
         <button className="btn alt" onClick={guarded ? props.onOverride : () => setAgain(true)}>
@@ -249,7 +253,9 @@ export function ResultBody({
   prompts,
   onDone,
   onWandering,
+  nameOf = nameFromId,
 }: {
+  nameOf?: ((id: string) => string) | undefined;
   prompts: readonly Prompt[];
   onDone(): void;
   /** Present when a wandering monster can be asked for (after a treasure search). */
@@ -261,7 +267,7 @@ export function ResultBody({
     <>
       {shown.map((p, i) => (
         <section key={i} className="result">
-          <Section p={p} heading={i > 0} />
+          <Section p={p} heading={i > 0} nameOf={nameOf} />
         </section>
       ))}
       <button className="btn" onClick={onDone}>
@@ -277,7 +283,7 @@ export function ResultBody({
 }
 
 /** The big heading of a prompt, used as the note title for the first one. */
-export function headingOf(p: Prompt): string {
+export function headingOf(p: Prompt, nameOf: (id: string) => string = nameFromId): string {
   switch (p.kind) {
     case 'trapSprung':
       return sprungTitle(p.trapKind);
@@ -292,7 +298,7 @@ export function headingOf(p: Prompt): string {
     case 'drawCard':
       return 'Draw a treasure card';
     case 'wanderingMonster':
-      return `It attacks the ${HERO_NAMES[p.hero]}!`;
+      return `It attacks the ${nameOf(p.hero)}!`;
     case 'wanderingText':
       return 'Wandering monster';
     case 'secretDoorsFound':
@@ -310,7 +316,7 @@ export function headingOf(p: Prompt): string {
   }
 }
 
-function lines(p: Prompt): string[] {
+function lines(p: Prompt, nameOf: (id: string) => string): string[] {
   switch (p.kind) {
     case 'trapSprung':
       return sprungLines(p);
@@ -332,7 +338,7 @@ function lines(p: Prompt): string[] {
         `The hero comes out at the other square of ice tunnel ${p.design}. If a figure is on it, move that figure to a free square next to it. The move ends here.`,
       ];
     case 'wanderingMonster':
-      return wanderingLines(p);
+      return wanderingLines(p, nameOf);
     case 'wanderingText':
       return [p.text];
     case 'secretDoorsFound':
@@ -391,11 +397,19 @@ export function resultStages(prompts: readonly Prompt[]): Prompt[][] {
   return [trap, rest].filter((s) => s.length > 0);
 }
 
-function Section({ p, heading }: { p: Prompt; heading: boolean }) {
+function Section({
+  p,
+  heading,
+  nameOf,
+}: {
+  p: Prompt;
+  heading: boolean;
+  nameOf: (id: string) => string;
+}) {
   return (
     <>
-      {heading && <h4>{headingOf(p)}</h4>}
-      {lines(p).map((l, i) => (
+      {heading && <h4>{headingOf(p, nameOf)}</h4>}
+      {lines(p, nameOf).map((l, i) => (
         <p key={i}>{l}</p>
       ))}
     </>

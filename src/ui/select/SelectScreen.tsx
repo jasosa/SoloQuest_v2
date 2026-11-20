@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
-import { HEROES, HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { labelOf, type TeamMember } from '../../engine/data/team';
+import { TeamPicker } from './TeamPicker';
 import {
   orphanSaves,
   resume,
@@ -20,7 +21,7 @@ import { CORE_PACK } from '../../engine/pack/registry';
 import { packOfQuest, packTabs, packs } from '../packs';
 
 export type StartChoice =
-  | { kind: 'new'; level: Level; team: readonly Hero[] }
+  | { kind: 'new'; level: Level; team: readonly TeamMember[] }
   | { kind: 'resume'; level: Level; resumed: Extract<Resumed, { ok: true }> };
 
 export interface SelectScreenProps {
@@ -132,7 +133,7 @@ export function SelectScreen({
     () => questEntries.find((q) => q.level)?.slot,
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [team, setTeam] = useState<readonly Hero[]>([]);
+  const [team, setTeam] = useState<readonly TeamMember[]>([]);
   const [saved, setSaved] = useState<{ id: string; r: Resumed } | undefined>();
   /** The Heroes popup of "New game". */
   const [choosing, setChoosing] = useState(false);
@@ -159,9 +160,12 @@ export function SelectScreen({
   const resumed = saved && saved.id === questId && saved.r.ok ? saved.r : undefined;
   const unusable = saved && saved.id === questId && !saved.r.ok && saved.r.reason !== 'none';
 
-  const toggle = (h: Hero) =>
-    setTeam((t) => (t.includes(h) ? t.filter((x) => x !== h) : [...t, h]));
-  const ready = team.length >= 1;
+  // The packs whose heroes and allies the popup offers: the pack of the quest and the ones it needs.
+  const questPack = level ? packOfEntry({ slot: slot ?? 0, level }) : CORE_PACK;
+  const teamPacks = [...(packs.byId.get(questPack)?.requires ?? []), questPack]
+    .map((id) => packs.byId.get(id)?.manifest)
+    .filter((m) => m !== undefined);
+  const ready = team.some((m) => m.kind === 'hero');
 
   return (
     <div className="app select">
@@ -305,7 +309,8 @@ export function SelectScreen({
               <section className="saved">
                 <div className="lbl">Saved game</div>
                 <p>
-                  Turn {resumed.state.turn} · {resumed.team.map((h) => HERO_NAMES[h]).join(', ')}
+                  Turn {resumed.state.turn} ·{' '}
+                  {resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', ')}
                 </p>
                 <button className="btn" onClick={() => onStart({ kind: 'resume', level, resumed })}>
                   Resume
@@ -372,18 +377,7 @@ export function SelectScreen({
               This replaces the saved game (turn {resumed.state.turn}). It cannot be brought back.
             </p>
           )}
-          <div className="pick-heroes" role="group" aria-label="Heroes">
-            {HEROES.map((h) => (
-              <button
-                key={h}
-                className="chip"
-                aria-pressed={team.includes(h)}
-                onClick={() => toggle(h)}
-              >
-                {HERO_NAMES[h]}
-              </button>
-            ))}
-          </div>
+          <TeamPicker value={team} onChange={setTeam} packs={teamPacks} rule={level.quest.team} />
           <p className="hint" id="team-hint">
             {ready ? 'Pick 1 to 4 heroes.' : 'Pick 1 to 4 heroes to start the quest.'}
           </p>

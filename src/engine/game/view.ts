@@ -4,7 +4,7 @@ import { boxOfMonster, pictureTypeOf } from '../data/enemies';
 import { MONSTER_NAMES, statsOf, type MonsterStats } from '../data/monsters';
 import { areaAt, roomIds, type AreaId, type Cell } from '../board/board';
 import type { Level } from '../board/level';
-import type { Hero } from '../data/heroes';
+import { normalizeTeam, type TeamInput } from '../data/team';
 import type { MonsterType } from '../quest/schema';
 import { profileOf, type Profile } from '../zargon/weights';
 import type { TrapKindName } from './prompts';
@@ -44,7 +44,7 @@ export interface MonsterView {
   readonly placeAt?: Cell;
   /** Wandering monster (decision 33). */
   readonly wandering?: boolean;
-  readonly wanderAt?: Hero;
+  readonly wanderAt?: string;
   /** Added by the players in play (decision 66). */
   readonly added?: boolean;
   /** The square the players put a wandering or added monster on. */
@@ -204,9 +204,14 @@ export function tunnelsInView(level: Level, state: GameState): TunnelEndView[] {
   return out;
 }
 
-/** The heroes of the team that are still alive, in team order (decision 32). */
-export function livingHeroes(team: readonly Hero[], state: Pick<GameState, 'deadHeroes'>): Hero[] {
-  return team.filter((h) => !state.deadHeroes.includes(h));
+/** The ids of the heroes of the team that are still alive, in team order (decision 32). Mercenaries and allies are not heroes. */
+export function livingHeroes(
+  team: readonly TeamInput[],
+  state: Pick<GameState, 'deadHeroes'>,
+): string[] {
+  return normalizeTeam(team)
+    .filter((m) => m.kind === 'hero' && !state.deadHeroes.includes(m.id))
+    .map((m) => m.id);
 }
 
 export interface DormantFigure {
@@ -319,7 +324,7 @@ export function chestsInView(level: Level, state: GameState): ChestView[] {
 export interface SearchState {
   readonly room: AreaId;
   /** Heroes that already searched this room for treasure. */
-  readonly searchedBy: readonly Hero[];
+  readonly searchedBy: readonly string[];
   /** Seen, living monsters that started in this room (the guard). */
   readonly monstersInRoom: readonly string[];
 }

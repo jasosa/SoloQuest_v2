@@ -1,6 +1,5 @@
 import type { AreaId } from '../board/board';
 import type { CellKey } from '../board/level';
-import type { Hero } from '../data/heroes';
 import type { MonsterType } from '../quest/schema';
 
 export type { TrapKindName } from '../data/trapKinds';
@@ -22,7 +21,7 @@ export type Prompt =
   /** The action showed nothing new. */
   | { readonly kind: 'nothingNew' }
   /** A hero died (decision 32). */
-  | { readonly kind: 'heroDied'; readonly hero: Hero }
+  | { readonly kind: 'heroDied'; readonly hero: string }
   /** A quest note fired. `texts` are its showText and giveItem texts. `title` is the title of
    *  its first showText that has one. Sent when the note has texts, a letter, or takes the
    *  treasure. */
@@ -130,10 +129,10 @@ export type Prompt =
       /** Its name and attack dice when it is an enemy of the quest (an Ice Gremlin). */
       readonly name?: string;
       readonly attackDice?: number;
-      readonly hero: Hero;
+      readonly hero: string;
       readonly room: AreaId;
       readonly placement: {
-        readonly nextToHero: Hero;
+        readonly nextToHero: string;
         readonly attacksAtOnce: true;
       };
     }

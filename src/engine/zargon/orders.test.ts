@@ -244,7 +244,7 @@ describe('grudge', () => {
       }),
     );
     let s = replay(l, SEED, [open('d2')]);
-    const heroes = new Set<Hero>();
+    const heroes = new Set<string>();
     for (let i = 0; i < 40; i++) {
       const o = ordersFor(l, s, TEAM)[0]!;
       if (o.rule === 'grudge') heroes.add(o.grudgeHero!);
@@ -255,7 +255,7 @@ describe('grudge', () => {
   });
 
   it('differs between monsters and seeds over many draws', () => {
-    const picks = new Set<Hero>();
+    const picks = new Set<string>();
     for (let seed = 1; seed <= 50; seed++) picks.add(grudgeHero(seed, 'm1', TEAM));
     expect(picks.size).toBe(4);
   });

@@ -10,7 +10,7 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import { packOfQuest } from '../packs';
 import { activeLevel, keyOf, type CellKey, type Level } from '../../engine/board/level';
-import type { Hero } from '../../engine/data/heroes';
+import { normalizeTeam, type TeamInput, type TeamMember } from '../../engine/data/team';
 import type { GameEvent } from '../../engine/game/events';
 import {
   EventError,
@@ -55,7 +55,7 @@ export interface GameStoreState {
   /** The level the quest was built as: in a multi-map quest it holds all the maps. */
   readonly root: Level;
   readonly seed: number;
-  readonly team: readonly Hero[];
+  readonly team: readonly TeamMember[];
   readonly events: readonly GameEvent[];
   readonly state: GameState;
   readonly fx: Fx | null;
@@ -81,7 +81,7 @@ export interface GameStoreState {
 export interface GameStoreInit {
   level: Level;
   seed: number;
-  team: readonly Hero[];
+  team: readonly TeamInput[];
   /** A log to replay (resume). Throws if it does not replay on this quest. */
   events?: readonly GameEvent[];
   /** A new game: the notes that fire at the start of the quest are shown once. A resumed game
@@ -96,7 +96,8 @@ export interface GameStoreInit {
 export type GameStore = StoreApi<GameStoreState>;
 
 export function createGameStore(init: GameStoreInit): GameStore {
-  const { level: root, seed, team, saves } = init;
+  const { level: root, seed, saves } = init;
+  const team = normalizeTeam(init.team);
   const pack = init.pack ?? packOfQuest(root.quest.id);
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];

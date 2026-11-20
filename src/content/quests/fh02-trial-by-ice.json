@@ -643,6 +643,7 @@
     "monster": "goblin",
     "count": 2
   },
+  "team": { "solo": true },
   "objectives": [
     {
       "id": "o1",

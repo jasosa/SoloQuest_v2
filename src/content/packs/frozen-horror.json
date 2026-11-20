@@ -16,6 +16,11 @@
     "fh08-the-search-for-the-scepter",
     "fh09-the-heart-of-ice"
   ],
+  "team": {
+    "heroes": [{ "id": "alternate-barbarian", "name": "Barbarian (alternate)", "as": "barbarian" }],
+    "mercenaries": [],
+    "allies": [{ "id": "snowdasher", "name": "Snowdasher" }]
+  },
   "campaignSettings": [
     {
       "id": "raiment-of-the-frozen-champion",

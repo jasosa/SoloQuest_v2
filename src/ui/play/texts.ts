@@ -1,5 +1,5 @@
 /** Plain-English texts for search and trap results. Our own words; the game effect is exact. */
-import { HERO_NAMES, type Hero } from '../../engine/data/heroes';
+import { nameFromId } from '../../engine/data/team';
 import { MONSTER_NAMES, MONSTER_STATS } from '../../engine/data/monsters';
 import { TRAP_KIND_NAMES, trapKind } from '../../engine/data/trapKinds';
 import type { Prompt, TrapKindName } from '../../engine/game/prompts';
@@ -39,13 +39,14 @@ export function sprungLines(p: Sprung): string[] {
 }
 
 /** The wandering monster card (decision 33): always next to the hero, attacks at once. */
-export function wanderingLines(p: Extract<Prompt, { kind: 'wanderingMonster' }>): string[] {
-  const hero = HERO_NAMES[p.hero];
+export function wanderingLines(
+  p: Extract<Prompt, { kind: 'wanderingMonster' }>,
+  nameOf: (id: string) => string = nameFromId,
+): string[] {
+  const hero = nameOf(p.hero);
   const name = p.name ?? MONSTER_NAMES[p.monsterType as MonsterType];
   const dice = p.attackDice ?? MONSTER_STATS[p.monsterType].att;
   return [
     `Put the ${name} on a free square next to the ${hero}. It attacks the ${hero} at once with ${dice} attack dice. This round it attacks nobody else.`,
   ];
 }
-
-export const heroName = (h: Hero) => HERO_NAMES[h];

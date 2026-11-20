@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CORE_PACK, PackError } from '../engine/pack/registry';
+import { levelOfId } from './quests';
 import { loadRegistry, packOfQuest, packTabs, packs } from './packs';
 
 describe('the installed packs', () => {
@@ -29,6 +30,22 @@ describe('the installed packs', () => {
     expect(packTabs(packs, (id) => !id.startsWith('fh'))).toEqual([]);
     // only the expansion has quests: still one pack
     expect(packTabs(packs, (id) => id.startsWith('fh'))).toEqual([]);
+  });
+  it('Frozen Horror offers the alternate Barbarian and the wolf in the New game popup', () => {
+    const team = packs.byId.get('frozen-horror')!.manifest.team;
+    expect(team.heroes).toEqual([
+      { id: 'alternate-barbarian', name: 'Barbarian (alternate)', as: 'barbarian' },
+    ]);
+    expect(team.allies.map((a) => a.id)).toEqual(['snowdasher']);
+    expect(packs.byId.get(CORE_PACK)!.manifest.team.heroes).toEqual([]);
+  });
+  it('the quests carry their team rule: the prelude is solo with the wolf, quest 1 is the Barbarian alone', () => {
+    expect(levelOfId('fh00-into-the-northlands')?.quest.team).toEqual({
+      solo: true,
+      grantsAlly: 'snowdasher',
+    });
+    expect(levelOfId('fh01-xanon-pass')?.quest.team).toEqual({ solo: true, only: ['barbarian'] });
+    expect(levelOfId('fh04-the-glacial-gate')?.quest.team).toBeUndefined();
   });
   it('refuses a quest that no pack lists', () => {
     const quest = Object.values(

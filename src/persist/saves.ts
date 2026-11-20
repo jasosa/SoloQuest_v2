@@ -1,6 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { z } from 'zod';
-import { HEROES, type Hero } from '../engine/data/heroes';
+import { HEROES } from '../engine/data/heroes';
+import {
+  isMemberId,
+  normalizeTeam,
+  toStored,
+  type TeamInput,
+  type TeamMember,
+} from '../engine/data/team';
 import { MONSTER_TYPES } from '../engine/quest/schema';
 import type { Level } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
@@ -15,6 +22,20 @@ import type { GameState } from '../engine/game/state';
 export const SAVE_VERSION = 1;
 
 const CellSchema = z.tuple([z.number().int(), z.number().int()]);
+const MemberIdSchema = z.string().refine(isMemberId, { message: 'not a team member id' });
+
+/**
+ * One entry of the team in a save. A plain core hero is a plain id, as before the free team list
+ * (decision 38), so older saves still read; the other entries are small objects.
+ */
+const TeamMemberSchema = z.object({
+  id: MemberIdSchema,
+  name: z.string().trim().min(1).max(60),
+  kind: z.enum(['hero', 'mercenary', 'ally']),
+  owner: MemberIdSchema.optional(),
+  as: z.enum(HEROES).optional(),
+});
+
 export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('OPEN_DOOR'), door: z.string() }),
   z.object({ type: z.literal('LOOK_FROM'), cell: CellSchema }),
@@ -41,7 +62,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('SEARCH_TREASURE'),
     room: z.string(),
-    hero: z.enum(HEROES),
+    hero: MemberIdSchema,
     override: z.boolean().optional(),
   }),
   // An old save may carry `adjacent`: z.object drops unknown keys, so it still parses.
@@ -82,7 +103,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('MANUAL_TRIGGER'), note: z.string() }),
   z.object({ type: z.literal('CONFIRM_OBJECTIVE'), objective: z.string() }),
   z.object({ type: z.literal('CHOOSE'), note: z.string(), option: z.number().int().min(0) }),
-  z.object({ type: z.literal('HERO_DIED'), hero: z.enum(HEROES) }),
+  z.object({ type: z.literal('HERO_DIED'), hero: MemberIdSchema }),
   z.object({ type: z.literal('SPELL_CAST'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('SPELL_FAILED'), monster: z.string(), spell: z.string() }),
   z.object({ type: z.literal('MONSTER_DONE'), monster: z.string() }),
@@ -117,18 +138,23 @@ export const SavedGameSchema = z.object({
   pack: z.string().optional(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
-  /** The heroes at the table: 1 to 4, all different. Not part of the engine state. */
+  /** The team at the table (decision 38): heroes, mercenaries and animal allies, all different. Not part of the engine state. */
   team: z
-    .array(z.enum(HEROES))
+    .array(z.union([z.enum(HEROES), TeamMemberSchema]))
     .min(1)
-    .max(4)
-    .refine((t) => new Set(t).size === t.length, { message: 'heroes must be different' }),
+    .max(16)
+    .refine((t) => new Set(normalizeTeam(t as TeamInput[]).map((m) => m.id)).size === t.length, {
+      message: 'team entries must be different',
+    })
+    .refine((t) => normalizeTeam(t as TeamInput[]).some((m) => m.kind === 'hero'), {
+      message: 'the team needs a hero',
+    }),
   events: z.array(EventSchema),
   /** Milliseconds since the epoch, given by the caller. */
   updatedAt: z.number(),
 });
 export type SavedGame = Omit<z.infer<typeof SavedGameSchema>, 'events' | 'team'> & {
-  team: Hero[];
+  team: TeamInput[];
   events: GameEvent[];
 };
 
@@ -193,7 +219,7 @@ export async function autosave(
   store: SaveStore,
   questId: string,
   seed: number,
-  team: readonly Hero[],
+  team: readonly TeamInput[],
   events: readonly GameEvent[],
   now: number,
   pack?: string,
@@ -204,7 +230,7 @@ export async function autosave(
       ...(pack === undefined ? {} : { pack }),
       version: SAVE_VERSION,
       seed,
-      team: [...team],
+      team: normalizeTeam(team).map(toStored),
       events: [...events],
       updatedAt: now,
     });
@@ -219,7 +245,7 @@ export type Resumed =
       ok: true;
       pack?: string | undefined;
       seed: number;
-      team: readonly Hero[];
+      team: readonly TeamMember[];
       events: readonly GameEvent[];
       state: GameState;
     }
@@ -250,7 +276,7 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
       ok: true,
       pack: parsed.data.pack,
       seed: parsed.data.seed,
-      team: parsed.data.team,
+      team: normalizeTeam(parsed.data.team as TeamInput[]),
       events: parsed.data.events,
       state,
     };

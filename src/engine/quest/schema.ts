@@ -637,6 +637,18 @@ export const QuestSchema = z.strictObject({
   leave: nonEmpty.optional(),
   /** A texture pack id the quest looks best with (decision 78). Only a hint: never applied for the player. */
   suggestedPack: nonEmpty.optional(),
+  /**
+   * The quest's rule for the team (decision 38). Words for warnings only: it never blocks a game.
+   * `solo`: one hero. `only`: these heroes (left out: any hero). `grantsAlly`: the id of a pack ally that
+   * joins the hero (the wolf Snowdasher).
+   */
+  team: z
+    .strictObject({
+      solo: z.boolean().optional(),
+      only: z.array(z.enum(['barbarian', 'dwarf', 'elf', 'wizard'])).optional(),
+      grantsAlly: id.optional(),
+    })
+    .optional(),
   rules: RulesSchema.default({}),
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */

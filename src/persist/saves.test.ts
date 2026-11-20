@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Hero } from '../engine/data/heroes';
+import { heroMember, normalizeTeam, type TeamMember } from '../engine/data/team';
 import { buildLevel } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
 import { replay, undo } from '../engine/game/reducer';
@@ -47,7 +48,7 @@ describe.each(stores)('save store: %s', (_name, make) => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.events).toEqual(log);
-    expect(r.team).toEqual(TEAM);
+    expect(r.team).toEqual(normalizeTeam(TEAM));
     expect(r.state).toEqual(replay(level, SEED, log));
   });
 
@@ -166,5 +167,61 @@ describe('the pack in a save (decision 36)', () => {
     expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('"lost-pack"');
     expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('not installed');
     expect(found.find((o) => o.questId === 'q-gone')?.message).toContain('no quest on this device');
+  });
+});
+
+describe('the free team list in a save (decision 38)', () => {
+  const scout: TeamMember = { id: 'merc:scout', name: 'Scout', kind: 'mercenary', owner: 'dwarf' };
+  const wolf: TeamMember = {
+    id: 'ally:snowdasher',
+    name: 'Snowdasher',
+    kind: 'ally',
+    owner: 'elf',
+  };
+
+  it('an older save with a plain hero list still loads, and it is written the same way', async () => {
+    const store = new MemorySaveStore();
+    // exactly what the app wrote before the free list: ids, no objects
+    await store.save({
+      questId: level.quest.id,
+      version: 1,
+      seed: SEED,
+      team: ['dwarf', 'wizard'],
+      events: log,
+      updatedAt: 1,
+    });
+    const r = await resume(store, level);
+    expect(r.ok && r.team).toEqual([heroMember('dwarf'), heroMember('wizard')]);
+    await autosave(store, level.quest.id, SEED, r.ok ? r.team : [], log, 2);
+    expect((await store.load(level.quest.id))?.team).toEqual(['dwarf', 'wizard']);
+  });
+
+  it('keeps mercenaries and allies with their owner, and a death of any entry replays', async () => {
+    const store = new MemorySaveStore();
+    const team = [heroMember('dwarf'), heroMember('elf'), scout, wolf];
+    const events: GameEvent[] = [{ type: 'HERO_DIED', hero: 'ally:snowdasher' }];
+    await autosave(store, level.quest.id, SEED, team, events, 1);
+    const r = await resume(store, level);
+    expect(r.ok && r.team).toEqual(team);
+    expect(r.ok && r.state.deadHeroes).toEqual(['ally:snowdasher']);
+  });
+
+  it('refuses a team with no hero, with a repeat, or with a made-up id', async () => {
+    const store = new MemorySaveStore();
+    for (const team of [[scout], ['dwarf', 'dwarf'], [{ ...scout, id: 'knight' }, 'dwarf']]) {
+      await store.save({
+        questId: level.quest.id,
+        version: 1,
+        seed: SEED,
+        team: team as never,
+        events: [],
+        updatedAt: 1,
+      });
+      expect(await resume(store, level), JSON.stringify(team)).toMatchObject({
+        ok: false,
+        reason: 'corrupt',
+      });
+    }
+    expect(normalizeTeam(['elf'])).toHaveLength(1);
   });
 });

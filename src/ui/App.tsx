@@ -7,6 +7,7 @@ import { board } from '../engine/board/board';
 import { buildLevel } from '../engine/board/level';
 import type { Quest } from '../engine/quest/schema';
 import { HEROES, type Hero } from '../engine/data/heroes';
+import type { TeamInput } from '../engine/data/team';
 import type { GameEvent } from '../engine/game/events';
 import type { Level } from '../engine/board/level';
 import {
@@ -47,7 +48,7 @@ function openGame(
   saves: SaveStore,
   level: Level,
   seed: number,
-  team: readonly Hero[],
+  team: readonly TeamInput[],
   events: readonly GameEvent[] = [],
   fresh = false,
 ): GameStore {
