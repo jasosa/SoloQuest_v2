@@ -153,3 +153,7 @@
 .pickcol .pick {
   padding-top: 14px;
 }
+
+.pickcol .orphan {
+  margin: 12px 28px 0;
+}

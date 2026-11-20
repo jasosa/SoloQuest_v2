@@ -177,7 +177,7 @@ Per quest
 Order of work. Each slice ends green with tests and a commit.
 
 - [x] Slice 1: core as a pack: `pack.json` manifests (`src/content/packs/`), the registry with `dependsOn` checks (`src/engine/pack/`, `npm run validate`), a `pack` field on quests, quest number 0 allowed, the `frozen-horror` pack with no quests yet
-- [ ] Slice 2: the pack in the app: the quest select screen picks the pack (hidden while there is one pack with quests), user quests are in none; the saved game remembers the pack and quest id (quest numbers overlap between packs)
+- [x] Slice 2: the pack in the app: the quest select screen picks the pack (tabs hidden while there is one pack with quests), user quests are in none; the saved game remembers the pack and quest id (`pack` on the save, optional so old saves load), a save whose quest or pack is missing is explained with a Delete link (`orphanSaves`)
 - [ ] Slice 3: team as a free list (decision 38): entries with a kind (hero, mercenary, animal ally) and an owner hero; `HERO_DIED` for any entry; the New game popup gets the groups; the quest's team rule shows as a warning, never a block
 - [ ] Slice 4: targets (decision 39): mercenaries, allies and NPCs in tie lists and target names; `excludeTargets` on a quest; `caster`, `grudge` and theft pick heroes only
 - [ ] Slice 5: campaign / one-shot (decision 37): finished quests, carried flags with one-shot defaults, the team, campaign settings and the campaign seed, kept per pack on this device

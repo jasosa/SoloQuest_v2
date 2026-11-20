@@ -8,6 +8,7 @@
  * The save store is injected, so tests run with a MemorySaveStore and the clock is a parameter.
  */
 import { createStore, type StoreApi } from 'zustand/vanilla';
+import { packOfQuest } from '../packs';
 import { activeLevel, keyOf, type CellKey, type Level } from '../../engine/board/level';
 import type { Hero } from '../../engine/data/heroes';
 import type { GameEvent } from '../../engine/game/events';
@@ -87,6 +88,8 @@ export interface GameStoreInit {
    *  is not fresh, so they are not replayed. */
   fresh?: boolean;
   saves: SaveStore;
+  /** The pack of the quest, kept in the save. Defaults to the pack that lists the quest. */
+  pack?: string | undefined;
   now?: () => number;
 }
 
@@ -94,6 +97,7 @@ export type GameStore = StoreApi<GameStoreState>;
 
 export function createGameStore(init: GameStoreInit): GameStore {
   const { level: root, seed, team, saves } = init;
+  const pack = init.pack ?? packOfQuest(root.quest.id);
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];
   const start = init.fresh ? startGame(root, seed) : undefined;
@@ -107,7 +111,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
     const persist = (events: readonly GameEvent[]) => {
       const stamp = now();
       queue = queue.then(async () => {
-        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp);
+        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp, pack);
         if (get().saved !== ok) set({ saved: ok });
       });
     };

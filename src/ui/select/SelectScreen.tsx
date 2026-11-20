@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
 import { HEROES, HERO_NAMES, type Hero } from '../../engine/data/heroes';
-import { resume, type Resumed, type SaveStore } from '../../persist/saves';
+import {
+  orphanSaves,
+  resume,
+  type OrphanSave,
+  type Resumed,
+  type SaveStore,
+} from '../../persist/saves';
 import { clearOverride, getOverrides } from '../../persist/questOverrides';
 import type { UserQuestStore } from '../../persist/userQuests';
 import { useFitMode } from '../FitToScreen';
@@ -11,7 +17,7 @@ import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { Dialog } from '../shared/Frame';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { CORE_PACK } from '../../engine/pack/registry';
-import { packOfQuest, packs } from '../packs';
+import { packOfQuest, packTabs, packs } from '../packs';
 
 export type StartChoice =
   | { kind: 'new'; level: Level; team: readonly Hero[] }
@@ -102,6 +108,26 @@ export function SelectScreen({
     return original ? inPack(original.quest.id) : CORE_PACK;
   };
   const [packId, setPackId] = useState<string>(CORE_PACK);
+  const tabs = packTabs(packs, (id) => bundledEntries.some((q) => q.level?.quest.id === id));
+  // Saved games that no quest here matches (for example a pack that is not installed).
+  const [orphans, setOrphans] = useState<readonly OrphanSave[]>([]);
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const known = new Set(bundledEntries.flatMap((q) => (q.level ? [q.level.quest.id] : [])));
+      for (const id of Object.values(getOverrides())) known.add(id);
+      for (const r of (await userStore?.list()) ?? []) known.add(r.id);
+      const found = await orphanSaves(
+        saves,
+        (id) => known.has(id),
+        (p) => packs.byId.has(p),
+      );
+      if (live) setOrphans(found);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [saves, userStore]);
   const [slot, setSlot] = useState<number | undefined>(
     () => questEntries.find((q) => q.level)?.slot,
   );
@@ -112,7 +138,7 @@ export function SelectScreen({
   const [choosing, setChoosing] = useState(false);
 
   const shown = questEntries.filter((q) =>
-    q.level ? packOfEntry(q) === packId : packId === CORE_PACK,
+    tabs.length === 0 ? true : q.level ? packOfEntry(q) === packId : packId === CORE_PACK,
   );
   const entry = questEntries.find((q) => q.slot === slot);
   const level = entry?.level;
@@ -177,24 +203,41 @@ export function SelectScreen({
       </header>
 
       <div className="pickcol">
-        <div className="packtabs" role="tablist" aria-label="Quest packs">
-          {packs.packs.map((p) => (
+        {tabs.length > 0 && (
+          <div className="packtabs" role="tablist" aria-label="Quest packs">
+            {tabs.map((p) => (
+              <button
+                key={p.id}
+                role="tab"
+                className="chip"
+                aria-selected={p.id === packId}
+                data-testid={`pack-${p.id}`}
+                onClick={() => {
+                  setPackId(p.id);
+                  const first = questEntries.find((q) => q.level && packOfEntry(q) === p.id);
+                  if (first) setSlot(first.slot);
+                }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
+        {orphans.map((o) => (
+          <p key={o.questId} className="hint orphan" role="status" data-testid="orphan-save">
+            {o.message}{' '}
             <button
-              key={p.manifest.id}
-              role="tab"
-              className="chip"
-              aria-selected={p.manifest.id === packId}
-              data-testid={`pack-${p.manifest.id}`}
+              className="link"
               onClick={() => {
-                setPackId(p.manifest.id);
-                const first = questEntries.find((q) => q.level && packOfEntry(q) === p.manifest.id);
-                if (first) setSlot(first.slot);
+                void saves
+                  .remove(o.questId)
+                  .then(() => setOrphans((list) => list.filter((x) => x.questId !== o.questId)));
               }}
             >
-              {p.manifest.id === CORE_PACK ? 'Core game' : p.manifest.name}
+              Delete the save
             </button>
-          ))}
-        </div>
+          </p>
+        ))}
 
         <div className="pick">
           {shown.map((q) => (

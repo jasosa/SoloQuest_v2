@@ -113,6 +113,8 @@ void _eventSchemaCoversAllEvents;
 
 export const SavedGameSchema = z.object({
   questId: z.string(),
+  /** The pack of the quest when it was saved (decision 36). Quest numbers overlap between packs, so the id and the pack go together. Missing: an older save, or a quest of this device. */
+  pack: z.string().optional(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
   /** The heroes at the table: 1 to 4, all different. Not part of the engine state. */
@@ -194,10 +196,12 @@ export async function autosave(
   team: readonly Hero[],
   events: readonly GameEvent[],
   now: number,
+  pack?: string,
 ): Promise<boolean> {
   try {
     await store.save({
       questId,
+      ...(pack === undefined ? {} : { pack }),
       version: SAVE_VERSION,
       seed,
       team: [...team],
@@ -213,6 +217,7 @@ export async function autosave(
 export type Resumed =
   | {
       ok: true;
+      pack?: string | undefined;
       seed: number;
       team: readonly Hero[];
       events: readonly GameEvent[];
@@ -243,6 +248,7 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
     const state = replay(level, parsed.data.seed, parsed.data.events);
     return {
       ok: true,
+      pack: parsed.data.pack,
       seed: parsed.data.seed,
       team: parsed.data.team,
       events: parsed.data.events,
@@ -255,4 +261,40 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
       message: `The saved game does not match this quest: ${(e as Error).message}`,
     };
   }
+}
+
+/** A saved game whose quest is not on this device any more. */
+export interface OrphanSave {
+  readonly questId: string;
+  readonly pack: string | undefined;
+  /** What to tell the player. */
+  readonly message: string;
+}
+
+/**
+ * The saved games that no quest on this device matches (for example a pack that is not installed).
+ * `hasQuest` says whether a quest id exists here; `hasPack` whether a pack is installed. Nothing is
+ * deleted: the player decides.
+ */
+export async function orphanSaves(
+  store: SaveStore,
+  hasQuest: (questId: string) => boolean,
+  hasPack: (pack: string) => boolean,
+): Promise<OrphanSave[]> {
+  let all: SavedGame[];
+  try {
+    all = await store.list();
+  } catch {
+    return [];
+  }
+  return all
+    .filter((g) => !hasQuest(g.questId))
+    .map((g) => ({
+      questId: g.questId,
+      pack: g.pack,
+      message:
+        g.pack !== undefined && !hasPack(g.pack)
+          ? `A saved game of the quest "${g.questId}" belongs to the pack "${g.pack}", which is not installed here. Install the pack to play it again, or delete the save.`
+          : `A saved game of the quest "${g.questId}" has no quest on this device any more. Delete the save, or bring the quest back.`,
+    }));
 }

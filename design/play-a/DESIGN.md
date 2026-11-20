@@ -364,4 +364,4 @@ A setting that is on or off is a row: its label on the left, a switch on the rig
 
 ## Quest packs on the quest list (owner)
 
-A row of tabs over the quest cards, one per installed pack: Core game, then each expansion by name. A tab is a chip (44 px tall); the chosen one is filled with `--ink` and `--paper` text. Choosing a tab shows only the quests of that pack and selects its first quest. Quests made in the editor sit with the core game.
+A row of tabs over the quest cards, one per installed pack: Core game, then each expansion by name. A tab is a chip (44 px tall); the chosen one is filled with `--ink` and `--paper` text. Choosing a tab shows only the quests of that pack and selects its first quest. Quests made in the editor sit with the core game. The tabs are hidden while only one pack has a quest to play. A saved game whose quest is not on this device (its pack is not installed) shows as a short hint line under the tabs with a link, "Delete the save" (44 px); nothing is deleted without a tap.

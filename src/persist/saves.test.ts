@@ -5,7 +5,14 @@ import { buildLevel } from '../engine/board/level';
 import type { GameEvent } from '../engine/game/events';
 import { replay, undo } from '../engine/game/reducer';
 import { testQuest } from '../engine/quest/testQuest';
-import { autosave, DexieSaveStore, MemorySaveStore, resume, type SaveStore } from './saves';
+import {
+  autosave,
+  DexieSaveStore,
+  MemorySaveStore,
+  orphanSaves,
+  resume,
+  type SaveStore,
+} from './saves';
 
 const level = buildLevel(testQuest());
 const SEED = 7;
@@ -128,5 +135,36 @@ describe('unavailable storage', () => {
 
   it('autosave returns false instead of throwing', async () => {
     expect(await autosave(broken, level.quest.id, SEED, TEAM, log, 1)).toBe(false);
+  });
+});
+
+describe('the pack in a save (decision 36)', () => {
+  it('remembers the pack and the quest id, and an older save without a pack still resumes', async () => {
+    const store = new MemorySaveStore();
+    await autosave(store, level.quest.id, SEED, TEAM, log, 1000, 'frozen-horror');
+    const r = await resume(store, level);
+    expect(r.ok && r.pack).toBe('frozen-horror');
+    expect((await store.load(level.quest.id))?.pack).toBe('frozen-horror');
+    const old = new MemorySaveStore();
+    await autosave(old, level.quest.id, SEED, TEAM, log, 1000);
+    expect((await old.load(level.quest.id))?.pack).toBeUndefined();
+    const r2 = await resume(old, level);
+    expect(r2.ok && r2.pack).toBeUndefined();
+  });
+
+  it('explains a save whose pack is missing, and one whose quest is gone', async () => {
+    const store = new MemorySaveStore();
+    await autosave(store, 'xx01-gone', SEED, TEAM, [], 1, 'lost-pack');
+    await autosave(store, 'q-gone', SEED, TEAM, [], 2);
+    await autosave(store, level.quest.id, SEED, TEAM, [], 3, 'core');
+    const found = await orphanSaves(
+      store,
+      (id) => id === level.quest.id,
+      (p) => p === 'core',
+    );
+    expect(found.map((o) => o.questId).sort()).toEqual(['q-gone', 'xx01-gone']);
+    expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('"lost-pack"');
+    expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('not installed');
+    expect(found.find((o) => o.questId === 'q-gone')?.message).toContain('no quest on this device');
   });
 });
