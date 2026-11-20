@@ -44,6 +44,7 @@ describe('a wandering monster that is a quest enemy', () => {
     expect(v.profile).toBe('thief');
     expect(v.box).toBe('Frozen Horror');
     expect(v.pictureType).toBeUndefined(); // no goblin picture from a texture pack
+    expect(v.enemy).toBe('gremlin'); // a pack may give this enemy its own picture
   });
 
   it('tells the players its name and attack dice', () => {

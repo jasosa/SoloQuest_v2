@@ -1,4 +1,5 @@
 import { areaAt, cellsOf, type Board, type Cell } from '../../engine/board/board';
+import { ROOM_TILE_TYPES } from '../../engine/data/roomTiles';
 import type { FurnitureDef, MonsterType } from '../../engine/quest/schema';
 import { TRAP_KINDS } from '../../engine/quest/schema';
 
@@ -67,6 +68,40 @@ export function tuned(
   };
 }
 
+/**
+ * The tiles that can have a picture (Frozen Horror): the room tiles, the board tiles that are a fixed
+ * piece (cave entrance, river, ledge, slippery ice) and the ice slide, which is laid along a path.
+ */
+export const TILE_KEYS = [
+  ...ROOM_TILE_TYPES,
+  'iceCaveEntrance',
+  'icyRiver',
+  'iceLedge',
+  'slipperyIce',
+  'iceSlide',
+] as const;
+export type TileKey = (typeof TILE_KEYS)[number];
+
+/** The designs of an ice tunnel that can have a picture (the quest data allows 1 to 9). */
+export const TUNNEL_DESIGNS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
+export type TunnelDesign = (typeof TUNNEL_DESIGNS)[number];
+
+/** The two doors in the outer wall of the board. */
+export const EDGE_DOOR_SLOTS = ['ironEntry', 'woodenExit'] as const;
+export type EdgeDoorSlot = (typeof EDGE_DOOR_SLOTS)[number];
+
+/**
+ * One picture of a tile. `cells` is its footprint in squares as the picture is drawn (a portrait ice
+ * vault is [2, 3]); the picture is drawn once over the squares of a tile of that size, and turned a
+ * quarter turn when the tile lies the other way. A tile that comes in two sizes has two pictures.
+ */
+export interface TilePicture {
+  readonly href: string;
+  readonly cells: readonly [number, number];
+  readonly scale?: number;
+  readonly offset?: readonly [number, number];
+}
+
 /** The size of a monster token, in px at 34 px a square: a little less than one square. */
 export const TOKEN_SIZE = 32;
 
@@ -76,6 +111,9 @@ export interface ThemeTune {
   readonly door?: Readonly<Partial<Record<'closed' | 'open' | 'secret', Tune>>>;
   readonly block?: Readonly<Partial<Record<'single' | 'double', Tune>>>;
   readonly trap?: Readonly<Partial<Record<TrapSlot, Tune>>>;
+  readonly enemy?: Readonly<Partial<Record<string, Tune>>>;
+  readonly edgeDoor?: Readonly<Partial<Record<EdgeDoorSlot, Tune>>>;
+  readonly tunnel?: Readonly<Partial<Record<TunnelDesign, Tune>>>;
 }
 
 /** The traps that can have a picture: the hidden "armed" look, and one per kind of trap. */
@@ -84,6 +122,8 @@ export type TrapSlot = 'armed' | (typeof TRAP_KINDS)[number];
 export interface Theme {
   readonly id: string;
   readonly name: string;
+  /** The quest pack the theme dresses (`frozen-horror`); left out: the core game. */
+  readonly box?: string;
   /**
    * One picture of the whole board (26 x 19 squares, the same shape as the grid). It is shown
    * through the squares the heroes have seen, and it already has the walls, so no wall lines are
@@ -118,7 +158,18 @@ export interface Theme {
    * kind is shown once it is known: a sprung pit, a fallen block, and, for Zargon, every trap.
    */
   readonly trap?: Readonly<Partial<Record<TrapSlot, string>>>;
-  /** Scale and shift of the pictures above, by slot (furniture carries its own). */
+  /**
+   * The whole token of an enemy, by enemy id (`iceGremlin`). It wins over the picture of the enemy's
+   * base type, and an enemy's own image from the Library still wins over both.
+   */
+  readonly enemy?: Readonly<Partial<Record<string, string>>>;
+  /** Doors in the outer wall of the board (Frozen Horror): the iron entry and the wooden exit. */
+  readonly edgeDoor?: Readonly<Partial<Record<EdgeDoorSlot, string>>>;
+  /** An ice tunnel end, by design number. A design without a picture keeps the drawn look. */
+  readonly tunnel?: Readonly<Partial<Record<TunnelDesign, string>>>;
+  /** Pictures of tiles over their squares (see `TilePicture`). A tile without one keeps its outline. */
+  readonly tile?: Readonly<Partial<Record<TileKey, readonly TilePicture[]>>>;
+  /** Scale and shift of the pictures above, by slot (furniture and tiles carry their own). */
   readonly tune?: ThemeTune;
 }
 
@@ -130,14 +181,24 @@ export const CLASSIC_THEME: Theme = { id: 'classic', name: 'Classic' };
  */
 export function mergeThemes(parent: Theme, child: Theme): Theme {
   const out: Record<string, unknown> = { ...parent, ...child };
-  for (const k of ['door', 'block', 'trap', 'monster', 'furniture'] as const) {
+  for (const k of [
+    'door',
+    'block',
+    'trap',
+    'monster',
+    'furniture',
+    'enemy',
+    'edgeDoor',
+    'tunnel',
+    'tile',
+  ] as const) {
     const a = parent[k];
     const b = child[k];
     if (a && b) out[k] = { ...a, ...b };
   }
   if (parent.tune || child.tune) {
     const tune: Record<string, unknown> = { ...(parent.tune ?? {}), ...(child.tune ?? {}) };
-    for (const k of ['monster', 'door', 'block', 'trap'] as const) {
+    for (const k of ['monster', 'door', 'block', 'trap', 'enemy', 'edgeDoor', 'tunnel'] as const) {
       const a = parent.tune?.[k];
       const b = child.tune?.[k];
       if (a && b) tune[k] = { ...a, ...b };
@@ -198,14 +259,17 @@ export function cornerTurn(board: Board, cells: readonly Cell[], solid: Corner):
   return steps * 90;
 }
 
-/** The picture of a monster: its own (an enemy's image) first, then the theme's for its type. */
+/** The picture of a monster: its own (an enemy's image) first, then the theme's for its enemy, then for its type. */
 export function monsterPicture(
   theme: Theme,
   own: string | undefined,
   type: MonsterType | undefined,
+  enemy?: string,
 ): string | undefined {
+  if (own !== undefined) return own;
+  const byEnemy = enemy === undefined ? undefined : theme.enemy?.[enemy];
   // no type: an enemy of its own kind that the pack has no picture of: the built-in token is drawn
-  return own ?? (type === undefined ? undefined : theme.monster?.[type]);
+  return byEnemy ?? (type === undefined ? undefined : theme.monster?.[type]);
 }
 
 /** True when the picture comes from the theme, so it is a whole token and the app draws no frame. */
@@ -213,6 +277,25 @@ export function isThemeToken(
   theme: Theme,
   own: string | undefined,
   type: MonsterType | undefined,
+  enemy?: string,
 ): boolean {
-  return own === undefined && type !== undefined && theme.monster?.[type] !== undefined;
+  return own === undefined && monsterPicture(theme, own, type, enemy) !== undefined;
+}
+
+/**
+ * The picture of a tile that fits a `w` x `h` footprint (turned or not), and how many quarter turns
+ * (0 or 1) it needs to lie that way. Undefined when the theme has no picture of that size.
+ */
+export function tilePictureFor(
+  theme: Theme,
+  key: TileKey,
+  w: number,
+  h: number,
+): { picture: TilePicture; turned: boolean } | undefined {
+  for (const picture of theme.tile?.[key] ?? []) {
+    const [a, b] = picture.cells;
+    if (a === w && b === h) return { picture, turned: false };
+    if (a === h && b === w) return { picture, turned: true };
+  }
+  return undefined;
 }

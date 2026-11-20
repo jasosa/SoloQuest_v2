@@ -1,0 +1,54 @@
+{
+  "format": "sqtextures",
+  "version": 1,
+  "id": "frozen-horror-art",
+  "name": "Frozen Horror art",
+  "origin": "official",
+  "box": "frozen-horror",
+  "block": { "single": "furniture/block.png" },
+  "enemy": {
+    "iceGremlin": "monsters/ice_gremlin.png",
+    "yeti": "monsters/yeti.png",
+    "polarWarbear": "monsters/polar_warbear.png",
+    "frozenHorror": { "file": "monsters/frozen_horror.png", "scale": 1.5 },
+    "crossbowman": "monsters/crossbowman.png",
+    "swordsman": "monsters/swordsman.png",
+    "halberdier": "monsters/halberdier.png",
+    "scout": "monsters/scout.png"
+  },
+  "edgeDoor": {
+    "ironEntry": "furniture/iron_entrance_door.png",
+    "woodenExit": "furniture/wooden_exit_door.png"
+  },
+  "tunnel": {
+    "1": "furniture/ice_tunnel_1.png",
+    "2": "furniture/ice_tunnel_2.png",
+    "3": "furniture/ice_tunnel_3.png"
+  },
+  "tile": {
+    "iceVault": [
+      { "file": "tiles/ice_vault_2x3.png", "cells": [2, 3] },
+      { "file": "tiles/ice_vault_3x4.png", "cells": [3, 4] }
+    ],
+    "scepterRoom": { "file": "tiles/scepter_room.png", "cells": [4, 4] },
+    "livingFog": { "file": "tiles/living_fog_room.png", "cells": [4, 4] },
+    "chasmRoom": { "file": "tiles/bottomless_chasm_room.png", "cells": [4, 4] },
+    "cageRoom": { "file": "tiles/cage_room.png", "cells": [4, 4] },
+    "frozenCrypt": { "file": "tiles/frozen_crypt_room.png", "cells": [3, 5] },
+    "seatOfPower": { "file": "tiles/seat_of_power_room.png", "cells": [5, 6] },
+    "gremlinTreasure": { "file": "tiles/ice_gremlin_treasure_room.png", "cells": [4, 3] },
+    "iceCaveEntrance": { "file": "tiles/ice_cave_entrance.png", "cells": [5, 6] },
+    "iceLedge": { "file": "tiles/ice_ledge.png", "cells": [5, 3] },
+    "icyRiver": [
+      { "file": "tiles/icy_river_1x8.png", "cells": [1, 8] },
+      { "file": "tiles/icy_river_1x3.png", "cells": [1, 3] }
+    ],
+    "iceSlide": { "file": "tiles/ice_slide.png", "cells": [1, 8] },
+    "slipperyIce": [
+      { "file": "furniture/slippery_ice_1x1.png", "cells": [1, 1] },
+      { "file": "furniture/slippery_ice_2x1.png", "cells": [2, 1] },
+      { "file": "furniture/slippery_ice_3x1.png", "cells": [3, 1] },
+      { "file": "furniture/slippery_ice_2x3.png", "cells": [2, 3] }
+    ]
+  }
+}

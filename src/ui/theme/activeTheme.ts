@@ -5,6 +5,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
+import { getBoxArtVersion, getQuestBox, layeredTheme, subscribeBoxArt } from './boxArt';
 import { CLASSIC_THEME, type Theme } from './theme';
 
 /** The theme in use. A small store, so the board redraws when it changes. */
@@ -42,5 +43,7 @@ export function ThemeScope({ theme, children }: { theme: Theme | undefined; chil
 export function useTheme(): Theme {
   const scoped = useContext(ScopeCtx);
   const app = useActiveTheme();
-  return scoped ?? app;
+  // the box of the open quest and the art switch change what is drawn too
+  useSyncExternalStore(subscribeBoxArt, getBoxArtVersion);
+  return scoped ?? layeredTheme(app, getQuestBox());
 }

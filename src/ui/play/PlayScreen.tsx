@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt } from '../../engine/board/board';
 import { keyOf, parseKey } from '../../engine/board/level';
@@ -74,6 +74,7 @@ import {
 import { parseSelection, type Selection } from './selection';
 import { progressLabel } from './zargonView';
 import { useTheme } from '../theme/activeTheme';
+import { boxOfQuest, setQuestBox } from '../theme/boxArt';
 import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { useWakeLock } from '../shared/useWakeLock';
 import { isThemeToken, monsterPicture } from '../theme/theme';
@@ -158,6 +159,12 @@ export function PlayScreen({
   } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
+  // the boards draw with the art layer of the quest's box (Frozen Horror)
+  const questBox = boxOfQuest(quest);
+  useLayoutEffect(() => {
+    setQuestBox(questBox);
+    return () => setQuestBox(undefined);
+  }, [questBox]);
   const codes = useMemo(
     () => monsterCodes(level, state.seenMonsters, state.wanderers),
     [level, state.seenMonsters, state.wanderers],
@@ -1588,8 +1595,8 @@ function RosterRow({
     if (focus) ref.current?.scrollIntoView({ block: 'nearest' });
   }, [focus]);
   const theme = useTheme();
-  const pic = monsterPicture(theme, m.image, m.pictureType);
-  const whole = isThemeToken(theme, m.image, m.pictureType);
+  const pic = monsterPicture(theme, m.image, m.pictureType, m.enemy);
+  const whole = isThemeToken(theme, m.image, m.pictureType, m.enemy);
   return (
     <li
       ref={ref}

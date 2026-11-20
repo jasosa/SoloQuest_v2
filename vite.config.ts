@@ -18,7 +18,10 @@ export default defineConfig({
         theme_color: '#6E1F2A',
         icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,otf,json}'] },
+      workbox: {
+        // the Frozen Horror pictures (png, in public/) are kept for offline play too
+        globPatterns: ['**/*.{js,css,html,svg,otf,json}', 'assets/frozen-horror/**/*.png'],
+      },
     }),
   ],
   test: { include: ['src/**/*.test.ts', 'tests/engine/**/*.test.ts', 'tools/**/*.test.ts'] },
