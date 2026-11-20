@@ -4,6 +4,7 @@ import type { PackManifest } from '../../engine/pack/schema';
 import type { CampaignStore } from '../../persist/campaigns';
 import { NoteCard } from './NoteCard';
 import { setQuestSetting, useQuestSettings } from '../settings';
+import { t } from '../../i18n/t';
 
 /** A switch row (decision 84, `.switch-row`): a label with a hint, and the switch. */
 function SwitchRow({
@@ -75,16 +76,22 @@ export function QuestSettingsCard({
   return (
     <NoteCard kind="Quest settings" title={title} onClose={onClose}>
       <SwitchRow
-        label="Rule hints"
-        hint="Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake."
+        label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
+        hint={t(
+          'shared.QuestSettingsCard.shortRemindersOfRules',
+          'Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake.',
+        )}
         on={s.ruleHints}
         testId="rule-hints"
         onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
       />
       {solo && (
         <SwitchRow
-          label="No Yeti hug in solo quests"
-          hint="In a quest for one hero the Yeti attacks like a plain brute and does not hug."
+          label={t('shared.QuestSettingsCard.noYetiHugIn', 'No Yeti hug in solo quests')}
+          hint={t(
+            'shared.QuestSettingsCard.inAQuestFor',
+            'In a quest for one hero the Yeti attacks like a plain brute and does not hug.',
+          )}
           on={s.soloNoHug}
           testId="solo-no-hug"
           onToggle={() => setQuestSetting(questId, 'soloNoHug', !s.soloNoHug)}
@@ -92,10 +99,17 @@ export function QuestSettingsCard({
       )}
       {campaign && listed.length > 0 && (
         <>
-          <div className="lbl">Campaign of {campaign.pack.name}</div>
+          <div className="lbl">
+            {t('shared.QuestSettingsCard.campaignOf', 'Campaign of {name}', {
+              name: campaign.pack.name,
+            })}
+          </div>
           {!stored && (
             <p className="hint" data-testid="no-campaign">
-              These are set when a campaign has started. Start a game in Campaign mode first.
+              {t(
+                'shared.QuestSettingsCard.theseAreSetWhen',
+                'These are set when a campaign has started. Start a game in Campaign mode first.',
+              )}
             </p>
           )}
           {stored &&
@@ -120,7 +134,7 @@ export function QuestSettingsCard({
         </>
       )}
       <button className="btn alt" onClick={onClose}>
-        Done
+        {t('shared.QuestSettingsCard.done', 'Done')}
       </button>
     </NoteCard>
   );

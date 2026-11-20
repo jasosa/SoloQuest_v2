@@ -1,3 +1,4 @@
+import { inActiveLanguage } from '../i18n/runtime';
 import { restorePack } from './theme/activate';
 import { setActiveTheme } from './theme/activeTheme';
 import { TexturesDialog } from './theme/TexturesDialog';
@@ -45,6 +46,7 @@ import './app.css';
 import './play/play.css';
 import './select/select.css';
 import './editor/editor.css';
+import { t } from '../i18n/t';
 
 /** A new random seed. Math.random is fine here: it is outside the engine. */
 const freshSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -127,8 +129,8 @@ export function App() {
     return (
       <div className="app">
         <header>
-          <span className="qn">Board</span>
-          <h1>SoloQuest</h1>
+          <span className="qn">{t('app.board', 'Board')}</span>
+          <h1>{t('app.soloquest', 'SoloQuest')}</h1>
         </header>
         <main className="map">
           <BoardView
@@ -329,7 +331,7 @@ function Game({ params }: { params: URLSearchParams }) {
   const playtestQuest = (quest: Quest) => {
     if (typeof editor !== 'object' || editor === null) return;
     try {
-      const level = buildLevel(quest);
+      const level = buildLevel(inActiveLanguage(quest));
       const store = openGame(new MemorySaveStore(), level, freshSeed(), HEROES, [], true, {
         startFlags: startFlagsFor(level.quest, undefined),
       });

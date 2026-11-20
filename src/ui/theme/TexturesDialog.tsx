@@ -4,6 +4,7 @@ import { Dialog } from '../shared/Frame';
 import { applyPack } from './activate';
 import { PACK_EXTENSION, PACK_MAX_BYTES, readPack, writePack, type StoredPack } from './pack';
 import { PackPreview } from './PackPreview';
+import { t } from '../../i18n/t';
 
 function download(name: string, bytes: Uint8Array): void {
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }));
@@ -87,29 +88,31 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
   return (
     <>
       <Dialog
-        title="Texture packs"
+        title={t('theme.TexturesDialog.texturePacks', 'Texture packs')}
         onClose={onClose}
         foot={
           <>
             <button className="btn alt" onClick={() => input.current?.click()}>
-              Import a pack
+              {t('theme.TexturesDialog.importAPack', 'Import a pack')}
             </button>
             <button className="btn" onClick={onClose}>
-              Close
+              {t('theme.TexturesDialog.close', 'Close')}
             </button>
           </>
         }
       >
         <p className="fr-help">
-          A texture pack changes how the board looks: floor, walls, doors, furniture and monster
-          pictures. It never changes the rules or your saved games.
+          {t(
+            'theme.TexturesDialog.aTexturePackChanges',
+            'A texture pack changes how the board looks: floor, walls, doors, furniture and monster pictures. It never changes the rules or your saved games.',
+          )}
         </p>
         <input
           ref={input}
           type="file"
           hidden
           accept={`${PACK_EXTENSION},application/zip`}
-          aria-label="Texture pack file"
+          aria-label={t('theme.TexturesDialog.texturePackFile', 'Texture pack file')}
           onChange={(e) => {
             void onFile(e.target.files?.[0]);
             e.target.value = '';
@@ -123,14 +126,14 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
         <ul className="fr-recent" data-testid="pack-list">
           <li>
             <div className="fr-open-static">
-              <span className="fr-qnum">Built in</span>
-              <span className="fr-qtitle">Classic</span>
+              <span className="fr-qnum">{t('theme.TexturesDialog.builtIn', 'Built in')}</span>
+              <span className="fr-qtitle">{t('theme.TexturesDialog.classic', 'Classic')}</span>
             </div>
             {active === null ? (
-              <span className="fr-qnote">In use</span>
+              <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
             ) : (
               <button className="chip" onClick={() => void choose(null)}>
-                Use Classic
+                {t('theme.TexturesDialog.useClassic', 'Use Classic')}
               </button>
             )}
           </li>
@@ -138,21 +141,28 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
             <li key={p.id} data-pack={p.id}>
               <div className="fr-open-static">
                 <span className="fr-qnum">
-                  {p.box ? `For ${p.box}` : 'For the core game'} ·{' '}
-                  {p.origin === 'official' ? 'Official' : 'Fan-made'}
+                  {p.box
+                    ? t('theme.TexturesDialog.for', 'For {box}', { box: p.box })
+                    : t('theme.TexturesDialog.forTheCoreGame', 'For the core game')}{' '}
+                  ·{' '}
+                  {p.origin === 'official'
+                    ? t('theme.TexturesDialog.official', 'Official')
+                    : t('theme.TexturesDialog.fanMade', 'Fan-made')}
                   {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
                 </span>
                 <span className="fr-qtitle">{p.name}</span>
               </div>
               {active === p.id ? (
-                <span className="fr-qnote">In use</span>
+                <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
               ) : p.extends && !packs.some((x) => x.id === p.extends) ? (
                 <span className="fr-qnote" data-testid={`needs-${p.id}`}>
-                  Needs the pack {p.extends}
+                  {t('theme.TexturesDialog.needsThePack', 'Needs the pack {extends}', {
+                    extends: p.extends,
+                  })}
                 </span>
               ) : (
                 <button className="chip" onClick={() => void choose(p.id)}>
-                  Use
+                  {t('theme.TexturesDialog.use', 'Use')}
                 </button>
               )}
               <button
@@ -160,7 +170,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
                 data-testid={`preview-${p.id}`}
                 onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
               >
-                Preview
+                {t('theme.TexturesDialog.preview', 'Preview')}
               </button>
               <button
                 className="chip"
@@ -169,7 +179,7 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
                   if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
                 }}
               >
-                Export
+                {t('theme.TexturesDialog.export', 'Export')}
               </button>
               {deleting === p.id ? (
                 <button
@@ -181,18 +191,24 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
                     await refresh();
                   }}
                 >
-                  Really delete
+                  {t('theme.TexturesDialog.reallyDelete', 'Really delete')}
                 </button>
               ) : (
                 <button className="chip" onClick={() => setDeleting(p.id)}>
-                  Delete
+                  {t('theme.TexturesDialog.delete', 'Delete')}
                 </button>
               )}
             </li>
           ))}
         </ul>
         {packs.length === 0 && (
-          <p className="fr-help">No texture pack yet. Import a {PACK_EXTENSION} file to add one.</p>
+          <p className="fr-help">
+            {t(
+              'theme.TexturesDialog.noTexturePackYet',
+              'No texture pack yet. Import a {PACK_EXTENSION} file to add one.',
+              { PACK_EXTENSION },
+            )}
+          </p>
         )}
       </Dialog>
       {previewing && (

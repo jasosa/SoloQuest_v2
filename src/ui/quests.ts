@@ -5,6 +5,7 @@
 import { buildLevel, type Level } from '../engine/board/level';
 import { parseQuest } from '../engine/quest/loader';
 import type { Quest } from '../engine/quest/schema';
+import { inActiveLanguage } from '../i18n/runtime';
 
 export const QUEST_COUNT = 14;
 
@@ -35,7 +36,7 @@ export function loadQuestEntries(data: Record<string, unknown> = files): QuestEn
   const coreByNumber = new Map<number, { level: Level; source: Quest }>();
   const others: { pack: string; level: Level; source: Quest }[] = [];
   for (const raw of Object.values(data)) {
-    const quest = parseQuest(raw);
+    const quest = parseQuest(inActiveLanguage(raw));
     if (quest.pack === undefined)
       coreByNumber.set(quest.number, { level: buildLevel(quest), source: quest });
     else others.push({ pack: quest.pack, level: buildLevel(quest), source: quest });
@@ -59,6 +60,9 @@ export function loadQuestEntries(data: Record<string, unknown> = files): QuestEn
     });
   return [...core, ...rest];
 }
+
+/** The bundled quest files as they are written (English), for the translation tool. */
+export const bundledQuestFiles: readonly unknown[] = Object.values(files);
 
 export const questEntries: readonly QuestEntry[] = loadQuestEntries();
 

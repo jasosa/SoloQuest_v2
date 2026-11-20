@@ -7,6 +7,7 @@ import type {
   ObjectiveConfirm,
   ObjectivesView,
 } from '../../engine/game/view';
+import { t } from '../../i18n/t';
 
 const LOG_SHOWN = 12;
 
@@ -50,25 +51,37 @@ export function QuestSheet(p: QuestSheetProps) {
   const shown = all ? log : log.slice(0, LOG_SHOWN);
 
   return (
-    <div className="qsheet" ref={sheet} role="dialog" aria-label="Quest sheet" data-keep>
+    <div
+      className="qsheet"
+      ref={sheet}
+      role="dialog"
+      aria-label={t('play.QuestSheet.questSheet', 'Quest sheet')}
+      data-keep
+    >
       <div className="qh">
         <div>
-          <div className="kind">Quest {p.number}</div>
+          <div className="kind">
+            {t('play.QuestSheet.quest', 'Quest {number}', { number: p.number })}
+          </div>
           <h2>{p.title}</h2>
         </div>
-        <button className="x" aria-label="Close quest sheet" onClick={p.onClose}>
+        <button
+          className="x"
+          aria-label={t('play.QuestSheet.closeQuestSheet', 'Close quest sheet')}
+          onClick={p.onClose}
+        >
           ×
         </button>
       </div>
 
       <section data-testid="quest-intro">
-        <div className="lbl">About this quest</div>
+        <div className="lbl">{t('play.QuestSheet.aboutThisQuest', 'About this quest')}</div>
         <p>{p.intro}</p>
       </section>
 
       {p.startTexts.length > 0 && (
         <section>
-          <div className="lbl">At the start</div>
+          <div className="lbl">{t('play.QuestSheet.atTheStart', 'At the start')}</div>
           {p.startTexts.map((t, i) => (
             <p key={i}>{t}</p>
           ))}
@@ -76,7 +89,7 @@ export function QuestSheet(p: QuestSheetProps) {
       )}
 
       <section>
-        <div className="lbl">Goal</div>
+        <div className="lbl">{t('play.QuestSheet.goal', 'Goal')}</div>
         <ul className="goals">
           {p.objectives.items.map((o) => (
             <li key={o.id} className={o.done ? 'done' : ''}>
@@ -85,7 +98,12 @@ export function QuestSheet(p: QuestSheetProps) {
               </span>
               <span>
                 {o.text}
-                <span className="sr"> {o.done ? '(done)' : '(not done)'}</span>
+                <span className="sr">
+                  {' '}
+                  {o.done
+                    ? t('play.QuestSheet.done', '(done)')
+                    : t('play.QuestSheet.notDone', '(not done)')}
+                </span>
                 {/* the button that confirms this objective sits under it */}
                 {p.confirms
                   .filter((c) => c.objective === o.id)
@@ -107,7 +125,7 @@ export function QuestSheet(p: QuestSheetProps) {
 
       {p.actions.length > 0 && (
         <section>
-          <div className="lbl">Quest actions</div>
+          <div className="lbl">{t('play.QuestSheet.questActions', 'Quest actions')}</div>
           {p.actions.map((a) => (
             <div key={a.note}>
               {a.hint && <p className="hint">{a.hint}</p>}
@@ -120,9 +138,9 @@ export function QuestSheet(p: QuestSheetProps) {
       )}
 
       <section>
-        <div className="lbl">Notes read</div>
+        <div className="lbl">{t('play.QuestSheet.notesRead', 'Notes read')}</div>
         {p.notes.length === 0 ? (
-          <p className="empty">No quest note read yet.</p>
+          <p className="empty">{t('play.QuestSheet.noQuestNoteRead', 'No quest note read yet.')}</p>
         ) : (
           <ul className="journal">
             {p.notes.map((e) => (
@@ -138,11 +156,11 @@ export function QuestSheet(p: QuestSheetProps) {
       </section>
 
       <section>
-        <div className="lbl">What happened</div>
+        <div className="lbl">{t('play.QuestSheet.whatHappened', 'What happened')}</div>
         <ul className="log">
           {shown.map((l, i) => (
             <li key={`${log.length - i}`}>
-              <i>Turn {l.turn}</i>
+              <i>{t('play.QuestSheet.turn', 'Turn {turn}', { turn: l.turn })}</i>
               {l.note ? (
                 <button className="jl" onClick={() => p.onRead(l.note!)}>
                   {l.text}
@@ -155,7 +173,7 @@ export function QuestSheet(p: QuestSheetProps) {
         </ul>
         {!all && log.length > LOG_SHOWN && (
           <button className="more" onClick={() => setAll(true)}>
-            Show all
+            {t('play.QuestSheet.showAll', 'Show all')}
           </button>
         )}
       </section>

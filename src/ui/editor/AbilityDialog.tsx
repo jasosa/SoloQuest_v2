@@ -4,6 +4,7 @@ import { useStore } from 'zustand';
 import { removeAbility, updateAbility } from '../../engine/editor';
 import { useLibrary } from '../designer/LibraryContext';
 import type { EditorStore } from './editorStore';
+import { t } from '../../i18n/t';
 
 const KINDS = [
   { value: 'ability', label: 'Ability' },
@@ -30,11 +31,17 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
 
   return (
     <div className="ed-veil">
-      <div className="ed-dialog" ref={box} role="dialog" aria-modal="true" aria-label="Ability">
+      <div
+        className="ed-dialog"
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('editor.AbilityDialog.ability', 'Ability')}
+      >
         <div className="ed-dialog-hd">
-          <h2>Ability</h2>
+          <h2>{t('editor.AbilityDialog.ability', 'Ability')}</h2>
           <button className="btn alt" onClick={() => st.setAbilityId(null)}>
-            Close
+            {t('editor.AbilityDialog.close', 'Close')}
           </button>
         </div>
         <div className="ed-dialog-body">
@@ -89,8 +96,10 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
           </p>
           <p className="ed-note" data-testid="ability-used">
             {used.length === 0
-              ? 'No monster uses it yet.'
-              : `Used by: ${used.map((m) => m.name ?? m.id).join(', ')}`}
+              ? t('editor.AbilityDialog.noMonsterUsesIt', 'No monster uses it yet.')
+              : t('editor.AbilityDialog.usedBy', 'Used by: {v1}', {
+                  v1: used.map((m) => m.name ?? m.id).join(', '),
+                })}
           </p>
           <button
             className="btn alt"
@@ -99,7 +108,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
               void lib.save('ability', a).then((m) => setSaved(m || 'Saved in the library.'))
             }
           >
-            Save in the library
+            {t('editor.AbilityDialog.saveInTheLibrary', 'Save in the library')}
           </button>
           {saved && (
             <p className="ed-note" role="status">
@@ -112,7 +121,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
               if (st.apply((q) => removeAbility(q, a.id))) st.setAbilityId(null);
             }}
           >
-            Delete ability
+            {t('editor.AbilityDialog.deleteAbility', 'Delete ability')}
           </button>
         </div>
       </div>

@@ -15,7 +15,8 @@
     "prepare": "git config core.hooksPath .githooks",
     "validate": "tsx tools/validate.ts",
     "render:maps": "tsx tools/quest-import/render-maps.ts",
-    "overlay": "tsx tools/quest-import/overlay.ts"
+    "overlay": "tsx tools/quest-import/overlay.ts",
+    "i18n": "tsx tools/i18n.ts"
   },
   "dependencies": {
     "dexie": "^4.4.7",

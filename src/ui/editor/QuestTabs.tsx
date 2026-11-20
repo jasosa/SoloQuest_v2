@@ -7,6 +7,7 @@ import { ActionForm } from './NotesPanel';
 import { FeaturesPanel } from './FeaturesPanel';
 import { QuestPanel } from './QuestPanel';
 import { MapsPanel, MergesPanel } from './MapsPanel';
+import { t } from '../../i18n/t';
 
 /**
  * The Quest tab (the mockup of decision 70): the actions of the quest on the left, the general
@@ -18,18 +19,18 @@ export function QuestTab({ store }: { store: EditorStore }) {
   const st = store.getState();
   return (
     <Frame>
-      <Col label="Actions">
-        <Panel title="Actions" testId="quest-actions">
+      <Col label={t('editor.QuestTabs.actions', 'Actions')}>
+        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="quest-actions">
           <ActionsPanel store={store} />
         </Panel>
       </Col>
-      <Col label="General">
-        <Panel title="General" testId="quest-general">
+      <Col label={t('editor.QuestTabs.general', 'General')}>
+        <Panel title={t('editor.QuestTabs.general', 'General')} testId="quest-general">
           <div className="fr-row2">
-            <Fld label="Title">
+            <Fld label={t('editor.QuestTabs.title', 'Title')}>
               <input
                 className="fr-in"
-                aria-label="Title"
+                aria-label={t('editor.QuestTabs.title', 'Title')}
                 key={quest.title}
                 defaultValue={quest.title}
                 maxLength={80}
@@ -41,14 +42,20 @@ export function QuestTab({ store }: { store: EditorStore }) {
                 }}
               />
             </Fld>
-            <Fld label="Number">
-              <input className="fr-in" aria-label="Number" value={quest.number} disabled readOnly />
+            <Fld label={t('editor.QuestTabs.number', 'Number')}>
+              <input
+                className="fr-in"
+                aria-label={t('editor.QuestTabs.number', 'Number')}
+                value={quest.number}
+                disabled
+                readOnly
+              />
             </Fld>
           </div>
-          <Fld label="Summary">
+          <Fld label={t('editor.QuestTabs.summary', 'Summary')}>
             <textarea
               className="fr-ta"
-              aria-label="Summary"
+              aria-label={t('editor.QuestTabs.summary', 'Summary')}
               key={quest.intro.summary}
               defaultValue={quest.intro.summary}
               rows={4}
@@ -59,33 +66,43 @@ export function QuestTab({ store }: { store: EditorStore }) {
             />
           </Fld>
         </Panel>
-        <Panel title="Maps and links" testId="quest-maps">
+        <Panel title={t('editor.QuestTabs.mapsAndLinks', 'Maps and links')} testId="quest-maps">
           <MapsPanel store={store} />
         </Panel>
-        <Panel title="Merged rooms (map on show)" testId="quest-merges">
+        <Panel
+          title={t('editor.QuestTabs.mergedRoomsMapOn', 'Merged rooms (map on show)')}
+          testId="quest-merges"
+        >
           <MergesPanel store={store} />
         </Panel>
-        <Panel title="Objectives" testId="quest-objectives">
+        <Panel title={t('editor.QuestTabs.objectives', 'Objectives')} testId="quest-objectives">
           <QuestPanel store={store} only="objectives" />
         </Panel>
       </Col>
-      <Col label="Rules">
-        <Panel title="Rules">
+      <Col label={t('editor.QuestTabs.rules', 'Rules')}>
+        <Panel title={t('editor.QuestTabs.rules', 'Rules')}>
           <QuestPanel store={store} only="rules" />
         </Panel>
-        <Panel title="Wandering monster">
+        <Panel title={t('editor.QuestTabs.wanderingMonster', 'Wandering monster')}>
           <QuestPanel store={store} only="wandering" />
         </Panel>
-        <Panel title="Characters (bring-in helpers)">
+        <Panel
+          title={t('editor.QuestTabs.charactersBringInHelpers', 'Characters (bring-in helpers)')}
+        >
           <QuestPanel store={store} only="characters" />
         </Panel>
-        <Panel title="Ending">
+        <Panel title={t('editor.QuestTabs.ending', 'Ending')}>
           <QuestPanel store={store} only="endings" />
         </Panel>
-        <Panel title="Leaving and textures" testId="quest-features">
+        <Panel
+          title={t('editor.QuestTabs.leavingAndTextures', 'Leaving and textures')}
+          testId="quest-features"
+        >
           <FeaturesPanel store={store} />
         </Panel>
-        <Panel title="Abilities and spells of this quest">
+        <Panel
+          title={t('editor.QuestTabs.abilitiesAndSpellsOf', 'Abilities and spells of this quest')}
+        >
           <QuestPanel store={store} only="abilities" />
         </Panel>
       </Col>
@@ -103,25 +120,26 @@ export function ActionsTab({ store }: { store: EditorStore }) {
   const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
   return (
     <Frame narrow>
-      <Col label="Actions">
-        <Panel title="Actions" testId="actions-list">
+      <Col label={t('editor.QuestTabs.actions', 'Actions')}>
+        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="actions-list">
           <ActionsPanel store={store} />
         </Panel>
       </Col>
-      <Col label="Action">
+      <Col label={t('editor.QuestTabs.action', 'Action')}>
         {note ? (
-          <Panel title="Action" testId="action-card">
+          <Panel title={t('editor.QuestTabs.action', 'Action')} testId="action-card">
             <ActionForm key={note.id} store={store} note={note} quest={quest} />
             <button className="btn alt" onClick={() => st.setNoteId(null)}>
-              Close
+              {t('editor.QuestTabs.close', 'Close')}
             </button>
           </Panel>
         ) : (
-          <Panel title="How actions work">
+          <Panel title={t('editor.QuestTabs.howActionsWork', 'How actions work')}>
             <p className="fr-help">
-              An action happens at a moment of the quest, on a place, or on an element. Pick one on
-              the left to change it. To add one to an element, select it on the Map or in the
-              Monsters tab and use its Add action button.
+              {t(
+                'editor.QuestTabs.anActionHappensAt',
+                'An action happens at a moment of the quest, on a place, or on an element. Pick one on the left to change it. To add one to an element, select it on the Map or in the Monsters tab and use its Add action button.',
+              )}
             </p>
           </Panel>
         )}

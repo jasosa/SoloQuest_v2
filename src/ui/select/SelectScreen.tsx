@@ -18,9 +18,11 @@ import { useFitMode } from '../FitToScreen';
 import { questEntries as bundledEntries } from '../quests';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { Dialog } from '../shared/Frame';
+import { inActiveLanguage } from '../../i18n/runtime';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { CORE_PACK } from '../../engine/pack/registry';
 import { packOfQuest, packTabs, packs } from '../packs';
+import { t } from '../../i18n/t';
 
 export type StartChoice =
   | {
@@ -98,7 +100,7 @@ export function SelectScreen({
           let level: Level | undefined;
           try {
             const draft = await userStore.loadDraft(id);
-            if (draft) level = buildLevel(draft.quest);
+            if (draft) level = buildLevel(inActiveLanguage(draft.quest));
           } catch {
             /* a draft that cannot be built is ignored: the saved copy is played */
           }
@@ -222,8 +224,8 @@ export function SelectScreen({
   return (
     <div className="app select">
       <header>
-        <span className="qn">SoloQuest</span>
-        <h1>Choose a quest</h1>
+        <span className="qn">{t('select.soloquest', 'SoloQuest')}</span>
+        <h1>{t('select.chooseAQuest', 'Choose a quest')}</h1>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {level && (
             <button
@@ -231,7 +233,7 @@ export function SelectScreen({
               data-testid="quest-settings"
               onClick={() => setSettingsOpen(true)}
             >
-              Quest settings
+              {t('select.questSettings', 'Quest settings')}
             </button>
           )}
           {onTextures && (
@@ -239,20 +241,24 @@ export function SelectScreen({
               className="link"
               onClick={onTextures}
               data-testid="textures-link"
-              aria-label={textureName ? `Textures: ${textureName} in use` : 'Textures'}
+              aria-label={
+                textureName
+                  ? t('select.texturesInUse', 'Textures: {textureName} in use', { textureName })
+                  : t('select.textures', 'Textures')
+              }
             >
               {textureName ? (
                 <>
                   Textures: <b className="tex-name">{textureName}</b>
                 </>
               ) : (
-                'Textures'
+                t('select.textures', 'Textures')
               )}
             </button>
           )}
           {onEditor && (
             <button className="link" onClick={onEditor}>
-              Quest editor
+              {t('select.questEditor', 'Quest editor')}
             </button>
           )}
         </span>
@@ -260,7 +266,11 @@ export function SelectScreen({
 
       <div className="pickcol">
         {tabs.length > 0 && (
-          <div className="packtabs" role="tablist" aria-label="Quest packs">
+          <div
+            className="packtabs"
+            role="tablist"
+            aria-label={t('select.questPacks', 'Quest packs')}
+          >
             {tabs.map((p) => (
               <button
                 key={p.id}
@@ -290,7 +300,7 @@ export function SelectScreen({
                   .then(() => setOrphans((list) => list.filter((x) => x.questId !== o.questId)));
               }}
             >
-              Delete the save
+              {t('select.deleteTheSave', 'Delete the save')}
             </button>
           </p>
         ))}
@@ -306,15 +316,19 @@ export function SelectScreen({
                 setSlot(q.slot);
               }}
             >
-              <span className="qnum">Quest {q.number}</span>
+              <span className="qnum">
+                {t('select.quest', 'Quest {number}', { number: q.number })}
+              </span>
               {q.level && <span className="qtitle">{q.level.quest.title}</span>}
-              {edited.has(q.slot) && <span className="qnote">Edited</span>}
+              {edited.has(q.slot) && <span className="qnote">{t('select.edited', 'Edited')}</span>}
               {q.level && campaigns.get(packOfEntry(q))?.finished.includes(baseId(q)) && (
                 <span className="qnote" data-testid="quest-done">
-                  Done
+                  {t('select.done', 'Done')}
                 </span>
               )}
-              {!q.level && <span className="qnote">Not encoded yet</span>}
+              {!q.level && (
+                <span className="qnote">{t('select.notEncodedYet', 'Not encoded yet')}</span>
+              )}
             </button>
           ))}
         </div>
@@ -324,18 +338,26 @@ export function SelectScreen({
         {level && (
           <>
             <section>
-              <div className="lbl">Quest {level.quest.number}</div>
+              <div className="lbl">
+                {t('select.quest', 'Quest {number}', { number: level.quest.number })}
+              </div>
               <h2>{level.quest.title}</h2>
               {/* the story comes right under the title */}
               <p className="summary">{level.quest.intro.summary}</p>
               {level.quest.suggestedPack && (
                 <p className="hint" data-testid="suggested-pack">
-                  Looks best with the texture pack {level.quest.suggestedPack}.
+                  {t(
+                    'select.looksBestWithThe',
+                    'Looks best with the texture pack {suggestedPack}.',
+                    { suggestedPack: level.quest.suggestedPack },
+                  )}
                 </p>
               )}
               {entry && edited.has(entry.slot) && (
                 <>
-                  <p className="hint">This is your edited copy.</p>
+                  <p className="hint">
+                    {t('select.thisIsYourEdited', 'This is your edited copy.')}
+                  </p>
                   <button
                     className="btn alt"
                     onClick={() => {
@@ -347,7 +369,7 @@ export function SelectScreen({
                       });
                     }}
                   >
-                    Use original
+                    {t('select.useOriginal', 'Use original')}
                   </button>
                   <button
                     className="btn alt"
@@ -356,7 +378,7 @@ export function SelectScreen({
                       if (orig?.level) downloadForPublishing(level, orig.level.quest.id);
                     }}
                   >
-                    Export to publish (admin)
+                    {t('select.exportToPublishAdmin', 'Export to publish (admin)')}
                   </button>
                 </>
               )}
@@ -364,10 +386,12 @@ export function SelectScreen({
 
             {resumed && (
               <section className="saved">
-                <div className="lbl">Saved game</div>
+                <div className="lbl">{t('select.savedGame', 'Saved game')}</div>
                 <p>
-                  Turn {resumed.state.turn} ·{' '}
-                  {resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', ')}
+                  {t('select.turn', 'Turn {turn} · {v1}', {
+                    turn: resumed.state.turn,
+                    v1: resumed.team.map((m) => labelOf(resumed.team, m.id)).join(', '),
+                  })}
                 </p>
                 <button
                   className="btn"
@@ -381,7 +405,7 @@ export function SelectScreen({
                     })
                   }
                 >
-                  Resume
+                  {t('select.resume', 'Resume')}
                 </button>
               </section>
             )}
@@ -402,16 +426,20 @@ export function SelectScreen({
                 data-testid="new-game"
                 onClick={openChoosing}
               >
-                New game
+                {t('select.newGame', 'New game')}
               </button>
             </div>
             {campaign && (
               <>
                 <p className="hint" data-testid="campaign-progress">
-                  Campaign of {packName}: {campaign.finished.length} of {packTotal} quests done.
+                  {t(
+                    'select.campaignOfOfQuests',
+                    'Campaign of {packName}: {length} of {packTotal} quests done.',
+                    { packName, length: campaign.finished.length, packTotal },
+                  )}
                 </p>
                 <button className="link" onClick={() => setConfirmReset(true)}>
-                  Start a new campaign
+                  {t('select.startANewCampaign', 'Start a new campaign')}
                 </button>
               </>
             )}
@@ -431,12 +459,12 @@ export function SelectScreen({
 
       {confirmReset && (
         <Dialog
-          title="Start a new campaign"
+          title={t('select.startANewCampaign', 'Start a new campaign')}
           onClose={() => setConfirmReset(false)}
           foot={
             <>
               <button className="btn alt" autoFocus onClick={() => setConfirmReset(false)}>
-                Keep it
+                {t('select.keepIt', 'Keep it')}
               </button>
               <button
                 className="btn"
@@ -446,26 +474,30 @@ export function SelectScreen({
                   setCampaignTick((n) => n + 1);
                 }}
               >
-                Start a new campaign
+                {t('select.startANewCampaign', 'Start a new campaign')}
               </button>
             </>
           }
         >
           <p>
-            This forgets the finished quests, the carried flags and the settings of this pack's
-            campaign. The next campaign game starts a new one.
+            {t(
+              'select.thisForgetsTheFinished',
+              "This forgets the finished quests, the carried flags and the settings of this pack's campaign. The next campaign game starts a new one.",
+            )}
           </p>
         </Dialog>
       )}
 
       {choosing && level && (
         <Dialog
-          title="Choose your heroes"
+          title={t('select.chooseYourHeroes', 'Choose your heroes')}
           onClose={() => setChoosing(false)}
           foot={
             <>
               <button className="btn alt" autoFocus onClick={() => setChoosing(false)}>
-                {resumed ? 'Keep the saved game' : 'Cancel'}
+                {resumed
+                  ? t('select.keepTheSavedGame', 'Keep the saved game')
+                  : t('select.cancel', 'Cancel')}
               </button>
               <button
                 className="btn"
@@ -483,48 +515,69 @@ export function SelectScreen({
                   });
                 }}
               >
-                {resumed ? 'Replace it and start' : 'Start the quest'}
+                {resumed
+                  ? t('select.replaceItAndStart', 'Replace it and start')
+                  : t('select.startTheQuest', 'Start the quest')}
               </button>
             </>
           }
         >
           {resumed && (
             <p className="hint" role="alert">
-              This replaces the saved game (turn {resumed.state.turn}). It cannot be brought back.
+              {t(
+                'select.thisReplacesTheSaved',
+                'This replaces the saved game (turn {turn}). It cannot be brought back.',
+                { turn: resumed.state.turn },
+              )}
             </p>
           )}
-          <div className="lbl">Play mode</div>
-          <div className="pick-heroes" role="group" aria-label="Play mode">
+          <div className="lbl">{t('select.playMode', 'Play mode')}</div>
+          <div className="pick-heroes" role="group" aria-label={t('select.playMode', 'Play mode')}>
             <button
               className="chip"
               aria-pressed={mode === 'oneShot'}
               onClick={() => chooseMode('oneShot')}
             >
-              One-shot
+              {t('select.oneShot', 'One-shot')}
             </button>
             <button
               className="chip"
               aria-pressed={mode === 'campaign'}
               onClick={() => chooseMode('campaign')}
             >
-              Campaign
+              {t('select.campaign', 'Campaign')}
             </button>
           </div>
           <p className="hint" data-testid="mode-hint">
             {mode === 'oneShot'
-              ? 'This quest alone. Carried flags take their one-shot values.'
+              ? t(
+                  'select.thisQuestAloneCarried',
+                  'This quest alone. Carried flags take their one-shot values.',
+                )
               : campaign
-                ? `Campaign: ${campaign.finished.length} of ${packTotal} quests done.`
-                : `A new campaign starts for ${packName}.`}
+                ? t(
+                    'select.campaignOfQuestsDone',
+                    'Campaign: {length} of {packTotal} quests done.',
+                    { length: campaign.finished.length, packTotal },
+                  )
+                : t('select.aNewCampaignStarts', 'A new campaign starts for {packName}.', {
+                    packName,
+                  })}
           </p>
           {mode === 'campaign' && fellLast.length > 0 && (
             <p className="hint">
-              Fell in the last quest: {fellLast.join(', ')}. Tap a chip to bring them back.
+              {t(
+                'select.fellInTheLast',
+                'Fell in the last quest: {v1}. Tap a chip to bring them back.',
+                { v1: fellLast.join(', ') },
+              )}
             </p>
           )}
           <TeamPicker value={team} onChange={setTeam} packs={teamPacks} rule={level.quest.team} />
           <p className="hint" id="team-hint">
-            {ready ? 'Pick 1 to 4 heroes.' : 'Pick 1 to 4 heroes to start the quest.'}
+            {ready
+              ? t('select.pick1To4', 'Pick 1 to 4 heroes.')
+              : t('select.pick1To42', 'Pick 1 to 4 heroes to start the quest.')}
           </p>
         </Dialog>
       )}

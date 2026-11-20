@@ -5,6 +5,7 @@ import { emptyQuest, exportQuest, exportQuestChecked, importQuest } from '../../
 import type { Issue } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
 import type { EditorStore } from './editorStore';
+import { t } from '../../i18n/t';
 
 /** `The Cellar!` becomes `the-cellar`. Never empty. */
 export function titleSlug(title: string): string {
@@ -91,14 +92,14 @@ export function ImportButton({ store }: { store: EditorStore }) {
   return (
     <>
       <button className="chip" onClick={() => input.current?.click()}>
-        Import
+        {t('editor.QuestFile.import', 'Import')}
       </button>
       <input
         ref={input}
         type="file"
         hidden
         accept=".json,application/json"
-        aria-label="Import file"
+        aria-label={t('editor.QuestFile.importFile', 'Import file')}
         onChange={(e) => {
           void onFile(e.target.files?.[0]);
           e.target.value = '';
@@ -112,27 +113,35 @@ export function ImportButton({ store }: { store: EditorStore }) {
             role="dialog"
             aria-modal="true"
             aria-label={
-              pending.kind === 'errors' ? 'The file could not be used' : 'Replace the draft'
+              pending.kind === 'errors'
+                ? t('editor.QuestFile.theFileCouldNot', 'The file could not be used')
+                : t('editor.QuestFile.replaceTheDraft', 'Replace the draft')
             }
           >
             {pending.kind === 'errors' ? (
               <>
-                <h2>The file could not be used</h2>
+                <h2>{t('editor.QuestFile.theFileCouldNot', 'The file could not be used')}</h2>
                 <ul>
                   {pending.errors.slice(0, 12).map((e, i) => (
                     <li key={i}>{e}</li>
                   ))}
                 </ul>
-                {pending.errors.length > 12 && <p>And {pending.errors.length - 12} more.</p>}
+                {pending.errors.length > 12 && (
+                  <p>
+                    {t('editor.QuestFile.andMore', 'And {v1} more.', {
+                      v1: pending.errors.length - 12,
+                    })}
+                  </p>
+                )}
                 <div className="ed-sheet-actions">
                   <button className="btn" onClick={close}>
-                    Close
+                    {t('editor.QuestFile.close', 'Close')}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <h2>Replace your draft?</h2>
+                <h2>{t('editor.QuestFile.replaceYourDraft', 'Replace your draft?')}</h2>
                 <p>
                   The file holds &ldquo;{pending.quest.title}&rdquo;. It will replace the quest you
                   are editing. Undo brings your draft back.
@@ -152,10 +161,10 @@ export function ImportButton({ store }: { store: EditorStore }) {
                       close();
                     }}
                   >
-                    Replace the draft
+                    {t('editor.QuestFile.replaceTheDraft', 'Replace the draft')}
                   </button>
                   <button className="btn alt" onClick={close}>
-                    Keep my draft
+                    {t('editor.QuestFile.keepMyDraft', 'Keep my draft')}
                   </button>
                 </div>
               </>

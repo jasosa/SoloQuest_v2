@@ -27,6 +27,7 @@ import {
   type SlotTune,
 } from './tune';
 import { OFFSET_MAX, SCALE_MAX, SCALE_MIN, type Theme, type TrapSlot } from './theme';
+import { t } from '../../i18n/t';
 
 /**
  * The pack preview (backlog, decision 78): a sample board that shows every slot of a pack with the same
@@ -340,7 +341,7 @@ function Sample({
       viewBox={view ?? `${OX * U} ${OY * U} ${COLS * U} ${ROWS * U}`}
       width="100%"
       role="img"
-      aria-label="Sample board"
+      aria-label={t('theme.PackPreview.sampleBoard', 'Sample board')}
       data-testid="pack-sample"
       style={{ display: 'block', border: '1.5px solid var(--ink)', background: color.floor }}
     >
@@ -518,18 +519,20 @@ export function PackPreview({
 
   return (
     <Dialog
-      title={`Preview: ${pack.manifest.name}`}
+      title={t('theme.PackPreview.preview', 'Preview: {name}', { name: pack.manifest.name })}
       wide
       onClose={changed ? undefined : onClose}
       foot={
         <>
           {changed && onSave && (
             <span className="pv-unsaved" role="status">
-              Unsaved changes
+              {t('theme.PackPreview.unsavedChanges', 'Unsaved changes')}
             </span>
           )}
           <button className="btn alt" autoFocus={!changed} onClick={onClose}>
-            {changed ? 'Close without saving' : 'Close'}
+            {changed
+              ? t('theme.PackPreview.closeWithoutSaving', 'Close without saving')
+              : t('theme.PackPreview.close', 'Close')}
           </button>
           {onSave && (
             <button
@@ -544,7 +547,7 @@ export function PackPreview({
                 }
               }}
             >
-              Save changes
+              {t('theme.PackPreview.saveChanges', 'Save changes')}
             </button>
           )}
         </>
@@ -552,10 +555,10 @@ export function PackPreview({
     >
       <ThemeScope theme={theme}>
         <div data-testid="pack-preview">
-          <div className="lbl">Check</div>
+          <div className="lbl">{t('theme.PackPreview.check', 'Check')}</div>
           {check.warnings.length === 0 ? (
             <p className="fr-help" role="status">
-              No problems found with the pictures.
+              {t('theme.PackPreview.noProblemsFoundWith', 'No problems found with the pictures.')}
             </p>
           ) : (
             <div role="status">
@@ -568,7 +571,11 @@ export function PackPreview({
           )}
           {check.missing.length > 0 && (
             <p className="fr-help" data-testid="pack-missing">
-              Not in this pack (the built-in drawing is used): {check.missing.join(', ')}.
+              {t(
+                'theme.PackPreview.notInThisPack',
+                'Not in this pack (the built-in drawing is used): {v1}.',
+                { v1: check.missing.join(', ') },
+              )}
             </p>
           )}
           <div
@@ -579,7 +586,11 @@ export function PackPreview({
           >
             <div className="pv-left">
               <div className="pv-views">
-                <div className="lbl">{view ? 'Close-up' : 'On the board'}</div>
+                <div className="lbl">
+                  {view
+                    ? t('theme.PackPreview.closeUp', 'Close-up')
+                    : t('theme.PackPreview.onTheBoard', 'On the board')}
+                </div>
                 {box && (
                   <button
                     className="chip"
@@ -587,7 +598,9 @@ export function PackPreview({
                     aria-pressed={closeUp}
                     onClick={() => setCloseUp(!closeUp)}
                   >
-                    {closeUp ? 'Show the whole sample' : 'Close-up'}
+                    {closeUp
+                      ? t('theme.PackPreview.showTheWholeSample', 'Show the whole sample')
+                      : t('theme.PackPreview.closeUp', 'Close-up')}
                   </button>
                 )}
               </div>
@@ -595,14 +608,18 @@ export function PackPreview({
             </div>
             {onSave && slots.length > 0 && (
               <div className="pv-adjust" data-testid="pack-adjust">
-                <div className="lbl">Adjust a picture</div>
+                <div className="lbl">
+                  {t('theme.PackPreview.adjustAPicture', 'Adjust a picture')}
+                </div>
                 <select
                   className="fr-sel"
-                  aria-label="Picture to adjust"
+                  aria-label={t('theme.PackPreview.pictureToAdjust', 'Picture to adjust')}
                   value={current ?? ''}
                   onChange={(e) => setSlot(e.target.value || null)}
                 >
-                  <option value="">Choose a picture</option>
+                  <option value="">
+                    {t('theme.PackPreview.chooseAPicture', 'Choose a picture')}
+                  </option>
                   {(Object.keys(GROUP_NAMES) as SlotGroup[]).map((g) => {
                     const inGroup = slots.filter((x) => x.group === g);
                     return inGroup.length === 0 ? null : (
@@ -619,7 +636,7 @@ export function PackPreview({
                 {current ? (
                   <>
                     <Knob
-                      label="Size"
+                      label={t('theme.PackPreview.size', 'Size')}
                       value={tune.scale}
                       min={SCALE_MIN}
                       max={SCALE_MAX}
@@ -628,7 +645,7 @@ export function PackPreview({
                       onChange={(v) => change({ scale: v })}
                     />
                     <Knob
-                      label="Right"
+                      label={t('theme.PackPreview.right', 'Right')}
                       value={tune.offset[0]}
                       min={-OFFSET_MAX}
                       max={OFFSET_MAX}
@@ -637,7 +654,7 @@ export function PackPreview({
                       onChange={(v) => change({ offset: [v, tune.offset[1]] })}
                     />
                     <Knob
-                      label="Down"
+                      label={t('theme.PackPreview.down', 'Down')}
                       value={tune.offset[1]}
                       min={-OFFSET_MAX}
                       max={OFFSET_MAX}
@@ -650,30 +667,37 @@ export function PackPreview({
                       disabled={isNoTune(tune)}
                       onClick={() => change(NO_TUNE)}
                     >
-                      Reset this picture
+                      {t('theme.PackPreview.resetThisPicture', 'Reset this picture')}
                     </button>
                   </>
                 ) : (
-                  <p className="fr-help">Choose a picture here, or tap one in the sample.</p>
+                  <p className="fr-help">
+                    {t(
+                      'theme.PackPreview.chooseAPictureHere',
+                      'Choose a picture here, or tap one in the sample.',
+                    )}
+                  </p>
                 )}
               </div>
             )}
           </div>
           <p className="fr-help">
-            Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then
-            monsters with a single block and a double block, then traps (hidden, pit, spear, falling
-            block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap
-            a picture to adjust it.
+            {t(
+              'theme.PackPreview.squaresAre34Px',
+              'Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then monsters with a single block and a double block, then traps (hidden, pit, spear, falling block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap a picture to adjust it.',
+            )}
           </p>
           {pack.manifest.board && (
             <>
               <div className="lbl pv-gap">
-                Board picture{boardSize ? ` (${boardSize.w} x ${boardSize.h} px)` : ''}
+                {t('theme.PackPreview.boardPicture', 'Board picture{v1}', {
+                  v1: boardSize ? ` (${boardSize.w} x ${boardSize.h} px)` : '',
+                })}
               </div>
               <img
                 className="pv-board"
                 src={urls[pack.manifest.board] ?? ''}
-                alt="The board picture"
+                alt={t('theme.PackPreview.theBoardPicture', 'The board picture')}
               />
             </>
           )}

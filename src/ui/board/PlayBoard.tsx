@@ -40,6 +40,7 @@ import {
 import { ZargonOverlay } from './ZargonOverlay';
 import { Furniture } from './Furniture';
 import { furnitureName } from './furnitureNames';
+import { t } from '../../i18n/t';
 
 /** How strongly the selected room is tinted (a light touch: it must not hide the board picture). */
 const ROOM_TINT = 0.18;
@@ -1339,7 +1340,7 @@ export function PlayBoard({
     <svg
       id="board"
       role="group"
-      aria-label="Quest board"
+      aria-label={t('board.PlayBoard.questBoard', 'Quest board')}
       width={W * S + 4}
       height={H * S + 4}
       viewBox={`-2 -2 ${W * S + 4} ${H * S + 4}`}

@@ -1,6 +1,7 @@
 /** Pieces of the right column for the notes engine. Presentational. */
 import { labelOf, type TeamMember } from '../../engine/data/team';
 import type { JournalEntry, NpcView, ObjectivesView } from '../../engine/game/view';
+import { t } from '../../i18n/t';
 
 export function Objectives({
   view,
@@ -13,7 +14,7 @@ export function Objectives({
 }) {
   return (
     <section className="goal">
-      <div className="lbl">Your goal</div>
+      <div className="lbl">{t('play.sidebar.yourGoal', 'Your goal')}</div>
       {view.items.length === 0 ? (
         <p>{intro}</p>
       ) : (
@@ -25,7 +26,12 @@ export function Objectives({
               </span>
               <span>
                 {o.text}
-                <span className="sr"> {o.done ? '(done)' : '(not done)'}</span>
+                <span className="sr">
+                  {' '}
+                  {o.done
+                    ? t('play.sidebar.done', '(done)')
+                    : t('play.sidebar.notDone', '(not done)')}
+                </span>
               </span>
             </li>
           ))}
@@ -40,14 +46,22 @@ export function Helpers({ npcs }: { npcs: readonly NpcView[] }) {
   if (npcs.length === 0) return null;
   return (
     <section>
-      <div className="lbl">Companions</div>
+      <div className="lbl">{t('play.sidebar.companions', 'Companions')}</div>
       <ul className="npcs">
         {npcs.map((n) => (
           <li key={n.id}>
             <div className="nm">{n.name}</div>
             <div className="st">
-              {n.move !== undefined && <>Movement dice {n.move} · </>}
-              {n.attack !== undefined && <>Attack dice {n.attack === 0 ? 'N/A' : n.attack} · </>}
+              {n.move !== undefined && (
+                <>{t('play.sidebar.movementDice', 'Movement dice {move} ·', { move: n.move })} </>
+              )}
+              {n.attack !== undefined && (
+                <>
+                  {t('play.sidebar.attackDice', 'Attack dice {v1} ·', {
+                    v1: n.attack === 0 ? 'N/A' : n.attack,
+                  })}{' '}
+                </>
+              )}
               Defend dice {n.defend} · Body {n.body}
             </div>
             {n.text && <p>{n.text}</p>}
@@ -73,9 +87,9 @@ export function Journal({
 }) {
   return (
     <section>
-      <div className="lbl">Quest notes</div>
+      <div className="lbl">{t('play.sidebar.questNotes', 'Quest notes')}</div>
       {entries.length === 0 ? (
-        <p className="empty">No quest note read yet.</p>
+        <p className="empty">{t('play.sidebar.noQuestNoteRead', 'No quest note read yet.')}</p>
       ) : (
         <ul className="journal">
           {entries.map((e) => (
@@ -104,7 +118,11 @@ export function Heroes({
 }) {
   return (
     <section>
-      <div className="lbl">{team.every((m) => m.kind === 'hero') ? 'Heroes' : 'Team'}</div>
+      <div className="lbl">
+        {team.every((m) => m.kind === 'hero')
+          ? t('play.sidebar.heroes', 'Heroes')
+          : t('play.sidebar.team', 'Team')}
+      </div>
       <div className="hero-chips">
         {team.map((m) => {
           const h = m.id;

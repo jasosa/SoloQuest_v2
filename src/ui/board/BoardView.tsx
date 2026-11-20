@@ -3,6 +3,7 @@ import { areaAt, cellsOf, isWallBetween, roomIds, type Board } from '../../engin
 import { color } from '../shared/tokens';
 import { useTheme } from '../theme/activeTheme';
 import { BoardArt, floorCell, RockPattern, wallSegment } from '../theme/draw';
+import { t } from '../../i18n/t';
 
 export const CELL = 34;
 
@@ -66,7 +67,7 @@ export function BoardView({ board, known, labels = false }: BoardViewProps) {
     <svg
       id="board"
       role="img"
-      aria-label="Quest board"
+      aria-label={t('board.BoardView.questBoard', 'Quest board')}
       width={W * CELL + 4}
       height={H * CELL + 4}
       viewBox={`-2 -2 ${W * CELL + 4} ${H * CELL + 4}`}

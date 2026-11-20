@@ -13,6 +13,7 @@ import { useFitMode } from '../FitToScreen';
 import { Dialog, Fld } from '../shared/Frame';
 import { questEntries } from '../quests';
 import { packs } from '../packs';
+import { t } from '../../i18n/t';
 
 export interface EditorStartProps {
   store: UserQuestStore;
@@ -138,64 +139,76 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
     >
       <div className="fr-start">
         <div>
-          <h1>Quest editor</h1>
-          <h2>Recent quests</h2>
+          <h1>{t('editor.EditorStart.questEditor', 'Quest editor')}</h1>
+          <h2>{t('editor.EditorStart.recentQuests', 'Recent quests')}</h2>
           {rows.length === 0 && (
-            <p className="fr-help">No quest yet. Make a new one, or import a file.</p>
+            <p className="fr-help">
+              {t(
+                'editor.EditorStart.noQuestYetMake',
+                'No quest yet. Make a new one, or import a file.',
+              )}
+            </p>
           )}
           <ul className="fr-recent">
             {rows.map((r) => (
               <li key={r.id} data-quest={r.id}>
                 <button
                   className="fr-open"
-                  aria-label={`Open ${r.title}`}
+                  aria-label={t('editor.EditorStart.open', 'Open {title}', { title: r.title })}
                   onClick={() => void open(r.id)}
                 >
-                  <span className="fr-qnum">Quest {r.number}</span>
+                  <span className="fr-qnum">
+                    {t('editor.EditorStart.quest', 'Quest {number}', { number: r.number })}
+                  </span>
                   <span className="fr-qtitle">{r.title}</span>
                 </button>
                 <span className="fr-qnote">
-                  {r.draft ? 'Unsaved draft' : 'Saved'} ·{' '}
-                  {new Date(r.updatedAt).toLocaleDateString()}
+                  {r.draft
+                    ? t('editor.EditorStart.unsavedDraft', 'Unsaved draft')
+                    : t('editor.EditorStart.saved', 'Saved')}{' '}
+                  · {new Date(r.updatedAt).toLocaleDateString()}
                 </span>
                 {confirm === r.id ? (
                   <>
-                    <span>Delete it?</span>
+                    <span>{t('editor.EditorStart.deleteIt', 'Delete it?')}</span>
                     <button className="btn" onClick={() => void remove(r.id)}>
-                      Yes, delete
+                      {t('editor.EditorStart.yesDelete', 'Yes, delete')}
                     </button>
                     <button className="btn alt" onClick={() => setConfirm(null)}>
-                      No
+                      {t('editor.EditorStart.no', 'No')}
                     </button>
                   </>
                 ) : (
                   <button className="link" onClick={() => setConfirm(r.id)}>
-                    Delete
+                    {t('editor.EditorStart.delete', 'Delete')}
                   </button>
                 )}
               </li>
             ))}
           </ul>
           <p className="fr-help" style={{ marginTop: 20 }}>
-            You can also drop a quest file here to open it.
+            {t(
+              'editor.EditorStart.youCanAlsoDrop',
+              'You can also drop a quest file here to open it.',
+            )}
           </p>
           <input
             type="file"
             hidden
             accept=".json,application/json"
-            aria-label="Import file"
+            aria-label={t('editor.EditorStart.importFile', 'Import file')}
             onChange={(e) => void onFile(e.target.files?.[0])}
           />
 
           {storeError && (
             <section role="alert" className="es-problems" data-testid="store-error">
-              <h2>The quest could not be stored</h2>
+              <h2>{t('editor.EditorStart.theQuestCouldNot', 'The quest could not be stored')}</h2>
               <p>{storeError}</p>
             </section>
           )}
           {problems.length > 0 && (
             <section role="alert" className="es-problems">
-              <h2>The file could not be used</h2>
+              <h2>{t('editor.EditorStart.theFileCouldNot', 'The file could not be used')}</h2>
               <ul>
                 {problems.map((p, i) => (
                   <li key={i}>{p}</li>
@@ -205,8 +218,12 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           )}
           {imported && (
             <section className="es-imported" role="status">
-              <h2>Imported</h2>
-              <p>{imported.title} is in your list.</p>
+              <h2>{t('editor.EditorStart.imported', 'Imported')}</h2>
+              <p>
+                {t('editor.EditorStart.isInYourList', '{title} is in your list.', {
+                  title: imported.title,
+                })}
+              </p>
               {notes.length > 0 && (
                 <ul>
                   {notes.map((n, i) => (
@@ -215,7 +232,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 </ul>
               )}
               <button className="btn" onClick={() => onOpen(imported, imported)}>
-                Open it
+                {t('editor.EditorStart.openIt', 'Open it')}
               </button>
             </section>
           )}
@@ -223,64 +240,84 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
 
         <div className="fr-cards">
           <button className="fr-card" onClick={() => setPopup('new')}>
-            <b>NEW QUEST</b>
-            <span>Start an empty quest with its stairs and map.</span>
+            <b>{t('editor.EditorStart.newQuest', 'NEW QUEST')}</b>
+            <span>
+              {t(
+                'editor.EditorStart.startAnEmptyQuest',
+                'Start an empty quest with its stairs and map.',
+              )}
+            </span>
           </button>
           <button className="fr-card" onClick={() => setPopup('open')}>
-            <b>OPEN QUEST</b>
-            <span>Load a quest from a file, or copy one of the bundled quests.</span>
+            <b>{t('editor.EditorStart.openQuest', 'OPEN QUEST')}</b>
+            <span>
+              {t(
+                'editor.EditorStart.loadAQuestFrom',
+                'Load a quest from a file, or copy one of the bundled quests.',
+              )}
+            </span>
           </button>
           {onDesigner && (
             <button className="fr-card" onClick={onDesigner}>
-              <b>LIBRARY</b>
+              <b>{t('editor.EditorStart.library', 'LIBRARY')}</b>
               <span>
-                Abilities, spells, enemies, heroes and companions. Made once, used in any quest.
+                {t(
+                  'editor.EditorStart.abilitiesSpellsEnemiesHeroes',
+                  'Abilities, spells, enemies, heroes and companions. Made once, used in any quest.',
+                )}
               </span>
             </button>
           )}
           <div className="fr-card off" aria-disabled="true">
-            <b>PACKAGER (later)</b>
-            <span>Arrange quests and export a custom campaign.</span>
+            <b>{t('editor.EditorStart.packagerLater', 'PACKAGER (later)')}</b>
+            <span>
+              {t(
+                'editor.EditorStart.arrangeQuestsAndExport',
+                'Arrange quests and export a custom campaign.',
+              )}
+            </span>
           </div>
           <button className="link" onClick={onBack} style={{ justifySelf: 'start' }}>
-            Back
+            {t('editor.EditorStart.back', 'Back')}
           </button>
         </div>
       </div>
       <div className="fr-foot">
-        <span>Editor 0.1</span>
-        <span>Quest format 1</span>
-        <span style={{ marginLeft: 'auto' }}>Works offline</span>
+        <span>{t('editor.EditorStart.editor01', 'Editor 0.1')}</span>
+        <span>{t('editor.EditorStart.questFormat1', 'Quest format 1')}</span>
+        <span style={{ marginLeft: 'auto' }}>
+          {t('editor.EditorStart.worksOffline', 'Works offline')}
+        </span>
       </div>
 
       {popup === 'new' && (
         <Dialog
-          title="New quest"
+          title={t('editor.EditorStart.newQuest2', 'New quest')}
           onClose={() => setPopup(null)}
           foot={
             <>
               <button className="btn alt" onClick={() => setPopup(null)}>
-                Cancel
+                {t('editor.EditorStart.cancel', 'Cancel')}
               </button>
               <button className="btn" onClick={() => void create()}>
-                Create the quest
+                {t('editor.EditorStart.createTheQuest', 'Create the quest')}
               </button>
             </>
           }
         >
-          <Fld label="Title">
+          <Fld label={t('editor.EditorStart.title', 'Title')}>
             <input
               className="fr-in"
-              aria-label="Title"
+              aria-label={t('editor.EditorStart.title', 'Title')}
               value={title}
               maxLength={80}
               onChange={(e) => setTitle(e.target.value)}
             />
           </Fld>
-          <Fld label="Number">
+          <Fld label={t('editor.EditorStart.number', 'Number')}>
             <input
               className="fr-in"
-              aria-label="Number"
+              aria-label={t('editor.EditorStart.number', 'Number')}
               type="number"
               min={1}
               max={99}
@@ -292,11 +329,11 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
       )}
       {popup === 'open' && (
         <Dialog
-          title="Open quest"
+          title={t('editor.EditorStart.openQuest2', 'Open quest')}
           onClose={() => setPopup(null)}
           foot={
             <button className="btn alt" onClick={() => setPopup(null)}>
-              Close
+              {t('editor.EditorStart.close', 'Close')}
             </button>
           }
         >
@@ -305,7 +342,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
             <input
               type="file"
               accept=".json,application/json"
-              aria-label="Import file in the dialog"
+              aria-label={t('editor.EditorStart.importFileInThe', 'Import file in the dialog')}
               onChange={(e) => {
                 setPopup(null);
                 void onFile(e.target.files?.[0]);
@@ -314,17 +351,19 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           </label>
           {bundled.length > 0 && (
             <>
-              <Fld label="Copy a bundled quest">
+              <Fld label={t('editor.EditorStart.copyABundledQuest', 'Copy a bundled quest')}>
                 <select
                   className="fr-sel"
-                  aria-label="Bundled quest"
+                  aria-label={t('editor.EditorStart.bundledQuest', 'Bundled quest')}
                   value={copyOf}
                   onChange={(e) => setCopyOf(e.target.value)}
                 >
-                  <option value="">Choose a quest</option>
+                  <option value="">{t('editor.EditorStart.chooseAQuest', 'Choose a quest')}</option>
                   {bundled.map((q) => (
                     <option key={q.slot} value={q.slot}>
-                      {q.level?.quest.pack ? `${packName(q.level.quest.pack)} ` : 'Quest '}
+                      {q.level?.quest.pack
+                        ? `${packName(q.level.quest.pack)} `
+                        : t('editor.EditorStart.quest2', 'Quest ')}
                       {q.number}: {q.level?.quest.title}
                     </option>
                   ))}
@@ -342,7 +381,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   }
                 }}
               >
-                Make a copy
+                {t('editor.EditorStart.makeACopy', 'Make a copy')}
               </button>
               <button
                 className="btn"
@@ -359,11 +398,13 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   });
                 }}
               >
-                Edit it now
+                {t('editor.EditorStart.editItNow', 'Edit it now')}
               </button>
               <p className="fr-help">
-                A bundled quest is edited as your own copy. Edit it now makes the quest list play
-                your copy. The original stays as it is.
+                {t(
+                  'editor.EditorStart.aBundledQuestIs',
+                  'A bundled quest is edited as your own copy. Edit it now makes the quest list play your copy. The original stays as it is.',
+                )}
               </p>
             </>
           )}

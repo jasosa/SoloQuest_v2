@@ -82,6 +82,7 @@ import { ordersFor, turnProgress } from '../../engine/zargon';
 import { RAIMENT_SETTING, settingOn } from '../../engine/pack/campaign';
 import type { CampaignStore } from '../../persist/campaigns';
 import { packs } from '../packs';
+import { t } from '../../i18n/t';
 
 const MAP_PAD_X = 28;
 const MAP_PAD_Y = 18;
@@ -275,7 +276,7 @@ export function PlayScreen({
   const lookButton = (at: readonly [number, number]) =>
     hints.some((c) => c[0] === at[0] && c[1] === at[1]) ? (
       <button className="btn alt" onClick={() => act({ type: 'LOOK_FROM', cell: [at[0], at[1]] })}>
-        Look from here
+        {t('play.PlayScreen.lookFromHere', 'Look from here')}
       </button>
     ) : null;
   /** One "For this quest" block for several elements (the furniture and its room). */
@@ -434,7 +435,7 @@ export function PlayScreen({
       <MarginNote
         anchor={res.anchor}
         kind={resultKind(current)}
-        title={current.map((p) => headingOf(p, nameOf))[0] ?? 'Done'}
+        title={current.map((p) => headingOf(p, nameOf))[0] ?? t('play.PlayScreen.done', 'Done')}
         onClose={closeNote}
       >
         <ResultBody
@@ -457,12 +458,26 @@ export function PlayScreen({
       // A magic door (the teleport rule) never opens: its buttons say what happens (decision 67).
       const magic = level.quest.rules.doorTeleport !== undefined;
       note = magic ? (
-        <MarginNote anchor={anchor} kind="Door" title="A magic door" onClose={closeNote}>
+        <MarginNote
+          anchor={anchor}
+          kind="Door"
+          title={t('play.PlayScreen.aMagicDoor', 'A magic door')}
+          onClose={closeNote}
+        >
           {forQuest('door', sel.id)}
         </MarginNote>
       ) : (
-        <MarginNote anchor={anchor} kind="Closed door" title="Open this door?" onClose={closeNote}>
-          <p>{both ? 'Both sides are explored.' : 'Free action.'}</p>
+        <MarginNote
+          anchor={anchor}
+          kind="Closed door"
+          title={t('play.PlayScreen.openThisDoor', 'Open this door?')}
+          onClose={closeNote}
+        >
+          <p>
+            {both
+              ? t('play.PlayScreen.bothSidesAreExplored', 'Both sides are explored.')
+              : t('play.PlayScreen.freeAction', 'Free action.')}
+          </p>
           <button
             className="btn"
             onClick={() =>
@@ -472,7 +487,7 @@ export function PlayScreen({
                 : act({ type: 'OPEN_DOOR', door: sel.id })
             }
           >
-            Open the door
+            {t('play.PlayScreen.openTheDoor', 'Open the door')}
           </button>
           {forQuest('door', sel.id)}
         </MarginNote>
@@ -497,7 +512,7 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind="Search for secret doors"
-          title="A monster is in the way"
+          title={t('play.PlayScreen.aMonsterIsIn', 'A monster is in the way')}
           onClose={closeNote}
         >
           <SecretGuard
@@ -512,7 +527,11 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind="Corridor"
-          title={canLook ? 'A hero stands here' : 'Corridor square'}
+          title={
+            canLook
+              ? t('play.PlayScreen.aHeroStandsHere', 'A hero stands here')
+              : t('play.PlayScreen.corridorSquare', 'Corridor square')
+          }
           onClose={closeNote}
         >
           {roomTilesAt(level, state, sel.at).map((t) => (
@@ -523,16 +542,21 @@ export function PlayScreen({
           ))}
           {canLook ? (
             <>
-              <p>Show everything a hero can see along the corridors from here.</p>
+              <p>
+                {t(
+                  'play.PlayScreen.showEverythingAHero',
+                  'Show everything a hero can see along the corridors from here.',
+                )}
+              </p>
               <button className="btn" onClick={() => act({ type: 'LOOK_FROM', cell: sel.at })}>
-                Look from here
+                {t('play.PlayScreen.lookFromHere', 'Look from here')}
               </button>
             </>
           ) : (
-            <p>Nothing new can be seen from here.</p>
+            <p>{t('play.PlayScreen.nothingNewCanBe', 'Nothing new can be seen from here.')}</p>
           )}
           <button className={canLook ? 'btn alt' : 'btn'} onClick={() => search(false)}>
-            Search for secret doors
+            {t('play.PlayScreen.searchForSecretDoors', 'Search for secret doors')}
           </button>
         </MarginNote>
       );
@@ -551,7 +575,7 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind="Search for secret doors"
-          title="A monster is in the way"
+          title={t('play.PlayScreen.aMonsterIsIn', 'A monster is in the way')}
           onClose={closeNote}
         >
           <SecretGuard monsters={roomCodes} onOverride={() => searchSecret(true)} />
@@ -562,7 +586,7 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind="Search for treasure"
-          title="Who searches?"
+          title={t('play.PlayScreen.whoSearches', 'Who searches?')}
           onClose={closeNote}
         >
           <PickHero
@@ -616,12 +640,18 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind={furnitureName(sel.furniture)}
-          title={fv && fv.buttons.length > 0 ? 'Actions' : 'No actions'}
+          title={
+            fv && fv.buttons.length > 0
+              ? t('play.PlayScreen.actions', 'Actions')
+              : t('play.PlayScreen.noActions', 'No actions')
+          }
           onClose={closeNote}
         >
           {!(fv && fv.buttons.length > 0) && (
             <p className="hint">
-              This {furnitureName(sel.furniture).toLowerCase()} has no special action.
+              {t('play.PlayScreen.thisHasNoSpecial', 'This {v1} has no special action.', {
+                v1: furnitureName(sel.furniture).toLowerCase(),
+              })}
             </p>
           )}
           {roomTiles.map((t) => (
@@ -640,7 +670,7 @@ export function PlayScreen({
         <MarginNote
           anchor={anchor}
           kind={roomTiles[0] ? roomTiles[0].tile.name : 'Room'}
-          title="Search this room"
+          title={t('play.PlayScreen.searchThisRoom', 'Search this room')}
           onClose={closeNote}
         >
           {roomTiles.map((t) => (
@@ -662,12 +692,14 @@ export function PlayScreen({
         title={`${nameOf(sel.hero)} fell?`}
         onClose={closeNote}
       >
-        <p>Only the fact is kept. It leaves every tie list.</p>
+        <p>
+          {t('play.PlayScreen.onlyTheFactIs', 'Only the fact is kept. It leaves every tie list.')}
+        </p>
         <button className="btn" onClick={() => act({ type: 'HERO_DIED', hero: sel.hero })}>
-          Yes, fell
+          {t('play.PlayScreen.yesFell', 'Yes, fell')}
         </button>
         <button className="btn alt" onClick={closeNote}>
-          No
+          {t('play.PlayScreen.no', 'No')}
         </button>
       </MarginNote>
     );
@@ -679,14 +711,23 @@ export function PlayScreen({
           // the popup opens at the square that was tapped
           anchor={toMap((sel.at ?? label.cell)[0] + 0.5, (sel.at ?? label.cell)[1] + 0.5)}
           kind="Zone"
-          title={label.enter ? 'A hero enters' : 'This place'}
+          title={
+            label.enter
+              ? t('play.PlayScreen.aHeroEnters', 'A hero enters')
+              : t('play.PlayScreen.thisPlace', 'This place')
+          }
           onClose={closeNote}
         >
           {label.enter && (
             <>
-              <p>Press the button when a hero enters this square.</p>
+              <p>
+                {t(
+                  'play.PlayScreen.pressTheButtonWhen',
+                  'Press the button when a hero enters this square.',
+                )}
+              </p>
               <button className="btn" onClick={() => act({ type: 'ZONE_ENTER', zone: sel.id })}>
-                A hero enters
+                {t('play.PlayScreen.aHeroEnters', 'A hero enters')}
               </button>
             </>
           )}
@@ -703,16 +744,20 @@ export function PlayScreen({
       <MarginNote
         anchor={toMap(sel.at[0] + 0.5, sel.at[1] + 0.5)}
         kind="Square with a note"
-        title={marker?.step === false ? 'This square' : 'Did a hero step here?'}
+        title={
+          marker?.step === false
+            ? t('play.PlayScreen.thisSquare', 'This square')
+            : t('play.PlayScreen.didAHeroStep', 'Did a hero step here?')
+        }
         onClose={closeNote}
       >
         {marker?.step !== false && (
           <>
             <button className="btn" onClick={() => act({ type: 'SQUARE_TRIGGER', cell: sel.at })}>
-              Yes
+              {t('play.PlayScreen.yes', 'Yes')}
             </button>
             <button className="btn alt" onClick={closeNote}>
-              No
+              {t('play.PlayScreen.no', 'No')}
             </button>
           </>
         )}
@@ -745,7 +790,11 @@ export function PlayScreen({
           <MarginNote
             anchor={anchor}
             kind={sprung && tv.kind ? TRAP_NAMES[tv.kind] : 'Trap'}
-            title={sprung ? 'It sprang here before' : 'Something is wrong here'}
+            title={
+              sprung
+                ? t('play.PlayScreen.itSprangHereBefore', 'It sprang here before')
+                : t('play.PlayScreen.somethingIsWrongHere', 'Something is wrong here')
+            }
             onClose={closeNote}
           >
             <TrapMenu
@@ -765,27 +814,28 @@ export function PlayScreen({
       }
     }
   } else if (sel?.kind === 'tunnel') {
-    const t = level.quest.tunnels.find((x) => x.id === sel.id);
-    if (t) {
-      const at = t[sel.end];
+    const tv = level.quest.tunnels.find((x) => x.id === sel.id);
+    if (tv) {
+      const at = tv[sel.end];
       const anchor = toMap(at[0] + 0.5, at[1] + 0.5);
       note = (
         <MarginNote
           anchor={anchor}
           kind="Ice tunnel"
-          title={`Tunnel ${t.design}`}
+          title={t('play.PlayScreen.tunnel', 'Tunnel {design}', { design: tv.design })}
           onClose={closeNote}
         >
           <p>
-            It leads to the other square with the same picture. A hero or monster that lands here
-            comes out there, and the move ends. If that square is taken, move the figure there to a
-            free square next to it.
+            {t(
+              'play.PlayScreen.itLeadsToThe',
+              'It leads to the other square with the same picture. A hero or monster that lands here comes out there, and the move ends. If that square is taken, move the figure there to a free square next to it.',
+            )}
           </p>
           <button
             className="btn"
-            onClick={() => run({ type: 'TUNNEL_USE', tunnel: t.id, from: sel.end }, anchor)}
+            onClick={() => run({ type: 'TUNNEL_USE', tunnel: tv.id, from: sel.end }, anchor)}
           >
-            A hero used this tunnel
+            {t('play.PlayScreen.aHeroUsedThis', 'A hero used this tunnel')}
           </button>
         </MarginNote>
       );
@@ -804,7 +854,12 @@ export function PlayScreen({
         (id) => codes.get(id) ?? id,
       );
       note = (
-        <MarginNote anchor={anchor} kind="Chest" title="Look for traps" onClose={closeNote}>
+        <MarginNote
+          anchor={anchor}
+          kind="Chest"
+          title={t('play.PlayScreen.lookForTraps', 'Look for traps')}
+          onClose={closeNote}
+        >
           <ChestBody
             searched={cv.searched}
             trapFound={cv.trapFound}
@@ -862,25 +917,40 @@ export function PlayScreen({
         <MarginNote
           anchor={c ? toMap(c[0] + 0.5, c[1] + 0.5) : { x: 880, y: 120 }}
           kind={`${codes.get(m.id)} · ${m.name}`}
-          title={`Move ${m.stats.move} · Att ${m.stats.att} · Def ${m.stats.def}`}
+          title={t('play.PlayScreen.moveAttDef', 'Move {move} · Att {att} · Def {def}', {
+            move: m.stats.move,
+            att: m.stats.att,
+            def: m.stats.def,
+          })}
           onClose={closeNote}
         >
           {m.wandering && (
             <p className="warn">
               {m.fresh && m.wanderAt
-                ? `Wandering · next to the ${nameOf(m.wanderAt)}`
-                : 'Wandering monster'}
+                ? t('play.PlayScreen.wanderingNextToThe', 'Wandering · next to the {v1}', {
+                    v1: nameOf(m.wanderAt),
+                  })
+                : t('play.PlayScreen.wanderingMonster', 'Wandering monster')}
             </p>
           )}
-          {m.added && <p className="warn">Added in play. The app never moves it.</p>}
+          {m.added && (
+            <p className="warn">
+              {t('play.PlayScreen.addedInPlayThe', 'Added in play. The app never moves it.')}
+            </p>
+          )}
           {m.state === 'stone' && (
             <p className="warn">
-              {m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone'}. It does not
-              act.
+              {t('play.PlayScreen.itDoesNotAct', '{v1}. It does not act.', {
+                v1: m.stoneTurns !== undefined ? `Stone: ${m.stoneTurns} turns` : 'Stone',
+              })}
             </p>
           )}
-          {m.placeAt && <p className="warn">Placed by a quest note.</p>}
-          {m.special && <p className="special-note">Special monster</p>}
+          {m.placeAt && (
+            <p className="warn">{t('play.PlayScreen.placedByAQuest', 'Placed by a quest note.')}</p>
+          )}
+          {m.special && (
+            <p className="special-note">{t('play.PlayScreen.specialMonster', 'Special monster')}</p>
+          )}
           {m.abilities.length > 0 && (
             <ul className="abilities" data-testid="abilities">
               {m.abilities.map((a) => (
@@ -891,7 +961,11 @@ export function PlayScreen({
             </ul>
           )}
           <p>
-            Body {m.body} of {m.maxBody} · Mind {m.stats.mind}
+            {t('play.PlayScreen.bodyOfMind', 'Body {body} of {maxBody} · Mind {mind}', {
+              body: m.body,
+              maxBody: m.maxBody,
+              mind: m.stats.mind,
+            })}
           </p>
           {!m.attackOnly && m.maxBody > 1 && (
             <div className="row">
@@ -900,14 +974,14 @@ export function PlayScreen({
                 disabled={m.body <= 1}
                 onClick={() => dispatch({ type: 'MONSTER_DAMAGE', monster: m.id, amount: 1 })}
               >
-                Wound -1
+                {t('play.PlayScreen.wound1', 'Wound -1')}
               </button>
               <button
                 className="btn alt"
                 disabled={m.body >= m.maxBody}
                 onClick={() => dispatch({ type: 'MONSTER_HEAL', monster: m.id, amount: 1 })}
               >
-                Heal +1
+                {t('play.PlayScreen.heal1', 'Heal +1')}
               </button>
             </div>
           )}
@@ -920,15 +994,15 @@ export function PlayScreen({
                   act({ type: 'MONSTER_KILL', monster: m.id });
                 }}
               >
-                Yes, it is slain
+                {t('play.PlayScreen.yesItIsSlain', 'Yes, it is slain')}
               </button>
               <button className="btn alt" onClick={() => setSlayAsk(null)}>
-                Not yet
+                {t('play.PlayScreen.notYet', 'Not yet')}
               </button>
             </div>
           ) : (
             <button className="btn" onClick={() => setSlayAsk(m.id)}>
-              Slain
+              {t('play.PlayScreen.slain', 'Slain')}
             </button>
           )}
           {m.state === 'passive' && (
@@ -937,13 +1011,13 @@ export function PlayScreen({
                 className="btn alt"
                 onClick={() => act({ type: 'MONSTER_LEAVE', monster: m.id, reason: 'freed' })}
               >
-                It left
+                {t('play.PlayScreen.itLeft', 'It left')}
               </button>
               <button
                 className="btn alt"
                 onClick={() => act({ type: 'MONSTER_WAKE', monster: m.id })}
               >
-                A hero attacked it
+                {t('play.PlayScreen.aHeroAttackedIt', 'A hero attacked it')}
               </button>
             </div>
           )}
@@ -952,7 +1026,7 @@ export function PlayScreen({
               className="btn alt"
               onClick={() => act({ type: 'MONSTER_LEAVE', monster: m.id, reason: 'escaped' })}
             >
-              Escaped
+              {t('play.PlayScreen.escaped', 'Escaped')}
             </button>
           )}
           {c && lookButton(c)}
@@ -974,7 +1048,7 @@ export function PlayScreen({
             </span>
             {goalLine && (
               <span className="goalline" title={goalLine}>
-                <b>Goal</b> {goalLine}
+                <b>{t('play.PlayScreen.goal', 'Goal')}</b> {goalLine}
               </span>
             )}
           </div>
@@ -983,7 +1057,7 @@ export function PlayScreen({
           Turn <b>{state.turn}</b>
         </span>
         <button className="chip hdr" disabled={events.length === 0} onClick={() => undo()}>
-          Undo
+          {t('play.PlayScreen.undo', 'Undo')}
         </button>
         <button
           className={'chip hdr' + (needsYou && !questOpen ? ' dot' : '')}
@@ -991,17 +1065,17 @@ export function PlayScreen({
           data-testid="quest-chip"
           onClick={() => setQuestOpen((v) => !v)}
         >
-          Quest info
+          {t('play.PlayScreen.questInfo', 'Quest info')}
         </button>
         <button
           className="chip hdr"
           data-testid="settings-chip"
           onClick={() => setSettingsOpen(true)}
         >
-          Settings
+          {t('play.PlayScreen.settings', 'Settings')}
         </button>
         <button className="chip hdr" onClick={() => setEndOpen(true)}>
-          End quest
+          {t('play.PlayScreen.endQuest', 'End quest')}
         </button>
         {playtest && (
           <button
@@ -1010,11 +1084,13 @@ export function PlayScreen({
             data-testid="zargon-view"
             onClick={() => setZargonView((v) => !v)}
           >
-            Zargon view
+            {t('play.PlayScreen.zargonView', 'Zargon view')}
           </button>
         )}
         <button className="link" onClick={playtest ? playtest.onBack : onLeave}>
-          {playtest ? 'Back to editor' : 'Quests'}
+          {playtest
+            ? t('play.PlayScreen.backToEditor', 'Back to editor')
+            : t('play.PlayScreen.quests', 'Quests')}
         </button>
       </header>
 
@@ -1026,12 +1102,16 @@ export function PlayScreen({
               <MarginNote
                 anchor={toMap(sheet.p.cell[0] + 0.5, sheet.p.cell[1] + 0.5)}
                 kind="New monster"
-                title={`Put ${sheet.p.name} here`}
+                title={t('play.PlayScreen.putHere', 'Put {name} here', { name: sheet.p.name })}
                 onClose={nextSheet}
               >
-                <p>Put the {MONSTER_NAMES[sheet.p.monsterType]} on the marked square.</p>
+                <p>
+                  {t('play.PlayScreen.putTheOnThe', 'Put the {v1} on the marked square.', {
+                    v1: MONSTER_NAMES[sheet.p.monsterType],
+                  })}
+                </p>
                 <button className="btn" onClick={nextSheet}>
-                  Done
+                  {t('play.PlayScreen.done', 'Done')}
                 </button>
               </MarginNote>
             ) : (
@@ -1067,9 +1147,13 @@ export function PlayScreen({
         <div className="aside-scroll">
           <Helpers npcs={npcs} />
           <section className="monsters">
-            <div className="lbl">Monsters in play</div>
+            <div className="lbl">{t('play.PlayScreen.monstersInPlay', 'Monsters in play')}</div>
             <ul className="roster">
-              {alive.length === 0 && <li className="empty">No monster in sight.</li>}
+              {alive.length === 0 && (
+                <li className="empty">
+                  {t('play.PlayScreen.noMonsterInSight', 'No monster in sight.')}
+                </li>
+              )}
               {alive.map((m) => (
                 <RosterRow
                   key={m.id}
@@ -1091,7 +1175,10 @@ export function PlayScreen({
         <div className="aside-foot">
           {ruleHintsOn && unthreatenedMovement(level, state) && (
             <p className="hint" data-testid="free-move">
-              No monster is awake: you may move without rolling, counting each red die as 4.
+              {t(
+                'play.PlayScreen.noMonsterIsAwake',
+                'No monster is awake: you may move without rolling, counting each red die as 4.',
+              )}
             </p>
           )}
           {wandering && (
@@ -1111,7 +1198,7 @@ export function PlayScreen({
               <label>
                 Monster
                 <select
-                  aria-label="Monster to add"
+                  aria-label={t('play.PlayScreen.monsterToAdd', 'Monster to add')}
                   value={adding.type}
                   onChange={(e) => setAdding({ t: 'type', type: e.target.value as MonsterType })}
                 >
@@ -1123,10 +1210,10 @@ export function PlayScreen({
                 </select>
               </label>
               <button className="btn" onClick={() => setAdding({ t: 'pick', type: adding.type })}>
-                Choose its square
+                {t('play.PlayScreen.chooseItsSquare', 'Choose its square')}
               </button>
               <button className="btn alt" onClick={() => setAdding(null)}>
-                Cancel
+                {t('play.PlayScreen.cancel', 'Cancel')}
               </button>
             </div>
           ) : (
@@ -1135,7 +1222,7 @@ export function PlayScreen({
               data-testid="add-monster-btn"
               onClick={() => setAdding({ t: 'type', type: 'goblin' })}
             >
-              Add a monster
+              {t('play.PlayScreen.addAMonster', 'Add a monster')}
             </button>
           )}
           <button className="zargon-btn" onClick={() => setZOpen(true)}>
@@ -1148,12 +1235,27 @@ export function PlayScreen({
       {(adding?.t === 'pick' || adding?.t === 'wander') && (
         <div className="pick-banner" role="status" data-testid="pick-banner">
           {adding.t === 'pick'
-            ? `Tap the square where you put the ${MONSTER_NAMES[adding.type]}.`
+            ? t('play.PlayScreen.tapTheSquareWhere', 'Tap the square where you put the {v1}.', {
+                v1: MONSTER_NAMES[adding.type],
+              })
             : adding.total > 1
-              ? `Tap the square where you put wandering monster ${adding.cells.length + 1} of ${adding.total}, ${adding.cells.length === 0 ? 'next to' : 'as close as you can to'} the ${nameOf(adding.hero)}.`
-              : `Tap the square where you put the wandering monster, next to the ${nameOf(adding.hero)}.`}
+              ? t(
+                  'play.PlayScreen.tapTheSquareWhere2',
+                  'Tap the square where you put wandering monster {v1} of {total}, {v2} the {v3}.',
+                  {
+                    v1: adding.cells.length + 1,
+                    total: adding.total,
+                    v2: adding.cells.length === 0 ? 'next to' : 'as close as you can to',
+                    v3: nameOf(adding.hero),
+                  },
+                )
+              : t(
+                  'play.PlayScreen.tapTheSquareWhere3',
+                  'Tap the square where you put the wandering monster, next to the {v1}.',
+                  { v1: nameOf(adding.hero) },
+                )}
           <button className="link" onClick={() => setAdding(null)}>
-            Cancel
+            {t('play.PlayScreen.cancel', 'Cancel')}
           </button>
         </div>
       )}
@@ -1223,15 +1325,26 @@ export function PlayScreen({
         <NoteCard kind="Objective done" title={sheet.p.text} onClose={nextSheet}>
           <p>
             {sheet.all
-              ? `All objectives are done. ${level.quest.leave ? `The heroes leave ${level.quest.leave}` : 'Bring the heroes back to the stairs'}, then end the quest.`
-              : 'This objective is done. The quest goes on.'}
+              ? t(
+                  'play.PlayScreen.allObjectivesAreDone',
+                  'All objectives are done. {v1}, then end the quest.',
+                  {
+                    v1: level.quest.leave
+                      ? `The heroes leave ${level.quest.leave}`
+                      : 'Bring the heroes back to the stairs',
+                  },
+                )
+              : t(
+                  'play.PlayScreen.thisObjectiveIsDone',
+                  'This objective is done. The quest goes on.',
+                )}
           </p>
           <button className="btn" onClick={nextSheet}>
-            Continue
+            {t('play.PlayScreen.continue', 'Continue')}
           </button>
         </NoteCard>
       ) : pending ? (
-        <NoteCard kind="Quest note" title="Choose">
+        <NoteCard kind="Quest note" title={t('play.PlayScreen.choose', 'Choose')}>
           <p>{pending.text}</p>
           {pending.options.map((o, i) => (
             <button
@@ -1255,7 +1368,11 @@ export function PlayScreen({
           {rereadButtons}
         </RereadSheet>
       ) : endOpen ? (
-        <NoteCard kind="End quest" title="How did the quest end?" onClose={() => setEndOpen(false)}>
+        <NoteCard
+          kind="End quest"
+          title={t('play.PlayScreen.howDidTheQuest', 'How did the quest end?')}
+          onClose={() => setEndOpen(false)}
+        >
           <button
             className="btn"
             onClick={() => {
@@ -1263,7 +1380,7 @@ export function PlayScreen({
               dispatch({ type: 'END_QUEST', outcome: 'stairs' });
             }}
           >
-            Heroes left {leaveWay(level)}
+            {t('play.PlayScreen.heroesLeft', 'Heroes left {v1}', { v1: leaveWay(level) })}
           </button>
           {endings.map((e) => (
             <button
@@ -1284,24 +1401,29 @@ export function PlayScreen({
               dispatch({ type: 'END_QUEST', outcome: 'fell' });
             }}
           >
-            All heroes fell
+            {t('play.PlayScreen.allHeroesFell', 'All heroes fell')}
           </button>
           <button className="btn alt" onClick={() => setEndOpen(false)}>
-            Keep playing
+            {t('play.PlayScreen.keepPlaying', 'Keep playing')}
           </button>
         </NoteCard>
       ) : allFallen && !endOpen && !fallenDismissed ? (
         <NoteCard
           kind="The heroes"
-          title="All heroes have fallen"
+          title={t('play.PlayScreen.allHeroesHaveFallen', 'All heroes have fallen')}
           onClose={() => setFallenDismissed(true)}
         >
-          <p>There is nobody left to play. End the quest, or undo the last fall.</p>
+          <p>
+            {t(
+              'play.PlayScreen.thereIsNobodyLeft',
+              'There is nobody left to play. End the quest, or undo the last fall.',
+            )}
+          </p>
           <button className="btn" onClick={() => setEndOpen(true)}>
-            End quest
+            {t('play.PlayScreen.endQuest', 'End quest')}
           </button>
           <button className="btn alt" onClick={() => setFallenDismissed(true)}>
-            Back to the map
+            {t('play.PlayScreen.backToTheMap', 'Back to the map')}
           </button>
         </NoteCard>
       ) : zActive ? (
@@ -1336,7 +1458,9 @@ export function PlayScreen({
             dismissToast();
           }}
         >
-          {toast.undo && <button onClick={() => undo()}>Undo</button>}
+          {toast.undo && (
+            <button onClick={() => undo()}>{t('play.PlayScreen.undo', 'Undo')}</button>
+          )}
         </ToastBox>
       )}
       {fullMessage && <FullMessage text={fullMessage} onClose={() => setFullMessage(null)} />}
@@ -1403,7 +1527,12 @@ function RosterRow({
           <span className="nm">
             {m.name}
             {m.special && (
-              <span className="star" role="img" aria-label="Special monster" data-special-row>
+              <span
+                className="star"
+                role="img"
+                aria-label={t('play.PlayScreen.specialMonster', 'Special monster')}
+                data-special-row
+              >
                 ★
               </span>
             )}
@@ -1419,11 +1548,11 @@ function RosterRow({
         </span>
         <span className="bp">
           {acted && !m.dead && (
-            <span className="tickdone" title="Done this turn">
+            <span className="tickdone" title={t('play.PlayScreen.doneThisTurn', 'Done this turn')}>
               ✓
             </span>
           )}
-          {m.dead ? 'Slain' : `${m.body}/${m.maxBody}`}
+          {m.dead ? t('play.PlayScreen.slain', 'Slain') : `${m.body}/${m.maxBody}`}
         </span>
       </button>
     </li>
@@ -1444,17 +1573,27 @@ function NoteSheet({ p, onClose }: { p: Extract<Prompt, { kind: 'note' }>; onClo
     <NoteCard
       letter={p.letter}
       kind="Quest note"
-      title={p.title ?? (p.letter ? `Note ${p.letter}` : 'Quest note')}
+      title={
+        p.title ??
+        (p.letter
+          ? t('play.PlayScreen.note', 'Note {letter}', { letter: p.letter })
+          : t('play.PlayScreen.questNote', 'Quest note'))
+      }
       onClose={onClose}
     >
       {p.texts.map((t, i) => (
         <p key={i}>{t}</p>
       ))}
       {p.blocksSearch && (
-        <p className="extra">The search was not used. The hero keeps the action.</p>
+        <p className="extra">
+          {t(
+            'play.PlayScreen.theSearchWasNot',
+            'The search was not used. The hero keeps the action.',
+          )}
+        </p>
       )}
       <button className="btn" onClick={onClose}>
-        Continue
+        {t('play.PlayScreen.continue', 'Continue')}
       </button>
     </NoteCard>
   );
@@ -1475,7 +1614,7 @@ function RereadSheet({
     <NoteCard
       letter={entry.letter}
       kind="Quest note"
-      title={entry.title ?? 'Read again'}
+      title={entry.title ?? t('play.PlayScreen.readAgain', 'Read again')}
       onClose={onClose}
     >
       {entry.texts.map((t, i) => (
@@ -1483,12 +1622,16 @@ function RereadSheet({
       ))}
       {entry.choices.map((c, i) => (
         <p key={i} className="extra">
-          {c.text} You chose: {c.picked}.{c.texts.length > 0 ? ` ${c.texts.join(' ')}` : ''}
+          {t('play.PlayScreen.youChose', '{text} You chose: {picked}.{v1}', {
+            text: c.text,
+            picked: c.picked,
+            v1: c.texts.length > 0 ? ` ${c.texts.join(' ')}` : '',
+          })}
         </p>
       ))}
       {children}
       <button className="btn" onClick={onClose}>
-        Close
+        {t('play.PlayScreen.close', 'Close')}
       </button>
     </NoteCard>
   );
@@ -1515,24 +1658,32 @@ function EndScreen({
       kind={title}
       title={
         end.outcome === 'ending'
-          ? 'Quest over'
+          ? t('play.PlayScreen.questOver', 'Quest over')
           : end.won
-            ? 'Quest complete'
-            : 'Quest over, goal not reached'
+            ? t('play.PlayScreen.questComplete', 'Quest complete')
+            : t('play.PlayScreen.questOverGoalNot', 'Quest over, goal not reached')
       }
     >
       {end.outcome === 'ending' ? (
         <>
           <p>
-            <b>{end.ending?.label ?? 'The quest ended'}</b>
+            <b>{end.ending?.label ?? t('play.PlayScreen.theQuestEnded', 'The quest ended')}</b>
           </p>
           {end.ending?.text && <p>{end.ending.text}</p>}
-          <p>{end.goalDone ? 'The goal was done.' : 'The goal was not done.'}</p>
+          <p>
+            {end.goalDone
+              ? t('play.PlayScreen.theGoalWasDone', 'The goal was done.')
+              : t('play.PlayScreen.theGoalWasNot', 'The goal was not done.')}
+          </p>
         </>
       ) : (
         <p>
-          {end.outcome === 'fell' ? 'All the heroes fell.' : `The heroes left ${leave}.`}{' '}
-          {end.goalDone ? 'The goal was done.' : 'The goal was not done.'}
+          {end.outcome === 'fell'
+            ? t('play.PlayScreen.allTheHeroesFell', 'All the heroes fell.')
+            : t('play.PlayScreen.theHeroesLeft', 'The heroes left {leave}.', { leave })}{' '}
+          {end.goalDone
+            ? t('play.PlayScreen.theGoalWasDone', 'The goal was done.')
+            : t('play.PlayScreen.theGoalWasNot', 'The goal was not done.')}
         </p>
       )}
       <ul className="goals end-goals">
@@ -1543,12 +1694,21 @@ function EndScreen({
             </span>
             <span>
               {o.text}
-              <span className="sr"> {o.done ? '(done)' : '(not done)'}</span>
+              <span className="sr">
+                {' '}
+                {o.done
+                  ? t('play.PlayScreen.done2', '(done)')
+                  : t('play.PlayScreen.notDone', '(not done)')}
+              </span>
             </span>
           </li>
         ))}
       </ul>
-      {end.rewards && <p className="extra">Rewards: {end.rewards}</p>}
+      {end.rewards && (
+        <p className="extra">
+          {t('play.PlayScreen.rewards', 'Rewards: {rewards}', { rewards: end.rewards })}
+        </p>
+      )}
       {end.endNotes.map((t, i) => (
         <p key={i} className="extra" data-testid="end-note">
           {t}
@@ -1559,7 +1719,7 @@ function EndScreen({
         {leaveLabel}
       </button>
       <button className="btn alt" onClick={onUndo}>
-        Undo the ending
+        {t('play.PlayScreen.undoTheEnding', 'Undo the ending')}
       </button>
     </NoteCard>
   );

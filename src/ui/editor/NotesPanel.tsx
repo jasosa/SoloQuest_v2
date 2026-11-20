@@ -46,6 +46,7 @@ import {
   replaceAt,
   type ConditionKey,
 } from './noteForms';
+import { t } from '../../i18n/t';
 
 const ROOMS = roomIds(board);
 
@@ -167,7 +168,9 @@ export function Choose({
       {label}
       <select className="es-select" value={value} onChange={(e) => onChange(e.target.value)}>
         {!known && (
-          <option value={value}>{value === '' ? 'Pick one' : `${value} (missing)`}</option>
+          <option value={value}>
+            {value === '' ? t('editor.NotesPanel.pickOne', 'Pick one') : `${value} (missing)`}
+          </option>
         )}
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -241,8 +244,8 @@ function AreaField({
       <Pick
         store={store}
         kind={corridor ? 'area' : 'room'}
-        hint="Click a room or corridor on the board."
-        label="Click it on the board"
+        hint={t('editor.NotesPanel.clickARoomOr', 'Click a room or corridor on the board.')}
+        label={t('editor.NotesPanel.clickItOnThe', 'Click it on the board')}
         onPick={(v) => onChange(v as string)}
       />
     </>
@@ -265,18 +268,22 @@ function CellField({
   return (
     <div className="ed-cellfield">
       <div className="lbl">{label}</div>
-      <p className="ed-id">{value ? `Square ${cellText(value)}` : 'No square'}</p>
+      <p className="ed-id">
+        {value
+          ? t('editor.NotesPanel.square', 'Square {v1}', { v1: cellText(value) })
+          : t('editor.NotesPanel.noSquare', 'No square')}
+      </p>
       <div className="ed-chips">
         <Pick
           store={store}
           kind="cell"
-          hint="Click a square on the board."
-          label="Click it on the board"
+          hint={t('editor.NotesPanel.clickASquareOn', 'Click a square on the board.')}
+          label={t('editor.NotesPanel.clickItOnThe', 'Click it on the board')}
           onPick={(v) => onChange(v as Cell)}
         />
         {onClear && value && (
           <button className="btn alt ed-pick" onClick={onClear}>
-            Clear
+            {t('editor.NotesPanel.clear', 'Clear')}
           </button>
         )}
       </div>
@@ -307,7 +314,7 @@ function AppliesTo({ store, quest, note }: { store: EditorStore; quest: Quest; n
   ];
   return (
     <Choose
-      label="Applies to"
+      label={t('editor.NotesPanel.appliesTo', 'Applies to')}
       value={subjectKey(subject)}
       options={options}
       onChange={(key) => {
@@ -357,13 +364,13 @@ export function ActionForm({
   return (
     <>
       <section>
-        <div className="lbl">Action</div>
+        <div className="lbl">{t('editor.NotesPanel.action', 'Action')}</div>
         <p className="ed-id" data-testid="note-id">
           {note.id}
         </p>
         <AppliesTo store={store} quest={quest} note={note} />
         <Choose
-          label="When"
+          label={t('editor.NotesPanel.when', 'When')}
           value={note.trigger.type}
           options={whenOptions.map((c) => ({ value: c.type, label: c.label }))}
           onChange={(type) => {
@@ -385,7 +392,7 @@ export function ActionForm({
       </section>
 
       <section>
-        <div className="lbl">Only if</div>
+        <div className="lbl">{t('editor.NotesPanel.onlyIf', 'Only if')}</div>
         <ConditionList
           store={store}
           quest={quest}
@@ -395,7 +402,7 @@ export function ActionForm({
       </section>
 
       <section>
-        <div className="lbl">Then</div>
+        <div className="lbl">{t('editor.NotesPanel.then', 'Then')}</div>
         <EffectList
           store={store}
           quest={quest}
@@ -405,10 +412,10 @@ export function ActionForm({
       </section>
 
       <section>
-        <div className="lbl">Extras</div>
+        <div className="lbl">{t('editor.NotesPanel.extras', 'Extras')}</div>
         {isMultiMap(store.getState().canon) && (
           <Choose
-            label="Map"
+            label={t('editor.NotesPanel.map', 'Map')}
             value={note.map ?? ''}
             options={[
               { value: '', label: 'Every map' },
@@ -428,7 +435,7 @@ export function ActionForm({
         />
         <CellField
           store={store}
-          label="Letter drawn at"
+          label={t('editor.NotesPanel.letterDrawnAt', 'Letter drawn at')}
           value={note.at as Cell | undefined}
           onChange={(c) => patch({ at: c })}
           onClear={() => patch({ at: null })}
@@ -444,7 +451,7 @@ export function ActionForm({
             )
           }
         >
-          No treasure card is drawn
+          {t('editor.NotesPanel.noTreasureCardIs', 'No treasure card is drawn')}
         </button>
         {(note.trigger.type === 'squareEntered' ||
           note.trigger.type === 'zoneEntered' ||
@@ -455,7 +462,7 @@ export function ActionForm({
             aria-pressed={note.keepMark === true}
             onClick={() => patch({ keepMark: note.keepMark ? null : true })}
           >
-            Keep the mark on the map after it fires
+            {t('editor.NotesPanel.keepTheMarkOn', 'Keep the mark on the map after it fires')}
           </button>
         )}
         {(note.trigger.type === 'treasureSearch' || note.blocksSearch === true) && (
@@ -470,7 +477,7 @@ export function ActionForm({
               )
             }
           >
-            Searching here is not possible
+            {t('editor.NotesPanel.searchingHereIsNot', 'Searching here is not possible')}
           </button>
         )}
       </section>
@@ -482,7 +489,7 @@ export function ActionForm({
             if (st.apply((q) => removeNote(q, note.id))) st.setNoteId(null);
           }}
         >
-          Delete action
+          {t('editor.NotesPanel.deleteAction', 'Delete action')}
         </button>
       </section>
     </>
@@ -504,7 +511,7 @@ function LetterField({
       <input
         defaultValue={value ?? ''}
         maxLength={1}
-        placeholder="None"
+        placeholder={t('editor.NotesPanel.none', 'None')}
         onChange={(e) => (e.target.value = e.target.value.toUpperCase())}
         onBlur={(e) => {
           const r = parseMapLetter(e.target.value);
@@ -523,7 +530,7 @@ function LetterField({
 function TriggerForm({
   store,
   quest,
-  trigger: t,
+  trigger: tv,
   onChange,
 }: {
   store: EditorStore;
@@ -535,141 +542,143 @@ function TriggerForm({
 
   return (
     <>
-      {t.type === 'manual' && (
+      {tv.type === 'manual' && (
         <>
           <Text
-            label="Button label"
-            value={t.label}
-            onSave={(v) => v && onChange({ ...t, label: v })}
+            label={t('editor.NotesPanel.buttonLabel', 'Button label')}
+            value={tv.label}
+            onSave={(v) => v && onChange({ ...tv, label: v })}
           />
           <Text
-            label="Hint above the button (optional)"
-            value={t.hint ?? ''}
-            placeholder="One plain line for the players"
+            label={t('editor.NotesPanel.hintAboveTheButton', 'Hint above the button (optional)')}
+            value={tv.hint ?? ''}
+            placeholder={t('editor.NotesPanel.onePlainLineFor', 'One plain line for the players')}
             onSave={(v) => {
-              const { hint: _gone, ...rest } = t;
+              const { hint: _gone, ...rest } = tv;
               void _gone;
               onChange(v ? { ...rest, hint: v } : rest);
             }}
           />
           <Chips
-            value={t.repeat ? 'many' : 'once'}
+            value={tv.repeat ? 'many' : 'once'}
             options={[
               { value: 'once', label: 'Pressed once' },
               { value: 'many', label: 'Every time' },
             ]}
             onChange={(v) => {
-              const { repeat: _gone, ...rest } = t;
+              const { repeat: _gone, ...rest } = tv;
               void _gone;
               onChange(v === 'many' ? { ...rest, repeat: true } : rest);
             }}
           />
         </>
       )}
-      {t.type === 'treasureSearch' && (
+      {tv.type === 'treasureSearch' && (
         <>
           <button
             className="chip ed-wide"
-            aria-pressed={t.first === true}
+            aria-pressed={tv.first === true}
             onClick={() =>
-              onChange(t.first ? { type: t.type, area: t.area } : { ...t, first: true })
+              onChange(tv.first ? { type: tv.type, area: tv.area } : { ...tv, first: true })
             }
           >
-            First search of the room only
+            {t('editor.NotesPanel.firstSearchOfThe', 'First search of the room only')}
           </button>
         </>
       )}
-      {t.type === 'zoneEntered' && (
+      {tv.type === 'zoneEntered' && (
         <button
           className="chip ed-wide"
-          aria-pressed={t.repeat === true}
+          aria-pressed={tv.repeat === true}
           onClick={() =>
-            onChange(t.repeat ? { type: t.type, zone: t.zone } : { ...t, repeat: true })
+            onChange(tv.repeat ? { type: tv.type, zone: tv.zone } : { ...tv, repeat: true })
           }
         >
-          Fires every time
+          {t('editor.NotesPanel.firesEveryTime', 'Fires every time')}
         </button>
       )}
-      {t.type === 'squareEntered' && (
+      {tv.type === 'squareEntered' && (
         <>
           <button
             className="chip ed-wide"
-            aria-pressed={t.repeat === true}
+            aria-pressed={tv.repeat === true}
             onClick={() =>
-              onChange(t.repeat ? { type: t.type, cell: t.cell } : { ...t, repeat: true })
+              onChange(tv.repeat ? { type: tv.type, cell: tv.cell } : { ...tv, repeat: true })
             }
           >
-            Fires every time
+            {t('editor.NotesPanel.firesEveryTime', 'Fires every time')}
           </button>
         </>
       )}
-      {t.type === 'monsterLeft' && (
+      {tv.type === 'monsterLeft' && (
         <Chips
-          value={t.reason ?? 'any'}
+          value={tv.reason ?? 'any'}
           options={[
             { value: 'any', label: 'Either way' },
             { value: 'escaped', label: 'Escaped' },
             { value: 'freed', label: 'Freed' },
           ]}
           onChange={(v) => {
-            const { reason: _gone, ...rest } = t;
+            const { reason: _gone, ...rest } = tv;
             void _gone;
             onChange(v === 'any' ? rest : { ...rest, reason: v });
           }}
         />
       )}
-      {(t.type === 'monsterKilled' || t.type === 'monsterSeen' || t.type === 'monsterLeft') &&
-        t.monster === undefined && (
+      {(tv.type === 'monsterKilled' || tv.type === 'monsterSeen' || tv.type === 'monsterLeft') &&
+        tv.monster === undefined && (
           <>
             <Chips
-              value={t.monsterType !== undefined ? 'type' : 'one'}
+              value={tv.monsterType !== undefined ? 'type' : 'one'}
               options={[
                 { value: 'one', label: 'One monster' },
                 { value: 'type', label: 'A kind' },
               ]}
               onChange={(mode) => {
-                if (mode === 'type') onChange({ type: t.type, monsterType: 'orc' });
+                if (mode === 'type') onChange({ type: tv.type, monsterType: 'orc' });
                 else {
                   const m = quest.monsters[0];
-                  if (m) onChange({ type: t.type, monster: m.id });
+                  if (m) onChange({ type: tv.type, monster: m.id });
                   else store.getState().say('Add a monster first.');
                 }
               }}
             />
-            {t.monsterType !== undefined ? (
+            {tv.monsterType !== undefined ? (
               <Choose
-                label="Kind"
-                value={t.monsterType}
+                label={t('editor.NotesPanel.kind', 'Kind')}
+                value={tv.monsterType}
                 options={MONSTER_TYPES.map((m) => ({ value: m, label: MONSTER_NAMES[m] }))}
                 onChange={(m) =>
-                  onChange({ type: t.type, monsterType: m as (typeof MONSTER_TYPES)[number] })
+                  onChange({ type: tv.type, monsterType: m as (typeof MONSTER_TYPES)[number] })
                 }
               />
             ) : (
               <Choose
-                label="Monster"
-                value={t.monster ?? ''}
+                label={t('editor.NotesPanel.monster', 'Monster')}
+                value={tv.monster ?? ''}
                 options={monsters}
-                onChange={(monster) => onChange({ type: t.type, monster })}
+                onChange={(monster) => onChange({ type: tv.type, monster })}
               />
             )}
           </>
         )}
-      {t.type === 'allKilled' && (
+      {tv.type === 'allKilled' && (
         <>
-          <div className="lbl">All of these</div>
+          <div className="lbl">{t('editor.NotesPanel.allOfThese', 'All of these')}</div>
           <div className="ed-chips ed-small">
             {quest.monsters.map((m) => {
-              const on = t.monsters.includes(m.id);
+              const on = tv.monsters.includes(m.id);
               return (
                 <button
                   key={m.id}
                   className="chip"
                   aria-pressed={on}
                   onClick={() => {
-                    const next = on ? t.monsters.filter((x) => x !== m.id) : [...t.monsters, m.id];
+                    const next = on
+                      ? tv.monsters.filter((x) => x !== m.id)
+                      : [...tv.monsters, m.id];
                     if (next.length === 0) store.getState().say('Keep at least one monster.');
-                    else onChange({ ...t, monsters: next });
+                    else onChange({ ...tv, monsters: next });
                   }}
                 >
                   {m.id}
@@ -679,42 +688,42 @@ function TriggerForm({
           </div>
         </>
       )}
-      {t.type === 'spellCast' && (
+      {tv.type === 'spellCast' && (
         <>
           <Choose
-            label="Monster"
-            value={t.monster ?? ''}
+            label={t('editor.NotesPanel.monster', 'Monster')}
+            value={tv.monster ?? ''}
             options={[{ value: '', label: 'Any monster' }, ...monsters]}
-            onChange={(monster) => onChange(withOptional(t, 'monster', monster))}
+            onChange={(monster) => onChange(withOptional(tv, 'monster', monster))}
           />
           <Choose
-            label="Spell"
-            value={t.spell ?? ''}
+            label={t('editor.NotesPanel.spell', 'Spell')}
+            value={tv.spell ?? ''}
             options={[
               { value: '', label: 'Any spell' },
               ...SPELL_KEYS.map((k) => ({ value: k, label: SPELL_NAMES[k] })),
             ]}
-            onChange={(spell) => onChange(withOptional(t, 'spell', spell))}
+            onChange={(spell) => onChange(withOptional(tv, 'spell', spell))}
           />
         </>
       )}
-      {t.type === 'zargonTurn' && (
+      {tv.type === 'zargonTurn' && (
         <div className="ed-stats ed-two">
           <Num
             store={store}
-            label="Turn"
-            value={t.n}
+            label={t('editor.NotesPanel.turn', 'Turn')}
+            value={tv.n}
             optional
             min={1}
-            onSave={(n) => onChange(withOptional(t, 'n', n))}
+            onSave={(n) => onChange(withOptional(tv, 'n', n))}
           />
           <Num
             store={store}
-            label="Every"
-            value={t.every}
+            label={t('editor.NotesPanel.every', 'Every')}
+            value={tv.every}
             optional
             min={1}
-            onSave={(every) => onChange(withOptional(t, 'every', every))}
+            onSave={(every) => onChange(withOptional(tv, 'every', every))}
           />
         </div>
       )}
@@ -758,7 +767,7 @@ export function ConditionList({
               aria-label="Remove condition"
               onClick={() => onChange(removeAt(conditions, i))}
             >
-              Remove
+              {t('editor.NotesPanel.remove', 'Remove')}
             </button>
           </div>
           <ConditionFields
@@ -772,7 +781,7 @@ export function ConditionList({
       <label className="ed-field">
         <select
           className="es-select"
-          aria-label="Add a condition"
+          aria-label={t('editor.NotesPanel.addACondition', 'Add a condition')}
           value=""
           onChange={(e) => {
             const r = defaultCondition(quest, e.target.value as ConditionKey);
@@ -780,7 +789,7 @@ export function ConditionList({
             else store.getState().say(r.error);
           }}
         >
-          <option value="">Add a condition</option>
+          <option value="">{t('editor.NotesPanel.addACondition', 'Add a condition')}</option>
           {CONDITION_TYPES.map((c) => (
             <option key={c.key} value={c.key}>
               {c.label}
@@ -806,7 +815,11 @@ function ConditionFields({
   if ('flag' in c)
     return (
       <>
-        <Text label="Flag" value={c.flag} onSave={(v) => v && onChange({ ...c, flag: v })} />
+        <Text
+          label={t('editor.NotesPanel.flag', 'Flag')}
+          value={c.flag}
+          onSave={(v) => v && onChange({ ...c, flag: v })}
+        />
         <Chips
           value={c.is ? 'yes' : 'no'}
           options={YES_NO('Is set', 'Is not set')}
@@ -818,13 +831,13 @@ function ConditionFields({
     return (
       <>
         <Text
-          label="Counter"
+          label={t('editor.NotesPanel.counter', 'Counter')}
           value={c.counter}
           onSave={(v) => v && onChange({ ...c, counter: v })}
         />
         <Num
           store={store}
-          label="At least"
+          label={t('editor.NotesPanel.atLeast', 'At least')}
           value={c.gte}
           negative
           onSave={(gte) => gte !== undefined && onChange({ ...c, gte })}
@@ -835,7 +848,7 @@ function ConditionFields({
     return (
       <>
         <Choose
-          label="Monster"
+          label={t('editor.NotesPanel.monster', 'Monster')}
           value={c.monster}
           options={monsterOptions(quest)}
           onChange={(monster) => onChange({ ...c, monster })}
@@ -852,14 +865,14 @@ function ConditionFields({
       <>
         <AreaField
           store={store}
-          label="Area"
+          label={t('editor.NotesPanel.area', 'Area')}
           value={c.monstersAliveIn}
           corridor
           onChange={(monstersAliveIn) => onChange({ ...c, monstersAliveIn })}
         />
         <Num
           store={store}
-          label="Monsters alive"
+          label={t('editor.NotesPanel.monstersAlive', 'Monsters alive')}
           value={c.is}
           min={0}
           onSave={(n) => n !== undefined && onChange({ ...c, is: n })}
@@ -870,7 +883,7 @@ function ConditionFields({
     return (
       <AreaField
         store={store}
-        label="Room"
+        label={t('editor.NotesPanel.room', 'Room')}
         value={c.areaRevealed}
         onChange={(areaRevealed) => onChange({ ...c, areaRevealed })}
       />
@@ -878,7 +891,7 @@ function ConditionFields({
   if ('doorOpened' in c)
     return (
       <Choose
-        label="Door"
+        label={t('editor.NotesPanel.door', 'Door')}
         value={c.doorOpened}
         options={[
           ...quest.doors.map((d) => ({ value: d.id, label: d.id })),
@@ -895,7 +908,7 @@ function ConditionFields({
     return (
       <CellField
         store={store}
-        label="Square"
+        label={t('editor.NotesPanel.square2', 'Square')}
         value={c.lookDone as Cell}
         onChange={(lookDone) => onChange({ ...c, lookDone })}
       />
@@ -903,13 +916,17 @@ function ConditionFields({
   if ('monsterSeen' in c)
     return (
       <Choose
-        label="Monster"
+        label={t('editor.NotesPanel.monster', 'Monster')}
         value={c.monsterSeen}
         options={monsterOptions(quest)}
         onChange={(monsterSeen) => onChange({ ...c, monsterSeen })}
       />
     );
-  return <p className="ed-note">Only the first time this note fires.</p>;
+  return (
+    <p className="ed-note">
+      {t('editor.NotesPanel.onlyTheFirstTime', 'Only the first time this note fires.')}
+    </p>
+  );
 }
 
 // ---- effects
@@ -941,7 +958,7 @@ function EffectList({
               aria-label={`Remove effect ${EFFECT_TYPES.find((x) => x.type === e.type)?.label}`}
               onClick={() => onChange(removeAt(effects, i))}
             >
-              Remove
+              {t('editor.NotesPanel.remove', 'Remove')}
             </button>
           </div>
           <EffectFields
@@ -955,7 +972,7 @@ function EffectList({
       <label className="ed-field">
         <select
           className="es-select"
-          aria-label="Add an effect"
+          aria-label={t('editor.NotesPanel.addAnEffect', 'Add an effect')}
           value=""
           onChange={(ev) => {
             if (!ev.target.value) return;
@@ -964,7 +981,7 @@ function EffectList({
             else store.getState().say(r.error);
           }}
         >
-          <option value="">Add an effect</option>
+          <option value="">{t('editor.NotesPanel.addAnEffect', 'Add an effect')}</option>
           {EFFECT_TYPES.map((x) => (
             <option key={x.type} value={x.type}>
               {x.label}
@@ -1000,13 +1017,13 @@ function EffectFields({
       return (
         <>
           <Text
-            label="Text"
+            label={t('editor.NotesPanel.text', 'Text')}
             value={e.text}
             multiline
             onSave={(text) => text && onChange({ ...e, text })}
           />
           <Text
-            label="Title (optional)"
+            label={t('editor.NotesPanel.titleOptional', 'Title (optional)')}
             value={e.title ?? ''}
             onSave={(title) => onChange(withOptional(e, 'title', title))}
           />
@@ -1016,27 +1033,36 @@ function EffectFields({
       return (
         <AreaField
           store={store}
-          label="Room"
+          label={t('editor.NotesPanel.room', 'Room')}
           value={e.area}
           onChange={(area) => onChange({ ...e, area })}
         />
       );
     case 'revealAll':
-      return <p className="ed-note">Every monster, door and piece of furniture shows.</p>;
+      return (
+        <p className="ed-note">
+          {t(
+            'editor.NotesPanel.everyMonsterDoorAnd',
+            'Every monster, door and piece of furniture shows.',
+          )}
+        </p>
+      );
     case 'openAllDoors':
-      return <p className="ed-note">Every door opens.</p>;
+      return (
+        <p className="ed-note">{t('editor.NotesPanel.everyDoorOpens', 'Every door opens.')}</p>
+      );
     case 'placeMonster':
       return (
         <>
           <Choose
-            label="Monster"
+            label={t('editor.NotesPanel.monster', 'Monster')}
             value={e.monster}
             options={monsterOptions(quest)}
             onChange={(monster) => onChange({ ...e, monster })}
           />
           <CellField
             store={store}
-            label="Square (optional)"
+            label={t('editor.NotesPanel.squareOptional', 'Square (optional)')}
             value={e.cell as Cell | undefined}
             onChange={(cell) => onChange({ ...e, cell })}
             onClear={() => {
@@ -1051,7 +1077,7 @@ function EffectFields({
       return (
         <>
           <Choose
-            label="Monster"
+            label={t('editor.NotesPanel.monster', 'Monster')}
             value={e.monster}
             options={monsterOptions(quest)}
             onChange={(monster) => onChange({ ...e, monster })}
@@ -1063,7 +1089,7 @@ function EffectFields({
           />
           <Num
             store={store}
-            label="For how many turns (optional)"
+            label={t('editor.NotesPanel.forHowManyTurns', 'For how many turns (optional)')}
             value={e.turns}
             optional
             min={1}
@@ -1075,7 +1101,7 @@ function EffectFields({
       return (
         <>
           <Choose
-            label="Secret door"
+            label={t('editor.NotesPanel.secretDoor', 'Secret door')}
             value={e.door}
             options={quest.secretDoors.map((d) => ({ value: d.id, label: d.id }))}
             onChange={(door) => onChange({ ...e, door })}
@@ -1083,8 +1109,8 @@ function EffectFields({
           <Pick
             store={store}
             kind="secretDoor"
-            hint="Click a secret door on the board."
-            label="Click it on the board"
+            hint={t('editor.NotesPanel.clickASecretDoor', 'Click a secret door on the board.')}
+            label={t('editor.NotesPanel.clickItOnThe', 'Click it on the board')}
             onPick={(v) => onChange({ ...e, door: v as string })}
           />
         </>
@@ -1093,13 +1119,13 @@ function EffectFields({
       return (
         <>
           <Choose
-            label="Furniture"
+            label={t('editor.NotesPanel.furniture', 'Furniture')}
             value={e.furniture}
             options={quest.furniture.map((f) => ({ value: f.id, label: f.id }))}
             onChange={(furniture) => onChange({ ...e, furniture })}
           />
           <Choose
-            label="Door (it opens)"
+            label={t('editor.NotesPanel.doorItOpens', 'Door (it opens)')}
             value={e.door}
             options={quest.doors.map((d) => ({ value: d.id, label: d.id }))}
             onChange={(door) => onChange({ ...e, door })}
@@ -1109,12 +1135,18 @@ function EffectFields({
     case 'lookFrom':
       return (
         <>
-          <p className="ed-note">Square {cellText(e.cell)}: what can be seen from there shows.</p>
+          <p className="ed-note">
+            {t(
+              'editor.NotesPanel.squareWhatCanBe',
+              'Square {v1}: what can be seen from there shows.',
+              { v1: cellText(e.cell) },
+            )}
+          </p>
           <Pick
             store={store}
             kind="cell"
-            hint="Click a square on the board."
-            label="Click it on the board"
+            hint={t('editor.NotesPanel.clickASquareOn', 'Click a square on the board.')}
+            label={t('editor.NotesPanel.clickItOnThe', 'Click it on the board')}
             onPick={(v) => onChange({ ...e, cell: v as [number, number] })}
           />
         </>
@@ -1123,7 +1155,7 @@ function EffectFields({
       return (
         <>
           <Choose
-            label="Door"
+            label={t('editor.NotesPanel.door', 'Door')}
             value={e.door}
             options={quest.doors.map((d) => ({ value: d.id, label: d.id }))}
             onChange={(door) => onChange({ ...e, door })}
@@ -1131,8 +1163,8 @@ function EffectFields({
           <Pick
             store={store}
             kind="door"
-            hint="Click a door on the board."
-            label="Click it on the board"
+            hint={t('editor.NotesPanel.clickADoorOn', 'Click a door on the board.')}
+            label={t('editor.NotesPanel.clickItOnThe', 'Click it on the board')}
             onPick={(v) => onChange({ ...e, door: v as string })}
           />
         </>
@@ -1140,7 +1172,7 @@ function EffectFields({
     case 'crossMap':
       return (
         <Choose
-          label="Link (the heroes cross it)"
+          label={t('editor.NotesPanel.linkTheHeroesCross', 'Link (the heroes cross it)')}
           value={e.link}
           options={(quest.links ?? []).map((l) => ({ value: l.id, label: l.id }))}
           onChange={(link) => onChange({ ...e, link })}
@@ -1151,34 +1183,42 @@ function EffectFields({
         <>
           {e.cells.map((c, i) => (
             <div className="ed-cellrow" key={`${i}:${c[0]},${c[1]}`}>
-              <span>Square {cellText(c)}</span>
+              <span>{t('editor.NotesPanel.square', 'Square {v1}', { v1: cellText(c) })}</span>
               <button
                 className="chip"
                 disabled={e.cells.length === 1}
                 aria-label={`Remove square ${cellText(c)}`}
                 onClick={() => onChange({ ...e, cells: removeAt(e.cells, i) })}
               >
-                Remove
+                {t('editor.NotesPanel.remove', 'Remove')}
               </button>
             </div>
           ))}
           <Pick
             store={store}
             kind="cell"
-            hint="Click a square on the board."
-            label="Add a square on the board"
+            hint={t('editor.NotesPanel.clickASquareOn', 'Click a square on the board.')}
+            label={t('editor.NotesPanel.addASquareOn', 'Add a square on the board')}
             onPick={(v) => onChange({ ...e, cells: [...e.cells, v as [number, number]] })}
           />
         </>
       );
     case 'giveItem':
       return (
-        <Text label="Item" value={e.text} onSave={(text) => text && onChange({ ...e, text })} />
+        <Text
+          label={t('editor.NotesPanel.item', 'Item')}
+          value={e.text}
+          onSave={(text) => text && onChange({ ...e, text })}
+        />
       );
     case 'setFlag':
       return (
         <>
-          <Text label="Flag" value={e.flag} onSave={(flag) => flag && onChange({ ...e, flag })} />
+          <Text
+            label={t('editor.NotesPanel.flag', 'Flag')}
+            value={e.flag}
+            onSave={(flag) => flag && onChange({ ...e, flag })}
+          />
           <Chips
             value={e.value ? 'yes' : 'no'}
             options={YES_NO('Set it', 'Clear it')}
@@ -1190,13 +1230,13 @@ function EffectFields({
       return (
         <>
           <Text
-            label="Counter"
+            label={t('editor.NotesPanel.counter', 'Counter')}
             value={e.counter}
             onSave={(counter) => counter && onChange({ ...e, counter })}
           />
           <Num
             store={store}
-            label="Add"
+            label={t('editor.NotesPanel.add', 'Add')}
             value={e.by}
             negative
             onSave={(by) => by !== undefined && onChange({ ...e, by })}
@@ -1206,7 +1246,7 @@ function EffectFields({
     case 'completeObjective':
       return (
         <Choose
-          label="Objective"
+          label={t('editor.NotesPanel.objective', 'Objective')}
           value={e.objective}
           options={quest.objectives.map((o) => ({ value: o.id, label: `${o.id} · ${o.text}` }))}
           onChange={(objective) => onChange({ ...e, objective })}
@@ -1215,7 +1255,7 @@ function EffectFields({
     case 'spawnNpc':
       return (
         <Choose
-          label="Character"
+          label={t('editor.NotesPanel.character', 'Character')}
           value={e.npc}
           options={quest.npcs.map((n) => ({ value: n.id, label: `${n.id} · ${n.name}` }))}
           onChange={(npc) => onChange({ ...e, npc })}
@@ -1225,7 +1265,7 @@ function EffectFields({
       return (
         <>
           <Text
-            label="Question"
+            label={t('editor.NotesPanel.question', 'Question')}
             value={e.text}
             multiline
             onSave={(text) => text && onChange({ ...e, text })}
@@ -1233,18 +1273,18 @@ function EffectFields({
           {e.options.map((o, i) => (
             <div className="ed-row ed-nested" key={i} data-testid="option-row">
               <div className="ed-row-head">
-                <span>Answer {i + 1}</span>
+                <span>{t('editor.NotesPanel.answer', 'Answer {v1}', { v1: i + 1 })}</span>
                 <button
                   className="chip"
                   disabled={e.options.length === 1}
                   aria-label={`Remove answer ${i + 1}`}
                   onClick={() => onChange({ ...e, options: removeAt(e.options, i) })}
                 >
-                  Remove
+                  {t('editor.NotesPanel.remove', 'Remove')}
                 </button>
               </div>
               <Text
-                label="Button"
+                label={t('editor.NotesPanel.button', 'Button')}
                 value={o.label}
                 onSave={(label) =>
                   label && onChange({ ...e, options: replaceAt(e.options, i, { ...o, label }) })
@@ -1269,7 +1309,7 @@ function EffectFields({
               })
             }
           >
-            Add an answer
+            {t('editor.NotesPanel.addAnAnswer', 'Add an answer')}
           </button>
         </>
       );

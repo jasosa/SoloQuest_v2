@@ -18,6 +18,7 @@ import { abilityLookup } from '../../engine/data/abilities';
 import { spellLookup, spellQuestions } from '../../engine/data/spells';
 import type { MonsterDef } from '../../engine/quest/schema';
 import type { EditorStore } from './editorStore';
+import { t } from '../../i18n/t';
 
 const LIMITS = [
   { n: 1, label: 'Once in the quest' },
@@ -61,7 +62,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
 
   return (
     <section data-testid="monster-abilities">
-      <div className="lbl">Abilities</div>
+      <div className="lbl">{t('editor.MonsterLists.abilities', 'Abilities')}</div>
       <ul className="fr-items">
         {mine.map((id) => {
           const a = lookup.get(id);
@@ -69,17 +70,17 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
           return (
             <li key={id} data-ability={id}>
               <b>{a?.name ?? id}</b>
-              <p>{a?.text ?? 'Unknown ability.'}</p>
+              <p>{a?.text ?? t('editor.MonsterLists.unknownAbility', 'Unknown ability.')}</p>
               <button
                 className="x"
                 aria-label={`Remove ${a?.name ?? id}`}
                 onClick={() => patch({ abilities: mine.filter((x) => x !== id) })}
               >
-                Remove
+                {t('editor.MonsterLists.remove', 'Remove')}
               </button>
               {own && (
                 <button className="lnk" onClick={() => st.setAbilityId(id)}>
-                  Edit the ability…
+                  {t('editor.MonsterLists.editTheAbility', 'Edit the ability…')}
                 </button>
               )}
             </li>
@@ -89,18 +90,18 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
       <div className="fr-addrow">
         <select
           className="fr-sel"
-          aria-label="Add an ability"
+          aria-label={t('editor.MonsterLists.addAnAbility', 'Add an ability')}
           value={pick}
           onChange={(e) => setPick(e.target.value)}
         >
-          <option value="">Add an ability…</option>
+          <option value="">{t('editor.MonsterLists.addAnAbility2', 'Add an ability…')}</option>
           {free.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
             </option>
           ))}
           {fromLib.length > 0 && (
-            <optgroup label="From the library">
+            <optgroup label={t('editor.MonsterLists.fromTheLibrary', 'From the library')}>
               {fromLib.map((a) => (
                 <option key={a.id} value={`lib:${a.id}`}>
                   {a.name}
@@ -122,7 +123,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
             if (patch({ abilities: [...mine, pick] })) setPick('');
           }}
         >
-          Add
+          {t('editor.MonsterLists.add', 'Add')}
         </button>
         <button
           className="btn alt"
@@ -137,7 +138,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
             st.setAbilityId(made.id);
           }}
         >
-          New ability…
+          {t('editor.MonsterLists.newAbility', 'New ability…')}
         </button>
       </div>
     </section>
@@ -177,7 +178,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
 
   return (
     <section data-testid="monster-spells">
-      <div className="lbl">Spells</div>
+      <div className="lbl">{t('editor.MonsterLists.spells', 'Spells')}</div>
       <ul className="fr-items">
         {ids.map((id) => {
           const sp = lookup.get(id);
@@ -185,13 +186,17 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
           return (
             <li key={id} data-spell={id}>
               <b>{sp?.name ?? id}</b>
-              <p>{sp ? spellQuestions(sp).join(' · ') : 'Unknown spell.'}</p>
+              <p>
+                {sp
+                  ? spellQuestions(sp).join(' · ')
+                  : t('editor.MonsterLists.unknownSpell', 'Unknown spell.')}
+              </p>
               <button
                 className="x"
                 aria-label={`Remove ${sp?.name ?? id}`}
                 onClick={() => withCount(id, 0)}
               >
-                Remove
+                {t('editor.MonsterLists.remove', 'Remove')}
               </button>
               <div className="ctl">
                 <select
@@ -226,7 +231,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
                 </select>
                 {own && (
                   <button className="lnk" onClick={() => st.setSpellId(id)}>
-                    Edit the spell…
+                    {t('editor.MonsterLists.editTheSpell', 'Edit the spell…')}
                   </button>
                 )}
               </div>
@@ -237,18 +242,18 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
       <div className="fr-addrow">
         <select
           className="fr-sel"
-          aria-label="Add a spell"
+          aria-label={t('editor.MonsterLists.addASpell', 'Add a spell')}
           value={pick}
           onChange={(e) => setPick(e.target.value)}
         >
-          <option value="">Add a spell…</option>
+          <option value="">{t('editor.MonsterLists.addASpell2', 'Add a spell…')}</option>
           {free.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}
           {fromLib.length > 0 && (
-            <optgroup label="From the library">
+            <optgroup label={t('editor.MonsterLists.fromTheLibrary', 'From the library')}>
               {fromLib.map((s) => (
                 <option key={s.id} value={`lib:${s.id}`}>
                   {s.name}
@@ -269,7 +274,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
             if (patch({ spells: [...list, pick] })) setPick('');
           }}
         >
-          Add
+          {t('editor.MonsterLists.add', 'Add')}
         </button>
         <button
           className="btn alt"
@@ -281,7 +286,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
             st.setSpellId(made.id);
           }}
         >
-          New spell…
+          {t('editor.MonsterLists.newSpell', 'New spell…')}
         </button>
       </div>
       <button
@@ -319,7 +324,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
         Enemy
         <select
           className="fr-sel"
-          aria-label="Enemy"
+          aria-label={t('editor.MonsterLists.enemy', 'Enemy')}
           value={monster.enemy ?? ''}
           onChange={(e) => {
             const v = e.target.value;
@@ -344,14 +349,16 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
             );
           }}
         >
-          <option value="">None (the plain type)</option>
+          <option value="">
+            {t('editor.MonsterLists.noneThePlainType', 'None (the plain type)')}
+          </option>
           {quest.enemyDefs.map((e) => (
             <option key={e.id} value={e.id}>
               {e.name}
             </option>
           ))}
           {fromLib.length > 0 && (
-            <optgroup label="From the library">
+            <optgroup label={t('editor.MonsterLists.fromTheLibrary', 'From the library')}>
               {fromLib.map((e) => (
                 <option key={e.id} value={`lib:${e.id}`}>
                   {e.name}
@@ -364,8 +371,11 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
       {current && libraryVersion && enemyDiffersFromLibrary(quest, libraryVersion) && (
         <>
           <p className="ed-note" data-testid="enemy-newer">
-            The library has a different version of {current.name} (its stats, abilities or spells
-            changed). This quest keeps its own copy until you update it.
+            {t(
+              'editor.MonsterLists.theLibraryHasA',
+              'The library has a different version of {name} (its stats, abilities or spells changed). This quest keeps its own copy until you update it.',
+              { name: current.name },
+            )}
           </p>
           <button
             className="btn alt"
@@ -378,14 +388,21 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
               )
             }
           >
-            Update from the library
+            {t('editor.MonsterLists.updateFromTheLibrary', 'Update from the library')}
           </button>
         </>
       )}
       {current && (
         <p className="ed-note">
-          {current.name}: letter {current.letter ?? 'of its type'}
-          {current.image ? ', has a picture' : ', no picture'}. Edit enemies in the Library.
+          {t(
+            'editor.MonsterLists.letterEditEnemiesIn',
+            '{name}: letter {v1}{v2}. Edit enemies in the Library.',
+            {
+              name: current.name,
+              v1: current.letter ?? 'of its type',
+              v2: current.image ? ', has a picture' : ', no picture',
+            },
+          )}
         </p>
       )}
     </section>

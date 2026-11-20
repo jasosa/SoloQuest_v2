@@ -4,6 +4,7 @@ import { addAction } from './addAction';
 import { subjectOf, type Subject } from './actionSubjects';
 import type { EditorStore } from './editorStore';
 import { mainText, triggerSummary } from './noteForms';
+import { t } from '../../i18n/t';
 
 /**
  * The Actions section of the inspector (decision 68): the actions of one subject (the selected
@@ -20,9 +21,11 @@ export function SubjectActions({ store, subject }: { store: EditorStore; subject
 
   return (
     <section data-testid="element-actions">
-      <div className="lbl">Actions</div>
+      <div className="lbl">{t('editor.ActionsSection.actions', 'Actions')}</div>
       {notes.length === 0 ? (
-        <p className="ed-note">No action here yet.</p>
+        <p className="ed-note">
+          {t('editor.ActionsSection.noActionHereYet', 'No action here yet.')}
+        </p>
       ) : (
         <ul className="ed-notelist" data-testid="action-list">
           {notes.map((n) => (
@@ -37,7 +40,7 @@ export function SubjectActions({ store, subject }: { store: EditorStore; subject
         </ul>
       )}
       <button className="btn" onClick={() => addAction(store, subject)}>
-        Add action
+        {t('editor.ActionsSection.addAction', 'Add action')}
       </button>
     </section>
   );

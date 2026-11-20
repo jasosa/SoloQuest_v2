@@ -16,6 +16,7 @@ import { shownName } from './monsterLabel';
 import { parseLines } from './inspectorForms';
 import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { deleteSelection } from './selectionActions';
+import { t } from '../../i18n/t';
 
 const STATES = [
   { value: 'active', label: 'Active' },
@@ -47,8 +48,11 @@ export function MonstersTab({ store }: { store: EditorStore }) {
 
   return (
     <Frame>
-      <Col label="Monsters of this quest">
-        <ListPanel title="Monsters of this quest" testId="monster-list">
+      <Col label={t('editor.MonstersTab.monstersOfThisQuest', 'Monsters of this quest')}>
+        <ListPanel
+          title={t('editor.MonstersTab.monstersOfThisQuest', 'Monsters of this quest')}
+          testId="monster-list"
+        >
           <ul className="fr-list">
             {quest.monsters.map((m) => {
               const first = (m.abilities ?? [])[0];
@@ -68,18 +72,20 @@ export function MonstersTab({ store }: { store: EditorStore }) {
             })}
             {quest.monsters.length === 0 && (
               <li>
-                <span className="fr-help">No monster yet.</span>
+                <span className="fr-help">
+                  {t('editor.MonstersTab.noMonsterYet', 'No monster yet.')}
+                </span>
               </li>
             )}
           </ul>
-          <Fld label="Add a monster">
+          <Fld label={t('editor.MonstersTab.addAMonster', 'Add a monster')}>
             <select
               className="fr-sel"
-              aria-label="Monster to add"
+              aria-label={t('editor.MonstersTab.monsterToAdd', 'Monster to add')}
               value={toAdd}
               onChange={(e) => setToAdd(e.target.value)}
             >
-              <optgroup label="Core">
+              <optgroup label={t('editor.MonstersTab.core', 'Core')}>
                 {MONSTER_TYPES.map((t) => (
                   <option key={t} value={`core:${t}`}>
                     {MONSTER_NAMES[t]}
@@ -87,7 +93,12 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 ))}
               </optgroup>
               {quest.enemyDefs.length > 0 && (
-                <optgroup label="Custom monsters of this quest">
+                <optgroup
+                  label={t(
+                    'editor.MonstersTab.customMonstersOfThis',
+                    'Custom monsters of this quest',
+                  )}
+                >
                   {quest.enemyDefs.map((e) => (
                     <option key={e.id} value={`quest:${e.id}`}>
                       {e.name}
@@ -96,7 +107,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 </optgroup>
               )}
               {libEnemies.length > 0 && (
-                <optgroup label="From the library">
+                <optgroup label={t('editor.MonstersTab.fromTheLibrary', 'From the library')}>
                   {libEnemies.map((e) => (
                     <option key={e.id} value={`lib:${e.id}`}>
                       {e.name}
@@ -135,7 +146,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 if (made) st.select({ kind: 'monster', id: made.id });
               }}
             >
-              Add
+              {t('editor.MonstersTab.add', 'Add')}
             </button>
             <button
               className="btn alt"
@@ -144,24 +155,24 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 deleteSelection(store);
               }}
             >
-              Remove
+              {t('editor.MonstersTab.remove', 'Remove')}
             </button>
           </div>
         </ListPanel>
       </Col>
 
-      <Col label="Monster">
+      <Col label={t('editor.MonstersTab.monster', 'Monster')}>
         {monster ? (
           <>
-            <Panel title="Enemy" testId="monster-card">
+            <Panel title={t('editor.MonstersTab.enemy', 'Enemy')} testId="monster-card">
               <MonsterEnemy store={store} monster={monster} />
               {/* an enemy that is completely its own has no type to pick */}
               {(!monster.enemy ||
                 quest.enemyDefs.find((e) => e.id === monster.enemy)?.base !== undefined) && (
-                <Fld label="Type">
+                <Fld label={t('editor.MonstersTab.type', 'Type')}>
                   <select
                     className="fr-sel"
-                    aria-label="Type"
+                    aria-label={t('editor.MonstersTab.type', 'Type')}
                     value={monster.type}
                     onChange={(e) => patch({ type: e.target.value as MonsterType })}
                   >
@@ -173,10 +184,10 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   </select>
                 </Fld>
               )}
-              <Fld label="Name in this quest">
+              <Fld label={t('editor.MonstersTab.nameInThisQuest', 'Name in this quest')}>
                 <input
                   className="fr-in"
-                  aria-label="Name"
+                  aria-label={t('editor.MonstersTab.name', 'Name')}
                   key={`${monster.id}:${monster.name ?? ''}`}
                   defaultValue={monster.name ?? ''}
                   maxLength={60}
@@ -191,7 +202,10 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 />
               </Fld>
               <Toggle
-                label="Special monster: story-critical, drawn with a ring and a star"
+                label={t(
+                  'editor.MonstersTab.specialMonsterStoryCritical',
+                  'Special monster: story-critical, drawn with a ring and a star',
+                )}
                 on={monster.special === true}
                 onChange={(on) => patch({ special: on })}
               />
@@ -202,12 +216,15 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 onSave={(o) => patch({ overrides: o })}
               />
               <p className="fr-help">
-                Stats start from the enemy and can be changed for this monster only.
+                {t(
+                  'editor.MonstersTab.statsStartFromThe',
+                  'Stats start from the enemy and can be changed for this monster only.',
+                )}
               </p>
-              <Fld label="Traits (one per line)">
+              <Fld label={t('editor.MonstersTab.traitsOnePerLine', 'Traits (one per line)')}>
                 <textarea
                   className="fr-ta"
-                  aria-label="Traits (one per line)"
+                  aria-label={t('editor.MonstersTab.traitsOnePerLine', 'Traits (one per line)')}
                   key={`${monster.id}:${(monster.traits ?? []).join('\n')}`}
                   defaultValue={(monster.traits ?? []).join('\n')}
                   onBlur={(e) => {
@@ -218,28 +235,30 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                 />
               </Fld>
             </Panel>
-            <Panel title="Abilities">
+            <Panel title={t('editor.MonstersTab.abilities', 'Abilities')}>
               <MonsterAbilities store={store} monster={monster} />
             </Panel>
-            <Panel title="Spells">
+            <Panel title={t('editor.MonstersTab.spells', 'Spells')}>
               <MonsterSpells store={store} monster={monster} />
             </Panel>
           </>
         ) : (
-          <Panel title="Monster">
-            <p className="fr-help">Pick a monster on the left, or add one.</p>
+          <Panel title={t('editor.MonstersTab.monster', 'Monster')}>
+            <p className="fr-help">
+              {t('editor.MonstersTab.pickAMonsterOn', 'Pick a monster on the left, or add one.')}
+            </p>
           </Panel>
         )}
       </Col>
 
-      <Col label="Behavior">
+      <Col label={t('editor.MonstersTab.behavior', 'Behavior')}>
         {monster && (
           <>
-            <Panel title="Behavior">
-              <Fld label="Starts">
+            <Panel title={t('editor.MonstersTab.behavior', 'Behavior')}>
+              <Fld label={t('editor.MonstersTab.starts', 'Starts')}>
                 <select
                   className="fr-sel"
-                  aria-label="Starts"
+                  aria-label={t('editor.MonstersTab.starts', 'Starts')}
                   value={monster.state ?? 'active'}
                   onChange={(e) =>
                     patch({
@@ -257,10 +276,10 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   ))}
                 </select>
               </Fld>
-              <Fld label="Waits for">
+              <Fld label={t('editor.MonstersTab.waitsFor', 'Waits for')}>
                 <select
                   className="fr-sel"
-                  aria-label="Waits for"
+                  aria-label={t('editor.MonstersTab.waitsFor', 'Waits for')}
                   value={monster.behavior?.waitsFor ?? ''}
                   onChange={(e) =>
                     patch({
@@ -271,16 +290,22 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                     })
                   }
                 >
-                  <option value="">Nothing</option>
-                  <option value="heroInSight">A hero in its line of sight</option>
-                  <option value="heroInRoom">A hero in its room</option>
-                  <option value="heroAdjacent">A hero next to it</option>
+                  <option value="">{t('editor.MonstersTab.nothing', 'Nothing')}</option>
+                  <option value="heroInSight">
+                    {t('editor.MonstersTab.aHeroInIts', 'A hero in its line of sight')}
+                  </option>
+                  <option value="heroInRoom">
+                    {t('editor.MonstersTab.aHeroInIts2', 'A hero in its room')}
+                  </option>
+                  <option value="heroAdjacent">
+                    {t('editor.MonstersTab.aHeroNextTo', 'A hero next to it')}
+                  </option>
                 </select>
               </Fld>
-              <Fld label="Goes toward">
+              <Fld label={t('editor.MonstersTab.goesToward', 'Goes toward')}>
                 <select
                   className="fr-sel"
-                  aria-label="Goes toward"
+                  aria-label={t('editor.MonstersTab.goesToward', 'Goes toward')}
                   value={monster.behavior?.goesToward ?? ''}
                   onChange={(e) => {
                     const v = (e.target.value || undefined) as BehaviorToward | undefined;
@@ -296,20 +321,38 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                     });
                   }}
                 >
-                  <option value="">Pursues the nearest hero</option>
-                  <option value="strongestHero">The strongest hero</option>
-                  <option value="weakestHero">The weakest hero</option>
-                  <option value="stayPut">Nobody: it stays put (attacks only next to it)</option>
-                  <option value="marker">A marked square</option>
-                  <option value="guardMarker">Guards a marked square (stays near it)</option>
+                  <option value="">
+                    {t('editor.MonstersTab.pursuesTheNearestHero', 'Pursues the nearest hero')}
+                  </option>
+                  <option value="strongestHero">
+                    {t('editor.MonstersTab.theStrongestHero', 'The strongest hero')}
+                  </option>
+                  <option value="weakestHero">
+                    {t('editor.MonstersTab.theWeakestHero', 'The weakest hero')}
+                  </option>
+                  <option value="stayPut">
+                    {t(
+                      'editor.MonstersTab.nobodyItStaysPut',
+                      'Nobody: it stays put (attacks only next to it)',
+                    )}
+                  </option>
+                  <option value="marker">
+                    {t('editor.MonstersTab.aMarkedSquare', 'A marked square')}
+                  </option>
+                  <option value="guardMarker">
+                    {t(
+                      'editor.MonstersTab.guardsAMarkedSquare',
+                      'Guards a marked square (stays near it)',
+                    )}
+                  </option>
                 </select>
               </Fld>
               {(monster.behavior?.goesToward === 'marker' ||
                 monster.behavior?.goesToward === 'guardMarker') && (
-                <Fld label="Marked square">
+                <Fld label={t('editor.MonstersTab.markedSquare', 'Marked square')}>
                   <select
                     className="fr-sel"
-                    aria-label="Marked square"
+                    aria-label={t('editor.MonstersTab.markedSquare', 'Marked square')}
                     value={monster.behavior.marker ?? ''}
                     onChange={(e) =>
                       patch({ behavior: { ...monster.behavior, marker: e.target.value } })
@@ -323,43 +366,55 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   </select>
                 </Fld>
               )}
-              <Fld label="Attacks per turn">
+              <Fld label={t('editor.MonstersTab.attacksPerTurn', 'Attacks per turn')}>
                 <select
                   className="fr-sel"
-                  aria-label="Attacks per turn"
+                  aria-label={t('editor.MonstersTab.attacksPerTurn', 'Attacks per turn')}
                   value={String(monster.attacks ?? '')}
                   onChange={(e) =>
                     patch({ attacks: e.target.value ? Number(e.target.value) : null })
                   }
                 >
-                  <option value="">As its enemy (usually one)</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
+                  <option value="">
+                    {t('editor.MonstersTab.asItsEnemyUsually', 'As its enemy (usually one)')}
+                  </option>
+                  <option value="2">{t('editor.MonstersTab.two', 'Two')}</option>
+                  <option value="3">{t('editor.MonstersTab.three', 'Three')}</option>
                 </select>
               </Fld>
-              <Fld label="Size">
+              <Fld label={t('editor.MonstersTab.size', 'Size')}>
                 <select
                   className="fr-sel"
-                  aria-label="Monster size"
+                  aria-label={t('editor.MonstersTab.monsterSize', 'Monster size')}
                   value={String(monster.size ?? '')}
                   onChange={(e) => patch({ size: e.target.value ? Number(e.target.value) : null })}
                 >
-                  <option value="">As its enemy (usually 1 square)</option>
-                  <option value="2">Large: 2 x 2 squares</option>
+                  <option value="">
+                    {t('editor.MonstersTab.asItsEnemyUsually2', 'As its enemy (usually 1 square)')}
+                  </option>
+                  <option value="2">
+                    {t('editor.MonstersTab.large2X2', 'Large: 2 x 2 squares')}
+                  </option>
                 </select>
               </Fld>
               <Toggle
-                label="Attacked, not fought: no wounds, no Slain button (an action says what an attack does)"
+                label={t(
+                  'editor.MonstersTab.attackedNotFoughtNo',
+                  'Attacked, not fought: no wounds, no Slain button (an action says what an attack does)',
+                )}
                 on={monster.attackOnly === true}
                 onChange={(on) => patch({ attackOnly: on })}
               />
               <Toggle
-                label="Hidden until an action places it"
+                label={t(
+                  'editor.MonstersTab.hiddenUntilAnAction',
+                  'Hidden until an action places it',
+                )}
                 on={monster.hidden === true}
                 onChange={(on) => patch({ hidden: on ? true : null })}
               />
             </Panel>
-            <Panel title="Actions on it">
+            <Panel title={t('editor.MonstersTab.actionsOnIt', 'Actions on it')}>
               <SubjectActions store={store} subject={{ kind: 'monster', id: monster.id }} />
             </Panel>
           </>

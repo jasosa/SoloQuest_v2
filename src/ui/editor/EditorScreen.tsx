@@ -46,6 +46,7 @@ import { FullMessage, ToastBox, toastMs } from '../shared/Toast';
 import { ThemeScope, useActiveTheme } from '../theme/activeTheme';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
+import { t } from '../../i18n/t';
 
 /** "Ice Vault 1 of 2": a tile chip with how many the quest has and the limit of the box. */
 function tileChipName(name: string, u: { used: number; max: number | undefined }): string {
@@ -188,14 +189,21 @@ export function EditorScreen({
         onTab={(t) => s.setTab(t as EditorTabName)}
       >
         <h1 className="fr-title">{quest.title}</h1>
-        <span className="ed-status">{dirty ? 'Unsaved changes' : 'Saved'}</span>
+        <span className="ed-status">
+          {dirty
+            ? t('editor.EditorScreen.unsavedChanges', 'Unsaved changes')
+            : t('editor.EditorScreen.saved', 'Saved')}
+        </span>
         {!s.stored && (
           <span className="ed-status ed-nostore" role="alert">
-            This device cannot keep a draft. Save the quest, or Export it, before you leave.
+            {t(
+              'editor.EditorScreen.thisDeviceCannotKeep',
+              'This device cannot keep a draft. Save the quest, or Export it, before you leave.',
+            )}
           </span>
         )}
       </TopBar>
-      <div className="fr-bar" role="toolbar" aria-label="Quest">
+      <div className="fr-bar" role="toolbar" aria-label={t('editor.EditorScreen.quest', 'Quest')}>
         <button
           className="chip ed-issues"
           onClick={() => {
@@ -215,24 +223,24 @@ export function EditorScreen({
             title={errors > 0 ? 'Fix the problems first' : 'Play this quest to try it'}
             onClick={() => onPlaytest(s.canon)}
           >
-            Playtest
+            {t('editor.EditorScreen.playtest', 'Playtest')}
           </button>
         )}
         <button className="chip" disabled={s.past.length === 0} onClick={() => s.undo()}>
-          Undo
+          {t('editor.EditorScreen.undo', 'Undo')}
         </button>
         <button className="chip" disabled={s.future.length === 0} onClick={() => s.redo()}>
-          Redo
+          {t('editor.EditorScreen.redo', 'Redo')}
         </button>
         <ImportButton store={store} />
         <button className="chip" data-testid="export" onClick={() => exportDraft(store)}>
-          Export
+          {t('editor.EditorScreen.export', 'Export')}
         </button>
         <button className="chip main" onClick={() => void s.save()}>
-          Save
+          {t('editor.EditorScreen.save', 'Save')}
         </button>
         <button className="link" onClick={onBack}>
-          Back
+          {t('editor.EditorScreen.back', 'Back')}
         </button>
       </div>
 
@@ -244,18 +252,20 @@ export function EditorScreen({
       )}
       {tab === 'Map' && (
         <div className="ed-body">
-          <nav className="ed-tools" aria-label="Tools">
+          <nav className="ed-tools" aria-label={t('editor.EditorScreen.tools', 'Tools')}>
             <MapChips store={store} />
             <div className="ed-chips">
-              {TOOLS.map((t) => (
+              {TOOLS.map((tv) => (
                 <button
-                  key={t.tool}
+                  key={tv.tool}
                   className="chip"
-                  aria-pressed={tool === t.tool}
-                  title={`Shortcut ${t.key.toUpperCase()}`}
-                  onClick={() => s.setTool(t.tool)}
+                  aria-pressed={tool === tv.tool}
+                  title={t('editor.EditorScreen.shortcut', 'Shortcut {v1}', {
+                    v1: tv.key.toUpperCase(),
+                  })}
+                  onClick={() => s.setTool(tv.tool)}
                 >
-                  {t.label}
+                  {tv.label}
                 </button>
               ))}
             </div>
@@ -277,7 +287,7 @@ export function EditorScreen({
             {warnings.length > 0 && (
               <div className="ed-warnings" role="status">
                 <button className="link" onClick={() => s.dismissWarnings()}>
-                  Dismiss
+                  {t('editor.EditorScreen.dismiss', 'Dismiss')}
                 </button>
                 <ul>
                   {warnings.map((w, i) => (
@@ -288,7 +298,10 @@ export function EditorScreen({
             )}
           </main>
 
-          <aside className="ed-inspector" aria-label="Inspector">
+          <aside
+            className="ed-inspector"
+            aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
+          >
             <Inspector store={store} issues={issues} saveErrors={saveErrors} />
           </aside>
         </div>
@@ -334,13 +347,13 @@ function ToolOptions({ store }: { store: EditorStore }) {
     <div className="ed-options">
       {tool === 'rock' && (
         <>
-          <div className="lbl">Rock</div>
+          <div className="lbl">{t('editor.EditorScreen.rock', 'Rock')}</div>
           {chip('Whole room', opts.rockRoom, () => set({ rockRoom: !opts.rockRoom }))}
         </>
       )}
       {tool === 'doors' && (
         <>
-          <div className="lbl">Door kind</div>
+          <div className="lbl">{t('editor.EditorScreen.doorKind', 'Door kind')}</div>
           <div className="ed-chips ed-small">
             {DOOR_TOOLS.map((d) =>
               chip(d.label, opts.doorKind === d.kind, () => set({ doorKind: d.kind })),
@@ -348,8 +361,12 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </div>
           {opts.doorKind === 'tunnel' && (
             <>
-              <div className="lbl">Design</div>
-              <div className="ed-chips ed-nums" role="group" aria-label="Next tunnel design">
+              <div className="lbl">{t('editor.EditorScreen.design', 'Design')}</div>
+              <div
+                className="ed-chips ed-nums"
+                role="group"
+                aria-label={t('editor.EditorScreen.nextTunnelDesign', 'Next tunnel design')}
+              >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                   <button
                     key={d}
@@ -363,21 +380,27 @@ function ToolOptions({ store }: { store: EditorStore }) {
                 ))}
               </div>
               <p className="ed-note" data-testid="tunnel-limit">
-                Ice tunnel {quest.tunnels.length} of {MAX_TUNNEL_PAIRS} pairs. Tap end A, then end
-                B.
+                {t(
+                  'editor.EditorScreen.iceTunnelOfPairs',
+                  'Ice tunnel {count} of {MAX_TUNNEL_PAIRS} pairs. Tap end A, then end B.',
+                  { count: quest.tunnels.length, MAX_TUNNEL_PAIRS },
+                )}
               </p>
             </>
           )}
           {(opts.doorKind === 'ironEntry' || opts.doorKind === 'woodenExit') && (
             <p className="ed-note">
-              Tap the outer edge of a square on the board border, or an edge that touches rock.
+              {t(
+                'editor.EditorScreen.tapTheOuterEdge',
+                'Tap the outer edge of a square on the board border, or an edge that touches rock.',
+              )}
             </p>
           )}
         </>
       )}
       {tool === 'blocks' && (
         <>
-          <div className="lbl">Block</div>
+          <div className="lbl">{t('editor.EditorScreen.block', 'Block')}</div>
           <div className="ed-chips">
             {chip('Single', !opts.blockDouble, () => set({ blockDouble: false }))}
             {chip('Double', opts.blockDouble, () => set({ blockDouble: true }))}
@@ -386,7 +409,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
       )}
       {tool === 'furniture' && (
         <>
-          <div className="lbl">Furniture</div>
+          <div className="lbl">{t('editor.EditorScreen.furniture', 'Furniture')}</div>
           <div className="ed-chips ed-small">
             {FURNITURE_TYPES.map((t) =>
               chip(FURNITURE_NAMES[t], opts.furnitureType === t, () => set({ furnitureType: t })),
@@ -397,13 +420,13 @@ function ToolOptions({ store }: { store: EditorStore }) {
             onClick={() => set({ furnitureTurned: !opts.furnitureTurned })}
             aria-pressed={opts.furnitureTurned}
           >
-            Turn (R)
+            {t('editor.EditorScreen.turnR', 'Turn (R)')}
           </button>
         </>
       )}
       {tool === 'tiles' && (
         <>
-          <div className="lbl">Board tiles</div>
+          <div className="lbl">{t('editor.EditorScreen.boardTiles', 'Board tiles')}</div>
           <div className="ed-chips ed-small" data-testid="board-tile-chips">
             {BOARD_TILE_TYPES.map((t) => {
               const u = tileUsage(quest, 'board', t);
@@ -414,7 +437,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
               );
             })}
           </div>
-          <div className="lbl">Room tiles</div>
+          <div className="lbl">{t('editor.EditorScreen.roomTiles', 'Room tiles')}</div>
           <div className="ed-chips ed-small" data-testid="room-tile-chips">
             {ROOM_TILE_TYPES.map((t) => {
               const u = tileUsage(quest, 'room', t);
@@ -430,13 +453,18 @@ function ToolOptions({ store }: { store: EditorStore }) {
             const spec = tileSpec(pick.group, pick.type);
             if (!spec || spec.laid)
               return (
-                <p className="ed-note">Tap squares to lay it. Squares that touch make one tile.</p>
+                <p className="ed-note">
+                  {t(
+                    'editor.EditorScreen.tapSquaresToLay',
+                    'Tap squares to lay it. Squares that touch make one tile.',
+                  )}
+                </p>
               );
             return (
               <>
                 {spec.footprints.length > 1 && (
                   <>
-                    <div className="lbl">Size</div>
+                    <div className="lbl">{t('editor.EditorScreen.size', 'Size')}</div>
                     <div className="ed-chips" data-testid="tile-sizes">
                       {spec.footprints.map(([w, h], i) => {
                         const full =
@@ -448,7 +476,15 @@ function ToolOptions({ store }: { store: EditorStore }) {
                             className="chip"
                             aria-pressed={opts.tileVariant === i}
                             disabled={full}
-                            title={full ? `Used up: the box has ${limitText(spec)}` : undefined}
+                            title={
+                              full
+                                ? t(
+                                    'editor.EditorScreen.usedUpTheBox',
+                                    'Used up: the box has {v1}',
+                                    { v1: limitText(spec) },
+                                  )
+                                : undefined
+                            }
                             onClick={() => set({ tileVariant: i })}
                           >
                             {w} x {h}
@@ -463,10 +499,14 @@ function ToolOptions({ store }: { store: EditorStore }) {
                   onClick={() => set({ tileTurned: !opts.tileTurned })}
                   aria-pressed={opts.tileTurned}
                 >
-                  Turn (R)
+                  {t('editor.EditorScreen.turnR', 'Turn (R)')}
                 </button>
                 <p className="ed-note" data-testid="tile-limit">
-                  {spec.name}: {limitText(spec)}. Tap a square for the top left of the tile.
+                  {t(
+                    'editor.EditorScreen.tapASquareFor',
+                    '{name}: {v1}. Tap a square for the top left of the tile.',
+                    { name: spec.name, v1: limitText(spec) },
+                  )}
                 </p>
               </>
             );
@@ -475,7 +515,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
       )}
       {tool === 'monsters' && (
         <>
-          <div className="lbl">Monster</div>
+          <div className="lbl">{t('editor.EditorScreen.monster', 'Monster')}</div>
           <div className="ed-chips ed-small">
             {MONSTER_TYPES.map((t: MonsterKind) =>
               chip(MONSTER_NAMES[t], !opts.monsterEnemy && opts.monsterType === t, () =>
@@ -485,7 +525,9 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </div>
           {(quest.enemyDefs.length > 0 || libEnemies.length > 0) && (
             <>
-              <div className="lbl">Custom monsters</div>
+              <div className="lbl">
+                {t('editor.EditorScreen.customMonsters', 'Custom monsters')}
+              </div>
               <div className="ed-chips ed-small" data-testid="custom-monsters">
                 {quest.enemyDefs.map((e) =>
                   chip(
@@ -508,19 +550,26 @@ function ToolOptions({ store }: { store: EditorStore }) {
       )}
       {tool === 'traps' && (
         <>
-          <div className="lbl">Trap</div>
+          <div className="lbl">{t('editor.EditorScreen.trap', 'Trap')}</div>
           <div className="ed-chips ed-small">
             {TRAP_KINDS.map((t) =>
               chip(t.label, opts.trapKind === t.kind, () => set({ trapKind: t.kind })),
             )}
           </div>
-          {opts.trapKind === 'chest' && <p className="ed-note">Click a chest.</p>}
+          {opts.trapKind === 'chest' && (
+            <p className="ed-note">{t('editor.EditorScreen.clickAChest', 'Click a chest.')}</p>
+          )}
         </>
       )}
       {tool === 'zones' && (
         <>
-          <div className="lbl">Zone</div>
-          <p className="ed-note">Click squares to add them to the zone, or to take them out.</p>
+          <div className="lbl">{t('editor.EditorScreen.zone', 'Zone')}</div>
+          <p className="ed-note">
+            {t(
+              'editor.EditorScreen.clickSquaresToAdd',
+              'Click squares to add them to the zone, or to take them out.',
+            )}
+          </p>
           <div className="ed-chips" data-testid="zone-chips">
             {quest.zones.map((z) => chip(z.id, opts.zoneId === z.id, () => set({ zoneId: z.id })))}
             {chip('New zone', opts.zoneId === null, () => set({ zoneId: null }))}
@@ -529,7 +578,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
       )}
       {tool === 'markers' && (
         <>
-          <div className="lbl">Marker</div>
+          <div className="lbl">{t('editor.EditorScreen.marker', 'Marker')}</div>
           <label className="ed-field">
             Label
             <input
@@ -548,8 +597,12 @@ function ToolOptions({ store }: { store: EditorStore }) {
           </div>
         </>
       )}
-      {tool === 'start' && <p className="ed-note">Click a room to make it the start.</p>}
-      <div className="lbl ed-gap">View</div>
+      {tool === 'start' && (
+        <p className="ed-note">
+          {t('editor.EditorScreen.clickARoomTo', 'Click a room to make it the start.')}
+        </p>
+      )}
+      <div className="lbl ed-gap">{t('editor.EditorScreen.view', 'View')}</div>
       {chip('Room ids', opts.roomIds, () => set({ roomIds: !opts.roomIds }))}
       {packInUse && (
         <button
@@ -558,7 +611,7 @@ function ToolOptions({ store }: { store: EditorStore }) {
           data-testid="editor-textures"
           onClick={() => setEditorTextures(!mapTextures)}
         >
-          Textures: {mapTextures ? 'on' : 'off'}
+          {t('editor.EditorScreen.textures', 'Textures: {v1}', { v1: mapTextures ? 'on' : 'off' })}
         </button>
       )}
     </div>

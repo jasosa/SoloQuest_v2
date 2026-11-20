@@ -67,6 +67,7 @@ import {
   toCell,
   type OuterEdge,
 } from './geometry';
+import { t } from '../../i18n/t';
 
 /** Editor squares are drawn in board units and scaled down by the svg viewBox. */
 export const EDITOR_CELL_PX = 26;
@@ -1011,7 +1012,13 @@ export function EditorBoard({
             fill="transparent"
             style={{ cursor: 'pointer' }}
             role="button"
-            aria-label={missing ? `Letter ${l.letter}, no note yet` : `Quest note ${l.letter}`}
+            aria-label={
+              missing
+                ? t('editor.EditorBoard.letterNoNoteYet', 'Letter {letter}, no note yet', {
+                    letter: l.letter,
+                  })
+                : t('editor.EditorBoard.questNote', 'Quest note {letter}', { letter: l.letter })
+            }
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => {
               e.stopPropagation();
@@ -1268,7 +1275,10 @@ export function EditorBoard({
             data-flash-id={flash?.id}
             id="editor-board"
             role="application"
-            aria-label="Quest board. Arrow keys move the cursor, Enter acts."
+            aria-label={t(
+              'editor.EditorBoard.questBoardArrowKeys',
+              'Quest board. Arrow keys move the cursor, Enter acts.',
+            )}
             tabIndex={0}
             width={BOARD_W * EDITOR_CELL_PX + 4}
             height={BOARD_H * EDITOR_CELL_PX + 4}
