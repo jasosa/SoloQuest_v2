@@ -88,6 +88,10 @@ export interface GameStoreInit {
    *  is not fresh, so they are not replayed. */
   fresh?: boolean;
   saves: SaveStore;
+  /** Played as part of the pack's campaign (decision 37). Kept in the save. */
+  campaign?: boolean | undefined;
+  /** The flags the quest begins with (a campaign carries them in, decision 37). Kept in the save. */
+  startFlags?: Readonly<Record<string, boolean>> | undefined;
   /** The pack of the quest, kept in the save. Defaults to the pack that lists the quest. */
   pack?: string | undefined;
   now?: () => number;
@@ -97,14 +101,15 @@ export type GameStore = StoreApi<GameStoreState>;
 
 export function createGameStore(init: GameStoreInit): GameStore {
   const { level: root, seed, saves } = init;
+  const startFlags = init.startFlags ?? {};
   const team = normalizeTeam(init.team);
   const pack = init.pack ?? packOfQuest(root.quest.id);
   const now = init.now ?? (() => Date.now());
   const events0 = init.events ?? [];
-  const start = init.fresh ? startGame(root, seed) : undefined;
+  const start = init.fresh ? startGame(root, seed, startFlags) : undefined;
   const state0 = events0.length
-    ? replay(root, seed, events0)
-    : (start ?? startGame(root, seed)).state;
+    ? replay(root, seed, events0, startFlags)
+    : (start ?? startGame(root, seed, startFlags)).state;
   let counter = 0;
   let queue: Promise<void> = Promise.resolve();
 
@@ -112,7 +117,11 @@ export function createGameStore(init: GameStoreInit): GameStore {
     const persist = (events: readonly GameEvent[]) => {
       const stamp = now();
       queue = queue.then(async () => {
-        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp, pack);
+        const ok = await autosave(saves, root.quest.id, seed, team, events, stamp, {
+          pack,
+          startFlags,
+          campaign: init.campaign,
+        });
         if (get().saved !== ok) set({ saved: ok });
       });
     };
@@ -214,7 +223,7 @@ export function createGameStore(init: GameStoreInit): GameStore {
       undo() {
         const { events } = get();
         if (events.length === 0) return;
-        const r = engineUndo(root, seed, events);
+        const r = engineUndo(root, seed, events, startFlags);
         set({
           level: activeLevel(root, r.state),
           events: r.events,

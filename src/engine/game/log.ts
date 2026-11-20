@@ -120,8 +120,13 @@ function fromEvent(level: Level, before: GameState, e: GameEvent): LogEntry | un
  * The "What happened" log, oldest first, derived from the events (so an undo removes its line).
  * Pure: it replays the events. Numbers, doors and traps are never named, so nothing hidden leaks.
  */
-export function eventLog(root: Level, seed: number, events: readonly GameEvent[]): LogEntry[] {
-  const start = startGame(root, seed);
+export function eventLog(
+  root: Level,
+  seed: number,
+  events: readonly GameEvent[],
+  startFlags: Readonly<Record<string, boolean>> = {},
+): LogEntry[] {
+  const start = startGame(root, seed, startFlags);
   const out: LogEntry[] = [{ turn: start.state.turn, kind: 'start', text: 'The quest starts' }];
   out.push(...fromPrompts(start.prompts, start.state.turn));
   let state = start.state;

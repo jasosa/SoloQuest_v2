@@ -49,3 +49,47 @@ test.describe('the team in the New game popup (decision 38)', () => {
     await expect(chips.filter({ hasText: 'Elf' }).first()).toBeEnabled();
   });
 });
+
+test.describe('campaign or one-shot (decision 37)', () => {
+  test('a campaign is made for the pack, remembered, and can be started over', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
+    await page.reload();
+    await page.getByTestId('new-game').click();
+    const dialog = page.getByRole('dialog', { name: 'Choose your heroes' });
+    // no campaign yet: a one-shot is the default
+    await expect(dialog.getByRole('button', { name: 'One-shot' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(dialog.getByTestId('mode-hint')).toContainText('This quest alone');
+    await dialog.getByRole('button', { name: 'Campaign' }).click();
+    await expect(dialog.getByTestId('mode-hint')).toContainText(
+      'A new campaign starts for the core game',
+    );
+    await dialog.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Start the quest' }).click();
+    await dismissStart(page);
+    await page.getByRole('button', { name: 'Quests' }).click();
+    // back on the list: the campaign exists and the next New game opens in campaign mode with the team
+    await expect(page.getByTestId('campaign-progress')).toContainText('0 of 14 quests done');
+    await page.getByTestId('new-game').click();
+    await expect(dialog.getByRole('button', { name: 'Campaign' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(dialog.getByRole('button', { name: 'Dwarf', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.screenshot({ path: 'test-results/campaign-popup.png' });
+    await dialog.getByRole('button', { name: /Keep the saved game|Cancel/ }).click();
+    // start over
+    await page.getByRole('button', { name: 'Start a new campaign' }).click();
+    await page
+      .getByRole('dialog', { name: 'Start a new campaign' })
+      .getByRole('button', { name: 'Start a new campaign' })
+      .click();
+    await expect(page.getByTestId('campaign-progress')).toHaveCount(0);
+  });
+});

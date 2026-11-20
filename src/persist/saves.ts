@@ -136,6 +136,10 @@ export const SavedGameSchema = z.object({
   questId: z.string(),
   /** The pack of the quest when it was saved (decision 36). Quest numbers overlap between packs, so the id and the pack go together. Missing: an older save, or a quest of this device. */
   pack: z.string().optional(),
+  /** The flags the quest began with, when a campaign carried some in (decision 37). */
+  startFlags: z.record(z.string(), z.boolean()).optional(),
+  /** Played as part of the pack's campaign (decision 37). Missing: a one-shot. */
+  campaign: z.boolean().optional(),
   version: z.literal(SAVE_VERSION),
   seed: z.number().int(),
   /** The team at the table (decision 38): heroes, mercenaries and animal allies, all different. Not part of the engine state. */
@@ -215,6 +219,13 @@ export class DexieSaveStore implements SaveStore {
  * Write the whole log after every event (a log is a few hundred small events at most).
  * Returns false when the store is unavailable: play goes on, the game is just not saved.
  */
+/** What a save keeps besides the log: the pack, the flags the quest began with, and whether it is a campaign game. */
+export interface SaveExtra {
+  readonly pack?: string | undefined;
+  readonly startFlags?: Readonly<Record<string, boolean>> | undefined;
+  readonly campaign?: boolean | undefined;
+}
+
 export async function autosave(
   store: SaveStore,
   questId: string,
@@ -222,12 +233,17 @@ export async function autosave(
   team: readonly TeamInput[],
   events: readonly GameEvent[],
   now: number,
-  pack?: string,
+  extra: SaveExtra = {},
 ): Promise<boolean> {
+  const { pack, startFlags, campaign } = extra;
   try {
     await store.save({
       questId,
       ...(pack === undefined ? {} : { pack }),
+      ...(startFlags && Object.keys(startFlags).length > 0
+        ? { startFlags: { ...startFlags } }
+        : {}),
+      ...(campaign ? { campaign: true } : {}),
       version: SAVE_VERSION,
       seed,
       team: normalizeTeam(team).map(toStored),
@@ -244,6 +260,8 @@ export type Resumed =
   | {
       ok: true;
       pack?: string | undefined;
+      startFlags?: Readonly<Record<string, boolean>> | undefined;
+      campaign?: boolean | undefined;
       seed: number;
       team: readonly TeamMember[];
       events: readonly GameEvent[];
@@ -271,10 +289,12 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
   if (!parsed.success)
     return { ok: false, reason: 'corrupt', message: 'The saved game could not be read.' };
   try {
-    const state = replay(level, parsed.data.seed, parsed.data.events);
+    const state = replay(level, parsed.data.seed, parsed.data.events, parsed.data.startFlags);
     return {
       ok: true,
       pack: parsed.data.pack,
+      startFlags: parsed.data.startFlags,
+      campaign: parsed.data.campaign,
       seed: parsed.data.seed,
       team: normalizeTeam(parsed.data.team as TeamInput[]),
       events: parsed.data.events,

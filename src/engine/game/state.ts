@@ -76,6 +76,8 @@ export interface ChoiceMade {
 export interface GameState {
   /** The quest seed (never changes). Zargon's orders are derived from it, not from `rng`. */
   readonly seed: number;
+  /** The flags the quest began with (a campaign carries them in, decision 37). Never changes. */
+  readonly startFlags: Readonly<Record<string, boolean>>;
   readonly rng: Rng;
   /** Zargon turn counter, starts at 1. */
   readonly turn: number;
@@ -162,9 +164,13 @@ interface EndNotes {
   readonly notes?: readonly string[];
 }
 
-export function emptyState(seed: number): GameState {
+export function emptyState(
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
   return {
     seed: seed >>> 0,
+    startFlags: { ...startFlags },
     rng: createRng(seed),
     turn: 1,
     mapMemory: {},
@@ -189,7 +195,7 @@ export function emptyState(seed: number): GameState {
     wanderers: {},
     wanderCount: 0,
     notesFired: [],
-    flags: {},
+    flags: { ...startFlags },
     counters: {},
     objectivesDone: [],
     monsterStates: {},

@@ -2,7 +2,7 @@ import { restorePack } from './theme/activate';
 import { setActiveTheme } from './theme/activeTheme';
 import { TexturesDialog } from './theme/TexturesDialog';
 import { DexieThemeStore, MemoryThemeStore, type ThemeStore } from '../persist/themes';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { board } from '../engine/board/board';
 import { buildLevel } from '../engine/board/level';
 import type { Quest } from '../engine/quest/schema';
@@ -15,7 +15,12 @@ import {
   MemoryReferenceStore,
   type ReferenceStore,
 } from '../persist/reference';
-import { DexieSaveStore, MemorySaveStore, type SaveStore } from '../persist/saves';
+import { DexieSaveStore, MemorySaveStore, type SaveExtra, type SaveStore } from '../persist/saves';
+import { LocalCampaignStore, MemoryCampaignStore, type CampaignStore } from '../persist/campaigns';
+import { newCampaign, startFlagsFor, type Campaign } from '../engine/pack/campaign';
+import { trackCampaign } from './store/campaignTracker';
+import { packs } from './packs';
+import { toStored } from '../engine/data/team';
 import { BoardView } from './board/BoardView';
 import { knownFor, parseState } from './board/boardStates';
 import { PlayScreen } from './play/PlayScreen';
@@ -51,8 +56,9 @@ function openGame(
   team: readonly TeamInput[],
   events: readonly GameEvent[] = [],
   fresh = false,
+  extra: SaveExtra = {},
 ): GameStore {
-  return createGameStore({ level, seed, team, events, saves, fresh });
+  return createGameStore({ level, seed, team, events, saves, fresh, ...extra });
 }
 
 /** `?quest=1` or `?quest=103` (a bundled quest by slot) or `?quest=fh03-the-rescue` (by id). `?quest=test` (development only) loads asynchronously. */
@@ -96,7 +102,10 @@ function startFromUrl(
     if (x !== undefined && y !== undefined) events.push({ type: 'LOOK_FROM', cell: [x, y] });
   }
   const seed = params.has('seed') ? Number(params.get('seed')) : freshSeed();
-  const store = openGame(saves, level, seed, team.length ? team : ['dwarf'], events, true);
+  // A game opened by the URL is a one-shot: carried flags take their one-shot values.
+  const store = openGame(saves, level, seed, team.length ? team : ['dwarf'], events, true, {
+    startFlags: startFlagsFor(level.quest, undefined),
+  });
   void store.getState().save();
   return store;
 }
@@ -262,17 +271,56 @@ function Game({ params }: { params: URLSearchParams }) {
     };
   }, [game, params, saves]);
 
+  // Campaigns are kept per pack on this device (decision 37).
+  const campaigns = useMemo<CampaignStore>(
+    () => (params.has('nosave') ? new MemoryCampaignStore() : new LocalCampaignStore()),
+    [params],
+  );
+  /** Stops the listener that writes a finished quest into the campaign. */
+  const stopTracking = useRef<(() => void) | null>(null);
+  const leave = () => {
+    stopTracking.current?.();
+    stopTracking.current = null;
+    setGame(null);
+  };
+  const track = (store: GameStore, campaign: Campaign, questId: string) => {
+    stopTracking.current?.();
+    stopTracking.current = trackCampaign(store, campaigns, campaign, questId);
+  };
+
   const start = (choice: StartChoice) => {
+    stopTracking.current?.();
+    stopTracking.current = null;
     if (choice.kind === 'resume') {
-      const { seed, team, events } = choice.resumed;
+      const { seed, team, events, startFlags, campaign: wasCampaign } = choice.resumed;
       try {
-        setGame(openGame(saves, choice.level, seed, team, events));
+        const store = openGame(saves, choice.level, seed, team, events, false, {
+          pack: choice.pack,
+          startFlags,
+          campaign: wasCampaign,
+        });
+        const c = choice.pack ? campaigns.get(choice.pack) : undefined;
+        if (wasCampaign && c) track(store, c, choice.questId);
+        setGame(store);
       } catch {
         setNotice(SAVED_GAME_FAILED);
       }
     } else {
-      const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true);
+      const manifest = choice.pack ? packs.byId.get(choice.pack)?.manifest : undefined;
+      let campaign: Campaign | undefined;
+      if (choice.mode === 'campaign' && manifest) {
+        // A new campaign gets its seed now; the team of this quest is what the next one starts from.
+        const c = campaigns.get(manifest.id) ?? newCampaign(manifest, freshSeed());
+        campaign = { ...c, team: choice.team.map(toStored), fallen: [] };
+        campaigns.set(campaign);
+      }
+      const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true, {
+        pack: choice.pack,
+        startFlags: startFlagsFor(choice.level.quest, campaign),
+        campaign: campaign !== undefined,
+      });
       void store.getState().save(); // a new game replaces the old save at once
+      if (campaign) track(store, campaign, choice.questId);
       setGame(store);
     }
   };
@@ -281,14 +329,10 @@ function Game({ params }: { params: URLSearchParams }) {
   const playtestQuest = (quest: Quest) => {
     if (typeof editor !== 'object' || editor === null) return;
     try {
-      const store = openGame(
-        new MemorySaveStore(),
-        buildLevel(quest),
-        freshSeed(),
-        HEROES,
-        [],
-        true,
-      );
+      const level = buildLevel(quest);
+      const store = openGame(new MemorySaveStore(), level, freshSeed(), HEROES, [], true, {
+        startFlags: startFlagsFor(level.quest, undefined),
+      });
       setPlaytest({ game: store, editor });
     } catch (e) {
       editor.getState().say(`Cannot playtest yet: ${(e as Error).message}`);
@@ -336,14 +380,12 @@ function Game({ params }: { params: URLSearchParams }) {
       </LibraryProvider>
     );
   if (game === 'resume' || game === 'dev') return <div className="app" />;
-  if (game)
-    return (
-      <PlayScreen store={game} onLeave={() => setGame(null)} initialSelect={params.get('select')} />
-    );
+  if (game) return <PlayScreen store={game} onLeave={leave} initialSelect={params.get('select')} />;
   return (
     <>
       <SelectScreen
         saves={saves}
+        campaigns={campaigns}
         onStart={start}
         notice={notice}
         onEditor={() => setEditor('start')}

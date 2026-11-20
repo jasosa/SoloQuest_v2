@@ -25,6 +25,10 @@ The base game is the pack `core`. Every expansion is a pack that depends on it. 
 - `campaignSettings` are the choices made when a campaign starts (decision 61); they are off unless `default` says so.
 - Monsters, spells, heroes, mercenaries and the like are **not** in the manifest. They are Core library items tagged with the pack's name as their `expansion` (decision 76, `LIBRARY_LAYERS.md`), so the Library, the expansion switches and the editor already treat them as part of the pack.
 
+## Campaign and one-shot (decision 37)
+
+The New game popup asks One-shot or Campaign. A campaign is kept per pack on this device (`src/persist/campaigns.ts`): finished quests, the flags quests hand on (`flagsOut`, read by later quests as `flagsIn`), the last team, the campaign settings and the campaign seed. A one-shot starts every `flagsIn` flag at its `oneShot` value. See decision 89.
+
 ## What the registry checks (`src/engine/pack/registry.ts`, `npm run validate`)
 
 - Pack ids are unique, and a `core` pack exists and depends on nothing.

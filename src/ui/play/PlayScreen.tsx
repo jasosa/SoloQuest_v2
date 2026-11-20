@@ -205,7 +205,10 @@ export function PlayScreen({ store, onLeave, initialSelect = null, playtest }: P
     );
     return journalEntries.filter((e) => !starts.has(e.id));
   }, [level, journalEntries]);
-  const log = useMemo(() => eventLog(root, state.seed, events), [root, state.seed, events]);
+  const log = useMemo(
+    () => eventLog(root, state.seed, events, state.startFlags),
+    [root, state.seed, events, state.startFlags],
+  );
   const needsYou = confirms.length > 0 || manual.length > 0;
   /** The goal line of the title band: the first objective not done yet. */
   const goalLine = objectives.goalDone

@@ -244,3 +244,5 @@ A quest may have `"pack": "<pack id>"`. Left out, it belongs to the pack whose m
 ## Team rule and excluded targets (decisions 38, 39)
 
 `team` (optional): `{ "solo": true, "only": ["barbarian"], "grantsAlly": "snowdasher" }`. `solo`: the quest is for one hero. `only`: only these heroes (left out: any hero). `grantsAlly`: the id of a pack animal ally (`team.allies` in the pack manifest) that comes with the hero. Words for the New game popup only: it shows warnings and never blocks.
+
+`flagsIn` (optional): `[{ "flag": "scepterDestroyed", "oneShot": true }]`. Flags the quest begins with. In a campaign the value is what an earlier quest handed on (false if none); played alone it is `oneShot`. `flagsOut` (optional): `["scepterDestroyed"]`, flags this quest hands on when it is finished. `excludeTargets` (optional): NPC ids that Zargon's monsters ignore (decision 39).

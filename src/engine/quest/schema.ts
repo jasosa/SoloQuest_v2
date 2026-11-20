@@ -649,6 +649,14 @@ export const QuestSchema = z.strictObject({
       grantsAlly: id.optional(),
     })
     .optional(),
+  /**
+   * Flags this quest starts with, taken from the campaign (decision 37). `oneShot` is the value when the
+   * quest is played alone: Frozen Horror quest 9 counts the Scepter as destroyed. In a campaign the value
+   * is what an earlier quest carried out (`flagsOut`), false if none did.
+   */
+  flagsIn: z.array(z.strictObject({ flag: id, oneShot: z.boolean() })).optional(),
+  /** Flags this quest hands on to the quests after it, in a campaign (decision 37). */
+  flagsOut: z.array(id).optional(),
   /** NPC ids that Zargon's monsters ignore: they are left out of the tie list (decision 39). */
   excludeTargets: z.array(id).optional(),
   rules: RulesSchema.default({}),

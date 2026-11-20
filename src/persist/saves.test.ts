@@ -142,7 +142,7 @@ describe('unavailable storage', () => {
 describe('the pack in a save (decision 36)', () => {
   it('remembers the pack and the quest id, and an older save without a pack still resumes', async () => {
     const store = new MemorySaveStore();
-    await autosave(store, level.quest.id, SEED, TEAM, log, 1000, 'frozen-horror');
+    await autosave(store, level.quest.id, SEED, TEAM, log, 1000, { pack: 'frozen-horror' });
     const r = await resume(store, level);
     expect(r.ok && r.pack).toBe('frozen-horror');
     expect((await store.load(level.quest.id))?.pack).toBe('frozen-horror');
@@ -155,9 +155,9 @@ describe('the pack in a save (decision 36)', () => {
 
   it('explains a save whose pack is missing, and one whose quest is gone', async () => {
     const store = new MemorySaveStore();
-    await autosave(store, 'xx01-gone', SEED, TEAM, [], 1, 'lost-pack');
+    await autosave(store, 'xx01-gone', SEED, TEAM, [], 1, { pack: 'lost-pack' });
     await autosave(store, 'q-gone', SEED, TEAM, [], 2);
-    await autosave(store, level.quest.id, SEED, TEAM, [], 3, 'core');
+    await autosave(store, level.quest.id, SEED, TEAM, [], 3, { pack: 'core' });
     const found = await orphanSaves(
       store,
       (id) => id === level.quest.id,

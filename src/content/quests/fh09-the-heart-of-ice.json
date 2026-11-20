@@ -2126,6 +2126,7 @@
     "enemy": "polarWarbear",
     "count": 2
   },
+  "flagsIn": [{ "flag": "scepterDestroyed", "oneShot": true }],
   "objectives": [
     {
       "id": "o1",

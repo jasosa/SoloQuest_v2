@@ -57,9 +57,13 @@ export interface Reduced {
  * The start of the quest: the start room is revealed, then the `questStart` notes and the
  * `areaRevealed` notes of the start room fire. The prompts are the ones to show at the start.
  */
-export function startGame(root: Level, seed: number): Reduced {
+export function startGame(
+  root: Level,
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): Reduced {
   const level = activeLevel(root, {});
-  const d = draftOf(emptyState(seed));
+  const d = draftOf(emptyState(seed, startFlags));
   // Multi-map quests begin on map 1.
   if (root.maps) d.map = firstMapId(root.quest);
   syncBlockers(level, d);
@@ -80,8 +84,12 @@ export function startGame(root: Level, seed: number): Reduced {
  * State at the start of the quest (see `startGame`). The UI must call `startGame` to also get
  * the questStart and start-room prompts; this only gives the state.
  */
-export function initialState(root: Level, seed: number): GameState {
-  return startGame(root, seed).state;
+export function initialState(
+  root: Level,
+  seed: number,
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
+  return startGame(root, seed, startFlags).state;
 }
 
 /**
@@ -294,8 +302,13 @@ function endNotes(
 }
 
 /** Rebuild the state from the start. Throws if an event is invalid. */
-export function replay(root: Level, seed: number, events: readonly GameEvent[]): GameState {
-  let state = initialState(root, seed);
+export function replay(
+  root: Level,
+  seed: number,
+  events: readonly GameEvent[],
+  startFlags: Readonly<Record<string, boolean>> = {},
+): GameState {
+  let state = initialState(root, seed, startFlags);
   for (const e of events) state = reduce(root, state, e).state;
   return state;
 }
@@ -305,9 +318,10 @@ export function undo(
   root: Level,
   seed: number,
   events: readonly GameEvent[],
+  startFlags: Readonly<Record<string, boolean>> = {},
 ): { events: readonly GameEvent[]; state: GameState } {
   const rest = events.slice(0, -1);
-  return { events: rest, state: replay(root, seed, rest) };
+  return { events: rest, state: replay(root, seed, rest, startFlags) };
 }
 
 function finish(
