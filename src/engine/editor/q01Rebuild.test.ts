@@ -58,6 +58,7 @@ function rebuild(src: Quest): Quest {
       addFurniture(q, f.type, f.cells as Cell[], {
         id: f.id,
         ...(f.letter ? { letter: f.letter } : {}),
+        ...(f.turn ? { turn: f.turn as 1 | 2 | 3 } : {}),
       }),
     );
   for (const m of src.monsters) {

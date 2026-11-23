@@ -355,6 +355,21 @@ describe('furniture', () => {
     ]);
     expect(q.furniture[1]?.turn).toBe(1);
   });
+  it('adds a piece already turned, as an editor export stores it', () => {
+    const q = good(
+      addFurniture(
+        empty(),
+        'table',
+        [
+          [3, 16],
+          [3, 17],
+          [2, 16],
+        ],
+        { turn: 2 },
+      ),
+    );
+    expect(q.furniture[1]?.turn).toBe(2);
+  });
   it('a half turn keeps the same squares and four turns give the first shape back', () => {
     let q = good(
       addFurniture(empty(), 'table', [

@@ -496,6 +496,8 @@ export function removeBlock(q: Quest, cell: Cell): EditResult {
 export interface FurnitureOpts {
   id?: string;
   letter?: string;
+  /** Quarter turns of the picture, as the editor stores them (1 to 3). */
+  turn?: 1 | 2 | 3;
 }
 
 function footprintProblem(
@@ -556,6 +558,7 @@ export function addFurniture(
     type,
     cells: cells.map(copy),
     letter: letter.value,
+    turn: opts.turn,
   });
   return ok({ ...q, furniture: [...q.furniture, item] });
 }
