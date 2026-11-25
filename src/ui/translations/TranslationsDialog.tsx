@@ -127,10 +127,7 @@ export function TranslationsDialog({
     const isUpdate = r.file.language.code === BUILTIN_UPDATE_CODE;
     if (isUpdate && !owner) {
       setMessage({
-        text: t(
-          'translations.updateNeedsOwner',
-          'Only owner mode can bring in an update of the built-in English.',
-        ),
+        text: t('translations.updateNeedsOwner', 'Only owner mode can import an English update.'),
         bad: true,
       });
       return;
@@ -247,7 +244,10 @@ export function TranslationsDialog({
         )}
       </p>
       <Toggle
-        label={t('translations.ownerMode', 'Owner mode: the built-in English can be changed')}
+        label={t(
+          'translations.ownerMode',
+          'Owner mode: you can also prepare an update of the English the app ships',
+        )}
         on={owner}
         onChange={(on) => {
           setOwner(on);
@@ -324,7 +324,7 @@ export function TranslationsDialog({
             <span className="fr-qnum">
               {t(
                 'translations.builtInEnglish',
-                'Built in · Can be changed, never deleted · {total} texts · {edited} changed',
+                '{total} texts · {edited} changed by you · Stays on this device. English cannot be deleted.',
                 { total, edited: editedCount },
               )}
             </span>
@@ -373,7 +373,7 @@ export function TranslationsDialog({
               disabled={editedCount === 0}
               onClick={() => setResetting(true)}
             >
-              {t('translations.resetAll', 'Reset all to the original')}
+              {t('translations.resetAll', 'Undo all my changes')}
             </button>
           )}
         </li>
@@ -383,16 +383,16 @@ export function TranslationsDialog({
               <span className="fr-qnum">
                 {t(
                   'translations.ownerEnglish',
-                  'Owner mode · The English file the app ships · {count} changed',
+                  'English update · {count} changed · Not shipped yet. Export it, then run npm run i18n:apply.',
                   { count: updateCount },
                 )}
               </span>
               <span className="fr-qtitle">
-                {t('translations.builtInEnglishTitle', 'Built-in English')}
+                {t('translations.builtInEnglishTitle', 'English update')}
               </span>
             </div>
             <button className="chip" onClick={() => setEditing(BUILTIN_UPDATE_CODE)}>
-              {t('translations.editBuiltIn', 'Edit the built-in English')}
+              {t('translations.editBuiltInEnglish', 'Edit the English update')}
             </button>
             <button
               className="chip"
@@ -410,7 +410,7 @@ export function TranslationsDialog({
                 )
               }
             >
-              {t('translations.exportBuiltIn', 'Export the built-in English')}
+              {t('translations.exportBuiltIn', 'Export the English update')}
             </button>
             {resettingUpdate ? (
               <button
@@ -430,7 +430,7 @@ export function TranslationsDialog({
                 disabled={updateCount === 0}
                 onClick={() => setResettingUpdate(true)}
               >
-                {t('translations.resetBuiltIn', 'Reset the built-in changes')}
+                {t('translations.resetBuiltIn', 'Undo my changes to the English update')}
               </button>
             )}
           </li>

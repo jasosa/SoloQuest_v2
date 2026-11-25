@@ -120,7 +120,7 @@ export function TranslationEditor({
       title={
         isEnglish
           ? code === BUILTIN_UPDATE_CODE
-            ? t('translations.editBuiltInEnglish', 'Edit the built-in English')
+            ? t('translations.editBuiltInEnglish', 'Edit the English update')
             : t('translations.editEnglish', 'Edit English')
           : t('translations.translate', 'Translate {name}', { name: file.language.name })
       }
