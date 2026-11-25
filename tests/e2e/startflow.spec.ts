@@ -20,7 +20,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.screenshot({ path: 'test-results/start-3-single-quests.png' });
     await questCard(page, 1).click();
     await page.getByTestId('choose-heroes').click();
-    await expect(page.locator('.side h2')).toHaveText('Xanon Pass');
+    await expect(page.locator('[data-testid="quest-title"]')).toHaveText('Xanon Pass');
     await page.screenshot({ path: 'test-results/start-3b-quest-start.png' });
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
@@ -35,7 +35,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await expect(page.getByTestId('start-game')).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await expect(page.getByTestId('start-game')).toBeEnabled();
-    await expect(page.getByTestId('campaign-settings')).toBeVisible();
+    await expect(page.getByTestId('campaign-setting-raiment-of-the-frozen-champion')).toBeVisible();
     await page.screenshot({ path: 'test-results/start-6-campaign-heroes.png' });
     // 5. the overview is shot in team.spec.ts (it needs a campaign)
   });
@@ -135,7 +135,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('pack-mine').click();
     await page.getByRole('button', { name: /The Cellar/ }).click();
     await page.getByTestId('choose-heroes').click();
-    await expect(page.locator('.side h2')).toHaveText('The Cellar');
+    await expect(page.locator('[data-testid="quest-title"]')).toHaveText('The Cellar');
     await newGame(page, ['Wizard']);
     await dismissStart(page);
     await expect(page.locator('header h1')).toHaveText('The Cellar');

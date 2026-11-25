@@ -7,11 +7,8 @@ import { packLabel } from '../packs';
 import { Dialog } from '../shared/Frame';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { t } from '../../i18n/t';
-import { PageHeader, type Playable } from './parts';
+import { PageHeader, flagWords, type Playable } from './parts';
 import { QuestGrid, type QuestCardData } from './StartPages';
-
-/** "scepterDestroyed" read as "scepter destroyed". */
-const flagWords = (flag: string): string => flag.replace(/([A-Z])/g, ' $1').toLowerCase();
 
 /** "12 Nov": the day of a journal line. */
 export const dayLabel = (at: number): string =>

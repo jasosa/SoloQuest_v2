@@ -360,7 +360,7 @@ function Game({ params }: { params: URLSearchParams }) {
         }
         const store = openGame(saves, choice.level, freshSeed(), choice.team, [], true, {
           pack: choice.pack,
-          startFlags: startFlagsFor(choice.level.quest, campaign),
+          startFlags: { ...startFlagsFor(choice.level.quest, campaign), ...choice.flags },
           campaign: campaign !== undefined,
           campaignId: campaign?.id,
         });

@@ -19,6 +19,9 @@ export interface Playable {
   readonly edited: boolean;
 }
 
+/** "scepterDestroyed" read as "scepter destroyed". */
+export const flagWords = (flag: string): string => flag.replace(/([A-Z])/g, ' $1').toLowerCase();
+
 /** The title band of a page of the start flow: Back, the title, links on the right. */
 export function PageHeader({
   title,
@@ -76,6 +79,8 @@ export type StartChoice =
       kind: 'new';
       level: Level;
       team: readonly TeamMember[];
+      /** Answers of "Before you start": they replace the carried flags the quest begins with. */
+      flags?: Readonly<Record<string, boolean>>;
       /** The pack of the quest (an edited copy stays in the pack of the quest it copies). */
       pack: string | undefined;
       /** The id of the bundled quest, also for an edited copy. */

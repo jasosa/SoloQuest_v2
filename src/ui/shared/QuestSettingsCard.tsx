@@ -51,27 +51,17 @@ export interface CampaignSettingsContext {
   readonly onChange?: (() => void) | undefined;
 }
 
-/**
- * The settings of one quest, in a popup. Opened from the quest list and from the play header. The quest
- * settings are kept on this device for that quest only. The campaign settings of the pack (decision 61)
- * are kept in its campaign and shown when there is one.
- */
-export function QuestSettingsCard({
+/** The switch rows of the quest settings (and of the campaign settings), without a frame. */
+export function SettingsRows({
   questId,
-  title,
   solo = false,
   campaign,
   campaignOnly = false,
-  onClose,
 }: {
   questId: string;
-  title: string;
-  /** The quest is for one hero: "No Yeti hug in solo quests" applies (decision 59). */
   solo?: boolean;
   campaign?: CampaignSettingsContext | undefined;
-  /** Only the campaign switches ("Campaign settings"), no quest switches. */
   campaignOnly?: boolean;
-  onClose(): void;
 }) {
   const s = useQuestSettings(questId);
   const [stored, setStored] = useState<Campaign | undefined>(() =>
@@ -79,15 +69,7 @@ export function QuestSettingsCard({
   );
   const listed = campaign?.pack.campaignSettings ?? [];
   return (
-    <NoteCard
-      kind={
-        campaignOnly
-          ? t('shared.QuestSettingsCard.campaignSettings', 'Campaign settings')
-          : t('shared.QuestSettingsCard.questSettings', 'Quest settings')
-      }
-      title={title}
-      onClose={onClose}
-    >
+    <>
       {!campaignOnly && (
         <SwitchRow
           label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
@@ -148,6 +130,43 @@ export function QuestSettingsCard({
             })}
         </>
       )}
+    </>
+  );
+}
+
+/**
+ * The settings of one quest, in a popup. Opened from the quest list and from the play header. The quest
+ * settings are kept on this device for that quest only. The campaign settings of the pack (decision 61)
+ * are kept in its campaign and shown when there is one.
+ */
+export function QuestSettingsCard({
+  questId,
+  title,
+  solo = false,
+  campaign,
+  campaignOnly = false,
+  onClose,
+}: {
+  questId: string;
+  title: string;
+  /** The quest is for one hero: "No Yeti hug in solo quests" applies (decision 59). */
+  solo?: boolean;
+  campaign?: CampaignSettingsContext | undefined;
+  /** Only the campaign switches ("Campaign settings"), no quest switches. */
+  campaignOnly?: boolean;
+  onClose(): void;
+}) {
+  return (
+    <NoteCard
+      kind={
+        campaignOnly
+          ? t('shared.QuestSettingsCard.campaignSettings', 'Campaign settings')
+          : t('shared.QuestSettingsCard.questSettings', 'Quest settings')
+      }
+      title={title}
+      onClose={onClose}
+    >
+      <SettingsRows questId={questId} solo={solo} campaign={campaign} campaignOnly={campaignOnly} />
       <button className="btn alt" onClick={onClose}>
         {t('shared.QuestSettingsCard.done', 'Done')}
       </button>

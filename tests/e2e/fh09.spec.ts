@@ -36,7 +36,9 @@ test.describe('Frozen Horror double quest (quests 9 and 10)', () => {
     await expect(card).toHaveCount(1);
     await card.click();
     await page.getByTestId('choose-heroes').click();
-    await expect(page.locator('.side h2')).toHaveText('The Heart of Ice (double quest)');
+    await expect(page.locator('[data-testid="quest-title"]')).toHaveText(
+      'The Heart of Ice (double quest)',
+    );
     await newGame(page, ['Dwarf']);
     await page.locator('#board').waitFor();
     await expect(page.locator('header h1')).toHaveText('The Heart of Ice (double quest)');

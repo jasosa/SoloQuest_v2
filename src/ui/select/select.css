@@ -290,7 +290,7 @@
   padding: 20px 16px 24px 28px;
 }
 .app.select .start-team .pick-heroes {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 .app.select .start-team .team-form {
   max-width: 520px;
@@ -463,6 +463,69 @@
 .detail .btn {
   margin-top: auto;
 }
+.app.select .stage.setup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: stretch;
+  padding-bottom: 8px;
+}
+.setup-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 16px 18px;
+  border: 2px solid var(--text);
+  background: var(--paper-3);
+}
+.setup-col h2 {
+  font: 700 22px/1.15 'Bonum';
+  color: var(--ink);
+}
+.setup-col .quest-title {
+  font: 700 18px/1.2 'Bonum';
+  color: var(--text);
+}
+.setup-col .ask p {
+  margin-bottom: 8px;
+}
+.setup-col .yesno {
+  display: flex;
+  gap: 10px;
+}
+.setup-col .yesno .btn {
+  flex: 1;
+}
+.setup-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.setup-wrap .stage.setup {
+  flex: 1;
+}
+.setup-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  padding: 8px 28px 16px;
+}
+.setup-foot .hint {
+  margin-right: auto;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+}
+.app.select header .btn {
+  width: auto;
+  min-width: 200px;
+  padding: 0 18px;
+}
+
 /* Campaigns and the campaign page (DESIGN.md, "Campaigns"). */
 .app.select .stage.campaigns-page {
   display: grid;

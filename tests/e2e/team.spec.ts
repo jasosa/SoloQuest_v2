@@ -181,19 +181,13 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
     await openQuest(page, 0, 'frozen-horror');
 
     // a single quest has the quest switches and no campaign ones
-    await page.getByTestId('quest-settings').click();
-    const card = page.getByRole('dialog', { name: 'Into the Northlands' });
-    await expect(card.getByTestId('solo-no-hug')).toHaveAttribute('aria-checked', 'true');
-    await expect(card.getByTestId(RAIMENT)).toHaveCount(0);
-    await card.getByRole('button', { name: 'Done' }).click();
-    await expect(page.getByTestId('campaign-settings')).toHaveCount(0);
+    await expect(page.getByTestId('solo-no-hug')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId(RAIMENT)).toHaveCount(0);
     // a quest for a group has no Yeti switch
     await page.getByTestId('back').click();
     await questCard(page, 4).click();
     await page.getByTestId('choose-heroes').click();
-    await page.getByTestId('quest-settings').click();
     await expect(page.getByTestId('solo-no-hug')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Done' }).click();
 
     // a new campaign: the Raiment switch is set before it starts
     await page.getByTestId('back').click();
@@ -201,13 +195,10 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-frozen-horror').click();
     await page.getByTestId('new-campaign-heroes').click();
-    await page.getByTestId('campaign-settings').click();
-    const camp = page.getByRole('dialog', { name: 'Campaign 1' });
-    const raimentOn = camp.getByTestId(RAIMENT);
+    const raimentOn = page.getByTestId(RAIMENT);
     await expect(raimentOn).toHaveAttribute('aria-checked', 'false');
     await raimentOn.click();
     await expect(raimentOn).toHaveAttribute('aria-checked', 'true');
-    await camp.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await page.getByTestId('start-game').click();
     await dismissStart(page);
