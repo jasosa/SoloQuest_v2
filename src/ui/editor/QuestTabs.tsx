@@ -11,22 +11,17 @@ import { MapsPanel } from './MapsPanel';
 import { t } from '../../i18n/t';
 
 /**
- * The Quest tab (the mockup of decision 70): the actions of the quest on the left, the general
- * fields and the objectives in the middle, the rules, wandering monster, endings and the quest's
- * own abilities and spells on the right.
+ * The Quest tab (concept screen 3): three numbered cards, 1 General, 2 Objectives and maps (with the
+ * wandering monster) and 3 Rules. Under them, without a number: the actions list and the characters
+ * (left), the ending (middle), leaving and textures and the quest's own abilities and spells (right).
  */
 export function QuestTab({ store }: { store: EditorStore }) {
   const { quest } = useStore(store);
   const st = store.getState();
   return (
     <Frame numbered>
-      <Col label={t('editor.QuestTabs.actions', 'Actions')}>
-        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="quest-actions">
-          <ActionsPanel store={store} />
-        </Panel>
-      </Col>
       <Col label={t('editor.QuestTabs.general', 'General')}>
-        <Panel title={t('editor.QuestTabs.general', 'General')} testId="quest-general">
+        <Panel num title={t('editor.QuestTabs.general', 'General')} testId="quest-general">
           <div className="fr-row2">
             <Fld label={t('editor.QuestTabs.title', 'Title')}>
               <input
@@ -92,27 +87,36 @@ export function QuestTab({ store }: { store: EditorStore }) {
             />
           </Fld>
         </Panel>
-        <Panel title={t('editor.QuestTabs.mapsAndLinks', 'Maps and links')} testId="quest-maps">
-          <MapsPanel store={store} />
-        </Panel>
-        <Panel title={t('editor.QuestTabs.objectives', 'Objectives')} testId="quest-objectives">
-          <QuestPanel store={store} only="objectives" />
-        </Panel>
-      </Col>
-      <Col label={t('editor.QuestTabs.rules', 'Rules')}>
-        <Panel title={t('editor.QuestTabs.rules', 'Rules')}>
-          <QuestPanel store={store} only="rules" />
-        </Panel>
-        <Panel title={t('editor.QuestTabs.wanderingMonster', 'Wandering monster')}>
-          <QuestPanel store={store} only="wandering" />
+        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="quest-actions">
+          <ActionsPanel store={store} />
         </Panel>
         <Panel
           title={t('editor.QuestTabs.charactersBringInHelpers', 'Characters (bring-in helpers)')}
         >
           <QuestPanel store={store} only="characters" />
         </Panel>
+      </Col>
+      <Col label={t('editor.QuestTabs.objectivesAndMaps', 'Objectives and maps')}>
+        <Panel num title={t('editor.QuestTabs.objectivesAndMaps', 'Objectives and maps')}>
+          <div data-testid="quest-objectives">
+            <QuestPanel store={store} only="objectives" />
+          </div>
+          <div className="fr-sub">{t('editor.QuestTabs.mapsAndLinks', 'Maps and links')}</div>
+          <div data-testid="quest-maps">
+            <MapsPanel store={store} />
+          </div>
+          <div className="fr-sub">
+            {t('editor.QuestTabs.wanderingMonster', 'Wandering monster')}
+          </div>
+          <QuestPanel store={store} only="wandering" />
+        </Panel>
         <Panel title={t('editor.QuestTabs.ending', 'Ending')}>
           <QuestPanel store={store} only="endings" />
+        </Panel>
+      </Col>
+      <Col label={t('editor.QuestTabs.rules', 'Rules')}>
+        <Panel num title={t('editor.QuestTabs.rules', 'Rules')}>
+          <QuestPanel store={store} only="rules" />
         </Panel>
         <Panel
           title={t('editor.QuestTabs.leavingAndTextures', 'Leaving and textures')}

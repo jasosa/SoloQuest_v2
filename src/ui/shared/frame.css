@@ -109,16 +109,29 @@
   align-items: center;
   gap: 8px;
 }
-/* Numbered cards of the Quest tab (the first column, Actions, is not numbered). */
+/* Quest tab (concept screen 3): three equal columns; the cards marked `fr-n` are numbered, the
+   others (Actions, Characters, Ending...) sit under them without a number. */
 .fr-numbered {
   counter-reset: frcard;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.fr-numbered .fr-col:not(:first-child) .fr-panel {
+.fr-numbered .fr-panel.fr-n {
   counter-increment: frcard;
 }
-.fr-numbered .fr-col:not(:first-child) .fr-panel .fr-hd::before {
+.fr-numbered .fr-panel.fr-n .fr-hd::before {
   content: counter(frcard) ' · ';
   white-space: pre;
+}
+/* A small caps label inside a card (concept: .lbl). */
+.fr-sub {
+  font: 700 12px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 12px 0 4px;
+}
+.fr-sub:first-child {
+  margin-top: 0;
 }
 .fr-bd {
   padding: 10px 12px 12px;
@@ -762,4 +775,195 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+}
+
+/* Library (concept screen 5): the kinds on the left, the cards of the kind in the middle, the
+   picked item in a detail panel on the right. */
+.lib-frame {
+  grid-template-columns: 220px minmax(0, 1fr) 390px;
+  gap: 20px;
+  padding-top: 6px;
+}
+.lib-frame > .fr-col {
+  padding: 0 8px 8px 0; /* room for the offset shadows */
+}
+.lib-frame .box-pick {
+  font: 700 17px 'Bonum';
+}
+.lib-frame .box-count {
+  font:
+    14px 'Pagella',
+    Georgia,
+    serif;
+}
+.lib-files {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 2px solid var(--text);
+  background: var(--paper-3);
+}
+.lib-files .fr-help {
+  margin: 2px 0 6px;
+}
+.lib-files .btn {
+  min-height: 44px;
+}
+.lib-btnrow {
+  display: flex;
+  gap: 8px;
+}
+.lib-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lib-items .fr-scope {
+  padding: 0;
+  flex-wrap: wrap;
+}
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  grid-auto-rows: minmax(104px, auto);
+  gap: 12px;
+}
+.lib-grid .qcard {
+  overflow-wrap: anywhere;
+}
+.lib-grid .qnum {
+  order: -1;
+}
+.lib-grid .qtitle .fr-thumb {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.lib-grid .qcard.lib-new {
+  border-style: dashed;
+}
+.lib-detail {
+  flex: none; /* keep its full height; the column scrolls */
+  gap: 4px;
+}
+.lib-detail .fr-panel {
+  border: 0;
+  background: none;
+  border-top: 1px solid var(--paper-2);
+  margin-top: 4px;
+}
+.lib-detail > .fr-panel.lib-top {
+  border-top: 0;
+  margin-top: 0;
+}
+.lib-detail .fr-hd {
+  padding: 6px 0 2px;
+  font-size: 17px;
+}
+.lib-detail .fr-panel[data-testid='dz-card'] .fr-hd,
+.lib-detail > h2 {
+  font-size: 22px;
+}
+.lib-detail .fr-bd {
+  padding: 4px 0 6px;
+}
+/* Compact card: two-column field grids, tight gaps, lists that scroll on their own. */
+.lib-detail .fr-row2 {
+  gap: 0 10px;
+}
+.lib-detail .fr-fld {
+  margin-bottom: 6px;
+}
+.lib-detail .fr-help {
+  margin: 0 0 6px;
+}
+.lib-detail .fr-ta {
+  min-height: 56px;
+}
+.lib-detail .fr-stat {
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.lib-detail .lbl {
+  font: 700 12px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 4px 0 6px;
+}
+/* Weights: label on the left, small number on the right; the list scrolls inside the card. */
+.lib-weights {
+  max-height: 170px;
+  overflow-y: auto;
+  border: 1.5px solid var(--ink);
+  padding: 6px 8px 0;
+  background: var(--paper);
+}
+.lib-weights .fr-fld {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.lib-weights .fr-fld > span {
+  flex: 1;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+}
+.lib-weights .fr-in {
+  width: 56px;
+  flex: none;
+  text-align: center;
+  padding: 8px 4px;
+}
+.lib-detail .fr-bd > .fr-row2:first-child {
+  grid-template-columns: 1fr; /* the source text is long */
+}
+.lib-detail .fr-items {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+.lib-detail .fr-items:empty {
+  margin: 0;
+}
+.lib-detail .fr-items li {
+  margin-bottom: 4px;
+}
+.lib-detail .fr-addrow {
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.lib-detail .fr-addrow .fr-sel {
+  flex: 1 1 100%;
+}
+.lib-detail .fr-addrow .btn {
+  flex: 1 1 0;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* Token: letter and picture side by side. */
+.lib-token .fr-bd {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 0 10px;
+  align-items: end;
+}
+.lib-token .fr-help:first-child {
+  grid-column: 1 / -1;
+}
+.lib-token .fr-in {
+  text-align: center;
+}
+.lib-token .fr-pic {
+  margin-bottom: 6px;
+}
+.lib-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
 }

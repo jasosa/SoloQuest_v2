@@ -52,7 +52,7 @@ test.describe('designer: the library', () => {
     await expect(items(page).getByRole('button', { name: /^Elf of the Wood/ })).toBeVisible();
     await kind(page, /^Enemies/);
     await items(page).getByRole('button', { name: /^Orc/ }).click();
-    await items(page).getByRole('button', { name: 'Copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Orc copy');
     await expect(lib(page).getByRole('button', { name: /^Enemies 17 core · 1/ })).toBeVisible();
   });

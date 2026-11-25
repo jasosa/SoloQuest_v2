@@ -50,7 +50,7 @@ import {
   type LibraryStore,
 } from '../../persist/library';
 import { MONSTER_LETTER } from '../play/monsterCodes';
-import { Col, Dialog, Fld, Frame, ListPanel, Panel, Toggle, TopBar } from '../shared/Frame';
+import { Col, Dialog, Fld, Panel, Toggle, TopBar } from '../shared/Frame';
 import { useFitMode } from '../FitToScreen';
 import { shrinkImage } from './imageFile';
 import { expansionNames, expansionOf, setExpansionHidden, useHiddenExpansions } from './expansions';
@@ -111,6 +111,11 @@ const TITLE: Readonly<Record<LibraryKind, string>> = {
   hero: 'Hero',
   companion: 'Companion',
 };
+const KIND_RANK: readonly LibraryKind[] = ['enemy', 'ability', 'spell', 'hero', 'companion'];
+/** The kinds as the list shows them: the ones quests use most first. */
+const KIND_ORDER: readonly LibraryKind[] = LIBRARY_KINDS.toSorted(
+  (a, b) => KIND_RANK.indexOf(a) - KIND_RANK.indexOf(b),
+);
 const STATS = ['move', 'att', 'def', 'body', 'mind'] as const;
 const PROFILE_LABELS: Readonly<Record<Profile, string>> = {
   skirmisher: 'Skirmisher: attacks, then runs back',
@@ -1039,6 +1044,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
         <Panel
           title={t('designer.DesignerScreen.enemy', 'Enemy: {v1}', { v1: str(d, 'name') })}
           testId="dz-card"
+          className="lib-top"
         >
           <div className="fr-row2">
             <Fld label={t('designer.DesignerScreen.name', 'Name')}>
@@ -1202,7 +1208,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           <div className="lbl">
             {t('designer.DesignerScreen.whoItGoesFor', 'Who it goes for (weight 0 to 9, 0 never)')}
           </div>
-          <div data-testid="dz-weights">
+          <div data-testid="dz-weights" className="lib-weights">
             {RULE_KEYS.map((k) => (
               <Fld key={k} label={RULE_TEXT[k]}>
                 <input
@@ -1375,7 +1381,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const centre = (d: Data) => {
     if (kind === 'enemy') return enemyCards(d);
     return (
-      <Panel title={`${TITLE[kind]}: ${str(d, 'name')}`} testId="dz-card">
+      <Panel title={`${TITLE[kind]}: ${str(d, 'name')}`} testId="dz-card" className="lib-top">
         <div className="fr-row2">
           <Fld label={t('designer.DesignerScreen.name', 'Name')}>
             <input
@@ -1443,35 +1449,124 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
 
   return (
     <>
-      <Frame>
+      <div className="fr-frame lib-frame">
         <Col label={t('designer.DesignerScreen.library', 'Library')}>
-          <ListPanel title={t('designer.DesignerScreen.library', 'Library')} testId="dz-library">
-            <ul className="fr-list">
-              {LIBRARY_KINDS.map((k) => (
-                <li key={k} className={k === kind ? 'on' : undefined}>
-                  <button
-                    className="fr-pick"
-                    aria-pressed={k === kind}
-                    onClick={() => switchKind(k)}
-                  >
-                    {LIBRARY_KIND_NAMES[k]} <span className="sub">{count(k)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <Toggle
-              label={t(
-                'designer.DesignerScreen.ownerModeCoreCan',
-                'Owner mode: Core can be changed',
+          <div className="box-list" data-testid="dz-library">
+            {KIND_ORDER.map((k) => (
+              <button
+                key={k}
+                className="box-pick"
+                aria-pressed={k === kind}
+                onClick={() => switchKind(k)}
+              >
+                {LIBRARY_KIND_NAMES[k]} <span className="box-count">{count(k)}</span>
+              </button>
+            ))}
+          </div>
+          <Toggle
+            label={t('designer.DesignerScreen.ownerModeCoreCan', 'Owner mode: Core can be changed')}
+            on={owner}
+            onChange={(on) => {
+              setOwner(on);
+              rememberOwnerMode(on);
+            }}
+          />
+          <section className="lib-files">
+            {owner && (
+              <div data-testid="dz-core-file">
+                <div className="fr-sub">{t('designer.DesignerScreen.coreFile', 'Core file')}</div>
+                <p className="fr-help">
+                  {t(
+                    'designer.DesignerScreen.yourChangesToCore',
+                    'Changed, new and deleted Core items go into one file for',
+                  )}{' '}
+                  <code>
+                    {t('designer.DesignerScreen.srcContentLibrary', 'src/content/library/')}
+                  </code>
+                  .
+                </p>
+                <button
+                  className="btn alt"
+                  data-testid="dz-export-core"
+                  onClick={() => void exportCore()}
+                >
+                  {t('designer.DesignerScreen.exportCore', 'Export Core')}
+                </button>
+              </div>
+            )}
+            <div data-testid="dz-expansions">
+              <div className="fr-sub">{t('designer.DesignerScreen.expansions', 'Expansions')}</div>
+              {expansionList.length === 0 ? (
+                <p className="fr-help">
+                  {t(
+                    'designer.DesignerScreen.noExpansionInThe',
+                    'No expansion in the library yet.',
+                  )}
+                </p>
+              ) : (
+                <>
+                  {expansionList.map((name) => (
+                    <Toggle
+                      key={name}
+                      label={`${name} in the add menus`}
+                      on={!hiddenExpansions.has(name)}
+                      onChange={(on) => setExpansionHidden(name, !on)}
+                    />
+                  ))}
+                  <p className="fr-help">
+                    {t(
+                      'designer.DesignerScreen.switchingOneOffHides',
+                      "Switching one off hides its items from the quest editor's add menus. Quests that already use them keep working.",
+                    )}
+                  </p>
+                </>
               )}
-              on={owner}
-              onChange={(on) => {
-                setOwner(on);
-                rememberOwnerMode(on);
-              }}
-            />
-          </ListPanel>
-          <ListPanel title={LIBRARY_KIND_NAMES[kind]} testId="dz-items" grow>
+            </div>
+            <div>
+              <div className="fr-sub">
+                {t('designer.DesignerScreen.myLibraryFile', 'My library file')}
+              </div>
+              <p className="fr-help">
+                {t(
+                  'designer.DesignerScreen.shareWhatYouMade',
+                  'Share what you made as a pack file. Core items are not in it. A pack you import is fan-made.',
+                )}
+              </p>
+              <div className="lib-btnrow">
+                <button
+                  className="btn alt"
+                  data-testid="dz-export-pack"
+                  onClick={() =>
+                    setPack({
+                      name: t('designer.DesignerScreen.myLibrary2', 'My library'),
+                      author: '',
+                    })
+                  }
+                >
+                  {t('designer.DesignerScreen.export', 'Export')}
+                </button>
+                <button className="btn alt" onClick={() => file.current?.click()}>
+                  {t('designer.DesignerScreen.import', 'Import')}
+                </button>
+              </div>
+              <input
+                ref={file}
+                type="file"
+                accept="application/json,.json"
+                hidden
+                data-testid="dz-import"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  void importFile(f);
+                }}
+              />
+            </div>
+          </section>
+        </Col>
+
+        <Col label={LIBRARY_KIND_NAMES[kind]}>
+          <div className="lib-items" data-testid="dz-items">
             <div
               className="fr-scope"
               role="group"
@@ -1526,326 +1621,235 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 ))}
               </div>
             )}
-            <ul className="fr-list">
-              {scope === 'core' &&
-                rows
-                  .filter((r) => r.core && (activeBox === 'all' || boxKey(r) === activeBox))
-                  .map((r) => (
-                    <li key={r.id} className={r.id === selected ? 'on' : undefined}>
-                      <button className="fr-pick" onClick={() => pick(r.id)}>
-                        {r.name}
-                        <span className="sub" data-origin={originOf(r)}>
-                          {r.edited ? t('designer.DesignerScreen.changed', 'changed · ') : ''}
-                          {ORIGIN_LABEL[originOf(r)]} · {boxName(r)}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-              {scope === 'mine' &&
-                rows
-                  .filter((r) => !r.core)
-                  .map((r) => (
-                    <li key={r.id} className={r.id === selected ? 'on' : undefined}>
-                      <button className="fr-pick" onClick={() => pick(r.id)}>
-                        {r.image && <img src={r.image} alt="" className="fr-thumb" />}
-                        {r.name}
-                        <span className="sub" data-origin={originOf(r)}>
-                          {ORIGIN_LABEL[originOf(r)]}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-              {scope === 'mine' && mine.length === 0 && (
-                <li>
-                  <span className="fr-help">
-                    {t('designer.DesignerScreen.nothingOfYourOwn', 'Nothing of your own yet.')}
-                  </span>
-                </li>
-              )}
-            </ul>
-            <div className="fr-lbtns">
-              <button className="btn" onClick={create}>
-                {t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] })}
-              </button>
-              <button className="btn alt" disabled={!sel} onClick={copy}>
-                {t('designer.DesignerScreen.copy', 'Copy')}
+            <div className="lib-grid">
+              {rows
+                .filter((r) =>
+                  scope === 'core'
+                    ? r.core && (activeBox === 'all' || boxKey(r) === activeBox)
+                    : !r.core,
+                )
+                .map((r) => (
+                  <button
+                    key={r.id}
+                    className="qcard"
+                    aria-pressed={r.id === selected}
+                    onClick={() => pick(r.id)}
+                  >
+                    <span className="qtitle">
+                      {r.image && <img src={r.image} alt="" className="fr-thumb" />}
+                      {r.name}
+                    </span>
+                    <span className="qnum">
+                      {r.core ? boxName(r) : t('designer.DesignerScreen.myLibrary2', 'My library')}
+                    </span>
+                    <span className="qnote" data-origin={originOf(r)}>
+                      {r.edited ? t('designer.DesignerScreen.changed', 'changed · ') : ''}
+                      {ORIGIN_LABEL[originOf(r)]}
+                    </span>
+                  </button>
+                ))}
+              <button className="qcard lib-new" onClick={create}>
+                <span className="qtitle">
+                  {t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] })}
+                </span>
               </button>
             </div>
-          </ListPanel>
+            {scope === 'mine' && mine.length === 0 && (
+              <p className="fr-help">
+                {t('designer.DesignerScreen.nothingOfYourOwn', 'Nothing of your own yet.')}
+              </p>
+            )}
+          </div>
         </Col>
 
         <Col label={t('designer.DesignerScreen.card', 'Card')}>
-          {data && sel ? (
-            <>
-              {locked && kind !== 'hero' && (
-                <Panel
-                  title={t('designer.DesignerScreen.coreItem', 'Core item')}
-                  testId="dz-readonly"
-                >
+          <section className="detail lib-detail">
+            {data && sel ? (
+              <>
+                {locked && kind !== 'hero' && (
+                  <Panel
+                    title={t('designer.DesignerScreen.coreItem', 'Core item')}
+                    testId="dz-readonly"
+                    className="lib-top"
+                  >
+                    <p className="fr-help">
+                      {t(
+                        'designer.DesignerScreen.coreItemsComeWith',
+                        'Core items come with the game and are read only. Make a copy in My library to change it.',
+                      )}
+                    </p>
+                    <button className="btn" data-testid="dz-edit-copy" onClick={copy}>
+                      {t('designer.DesignerScreen.editACopy', 'Edit a copy')}
+                    </button>
+                  </Panel>
+                )}
+                {centre(data)}
+                {kind === 'enemy' && (
+                  <Panel title={t('designer.DesignerScreen.token', 'Token')} className="lib-token">
+                    <p className="fr-help">
+                      {t(
+                        'designer.DesignerScreen.greenCoinWithThe',
+                        'Green coin with the type letter. Custom enemies pick a letter and a picture.',
+                      )}
+                    </p>
+                    <Fld label={t('designer.DesignerScreen.letter', 'Letter')}>
+                      <input
+                        className="fr-in"
+                        aria-label={t('designer.DesignerScreen.letter1Or2', 'Letter (1 or 2)')}
+                        disabled={locked}
+                        maxLength={2}
+                        value={str(data, 'letter')}
+                        onChange={(e) => change(put(data, 'letter', e.target.value.slice(0, 2)))}
+                      />
+                    </Fld>
+                    <Picture data={data} onChange={change} disabled={locked} />
+                  </Panel>
+                )}
+                {(kind === 'hero' || kind === 'companion') && (
+                  <Panel title={t('designer.DesignerScreen.picture', 'Picture')}>
+                    <Picture data={data} onChange={change} disabled={locked} />
+                  </Panel>
+                )}
+                <Panel title={t('designer.DesignerScreen.origin', 'Origin')} testId="dz-origin">
+                  <Fld label={t('designer.DesignerScreen.origin', 'Origin')}>
+                    <select
+                      className="fr-sel"
+                      aria-label={t('designer.DesignerScreen.origin', 'Origin')}
+                      // core is always official; only the owner can call an item of the library official
+                      disabled={isCore || !owner}
+                      value={
+                        isCore ? 'official' : data.origin === 'official' ? 'official' : 'fan-made'
+                      }
+                      onChange={(e) => change(put(data, 'origin', e.target.value))}
+                    >
+                      <option value="official">
+                        {t('designer.DesignerScreen.official', 'Official')}
+                      </option>
+                      <option value="fan-made">
+                        {t('designer.DesignerScreen.fanMade', 'Fan-made')}
+                      </option>
+                    </select>
+                  </Fld>
+                  {owner && !isCore && data.origin === 'official' && (
+                    <Fld
+                      label={t(
+                        'designer.DesignerScreen.expansionEmptyTheBase',
+                        'Expansion (empty: the base game)',
+                      )}
+                    >
+                      <input
+                        className="fr-in"
+                        aria-label={t('designer.DesignerScreen.expansion', 'Expansion')}
+                        value={str(data, 'expansion')}
+                        onChange={(e) =>
+                          change(put(data, 'expansion', e.target.value || undefined))
+                        }
+                      />
+                    </Fld>
+                  )}
                   <p className="fr-help">
                     {t(
-                      'designer.DesignerScreen.coreItemsComeWith',
-                      'Core items come with the game and are read only. Make a copy in My library to change it.',
+                      'designer.DesignerScreen.officialItemsComeFrom',
+                      'Official items come from the game or its expansions. Everything else a person makes is fan-made.',
                     )}
                   </p>
-                  <button className="btn" data-testid="dz-edit-copy" onClick={copy}>
-                    {t('designer.DesignerScreen.editACopy', 'Edit a copy')}
-                  </button>
                 </Panel>
-              )}
-              {centre(data)}
-              {isCore && owner && !builtIn(kind, sel.id) && (
-                <button
-                  className="btn alt"
-                  style={{ alignSelf: 'flex-start' }}
-                  data-testid="dz-delete-core"
-                  onClick={() => void askDelete()}
-                >
-                  {t('designer.DesignerScreen.deleteFromCore', 'Delete from Core')}
-                </button>
-              )}
-              {!locked && (!isCore || sel.edited) && (
-                <button
-                  className="btn alt"
-                  style={{ alignSelf: 'flex-start' }}
-                  onClick={() => void remove()}
-                >
-                  {isCore
-                    ? t('designer.DesignerScreen.resetToCore', 'Reset to core')
-                    : t('designer.DesignerScreen.delete', 'Delete {v1}', { v1: ONE[kind] })}
-                </button>
-              )}
-            </>
-          ) : (
-            <Panel title={LIBRARY_KIND_NAMES[kind]}>
-              <p className="fr-help">
-                {t('designer.DesignerScreen.pickAnItemOr', 'Pick an item, or make a new one.')}
-              </p>
-            </Panel>
-          )}
-          {message && (
-            <p className="fr-help" role="status" data-testid="dz-message">
-              {message}
-            </p>
-          )}
-        </Col>
-
-        <Col label={t('designer.DesignerScreen.details', 'Details')}>
-          {sel && data && (
-            <Panel title={t('designer.DesignerScreen.origin', 'Origin')} testId="dz-origin">
-              <Fld label={t('designer.DesignerScreen.origin', 'Origin')}>
-                <select
-                  className="fr-sel"
-                  aria-label={t('designer.DesignerScreen.origin', 'Origin')}
-                  // core is always official; only the owner can call an item of the library official
-                  disabled={isCore || !owner}
-                  value={isCore ? 'official' : data.origin === 'official' ? 'official' : 'fan-made'}
-                  onChange={(e) => change(put(data, 'origin', e.target.value))}
-                >
-                  <option value="official">
-                    {t('designer.DesignerScreen.official', 'Official')}
-                  </option>
-                  <option value="fan-made">
-                    {t('designer.DesignerScreen.fanMade', 'Fan-made')}
-                  </option>
-                </select>
-              </Fld>
-              {owner && !isCore && data.origin === 'official' && (
-                <Fld
-                  label={t(
-                    'designer.DesignerScreen.expansionEmptyTheBase',
-                    'Expansion (empty: the base game)',
-                  )}
-                >
-                  <input
-                    className="fr-in"
-                    aria-label={t('designer.DesignerScreen.expansion', 'Expansion')}
-                    value={str(data, 'expansion')}
-                    onChange={(e) => change(put(data, 'expansion', e.target.value || undefined))}
-                  />
-                </Fld>
-              )}
-              <p className="fr-help">
-                {t(
-                  'designer.DesignerScreen.officialItemsComeFrom',
-                  'Official items come from the game or its expansions. Everything else a person makes is fan-made.',
+                {usageKind && (
+                  <Panel title={t('designer.DesignerScreen.usedIn', 'Used in')} testId="dz-used">
+                    {usage.length === 0 ? (
+                      <p className="fr-help">
+                        {t('designer.DesignerScreen.notUsedInYour', 'Not used in your quests yet.')}
+                      </p>
+                    ) : (
+                      <ul className="fr-list">
+                        {usage.map((u) => (
+                          <li key={u.quest}>
+                            {u.quest} · {u.count}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {kind === 'enemy' && updateQuests && enemyDef && (
+                      <>
+                        <p className="fr-help" data-testid="dz-outdated">
+                          {outdated === 0
+                            ? t(
+                                'designer.DesignerScreen.everyQuestHasThis',
+                                'Every quest has this version.',
+                              )
+                            : `${outdated} quest${outdated === 1 ? ' has' : 's have'} an older copy.`}
+                        </p>
+                        <button
+                          className="btn alt"
+                          data-testid="dz-update-all"
+                          disabled={outdated === 0}
+                          onClick={() => {
+                            const libContent = {
+                              abilities: items
+                                .filter((i) => i.kind === 'ability')
+                                .map((i) => i.data as unknown as AbilityDefData),
+                              spells: items
+                                .filter((i) => i.kind === 'spell')
+                                .map((i) => i.data as unknown as SpellDefData),
+                            };
+                            void updateQuests((q) =>
+                              refreshEnemyInQuest(q, enemyDef, libContent),
+                            ).then((n) => {
+                              setMessage(
+                                t(
+                                  'designer.DesignerScreen.updatedInQuest',
+                                  'Updated in {n} quest{v1}.',
+                                  { n, v1: n === 1 ? '' : 's' },
+                                ),
+                              );
+                              void quests?.().then((qs) => setQuestList(qs));
+                            });
+                          }}
+                        >
+                          {t('designer.DesignerScreen.updateInAllQuests', 'Update in all quests')}
+                        </button>
+                      </>
+                    )}
+                  </Panel>
                 )}
-              </p>
-            </Panel>
-          )}
-          {sel && usageKind && (
-            <Panel title={t('designer.DesignerScreen.usedIn', 'Used in')} testId="dz-used">
-              {usage.length === 0 ? (
-                <p className="fr-help">
-                  {t('designer.DesignerScreen.notUsedInYour', 'Not used in your quests yet.')}
-                </p>
-              ) : (
-                <ul className="fr-list">
-                  {usage.map((u) => (
-                    <li key={u.quest}>
-                      {u.quest} · {u.count}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {kind === 'enemy' && updateQuests && enemyDef && (
-                <>
-                  <p className="fr-help" data-testid="dz-outdated">
-                    {outdated === 0
-                      ? t(
-                          'designer.DesignerScreen.everyQuestHasThis',
-                          'Every quest has this version.',
-                        )
-                      : `${outdated} quest${outdated === 1 ? ' has' : 's have'} an older copy.`}
-                  </p>
-                  <button
-                    className="btn alt"
-                    data-testid="dz-update-all"
-                    disabled={outdated === 0}
-                    onClick={() => {
-                      const libContent = {
-                        abilities: items
-                          .filter((i) => i.kind === 'ability')
-                          .map((i) => i.data as unknown as AbilityDefData),
-                        spells: items
-                          .filter((i) => i.kind === 'spell')
-                          .map((i) => i.data as unknown as SpellDefData),
-                      };
-                      void updateQuests((q) => refreshEnemyInQuest(q, enemyDef, libContent)).then(
-                        (n) => {
-                          setMessage(
-                            t(
-                              'designer.DesignerScreen.updatedInQuest',
-                              'Updated in {n} quest{v1}.',
-                              { n, v1: n === 1 ? '' : 's' },
-                            ),
-                          );
-                          void quests?.().then((qs) => setQuestList(qs));
-                        },
-                      );
-                    }}
-                  >
-                    {t('designer.DesignerScreen.updateInAllQuests', 'Update in all quests')}
+                <div className="lib-actions">
+                  <button className="btn alt" onClick={copy}>
+                    {t('designer.DesignerScreen.copy', 'Copy')}
                   </button>
-                </>
-              )}
-            </Panel>
-          )}
-          {data && sel && kind === 'enemy' && (
-            <Panel title={t('designer.DesignerScreen.token', 'Token')}>
-              <p className="fr-help">
-                {t(
-                  'designer.DesignerScreen.greenCoinWithThe',
-                  'Green coin with the type letter. Custom enemies pick a letter and a picture.',
-                )}
-              </p>
-              <Fld label={t('designer.DesignerScreen.letter', 'Letter')}>
-                <input
-                  className="fr-in"
-                  aria-label={t('designer.DesignerScreen.letter1Or2', 'Letter (1 or 2)')}
-                  disabled={locked}
-                  maxLength={2}
-                  value={str(data, 'letter')}
-                  onChange={(e) => change(put(data, 'letter', e.target.value.slice(0, 2)))}
-                />
-              </Fld>
-              <Picture data={data} onChange={change} disabled={locked} />
-            </Panel>
-          )}
-          {data && sel && (kind === 'hero' || kind === 'companion') && (
-            <Panel title={t('designer.DesignerScreen.picture', 'Picture')}>
-              <Picture data={data} onChange={change} disabled={locked} />
-            </Panel>
-          )}
-          {owner && (
-            <Panel title={t('designer.DesignerScreen.coreFile', 'Core file')} testId="dz-core-file">
-              <p className="fr-help">
-                {t(
-                  'designer.DesignerScreen.yourChangesToCore',
-                  'Your changes to Core (changed, new official and deleted items) go into one file for',
-                )}{' '}
-                <code>
-                  {t('designer.DesignerScreen.srcContentLibrary', 'src/content/library/')}
-                </code>
-                .
-              </p>
-              <div className="fr-lbtns" style={{ padding: 0 }}>
-                <button
-                  className="btn alt"
-                  data-testid="dz-export-core"
-                  onClick={() => void exportCore()}
-                >
-                  {t('designer.DesignerScreen.exportCore', 'Export Core')}
-                </button>
-              </div>
-            </Panel>
-          )}
-          <Panel
-            title={t('designer.DesignerScreen.expansions', 'Expansions')}
-            testId="dz-expansions"
-          >
-            {expansionList.length === 0 ? (
-              <p className="fr-help">
-                {t('designer.DesignerScreen.noExpansionInThe', 'No expansion in the library yet.')}
-              </p>
+                  {!locked && (!isCore || sel.edited) && (
+                    <button className="btn alt" onClick={() => void remove()}>
+                      {isCore
+                        ? t('designer.DesignerScreen.resetToCore', 'Reset to core')
+                        : t('designer.DesignerScreen.delete', 'Delete {v1}', { v1: ONE[kind] })}
+                    </button>
+                  )}
+                  {isCore && owner && !builtIn(kind, sel.id) && (
+                    <button
+                      className="btn alt"
+                      data-testid="dz-delete-core"
+                      onClick={() => void askDelete()}
+                    >
+                      {t('designer.DesignerScreen.deleteFromCore', 'Delete from Core')}
+                    </button>
+                  )}
+                </div>
+              </>
             ) : (
               <>
-                {expansionList.map((name) => (
-                  <Toggle
-                    key={name}
-                    label={`${name} in the add menus`}
-                    on={!hiddenExpansions.has(name)}
-                    onChange={(on) => setExpansionHidden(name, !on)}
-                  />
-                ))}
+                <h2>{LIBRARY_KIND_NAMES[kind]}</h2>
                 <p className="fr-help">
-                  {t(
-                    'designer.DesignerScreen.switchingOneOffHides',
-                    "Switching one off hides its items from the quest editor's add menus. Quests that already use them keep working.",
-                  )}
+                  {t('designer.DesignerScreen.pickAnItemOr', 'Pick an item, or make a new one.')}
                 </p>
               </>
             )}
-          </Panel>
-          <Panel title={t('designer.DesignerScreen.myLibraryFile', 'My library file')}>
-            <p className="fr-help">
-              {t(
-                'designer.DesignerScreen.shareWhatYouMade',
-                'Share what you made as a pack file. Core items are not in it. A pack you import is fan-made.',
-              )}
-            </p>
-            <div className="fr-lbtns" style={{ padding: 0 }}>
-              <button
-                className="btn alt"
-                data-testid="dz-export-pack"
-                onClick={() =>
-                  setPack({
-                    name: t('designer.DesignerScreen.myLibrary2', 'My library'),
-                    author: '',
-                  })
-                }
-              >
-                {t('designer.DesignerScreen.export', 'Export')}
-              </button>
-              <button className="btn alt" onClick={() => file.current?.click()}>
-                {t('designer.DesignerScreen.import', 'Import')}
-              </button>
-            </div>
-            <input
-              ref={file}
-              type="file"
-              accept="application/json,.json"
-              hidden
-              data-testid="dz-import"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                e.target.value = '';
-                void importFile(f);
-              }}
-            />
-          </Panel>
+            {message && (
+              <p className="fr-help" role="status" data-testid="dz-message">
+                {message}
+              </p>
+            )}
+          </section>
         </Col>
-      </Frame>
+      </div>
       {pack && (
         <Dialog
           title={t('designer.DesignerScreen.shareMyLibraryAs', 'Share my library as a pack')}

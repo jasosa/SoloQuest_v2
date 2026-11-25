@@ -111,13 +111,22 @@ export function Panel({
   title,
   children,
   testId,
+  num,
+  className,
 }: {
   title: ReactNode;
   children: ReactNode;
   testId?: string;
+  /** A numbered card of the Quest tab (the number is drawn by CSS). */
+  num?: boolean;
+  /** Extra class, for a screen that styles its own panels. */
+  className?: string;
 }) {
   return (
-    <section className="fr-panel" data-testid={testId}>
+    <section
+      className={['fr-panel', num ? 'fr-n' : '', className ?? ''].filter(Boolean).join(' ')}
+      data-testid={testId}
+    >
       <div className="fr-hd">{title}</div>
       <div className="fr-bd">{children}</div>
     </section>
