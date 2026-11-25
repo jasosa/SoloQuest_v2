@@ -52,7 +52,6 @@ test.describe('translations (decision 92)', () => {
     await page.getByTestId('pack-core').click();
     await expect(page.getByRole('button', { name: /La Prueba/ })).toBeVisible();
     await page.getByTestId('back').click();
-    await page.getByTestId('back').click();
     await openSettings(page);
     await expect(page.getByTestId('translations-link')).toContainText('Espanol');
 
@@ -181,8 +180,8 @@ test.describe('translations (decision 92)', () => {
     await expect(en3.getByRole('button', { name: 'Undo all my changes' })).toBeDisabled();
     await en3.getByRole('button', { name: 'Edit' }).click();
     const ed3 = page.getByRole('dialog', { name: 'Edit English' });
-    await ed3.getByRole('searchbox').fill('select.singleQuest');
-    await ed3.getByLabel('Translation of select.singleQuest').fill('Begin');
+    await ed3.getByRole('searchbox').fill('select.myCollection');
+    await ed3.getByLabel('Translation of select.myCollection').fill('Begin');
     await ed3.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),

@@ -160,7 +160,7 @@ test.describe('quest 1 notes', () => {
         .or(page.getByRole('dialog', { name: 'Quest complete' })),
     ).toBeVisible();
     await btn(page, 'Back to the quests').click();
-    await expect(page.locator('header h1')).toHaveText('Home');
+    await expect(page.getByTestId('home-single')).toBeVisible();
   });
 
   test('a quest that is not won says so', async ({ page }) => {

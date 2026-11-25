@@ -26,11 +26,12 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('back').click();
     // 4. Campaign: packs, and the saved campaigns
     await page.getByTestId('home-campaign').click();
-    await expect(page.getByText('Select a quest pack')).toBeVisible();
+    await expect(page.getByText('New campaign')).toBeVisible();
     await expect(page.getByText('No saved campaign yet.')).toBeVisible();
     await page.screenshot({ path: 'test-results/start-4-campaign-packs.png' });
     // 6. Heroes for a new campaign
     await page.getByTestId('pack-frozen-horror').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await expect(page.getByTestId('start-game')).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await expect(page.getByTestId('start-game')).toBeEnabled();
@@ -55,8 +56,9 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await expect(page.getByTestId('home-single')).toBeVisible();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await page.getByTestId('back').click();
-    await expect(page.getByText('Or continue a saved campaign')).toBeVisible();
+    await expect(page.getByText('New campaign')).toBeVisible();
     await page.getByTestId('back').click();
     await expect(page.getByTestId('home-single')).toBeVisible();
   });
@@ -102,6 +104,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await page.getByRole('button', { name: 'Elf', exact: true }).click();
     await page.getByTestId('start-game').click();
     await dismissStart(page);
@@ -149,6 +152,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.reload();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     // the save of quest 1 would be replaced: said so, but not resumed here
     await expect(page.getByTestId('replace-hint')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Resume' })).toHaveCount(0);
@@ -162,6 +166,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.reload();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await page.getByRole('button', { name: 'Elf', exact: true }).click();
     await page.getByTestId('start-game').click();
     await dismissStart(page);
@@ -176,6 +181,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await expect(page.getByTestId('home-continue')).toHaveCount(0);
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await expect(page.getByTestId('replace-hint')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Resume' })).toHaveCount(0);
   });
@@ -186,6 +192,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.reload();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await page.getByRole('button', { name: 'Elf', exact: true }).click();
     await page.getByTestId('start-game').click();
     await dismissStart(page);

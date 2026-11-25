@@ -59,6 +59,7 @@ test.describe('campaigns (decision 37)', () => {
     await page.getByTestId('home-campaign').click();
     await expect(page.getByText('No saved campaign yet.')).toBeVisible();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     // the heroes of a new campaign
     await expect(page.getByRole('heading', { name: 'Heroes for your campaign' })).toBeVisible();
     await expect(page.getByTestId('mode-hint')).toContainText(
@@ -72,7 +73,7 @@ test.describe('campaigns (decision 37)', () => {
     // back on the overview: the campaign exists, with its status
     await expect(page.getByRole('heading', { name: 'Campaign 1' })).toBeVisible();
     await expect(page.getByTestId('campaign-progress')).toContainText('0 of 14 quests done');
-    await expect(page.getByText('Heroes: Dwarf')).toBeVisible();
+    await expect(page.locator('.camp-side .card').first()).toContainText('Dwarf');
     await page.screenshot({ path: 'test-results/start-5-campaign-overview.png' });
     // the next quest opens with the team of the campaign, and heroes can be swapped
     await page.getByTestId('play-next').click();
@@ -86,7 +87,7 @@ test.describe('campaigns (decision 37)', () => {
     // the list of saved campaigns has it
     await page.getByTestId('back').click();
     await expect(page.getByTestId('campaign-core')).toContainText('Campaign 1');
-    await expect(page.getByTestId('campaign-core')).toContainText('0 of 14 quests done');
+    await expect(page.getByTestId('campaign-core')).toContainText('Next: Quest 1');
     await page.getByTestId('campaign-core').click();
     // delete it: it asks first, and the list is empty after
     await page.getByTestId('delete-campaign').click();
@@ -101,6 +102,7 @@ test.describe('campaigns (decision 37)', () => {
     for (const hero of ['Dwarf', 'Wizard']) {
       await page.getByTestId('home-campaign').click();
       await page.getByTestId('pack-core').click();
+      await page.getByTestId('new-campaign-heroes').click();
       await page.getByRole('button', { name: hero, exact: true }).click();
       await page.getByTestId('start-game').click();
       await dismissStart(page);
@@ -112,7 +114,7 @@ test.describe('campaigns (decision 37)', () => {
     await expect(page.getByTestId('campaign-core')).toContainText('Campaign 1');
     await expect(page.getByTestId('campaign-core-2')).toContainText('Campaign 2');
     await page.getByTestId('campaign-core-2').click();
-    await expect(page.getByText('Heroes: Wizard')).toBeVisible();
+    await expect(page.locator('.camp-side .card').first()).toContainText('Wizard');
     // "Start a new campaign" on the overview makes another one and keeps the others
     await page.getByTestId('new-campaign').click();
     await expect(page.getByRole('heading', { name: 'Heroes for your campaign' })).toBeVisible();
@@ -142,10 +144,30 @@ test.describe('campaigns (decision 37)', () => {
     );
     await page.reload();
     await page.getByTestId('home-campaign').click();
-    await expect(page.getByTestId('campaign-core')).toContainText('1 of 14 quests done');
+    await expect(page.getByTestId('campaign-core').locator('.seg.done')).toHaveCount(1);
     await page.getByTestId('campaign-core').click();
-    await expect(page.getByText('Heroes: Elf')).toBeVisible();
+    await expect(page.locator('.camp-side .card').first()).toContainText('Elf');
     await expect(page.getByTestId('quest-done')).toHaveCount(1);
+  });
+});
+
+test.describe('skipping a quest (decision 101)', () => {
+  test('a skipped quest is marked, the next one is offered, and the journal says so', async ({
+    page,
+  }) => {
+    await page.goto('/?nosave=1');
+    await page.getByTestId('home-campaign').click();
+    await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
+    await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
+    await page.getByTestId('start-game').click();
+    await dismissStart(page);
+    await page.getByRole('button', { name: 'Quests', exact: true }).click();
+    await expect(page.getByTestId('camp-panel')).toContainText('The Trial');
+    await page.getByTestId('skip-quest').click();
+    await expect(page.getByTestId('camp-panel')).toContainText('Quest 2');
+    await expect(page.locator('.qcard.skipped')).toHaveCount(1);
+    await expect(page.locator('.journal')).toContainText('Skipped.');
   });
 });
 
@@ -178,6 +200,7 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
     await page.getByTestId('back').click();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-frozen-horror').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await page.getByTestId('campaign-settings').click();
     const camp = page.getByRole('dialog', { name: 'Campaign 1' });
     const raimentOn = camp.getByTestId(RAIMENT);

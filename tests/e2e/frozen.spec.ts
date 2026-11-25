@@ -97,6 +97,7 @@ test.describe('terrain and rule hints', () => {
     // another quest keeps its own setting
     await page.getByTestId('back').click();
     await questCard(page, 2).click();
+    await page.getByTestId('choose-heroes').click();
     await page.getByTestId('quest-settings').click();
     await expect(page.getByTestId('rule-hints')).toHaveAttribute('aria-checked', 'true');
   });

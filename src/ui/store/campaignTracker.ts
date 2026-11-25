@@ -25,10 +25,17 @@ export function trackCampaign(
         // the end must give back is the campaign without this quest and without the flags it handed on.
         const flags = { ...stored.flags };
         for (const f of root.quest.flagsOut ?? []) delete flags[f];
-        before = { ...stored, finished: stored.finished.filter((q) => q !== id), flags };
+        before = {
+          ...stored,
+          finished: stored.finished.filter((q) => q !== id),
+          journal: stored.journal.filter((j) => !(j.quest === id && j.result === 'won')),
+          flags,
+        };
       } else {
         before = stored;
-        campaigns.set(finishQuest(stored, { id, flagsOut: root.quest.flagsOut }, state));
+        campaigns.set(
+          finishQuest(stored, { id, flagsOut: root.quest.flagsOut }, state, Date.now()),
+        );
       }
     } else if (!done && before) {
       // Only what the end changed goes back: a setting toggled since stays as it is.
@@ -36,6 +43,8 @@ export function trackCampaign(
       campaigns.set({
         ...now,
         finished: before.finished,
+        skipped: before.skipped,
+        journal: before.journal,
         flags: before.flags,
         fallen: before.fallen,
       });

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
-import { nextCampaignSlot } from '../../engine/pack/campaign';
+import { nextCampaignSlot, nextQuest, skipQuest } from '../../engine/pack/campaign';
+import { labelOf, normalizeTeam, type TeamInput } from '../../engine/data/team';
+import { CampaignsPage, type SavedCampaign } from './CampaignsPage';
 import type { CampaignStore } from '../../persist/campaigns';
 import {
   campaignOfSave,
@@ -25,14 +27,7 @@ import { CollectionPage, HomePage } from './HomePage';
 import { MINE, PlayQuestPage } from './PlayQuestPage';
 import { getRecord, onHistoryChange, type QuestRecord } from '../../persist/history';
 import { setOwned, useOwnedBoxes } from '../collection';
-import {
-  CampaignPacksPage,
-  SettingsPage,
-  campaignCaption,
-  type LastGame,
-  type PackCard,
-  type QuestCardData,
-} from './StartPages';
+import { SettingsPage, type LastGame, type PackCard, type QuestCardData } from './StartPages';
 
 export type { StartChoice } from './parts';
 
@@ -47,7 +42,7 @@ export type Route =
   | { page: 'single'; key: string; back: Route }
   | { page: 'campaignPacks' }
   /** Heroes for a new campaign of a pack, with the first quest. */
-  | { page: 'campaignNew'; pack: string }
+  | { page: 'campaignNew'; pack: string; name?: string }
   | { page: 'campaign'; id: string }
   | { page: 'campaignQuest'; id: string; key: string };
 
@@ -419,22 +414,44 @@ export function SelectScreen({
     }
 
     case 'campaignPacks': {
-      const saved = campaigns.list().map((c) => {
+      const nameFor = (pack: string) =>
+        t('select.campaignNumber', 'Campaign {number}', {
+          number: nextCampaignSlot(
+            pack,
+            campaigns.list().map((c) => c.id),
+          ).number,
+        });
+      const saved: SavedCampaign[] = campaigns.list().map((c) => {
         const manifest = packs.byId.get(c.pack)?.manifest;
+        const next = manifest ? nextQuest(manifest, c) : undefined;
+        const p = next ? byKey.get(next) : undefined;
+        const team = normalizeTeam(c.team as TeamInput[]);
         return {
           campaign: c,
           usable: manifest !== undefined,
-          caption: manifest
-            ? campaignCaption(c, packLabel(manifest), manifest.quests.length)
-            : t('select.packNotInstalled', 'The pack {pack} is not installed.', { pack: c.pack }),
+          packName: manifest ? packLabel(manifest) : c.pack,
+          quests: manifest?.quests ?? [],
+          next: p
+            ? p.number === undefined
+              ? p.level.quest.title
+              : t('select.questAndTitle', 'Quest {number} · {title}', {
+                  number: p.number,
+                  title: p.level.quest.title,
+                })
+            : undefined,
+          nextInProgress:
+            p !== undefined &&
+            saveList.some((g) => g.questId === p.level.quest.id && g.campaignId === c.id),
+          heroes: team.map((m) => labelOf(team, m.id)).join(', '),
         };
       });
       return (
         <div className="app select page">
-          <CampaignPacksPage
-            cards={packCards}
+          <CampaignsPage
             saved={saved}
-            onPack={(pack) => go({ page: 'campaignNew', pack })}
+            cards={packCards.filter((c) => c.encoded > 0)}
+            nextName={nameFor}
+            onNew={(pack, name) => go({ page: 'campaignNew', pack, name })}
             onCampaign={(id) => go({ page: 'campaign', id })}
             onDeleteCampaign={(id) => void deleteCampaign(id)}
             onBack={() => go(HOME)}
@@ -461,7 +478,9 @@ export function SelectScreen({
             campaigns={campaigns}
             campaign={{
               id: slot.id,
-              name: t('select.campaignNumber', 'Campaign {number}', { number: slot.number }),
+              name:
+                route.name ??
+                t('select.campaignNumber', 'Campaign {number}', { number: slot.number }),
             }}
             notice={notice}
             onStart={(choice) => {
@@ -502,6 +521,10 @@ export function SelectScreen({
             savedHere={savedHere}
             campaigns={campaigns}
             onQuest={(key) => go({ page: 'campaignQuest', id: campaign.id, key })}
+            onSkip={(id) => {
+              campaigns.set(skipQuest(campaign, id, Date.now()));
+              setTick((n) => n + 1);
+            }}
             onNewCampaign={() => go({ page: 'campaignNew', pack: campaign.pack })}
             onDelete={() => void deleteCampaign(campaign.id)}
             onBack={() => go({ page: 'campaignPacks' })}

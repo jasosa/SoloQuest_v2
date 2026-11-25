@@ -327,7 +327,7 @@ All the texts of the application can be translated or modified with a tool, for 
 
 - [x] Slice 1: Home (Continue banner, three cards, My collection, settings icon), My collection page (decision 101)
 - [x] Slice 2: Play a quest page (box list, quest grid with played marks, detail panel with map and last result)
-- [ ] Slice 3: Campaigns list and New campaign panel, Campaign detail (Done, Skipped, Next, Heroes, Journal, Read intro again)
+- [x] Slice 3: Campaigns list and New campaign panel, Campaign detail (Done, Skipped, Next, Heroes, Journal, Read intro again)
 - [ ] Slice 4: Setup screen in three columns (Heroes, Before you start, Options)
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
 - [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"

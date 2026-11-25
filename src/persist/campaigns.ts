@@ -27,6 +27,16 @@ export const CampaignSchema = z.object({
   pack: z.string(),
   seed: z.number().int(),
   finished: z.array(z.string()),
+  skipped: z.array(z.string()).default([]),
+  journal: z
+    .array(
+      z.object({
+        quest: z.string(),
+        result: z.enum(['won', 'skipped']),
+        at: z.number(),
+      }),
+    )
+    .default([]),
   flags: z.record(z.string(), z.boolean()),
   team: z.array(TeamEntry),
   fallen: z.array(z.string()).default([]),

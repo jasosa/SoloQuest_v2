@@ -82,6 +82,7 @@ test.describe('dialogs (M8: focus and Escape)', () => {
     await page.goto('/?nosave=1');
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await newGame(page, ['Elf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Quests', exact: true }).click();

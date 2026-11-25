@@ -34,6 +34,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
     await page.getByTestId('home-campaign').click();
     expect(await violations(page)).toEqual([]); // campaign, packs
     await page.getByTestId('pack-frozen-horror').click();
+    await page.getByTestId('new-campaign-heroes').click();
     expect(await violations(page)).toEqual([]); // heroes for the campaign
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
@@ -47,6 +48,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
     await page.goto('/?nosave=1');
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await newGame(page, ['Dwarf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Quests', exact: true }).click();

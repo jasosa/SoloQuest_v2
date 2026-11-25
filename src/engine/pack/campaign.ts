@@ -13,6 +13,14 @@ import type { Quest } from '../quest/schema';
 
 export const CAMPAIGN_VERSION = 1;
 
+/** One line of the campaign journal: a quest finished or skipped, and when (decision 101). */
+export interface JournalEntry {
+  readonly quest: string;
+  readonly result: 'won' | 'skipped';
+  /** Milliseconds since 1970, given by the caller. */
+  readonly at: number;
+}
+
 export interface Campaign {
   readonly version: typeof CAMPAIGN_VERSION;
   /** Unique on the device. The first campaign of a pack has the pack id, the next `<pack>-2`, and so on. */
@@ -24,6 +32,10 @@ export interface Campaign {
   readonly seed: number;
   /** Quest ids, in the order they were finished. */
   readonly finished: readonly string[];
+  /** Quest ids the players chose to skip. A skipped quest can still be played later. */
+  readonly skipped: readonly string[];
+  /** What happened, oldest first. */
+  readonly journal: readonly JournalEntry[];
   /** Flags handed on by finished quests. */
   readonly flags: Readonly<Record<string, boolean>>;
   /** The team of the last quest started. */
@@ -57,6 +69,8 @@ export function newCampaign(
     pack: pack.id,
     seed: seed >>> 0,
     finished: [],
+    skipped: [],
+    journal: [],
     flags: {},
     team: [],
     fallen: [],
@@ -91,23 +105,40 @@ export function finishQuest(
   c: Campaign,
   quest: Pick<Quest, 'id' | 'flagsOut'>,
   state: Pick<GameState, 'flags' | 'deadHeroes'>,
+  at = 0,
 ): Campaign {
   const flags = { ...c.flags };
   for (const f of quest.flagsOut ?? []) flags[f] = state.flags[f] === true;
   return {
     ...c,
     finished: c.finished.includes(quest.id) ? c.finished : [...c.finished, quest.id],
+    skipped: c.skipped.filter((q) => q !== quest.id),
+    journal: c.finished.includes(quest.id)
+      ? c.journal
+      : [...c.journal, { quest: quest.id, result: 'won', at }],
     flags,
     fallen: [...state.deadHeroes],
   };
 }
 
-/** The first quest of the pack's campaign order that is not finished, or undefined when all are. */
+/** The campaign after the players skipped a quest. A finished quest cannot be skipped. */
+export function skipQuest(c: Campaign, questId: string, at: number): Campaign {
+  if (c.finished.includes(questId) || c.skipped.includes(questId)) return c;
+  return {
+    ...c,
+    skipped: [...c.skipped, questId],
+    journal: [...c.journal, { quest: questId, result: 'skipped', at }],
+  };
+}
+
+/** The first quest of the pack's campaign order that is neither finished nor skipped, or undefined. */
 export function nextQuest(
   pack: Pick<PackManifest, 'quests'>,
   c: Campaign | undefined,
 ): string | undefined {
-  return pack.quests.find((q) => !(c?.finished ?? []).includes(q));
+  return pack.quests.find(
+    (q) => !(c?.finished ?? []).includes(q) && !(c?.skipped ?? []).includes(q),
+  );
 }
 
 /** The id of the Frozen Horror campaign setting that adds the artifact warnings to cards (decision 61). */

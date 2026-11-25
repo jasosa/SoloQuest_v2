@@ -54,13 +54,13 @@ const NOTE = 'quest:q01-the-trial:notes.n-start.effects.0.text';
 
 describe('applying an update of the built-in English', () => {
   it('changes an interface string in the code and in en.json', async () => {
-    const r = await applyUpdate(root, update({ 'select.selectAQuestPack': 'Pick your quest' }));
+    const r = await applyUpdate(root, update({ 'select.builtInLook': 'Pick your quest' }));
     expect(r.refused).toEqual([]);
-    expect(r.changes.map((c) => c.key)).toEqual(['select.selectAQuestPack']);
+    expect(r.changes.map((c) => c.key)).toEqual(['select.builtInLook']);
     expect(text('src/ui/select/StartPages.tsx')).toContain("'Pick your quest'");
-    expect(text('src/ui/select/StartPages.tsx')).not.toContain("'Select a quest pack'");
+    expect(text('src/ui/select/StartPages.tsx')).not.toContain("'Built-in look'");
     const en = JSON.parse(text('src/i18n/en.json')) as Record<string, string>;
-    expect(en['select.selectAQuestPack']).toBe('Pick your quest');
+    expect(en['select.builtInLook']).toBe('Pick your quest');
     // en.json is what the code says (the check the repository runs)
     expect(en).toEqual(readCatalogue(root).strings);
     expect(tsErrors('src/ui/select/StartPages.tsx')).toEqual([]);
@@ -130,7 +130,7 @@ describe('applying an update of the built-in English', () => {
       update({
         [NOTE]: 'Changed.',
         'data:trapKinds.pit.name': 'pit',
-        'select.selectAQuestPack': 'Pick',
+        'select.builtInLook': 'Pick',
       }),
       { dryRun: true },
     );
@@ -150,7 +150,7 @@ describe('applying an update of the built-in English', () => {
         'data:trapKinds.nope.name': 'x',
         'data:nothing.here': 'x',
         'library:ability:nope.text': 'x',
-        'select.selectAQuestPack': 'Pick',
+        'select.builtInLook': 'Pick',
       }),
     );
     expect(r.refused.map((x) => x.key).sort()).toEqual([
@@ -162,7 +162,7 @@ describe('applying an update of the built-in English', () => {
       'quest:user-mine:title',
       'select.nope',
     ]);
-    expect(r.changes.map((c) => c.key)).toEqual(['select.selectAQuestPack']);
+    expect(r.changes.map((c) => c.key)).toEqual(['select.builtInLook']);
   });
 
   it('refuses a text that loses or adds a {name}', async () => {
@@ -176,12 +176,9 @@ describe('applying an update of the built-in English', () => {
   it('a text that is the same as now changes nothing', async () => {
     const en = JSON.parse(text('src/i18n/en.json')) as Record<string, string>;
     const before = text('src/ui/select/StartPages.tsx');
-    const r = await applyUpdate(
-      root,
-      update({ 'select.selectAQuestPack': en['select.selectAQuestPack']! }),
-    );
+    const r = await applyUpdate(root, update({ 'select.builtInLook': en['select.builtInLook']! }));
     expect(r.changes).toEqual([]);
-    expect(r.unchanged).toEqual(['select.selectAQuestPack']);
+    expect(r.unchanged).toEqual(['select.builtInLook']);
     expect(text('src/ui/select/StartPages.tsx')).toBe(before);
   });
 
@@ -192,7 +189,7 @@ describe('applying an update of the built-in English', () => {
   });
 
   it('leaves en.json as sortedJson of the code after a change', async () => {
-    await applyUpdate(root, update({ 'select.selectAQuestPack': 'Pick' }));
+    await applyUpdate(root, update({ 'select.builtInLook': 'Pick' }));
     expect(text('src/i18n/en.json').replace(/\r\n/g, '\n')).toBe(
       sortedJson(readCatalogue(root).strings),
     );

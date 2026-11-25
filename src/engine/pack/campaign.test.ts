@@ -9,6 +9,7 @@ import {
   nextCampaignSlot,
   nextQuest,
   questFinished,
+  skipQuest,
   startFlagsFor,
   type Campaign,
 } from './campaign';
@@ -36,6 +37,8 @@ describe('a campaign (decision 37)', () => {
       pack: 'ice',
       seed: SEED,
       finished: [],
+      skipped: [],
+      journal: [],
       flags: {},
       team: [],
       fallen: [],
@@ -150,5 +153,28 @@ describe('when a quest counts as finished', () => {
   it('no event is accepted after the end (so the campaign cannot change by play)', () => {
     const s = replay(lv, SEED, [brave, { type: 'END_QUEST', outcome: 'stairs' }]);
     expect(() => reduce(lv, s, { type: 'ZARGON_TURN_END' })).toThrow();
+  });
+});
+
+describe('skipped quests and the journal (decision 101)', () => {
+  const quest = { id: 'a', flagsOut: [] };
+  const state = { flags: {}, deadHeroes: [] };
+  it('a skipped quest is not next, is journaled, and can be skipped only once', () => {
+    const c = skipQuest(newCampaign(pack, 1), 'a', 10);
+    expect(c.skipped).toEqual(['a']);
+    expect(c.journal).toEqual([{ quest: 'a', result: 'skipped', at: 10 }]);
+    expect(nextQuest(pack, c)).toBe('b');
+    expect(skipQuest(c, 'a', 20)).toBe(c);
+  });
+  it('finishing a skipped quest removes the skip and adds one journal line', () => {
+    const skipped = skipQuest(newCampaign(pack, 1), 'a', 10);
+    const done = finishQuest(skipped, quest, state, 30);
+    expect(done.skipped).toEqual([]);
+    expect(done.journal.map((j) => j.result)).toEqual(['skipped', 'won']);
+    expect(finishQuest(done, quest, state, 40).journal).toHaveLength(2);
+  });
+  it('a finished quest cannot be skipped', () => {
+    const done = finishQuest(newCampaign(pack, 1), quest, state, 30);
+    expect(skipQuest(done, 'a', 40)).toBe(done);
   });
 });

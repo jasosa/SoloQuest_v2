@@ -1,5 +1,4 @@
 import type { Resumed } from '../../persist/saves';
-import type { Campaign } from '../../engine/pack/campaign';
 import { t } from '../../i18n/t';
 import { MenuButton, PageHeader, type Playable } from './parts';
 
@@ -55,34 +54,6 @@ export function SettingsPage({
   );
 }
 
-/** A grid of menu buttons, one per pack. */
-export function PackGrid({
-  cards,
-  onPick,
-}: {
-  cards: readonly PackCard[];
-  onPick(id: string): void;
-}) {
-  return (
-    <div className="menu-grid">
-      {cards.map((p) => (
-        <MenuButton
-          key={p.id}
-          title={p.name}
-          caption={
-            p.encoded === 0
-              ? t('select.notEncodedYet', 'Not encoded yet')
-              : t('select.nQuests', '{count} quests', { count: p.total })
-          }
-          disabled={p.encoded === 0}
-          testId={`pack-${p.id}`}
-          onClick={() => onPick(p.id)}
-        />
-      ))}
-    </div>
-  );
-}
-
 /** One card of the quest grid. */
 export interface QuestCardData {
   readonly slot: number;
@@ -93,6 +64,8 @@ export interface QuestCardData {
   readonly note?: string | undefined;
   readonly noteTestId?: string | undefined;
   readonly selected?: boolean | undefined;
+  /** Campaign status, for the look of the tile. */
+  readonly status?: 'done' | 'skipped' | 'next' | undefined;
 }
 
 export function QuestGrid({
@@ -107,7 +80,7 @@ export function QuestGrid({
       {cards.map((q) => (
         <button
           key={q.slot}
-          className="qcard"
+          className={`qcard${q.status ? ` ${q.status}` : ''}`}
           aria-pressed={q.selected === true}
           disabled={!q.playable}
           onClick={() => onPick(q)}
@@ -130,66 +103,5 @@ export function QuestGrid({
         </button>
       ))}
     </div>
-  );
-}
-
-/** "Frozen Horror, 3 of 10 quests done": the caption of a saved campaign. */
-export const campaignCaption = (c: Campaign, packName: string, total: number): string =>
-  t('select.campaignCaption', '{packName}, {done} of {total} quests done', {
-    packName,
-    done: c.finished.length,
-    total,
-  });
-
-export function CampaignPacksPage({
-  cards,
-  saved,
-  onPack,
-  onCampaign,
-  onDeleteCampaign,
-  onBack,
-}: {
-  cards: readonly PackCard[];
-  saved: readonly { campaign: Campaign; caption: string; usable: boolean }[];
-  onPack(id: string): void;
-  onCampaign(id: string): void;
-  /** For a campaign whose pack is not installed: it cannot be opened, only deleted. */
-  onDeleteCampaign(id: string): void;
-  onBack(): void;
-}) {
-  return (
-    <>
-      <PageHeader title={t('select.questPackCampaign', 'Quest Pack Campaign')} onBack={onBack} />
-      <main className="stage">
-        <div className="lbl">{t('select.selectAQuestPack', 'Select a quest pack')}</div>
-        <PackGrid cards={cards} onPick={onPack} />
-        <div className="lbl">{t('select.orContinueASaved', 'Or continue a saved campaign')}</div>
-        {saved.length === 0 && (
-          <p className="hint">{t('select.noSavedCampaignYet', 'No saved campaign yet.')}</p>
-        )}
-        <div className="menu-grid wide">
-          {saved.map(({ campaign: c, caption, usable }) => (
-            <div key={c.id}>
-              <MenuButton
-                title={c.name || t('select.campaign', 'Campaign')}
-                caption={caption}
-                disabled={!usable}
-                testId={`campaign-${c.id}`}
-                onClick={() => onCampaign(c.id)}
-              />
-              {!usable && (
-                <button
-                  className="link"
-                  data-testid={`delete-campaign-${c.id}`}
-                  onClick={() => onDeleteCampaign(c.id)}
-                >
-                  {t('select.deleteThisCampaign', 'Delete this campaign')}
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </main>
-    </>
   );
 }
