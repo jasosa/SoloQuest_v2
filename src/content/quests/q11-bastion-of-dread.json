@@ -445,6 +445,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -462,10 +463,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The first hero to search the armory takes a shield identical to the one on the armory card. Every other weapon lying here is broken and useless."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A shield, same as the armory shield"
         }
@@ -482,6 +485,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A gargoyle stands in this room, a motionless statue, and a treasure chest sits near it."
         }
@@ -495,11 +499,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The gargoyle wakes",
           "text": "The gargoyle lurches awake and goes for the searching hero on the spot. Reminder for the players: hits on it count for nothing until it has either moved or attacked."
         },
         {
+          "id": "e2",
           "type": "setMonsterState",
           "monster": "m-gargoyle",
           "state": "active"
@@ -514,6 +520,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Trap disarmed",
           "text": "You disarmed the trap. Had it stayed armed, searching the chest would have woken the gargoyle, and it would have struck at once. The statue stays still."
@@ -530,10 +537,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The Dread warrior here wields Orc's Bane, an artifact sword. Whoever slays him can claim it. Its rules are on the artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Orc's Bane (artifact sword, see its card)"
         }

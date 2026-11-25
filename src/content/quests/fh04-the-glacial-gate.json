@@ -738,6 +738,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The heroes line up outside the iron door in the north-west corner of the map. The way on is a wooden exit door at the other end of the fortress.",
           "title": "The Glacial Gate"
@@ -756,10 +757,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The Snowshoes of Speed rest on top of the tomb. Read the artifact card in the Frozen Horror pack."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Snowshoes of Speed (artifact, see its card)"
         }
@@ -775,6 +778,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A locked cage stands in the middle of this room, and an Ice Gremlin sits inside. It begs the heroes to let it out, swearing that the Frozen Horror left it here to die and that it wants revenge. The cage cannot be entered and it blocks line of sight, until it is opened. You apply this at the table."
         }
@@ -799,23 +803,28 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The gremlin waits behind the bars. Does a hero say they are freeing it and step next to the cage?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, a hero frees it",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The cage swings open and the Ice Gremlin leaps out. It steals one item from the hero who freed it, and it chooses which one: never the armor or shield the hero is using, and never the weapon in their hand. Cross the item off that hero's sheet. Then the gremlin drops through a hole in the floor: take its figure off the board.",
                   "title": "The cage opens"
                 },
                 {
+                  "id": "e2",
                   "type": "setFlag",
                   "flag": "gremlinFreed",
                   "value": true
                 },
                 {
+                  "id": "e3",
                   "type": "setMonsterState",
                   "monster": "m-gremlin",
                   "state": "away"
@@ -823,6 +832,7 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, leave it",
               "effects": []
             }
@@ -842,10 +852,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A spell scroll is hidden inside the bookcase. The hero draws one spell scroll card at random and writes it on their character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A spell scroll (drawn at random from the spell scroll cards)"
         }
@@ -863,10 +875,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest is rigged with an explosive device. If a hero searches it before the trap is disarmed, every hero in the room loses 2 Body Points. The chest holds 600 gold coins, shared among the surviving heroes."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "600 gold coins"
         }
@@ -882,6 +896,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A narrow ice ledge runs around a deep crevasse, and it is very slippery. When a hero steps through a door onto their first square here, they roll 1 combat die. Skull or white shield: they keep their footing and may go on. Black shield: they start to slip and lose 1 Body Point, then roll again at once. A second black shield: they fall into the crevasse and are lost for good. Any other result: they go back to the square they came in on, and their turn ends. The same roll is made at the start of every turn a hero begins in this room.",
           "title": "The ice ledge"

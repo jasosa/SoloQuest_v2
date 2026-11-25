@@ -396,6 +396,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -413,10 +414,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A half-empty flask sits on the alchemist's bench. It holds a healing potion: whoever drinks it regains up to 2 Body Points they have lost."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A potion of healing (restores up to 2 Body Points)"
         }
@@ -433,6 +436,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A statue of a gargoyle stands in this room."
         }
@@ -446,11 +450,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Stone cracks and falls away: the statue is a living gargoyle. It is a normal monster from now on, but attacks against it do nothing until it has moved or struck a hero.",
           "title": "The gargoyle wakes"
         },
         {
+          "id": "e2",
           "type": "setMonsterState",
           "monster": "m-gargoyle",
           "state": "active"
@@ -468,10 +474,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This chest is rigged with a gas trap. Unless it was disarmed first, the hero who searches it loses 2 Body Points. Inside lie 144 gold coins, and that is the only treasure in this room."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "144 gold coins"
         }
@@ -489,14 +497,17 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The first hero to search here comes away with the Talisman of Lore, a magic artifact. Its powers are described on its own artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Talisman of Lore (artifact, see its card)"
         },
         {
+          "id": "e3",
           "type": "completeObjective",
           "objective": "o1"
         }
@@ -514,10 +525,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The searching hero lifts Melar's key. At the touch it crumbles away, and the throne glides to one side, exposing a hidden door in the east wall of this room."
         },
         {
+          "id": "e2",
           "type": "addSecretDoor",
           "door": "s1"
         }
@@ -532,6 +545,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Nothing found",
           "text": "There is no secret door to find here."
@@ -546,6 +560,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Nothing found",
           "text": "There is no secret door to find here."

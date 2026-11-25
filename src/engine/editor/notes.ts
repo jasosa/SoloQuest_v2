@@ -12,6 +12,7 @@ import type { Condition, Effect, Note, NoteTarget, Quest, Trigger } from '../que
 import type { Cell } from './ops';
 import { mapForNewNote } from './maps';
 import { isMultiMap } from '../quest/maps';
+import { assignEffectIds } from '../quest/effectIds';
 import { clean, fail, newIssues, nextId, ok, type EditResult } from './result';
 
 /** X marks a spot on the map, so it is never handed out as a note letter. */
@@ -125,7 +126,7 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
     target: input.target ? { kind: input.target.kind, id: input.target.id } : undefined,
     trigger: input.trigger ?? { type: 'manual', label: 'Manual note' },
     when: input.when && input.when.length ? input.when : undefined,
-    effects: input.effects ?? [],
+    effects: assignEffectIds(input.effects ?? []),
     consumesTreasure: input.consumesTreasure ? true : undefined,
     blocksSearch: input.blocksSearch ? true : undefined,
   });
@@ -188,7 +189,7 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
     if (m !== undefined) next.map = m;
   }
   if (patch.when !== undefined) set('when', patch.when?.length ? patch.when : null);
-  if (patch.effects !== undefined) next.effects = patch.effects;
+  if (patch.effects !== undefined) next.effects = assignEffectIds(patch.effects);
   if (patch.consumesTreasure !== undefined)
     set('consumesTreasure', patch.consumesTreasure ? true : null);
   if (patch.keepMark !== undefined) set('keepMark', patch.keepMark ? true : null);

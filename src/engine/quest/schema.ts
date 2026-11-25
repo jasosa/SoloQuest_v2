@@ -392,7 +392,13 @@ const ConditionSchema = z.union([
   z.strictObject({ firstTime: z.literal(true) }),
 ]);
 
-export type Effect =
+/**
+ * `id` is optional in the file. The editor gives every effect and option one so a translation key
+ * does not depend on the position (decision 101).
+ */
+export type Effect = EffectBody & { id?: string | undefined };
+
+type EffectBody =
   | { type: 'showText'; text: string; title?: string | undefined }
   | { type: 'revealArea'; area: string }
   | { type: 'revealAll' }
@@ -415,36 +421,71 @@ export type Effect =
   | { type: 'addCounter'; counter: string; by: number }
   | { type: 'completeObjective'; objective: string }
   | { type: 'spawnNpc'; npc: string }
-  | { type: 'promptChoice'; text: string; options: { label: string; effects: Effect[] }[] };
+  | {
+      type: 'promptChoice';
+      text: string;
+      options: { id?: string | undefined; label: string; effects: Effect[] }[];
+    };
 
 const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
   z.discriminatedUnion('type', [
-    z.strictObject({ type: z.literal('showText'), text: nonEmpty, title: z.string().optional() }),
-    z.strictObject({ type: z.literal('revealArea'), area: areaId }),
-    z.strictObject({ type: z.literal('revealAll') }),
-    z.strictObject({ type: z.literal('openAllDoors') }),
-    z.strictObject({ type: z.literal('placeMonster'), monster: id, cell: cell.optional() }),
     z.strictObject({
+      id: id.optional(),
+      type: z.literal('showText'),
+      text: nonEmpty,
+      title: z.string().optional(),
+    }),
+    z.strictObject({ id: id.optional(), type: z.literal('revealArea'), area: areaId }),
+    z.strictObject({ id: id.optional(), type: z.literal('revealAll') }),
+    z.strictObject({ id: id.optional(), type: z.literal('openAllDoors') }),
+    z.strictObject({
+      id: id.optional(),
+      type: z.literal('placeMonster'),
+      monster: id,
+      cell: cell.optional(),
+    }),
+    z.strictObject({
+      id: id.optional(),
       type: z.literal('setMonsterState'),
       monster: id,
       state: MonsterState,
       turns: z.number().int().min(1).optional(),
     }),
-    z.strictObject({ type: z.literal('addSecretDoor'), door: id }),
-    z.strictObject({ type: z.literal('removeDoor'), door: id }),
-    z.strictObject({ type: z.literal('crossMap'), link: id }),
-    z.strictObject({ type: z.literal('lookFrom'), cell }),
-    z.strictObject({ type: z.literal('replaceFurnitureWithDoor'), furniture: id, door: id }),
-    z.strictObject({ type: z.literal('placeBlock'), cells }),
-    z.strictObject({ type: z.literal('giveItem'), text: nonEmpty }),
-    z.strictObject({ type: z.literal('setFlag'), flag: nonEmpty, value: z.boolean() }),
-    z.strictObject({ type: z.literal('addCounter'), counter: nonEmpty, by: z.number() }),
-    z.strictObject({ type: z.literal('completeObjective'), objective: id }),
-    z.strictObject({ type: z.literal('spawnNpc'), npc: id }),
+    z.strictObject({ id: id.optional(), type: z.literal('addSecretDoor'), door: id }),
+    z.strictObject({ id: id.optional(), type: z.literal('removeDoor'), door: id }),
+    z.strictObject({ id: id.optional(), type: z.literal('crossMap'), link: id }),
+    z.strictObject({ id: id.optional(), type: z.literal('lookFrom'), cell }),
     z.strictObject({
+      id: id.optional(),
+      type: z.literal('replaceFurnitureWithDoor'),
+      furniture: id,
+      door: id,
+    }),
+    z.strictObject({ id: id.optional(), type: z.literal('placeBlock'), cells }),
+    z.strictObject({ id: id.optional(), type: z.literal('giveItem'), text: nonEmpty }),
+    z.strictObject({
+      id: id.optional(),
+      type: z.literal('setFlag'),
+      flag: nonEmpty,
+      value: z.boolean(),
+    }),
+    z.strictObject({
+      id: id.optional(),
+      type: z.literal('addCounter'),
+      counter: nonEmpty,
+      by: z.number(),
+    }),
+    z.strictObject({ id: id.optional(), type: z.literal('completeObjective'), objective: id }),
+    z.strictObject({ id: id.optional(), type: z.literal('spawnNpc'), npc: id }),
+    z.strictObject({
+      id: id.optional(),
       type: z.literal('promptChoice'),
       text: nonEmpty,
-      options: z.array(z.strictObject({ label: nonEmpty, effects: z.array(EffectSchema) })).min(1),
+      options: z
+        .array(
+          z.strictObject({ id: id.optional(), label: nonEmpty, effects: z.array(EffectSchema) }),
+        )
+        .min(1),
     }),
   ]),
 );

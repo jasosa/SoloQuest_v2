@@ -147,6 +147,8 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 
 ### Effects
 
+Every effect, and every option of a `promptChoice`, may have an `id` (`e1`, `o1`: unique in its list, never changed once given). Translation keys use it (decision 101). The editor adds it; the 24 bundled quests have it.
+
 | `type`                     | Params                                                                                                                                                                                       |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `showText`                 | `text`, `title?`                                                                                                                                                                             |
@@ -165,7 +167,7 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 | `setFlag` / `addCounter`   | `flag`, `value` / `counter`, `by`                                                                                                                                                            |
 | `completeObjective`        | `objective`                                                                                                                                                                                  |
 | `spawnNpc`                 | `npc`                                                                                                                                                                                        |
-| `promptChoice`             | `text`, `options: [{ label, effects }]`                                                                                                                                                      |
+| `promptChoice`             | `text`, `options: [{ id?, label, effects }]`                                                                                                                                                 |
 
 ## Quest rule overrides (`rules`)
 

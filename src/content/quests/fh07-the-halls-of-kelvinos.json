@@ -817,10 +817,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in the ice vault holds a pile of 500 gold coins for the first hero who searches the room."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "500 gold coins"
         }
@@ -838,10 +840,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in this room holds 2 potions of healing. Each one restores up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "2 potions of healing (up to 4 Body Points each)"
         }
@@ -857,6 +861,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Kelvinos, the Barbarian hero of old, is now one of the Frozen Horror's undead slaves. He stands on the square marked KEL. Use the spare Barbarian figure, or any other figure, for him. His stats: Movement 5, Attack 4, Defend 4, Body 4, Mind 0.",
           "title": "Kelvinos"
@@ -873,10 +878,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The first hero to search this room finds the Amulet of the North in the chest. Read its artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Amulet of the North (artifact, see its card)"
         }
@@ -892,6 +899,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Nothing in the living fog room is quite what it seems. Monsters and fog likenesses of monsters fill the room. Every time a hero attacks a monster here, the hero rolls 1 combat die first. A black shield or a skull: the hero is confused and strikes a fog likeness, so the attack is wasted. A white shield: the hero sees the real monster, rolls the normal attack dice and the monster defends as usual. The monsters are never fooled and always see the heroes correctly.",
           "title": "Living fog"

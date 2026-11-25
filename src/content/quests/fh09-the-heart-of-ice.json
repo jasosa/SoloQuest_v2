@@ -1588,6 +1588,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The heroes come in through the iron door on the west edge of the map. First they must find the spiral stairway that leads down to the catacombs. The Crystal Key is down there, and it opens the door of the Seat of Power Room, where the Frozen Horror waits. The quest is over when the Frozen Horror is destroyed. Mind and Body Points are not restored when the heroes go down or come back up.",
           "title": "The Heart of Ice"
@@ -1605,6 +1606,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A spiral stairway winds down in the corner of this room. A hero who steps onto it leaves the board: take that figure off. The heroes can only go down together, so nobody goes until every hero is on the stairway."
         }
@@ -1625,24 +1627,29 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "Are all heroes on the stairway?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, all of them",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "Take every piece of this map off the board. Put out only the room that holds the stairway below, and add the rest as the heroes explore it. Monsters that were killed up here do not come back.",
                   "title": "Clear the board"
                 },
                 {
+                  "id": "e2",
                   "type": "crossMap",
                   "link": "l1"
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "No, not yet",
               "effects": []
             }
@@ -1661,6 +1668,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Fog swirls through this room and nothing in it is quite what it seems. Whenever a hero attacks a monster here, the hero rolls 1 combat die first. A skull or a black shield: the hero swings at a fog likeness and the attack is wasted. A white shield: the hero sees the real monster, rolls the normal attack dice, and the monster defends as usual. The monsters are never fooled and always see the heroes correctly.",
           "title": "Living fog"
@@ -1678,6 +1686,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked C. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1694,6 +1703,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked C. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1712,10 +1722,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The first hero to search this ice vault finds 400 gold coins and 2 potions of healing in the chest. Each potion restores up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "400 gold coins and 2 potions of healing (up to 4 Body Points each)"
         }
@@ -1734,10 +1746,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "On the alchemist's table the first hero to search finds a spell scroll and a potion of healing. The potion restores up to 4 lost Body Points. For the scroll, the hero draws one spell scroll card at random and writes it on their character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "One random spell scroll and a potion of healing (up to 4 Body Points)"
         }
@@ -1754,6 +1768,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The Frozen Horror holds court in this room, guarded by warbears, yetis and dread warriors. It fills a block of 2 x 2 squares and can squeeze through a corridor only 1 square wide. Its monster card lists its stats and its Dread spells.",
           "title": "The Seat of Power"
@@ -1780,18 +1795,22 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "Is the hero who carries the Crystal Key standing next to this door?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, next to it",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The key turns in the lock. The door can be opened now.",
                   "title": "The door opens"
                 },
                 {
+                  "id": "e2",
                   "type": "setFlag",
                   "flag": "keyTurned",
                   "value": true
@@ -1799,9 +1818,11 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, not yet",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "Bring the hero with the key next to the door first."
                 }
@@ -1822,6 +1843,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This spiral stairway leads back up. The heroes have to return here once they hold the Crystal Key. As on the way down, a hero on the stairway leaves the board, and nobody goes up until every hero is on it."
         }
@@ -1842,24 +1864,29 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "Are all heroes on the stairway?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, all of them",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "Take every piece of this map off the board. Put out only the room that holds the stairway above, and add the rest as the heroes explore it. Monsters that were killed before do not come back.",
                   "title": "Clear the board"
                 },
                 {
+                  "id": "e2",
                   "type": "crossMap",
                   "link": "l1"
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "No, not yet",
               "effects": []
             }
@@ -1878,6 +1905,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked H. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1894,6 +1922,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked H. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1910,6 +1939,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked I. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1926,6 +1956,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked I. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -1944,10 +1975,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Behind the bookcase the first hero to search finds a spell scroll and 2 potions of healing. Each potion restores up to 4 lost Body Points. For the scroll, the hero draws one spell scroll card at random and writes it on their character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "One random spell scroll and 2 potions of healing (up to 4 Body Points each)"
         }
@@ -1964,6 +1997,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Put the Ice Gremlin treasure room tile over both small rooms, so that they make one larger room.",
           "title": "Treasure room"
@@ -1991,20 +2025,24 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The Crystal Key lies among the hoard. The hero who picks it up carries it again.",
           "title": "The key is back"
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Crystal Key tile goes back to the hero who picked it up"
         },
         {
+          "id": "e3",
           "type": "setFlag",
           "flag": "crystalKey",
           "value": true
         },
         {
+          "id": "e4",
           "type": "setFlag",
           "flag": "keyStolen",
           "value": false
@@ -2022,6 +2060,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked L. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -2038,6 +2077,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked L. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -2056,19 +2096,23 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds the Crystal Key and a potion of healing, which restores up to 4 lost Body Points. Hand the Crystal Key tile to the hero who found it."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Crystal Key and a potion of healing (up to 4 Body Points)"
         },
         {
+          "id": "e3",
           "type": "setFlag",
           "flag": "crystalKey",
           "value": true
         },
         {
+          "id": "e4",
           "type": "setFlag",
           "flag": "keyFound",
           "value": true
@@ -2089,23 +2133,28 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "Was the stolen item the Crystal Key?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, the key",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The heroes no longer have the Crystal Key. It is in the Ice Gremlin treasure room in the catacombs, and the heroes can win it back there.",
                   "title": "The key is gone"
                 },
                 {
+                  "id": "e2",
                   "type": "setFlag",
                   "flag": "crystalKey",
                   "value": false
                 },
                 {
+                  "id": "e3",
                   "type": "setFlag",
                   "flag": "keyStolen",
                   "value": true
@@ -2113,6 +2162,7 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, something else",
               "effects": []
             }
@@ -2126,7 +2176,12 @@
     "enemy": "polarWarbear",
     "count": 2
   },
-  "flagsIn": [{ "flag": "scepterDestroyed", "oneShot": true }],
+  "flagsIn": [
+    {
+      "flag": "scepterDestroyed",
+      "oneShot": true
+    }
+  ],
   "objectives": [
     {
       "id": "o1",

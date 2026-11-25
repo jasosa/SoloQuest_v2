@@ -373,6 +373,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Prisoners without gear",
           "text": "The heroes begin inside the cell. Their gear was confiscated: no gear of any kind, and no spells, until they get it back from the room with the cupboard (A). Until then each hero fights with 1 attack die and defends with 2 dice. Searching the cell for treasure is not allowed."
@@ -387,6 +388,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "There is nothing to search for in the cell. The hero keeps the action."
         }
@@ -404,11 +406,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Equipment found",
           "text": "The heroes' confiscated gear lies in the cupboard of this room. Once it is searched, the gear is found. Every other hero has to come into this room to get their things. Entering the room gives a hero the equipment back, and a spellcaster gets spells back too."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "All heroes get their own equipment back when they enter this room"
         }
@@ -424,6 +428,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The stairs",
           "text": "These stairs lead out of the dungeon. Heroes who reach them can leave."
@@ -438,10 +443,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Grak falls. His Wizard's Cloak is a prize for the wizard: give the wizard the Wizard's Cloak artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Wizard's Cloak artifact card, for the wizard"
         }

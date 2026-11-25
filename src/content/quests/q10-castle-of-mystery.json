@@ -526,6 +526,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Magic doors",
           "text": "Every door in this castle works as a teleporter. The moment a hero passes through any door, the hero halts and throws 2 red dice. The total names a numbered square, and the hero is moved there. If a figure already stands on that square, the arriving hero lands on it: that hero or monster loses 1 Body Point and, if still alive, throws 2 red dice and is teleported in turn (a total naming the same square is thrown again). The hero who arrived first keeps the square. Each hero may use a single door in a turn. The square marked 2/12 is inside the start room, just in from door d10. From it a hero can walk to the stairs and leave the quest. The players apply all of this by hand."
@@ -555,10 +556,12 @@
       ],
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Both Dread warriors lie dead. The first hero to search this room discovers that one of them was carrying the magic Ring of Return. Hand over its artifact card, which describes how it works."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Ring of Return artifact card, to the first hero who searches"
         }
@@ -575,6 +578,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Mine entrance",
           "text": "This square is the way into the gold mine. Any hero who enters this room may take 5,000 gold coins. A hero loaded with this gold cannot attack or defend. If the hero sets it down, the gold is gone again."
@@ -591,103 +595,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -711,103 +738,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -831,103 +881,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -951,103 +1024,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1071,103 +1167,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1191,103 +1310,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1311,103 +1453,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1431,103 +1596,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1551,103 +1739,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
@@ -1671,103 +1882,126 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "The hero halts and throws 2 red dice. Pick the total. The room of that numbered square is shown. A figure already standing there is landed on: it loses 1 Body Point and, if alive, is teleported by its own throw.",
           "options": [
             {
+              "id": "o1",
               "label": "2",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }
               ]
             },
             {
+              "id": "o2",
               "label": "3",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R03"
                 }
               ]
             },
             {
+              "id": "o3",
               "label": "4",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R07"
                 }
               ]
             },
             {
+              "id": "o4",
               "label": "5",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R13"
                 }
               ]
             },
             {
+              "id": "o5",
               "label": "6",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R18"
                 }
               ]
             },
             {
+              "id": "o6",
               "label": "7",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R11"
                 }
               ]
             },
             {
+              "id": "o7",
               "label": "8",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R04"
                 }
               ]
             },
             {
+              "id": "o8",
               "label": "9",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R19"
                 }
               ]
             },
             {
+              "id": "o9",
               "label": "10",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R16"
                 }
               ]
             },
             {
+              "id": "o10",
               "label": "11",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "revealArea",
                   "area": "R06"
                 }
               ]
             },
             {
+              "id": "o11",
               "label": "12",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The hero lands on the square marked 2/12 inside the start room. From there the hero can walk to the stairs and leave. Nothing new to reveal."
                 }

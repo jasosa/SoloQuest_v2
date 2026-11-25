@@ -91,7 +91,7 @@ describe('addNote', () => {
       at: [3, 3],
       trigger: { type: 'doorOpened', door: 'd2' },
       when: [{ firstTime: true }],
-      effects: [{ type: 'showText', text: 'Hello' }],
+      effects: [{ id: 'e1', type: 'showText', text: 'Hello' }],
     });
   });
   it('refuses a bad or used letter and a used id', () => {
@@ -126,7 +126,7 @@ describe('updateNote', () => {
       at: [2, 2],
       trigger: { type: 'treasureSearch', area: 'R17', first: true },
       when: [{ monster: 'm1', alive: false }],
-      effects: [{ type: 'giveItem', text: 'A key' }],
+      effects: [{ id: 'e1', type: 'giveItem', text: 'A key' }],
       consumesTreasure: true,
     });
   });
@@ -179,10 +179,13 @@ describe('setNoteText', () => {
   it('adds, replaces and removes the main text, keeping other effects and the title', () => {
     let q = good(addNote(base(), { letter: 'A', effects: [{ type: 'revealAll' }] }));
     q = good(setNoteText(q, 'n-A', ' Hi '));
-    expect(q.notes[1]?.effects).toEqual([{ type: 'showText', text: 'Hi' }, { type: 'revealAll' }]);
+    expect(q.notes[1]?.effects).toEqual([
+      { id: 'e2', type: 'showText', text: 'Hi' },
+      { id: 'e1', type: 'revealAll' },
+    ]);
     q = good(updateNote(q, 'n-A', { effects: [{ type: 'showText', text: 'Hi', title: 'T' }] }));
     q = good(setNoteText(q, 'n-A', 'Bye'));
-    expect(q.notes[1]?.effects).toEqual([{ type: 'showText', text: 'Bye', title: 'T' }]);
+    expect(q.notes[1]?.effects).toEqual([{ id: 'e1', type: 'showText', text: 'Bye', title: 'T' }]);
     q = good(setNoteText(q, 'n-A', ''));
     expect(q.notes[1]?.effects).toEqual([]);
     expect(bad(setNoteText(q, 'zz', 'x'))).toMatch(/no note/);

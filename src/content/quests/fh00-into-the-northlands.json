@@ -602,11 +602,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Snowdasher, the wolf, joins the hero as an animal ally. Her stats are in the NPC list.",
           "title": "Snowdasher"
         },
         {
+          "id": "e2",
           "type": "spawnNpc",
           "npc": "snowdasher"
         }
@@ -622,6 +624,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "An Ice Gremlin is picking through the scraps of a long dead explorer."
         }
@@ -637,10 +640,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Among the remains lies a backpack. Inside are a usable tool kit (see the armory) and 2 potions of healing, each restoring up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A tool kit and 2 potions of healing (4 Body Points each)"
         }
@@ -656,6 +661,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A large white wolf lifts its head and opens its jaws, but no sound comes out. Its body is more bone than fur, and its hollow eyes glow dull purple. It is a wolf mummy. If Snowdasher is with the hero, she howls with mourning and rage."
         }
@@ -671,6 +677,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "An old Polar Warbear is trapped in a cage. The cage cannot be entered and it blocks line of sight, until it is opened. You apply this at the table. A lever is fixed to the wall at the square marked C."
         }
@@ -695,18 +702,22 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "A heavy iron lever sticks out of the wall, rimed with frost. It moves a little under a hand. Pulling it takes no action. Does a hero pull the lever?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, pull the lever",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The cage swings open and the line of sight is clear. The Polar Warbear will leave if the hero lets it pass unharmed: tap It left on the monster. If the hero attacks it, tap A hero attacked it.",
                   "title": "The cage opens"
                 },
                 {
+                  "id": "e2",
                   "type": "setFlag",
                   "flag": "cageOpen",
                   "value": true
@@ -714,6 +725,7 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, leave it",
               "effects": []
             }
@@ -731,10 +743,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A longsword lies here (see the armory)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A longsword"
         }
@@ -752,10 +766,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "In the tomb the hero finds a set of bracers with a wolf embossing (see the armory) and a potion of healing that restores up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Bracers with a wolf embossing and a potion of healing (4 Body Points)"
         }
@@ -771,6 +787,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This room is littered with junk! Ice Gremlins steal anything they can, and their loot is all kept here. A hero who enters gets back any item an Ice Gremlin stole from them earlier in this quest."
         }
@@ -786,10 +803,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds a well kept, polished shell helmet (see the armory), a potion of healing (up to 4 Body Points) and 50 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A polished shell helmet, a potion of healing (4 Body Points) and 50 gold coins"
         }
@@ -805,6 +824,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "An intense cold pours out of this door."
         }
@@ -820,6 +840,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A massive gremlin sits on a frozen throne. It raises a battle axe made entirely of ice over its head and signals the Yeti to attack. This is Jracksfot Rimebreath. He knows the Dread spell Tempest."
         }
@@ -835,10 +856,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds 200 gold coins and the long-lost artifact called the Armband of Ice. Read its card in the Frozen Horror pack."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "200 gold coins and the Armband of Ice (artifact, see its card)"
         }
@@ -852,16 +875,19 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "With Jracksfot gone, the cold magic that made the throne fades. It melts into water and shows an exit to the entrance of the cave where this quest began. An open door now stands where the throne was.",
           "title": "The throne melts"
         },
         {
+          "id": "e2",
           "type": "setFlag",
           "flag": "throneMelted",
           "value": true
         },
         {
+          "id": "e3",
           "type": "replaceFurnitureWithDoor",
           "furniture": "f-throne",
           "door": "d-throne"
@@ -873,7 +899,10 @@
     "monster": "goblin",
     "enemy": "iceGremlin"
   },
-  "team": { "solo": true, "grantsAlly": "snowdasher" },
+  "team": {
+    "solo": true,
+    "grantsAlly": "snowdasher"
+  },
   "objectives": [
     {
       "id": "o1",

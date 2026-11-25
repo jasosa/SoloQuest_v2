@@ -383,6 +383,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The trap",
           "text": "The heroes start here. Their guide has left them in the dark, and the stairway is the only way out."
@@ -400,10 +401,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The room holds two chests, each with 100 gold coins, so the first search turns up 200 gold coins in all."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "100 gold coins from each of the two chests (200 in all)"
         }
@@ -421,10 +424,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This chest is rigged with poison gas. Opening it while the gas trap is still armed costs the searching hero 3 Body Points. Inside lies the Elixir of Life, an artifact: read its card for how it is used."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Elixir of Life (artifact, see its card)"
         }

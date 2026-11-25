@@ -460,6 +460,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -477,6 +478,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The rack holds only rusty, broken weapons. No hero would want any of them."
         }
@@ -494,6 +496,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in this room is empty."
         }
@@ -510,6 +513,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This mummy is a special guardian of the tomb. It rolls 4 attack dice, not the usual 3."
         }
@@ -526,10 +530,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds 84 gold coins. They go to the first hero who searches here."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "84 gold coins"
         }
@@ -547,10 +553,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds 120 gold coins. They go to the first hero who searches here."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "120 gold coins"
         }

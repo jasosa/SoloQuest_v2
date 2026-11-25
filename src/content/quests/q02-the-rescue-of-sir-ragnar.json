@@ -382,6 +382,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -399,6 +400,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest is empty. If its needle trap was not disarmed, it has just sprung (see the trap) and the searching hero loses 1 Body Point."
         }
@@ -416,10 +418,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Inside the chest the hero finds 60 gold coins and a potion of healing. A hero who drinks it heals up to 4 Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "60 gold coins and a potion of healing (heals up to 4 Body Points)"
         }
@@ -434,22 +438,27 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Sir Ragnar is found",
           "text": "An alarm sounds. Place every monster, door and furniture piece still hidden on the board. Every door on the board stands open from now on. Put the Dread sorcerer figure on the X square: it is Sir Ragnar. The hero who opened the cell door plays a normal turn, then rolls 1 red die and moves Sir Ragnar, and does the same after each of their turns. Sir Ragnar cannot attack and rolls 2 defend dice. Ragnar is down to 2 Body Points."
         },
         {
+          "id": "e2",
           "type": "setFlag",
           "flag": "alarm",
           "value": true
         },
         {
+          "id": "e3",
           "type": "revealAll"
         },
         {
+          "id": "e4",
           "type": "openAllDoors"
         },
         {
+          "id": "e5",
           "type": "spawnNpc",
           "npc": "ragnar"
         }
@@ -463,6 +472,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Heroes cannot search for treasure in the cell."
         }

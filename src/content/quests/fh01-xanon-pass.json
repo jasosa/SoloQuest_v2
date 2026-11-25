@@ -474,10 +474,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in this room holds 75 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "75 gold coins"
         }
@@ -493,6 +495,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "An evil Crossbowman guards this room."
         }
@@ -510,15 +513,18 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "He yields",
           "text": "The Crossbowman gives up at once and offers his crossbow if the hero will spare him. The hero takes it, and the man runs away. Take him off the board."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A crossbow (see the armory)"
         },
         {
+          "id": "e3",
           "type": "setMonsterState",
           "monster": "m-xbow",
           "state": "away"
@@ -537,10 +543,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A shield lies inside the tomb (see the armory for this item)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A shield"
         }
@@ -558,10 +566,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A longsword hangs on the weapons rack (see the armory for this weapon)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A longsword"
         }
@@ -572,7 +582,10 @@
     "monster": "skeleton",
     "count": 2
   },
-  "team": { "solo": true, "only": ["barbarian"] },
+  "team": {
+    "solo": true,
+    "only": ["barbarian"]
+  },
   "objectives": [
     {
       "id": "o1",

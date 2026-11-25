@@ -416,6 +416,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -432,6 +433,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The three chests carry the royal seal of Prince Magnus. Every chest is locked and holds 250 gold coins plus goods for the Prince and the King. Each hero carries at most one chest, and a hero with a chest moves with 1 red die only. None of the gold in the chests may be kept by the heroes."
         }

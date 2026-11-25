@@ -50,7 +50,7 @@ const text = (file: string) => readFileSync(join(root, file), 'utf8');
 const tsErrors = (file: string) =>
   ts.transpileModule(text(file), { reportDiagnostics: true, fileName: file }).diagnostics ?? [];
 const QUEST = 'src/content/quests/q01-the-trial.json';
-const NOTE = 'quest:q01-the-trial:notes.n-start.effects.0.text';
+const NOTE = 'quest:q01-the-trial:notes.n-start.effects.e1.text';
 
 describe('applying an update of the built-in English', () => {
   it('changes an interface string in the code and in en.json', async () => {

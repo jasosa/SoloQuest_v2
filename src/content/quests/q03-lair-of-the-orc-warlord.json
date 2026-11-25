@@ -411,6 +411,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -428,10 +429,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "An orc armory. The first hero to search it gets a staff. That hero keeps it or passes it to a companion. Use the stats of the staff on the armory card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A staff weapon, same as the armory staff"
         }
@@ -449,10 +452,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Inside the cupboard the searching hero finds 24 gold coins and a potion of healing. Drinking it heals up to 4 Body Points the hero has lost."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "24 gold coins and a potion of healing (restores up to 4 Body Points)"
         }

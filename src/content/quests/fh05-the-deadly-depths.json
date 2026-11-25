@@ -900,6 +900,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The heroes enter by the iron door and must find the wooden exit door. A Dread Warlock named Vilor waits in the center room. This is a group quest: hire mercenaries for the quests after it if the party is small.",
           "title": "The Deadly Depths"
@@ -916,6 +917,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is joined to the ice tunnel in the other room marked A. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -931,6 +933,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is joined to the ice tunnel in the other room marked A. A hero or monster that lands on either square is moved at once to the other one."
         }
@@ -957,26 +960,32 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "Are all the heroes inside this room?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, all of them",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "Both doors marked B close and disappear. Take them off the board. The door marked C is now part of the map: put both C doors on the board.",
                   "title": "The doors vanish"
                 },
                 {
+                  "id": "e2",
                   "type": "removeDoor",
                   "door": "dB1"
                 },
                 {
+                  "id": "e3",
                   "type": "removeDoor",
                   "door": "dB2"
                 },
                 {
+                  "id": "e4",
                   "type": "setFlag",
                   "flag": "doorsGone",
                   "value": true
@@ -984,6 +993,7 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, not yet",
               "effects": []
             }
@@ -1001,36 +1011,43 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The ice that holds the crypt monsters cracks and they spring out. They act on Zargon's next turn. Once they leave, the squares with their pictures count as empty floor.",
           "title": "The ice cracks"
         },
         {
+          "id": "e2",
           "type": "setMonsterState",
           "monster": "m-crypt-1",
           "state": "active"
         },
         {
+          "id": "e3",
           "type": "setMonsterState",
           "monster": "m-crypt-2",
           "state": "active"
         },
         {
+          "id": "e4",
           "type": "setMonsterState",
           "monster": "m-crypt-3",
           "state": "active"
         },
         {
+          "id": "e5",
           "type": "setMonsterState",
           "monster": "m-crypt-4",
           "state": "active"
         },
         {
+          "id": "e6",
           "type": "setMonsterState",
           "monster": "m-crypt-5",
           "state": "active"
         },
         {
+          "id": "e7",
           "type": "setMonsterState",
           "monster": "m-crypt-6",
           "state": "active"
@@ -1047,36 +1064,43 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The ice that holds the crypt monsters cracks and they spring out. They act on Zargon's next turn. Once they leave, the squares with their pictures count as empty floor.",
           "title": "The ice cracks"
         },
         {
+          "id": "e2",
           "type": "setMonsterState",
           "monster": "m-crypt-1",
           "state": "active"
         },
         {
+          "id": "e3",
           "type": "setMonsterState",
           "monster": "m-crypt-2",
           "state": "active"
         },
         {
+          "id": "e4",
           "type": "setMonsterState",
           "monster": "m-crypt-3",
           "state": "active"
         },
         {
+          "id": "e5",
           "type": "setMonsterState",
           "monster": "m-crypt-4",
           "state": "active"
         },
         {
+          "id": "e6",
           "type": "setMonsterState",
           "monster": "m-crypt-5",
           "state": "active"
         },
         {
+          "id": "e7",
           "type": "setMonsterState",
           "monster": "m-crypt-6",
           "state": "active"
@@ -1095,10 +1119,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds 400 gold coins and a spell scroll. The hero draws a spell scroll card at random and writes it on their character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "400 gold coins and a spell scroll (draw a spell scroll card at random)"
         }
@@ -1116,10 +1142,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds the Ring of Warmth. Read its artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Ring of Warmth (artifact, see its card)"
         }
@@ -1137,10 +1165,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds 2 potions of healing. Each one restores up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "2 potions of healing (4 Body Points each)"
         }
@@ -1156,6 +1186,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A Dread Warlock named Vilor stands on the square marked VIL. He knows the Dread spells Chill, Ice Storm, Lightning Bolt, Sleep and Tempest."
         }

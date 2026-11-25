@@ -525,6 +525,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A solo quest for the Barbarian. Deep in the Cyberian Range, an outpost of the Frozen Horror holds a Dread Warrior named Krag, one of its lieutenants. The only way in or out is the ice cave entrance, where the quest begins and ends.",
           "title": "Trial by Ice"
@@ -541,6 +542,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked A. The hero, or any monster, that lands on this square comes out at the other one at once.",
           "title": "Ice tunnel"
@@ -557,6 +559,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This ice tunnel is linked to the ice tunnel in the other room marked A. The hero, or any monster, that lands on this square comes out at the other one at once.",
           "title": "Ice tunnel"
@@ -575,6 +578,7 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The treasure chest in this room is empty."
         }
@@ -592,10 +596,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "On top of the sorcerer's table the hero finds a Potion of Warmth (see its treasure card in this quest pack)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A Potion of Warmth (treasure card of the Frozen Horror pack)"
         }
@@ -613,10 +619,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in this room holds 120 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "120 gold coins"
         }
@@ -632,6 +640,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This is Krag, the Dread Warrior lieutenant of the Frozen Horror. His stats: Movement 7, Attack 5, Defend 5, Body 4, Mind 3.",
           "title": "Krag"
@@ -643,7 +652,9 @@
     "monster": "goblin",
     "count": 2
   },
-  "team": { "solo": true },
+  "team": {
+    "solo": true
+  },
   "objectives": [
     {
       "id": "o1",

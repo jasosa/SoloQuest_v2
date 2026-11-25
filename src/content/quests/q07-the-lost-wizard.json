@@ -396,6 +396,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Stone Dread warriors",
           "text": "All Dread warriors in this quest are living stone. Each rolls one more defend die than usual, so 5 in total instead of 4."
@@ -413,10 +414,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "This is the weapons store. The first hero to search it takes the artifact Borin's Armor. Its rules are on the artifact card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Borin's Armor (artifact, see its card)"
         }
@@ -434,10 +437,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest hides a poison needle trap. A hero who searches before it is disarmed loses 2 Body Points (see the trap). Inside is a flask of purple liquid that nobody can identify, so keep its nature to yourself. Whoever drinks it freezes into stone for 5 of that hero's turns: no movement, and nothing can hurt them. When the 5 turns are over the hero wakes up."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Flask of purple liquid (turns the drinker to stone for 5 turns, keep secret)"
         }
@@ -459,14 +464,17 @@
       ],
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Inside Wardoz's chest are 144 gold coins. His papers lie on the bench: they tell how the Dread magic he was testing consumed him and left him a mind-dead zombie."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "144 gold coins and Wardoz's papers"
         },
         {
+          "id": "e3",
           "type": "completeObjective",
           "objective": "o1"
         }

@@ -860,6 +860,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The Search for the Scepter",
           "text": "The heroes come in through the iron door on the east edge of the map. They must find the Scepter of Glacial Majesty and destroy it, then find the wooden exit door and go through it."
@@ -878,10 +879,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A spell scroll is hidden in the bookcase. The first hero to search here takes it: shuffle the spell scroll cards of the pack face down, let the hero draw one at random and write it on their character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "One random spell scroll (draw from the pack)"
         }
@@ -899,10 +902,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest carries a poison needle trap. A hero who searches it before the trap is disarmed loses 2 Body Points (see the trap). Inside are 200 gold coins and 2 potions of healing, each restoring up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "200 gold coins and 2 potions of healing (4 Body Points each)"
         }
@@ -918,6 +923,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A deep crevasse splits this room, with a slippery ledge around it. Heroes move along the ledge by the ice ledge rule, the same one as room E of Quest 4. It is written on the ice ledge tile."
         }
@@ -933,6 +939,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The Scepter of Glacial Majesty is frozen into the wall in the upper right corner square of this room. Heroes can neither move it nor use it. To destroy it, a hero must stand next to it, attack it and roll at least one skull on the combat dice."
         }
@@ -958,18 +965,22 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "promptChoice",
           "text": "A hero standing next to the scepter attacks it. Did at least one skull come up on the combat dice?",
           "options": [
             {
+              "id": "o1",
               "label": "Yes, a skull came up",
               "effects": [
                 {
+                  "id": "e1",
                   "type": "showText",
                   "text": "The scepter cracks and bursts in a blast of ice. Every figure in this room, heroes and monsters alike, takes 2 Body Points of damage. Its power over the Frozen Horror is broken. Now find the wooden exit door and go through it to reach the final battle.",
                   "title": "The scepter explodes"
                 },
                 {
+                  "id": "e2",
                   "type": "setFlag",
                   "flag": "scepterDestroyed",
                   "value": true
@@ -977,6 +988,7 @@
               ]
             },
             {
+              "id": "o2",
               "label": "No, no skull",
               "effects": []
             }

@@ -359,6 +359,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -374,6 +375,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -389,6 +391,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -404,6 +407,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -419,6 +423,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -434,6 +439,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Falling-block square",
           "text": "Roll 1 red die for the hero who stepped on this square. On a 4, 5 or 6 the hero loses 1 Body Point. A hero wearing a helmet loses it only on a 6. Nothing blocks the square."
@@ -451,15 +457,18 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The Spirit Blade",
           "text": "The Spirit Blade is here, and the first hero to search the room takes it. It is a magic item, and its rules are on its card."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Spirit Blade (artifact, see its card)"
         },
         {
+          "id": "e3",
           "type": "setFlag",
           "flag": "blade",
           "value": true
@@ -478,11 +487,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Treasure chest",
           "text": "The chest holds 200 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "200 gold coins"
         }

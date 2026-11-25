@@ -979,7 +979,7 @@ function EffectList({
             store={store}
             quest={quest}
             effect={e}
-            onChange={(n) => onChange(replaceAt(effects, i, n))}
+            onChange={(n) => onChange(replaceAt(effects, i, e.id ? { ...n, id: e.id } : n))}
           />
         </div>
       ))}

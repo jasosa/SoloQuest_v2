@@ -727,6 +727,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The heroes come in through the iron door. They must cross the halls of Ice Mountain and reach the wooden exit door on the far side of the map. Swordsmen, Crossbowmen and Halberdiers on this map are not hired help: they are Zargon's monsters.",
           "title": "The Frosted Path"
@@ -745,10 +746,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Among the gremlins' hoard lie 120 gold coins, a longsword (see the armory) and a spell scroll. The hero draws one spell scroll card at random and writes it on the character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "120 gold coins, a longsword and 1 random spell scroll"
         }
@@ -766,10 +769,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A set of plate mail armor hangs on the weapons rack (see the armory)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A set of plate mail armor"
         }
@@ -787,10 +792,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds 250 gold coins and a Potion of Healing, which restores up to 4 lost Body Points."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "250 gold coins and a Potion of Healing (4 Body Points)"
         }
@@ -808,10 +815,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The hero finds a crossbow (see the armory) and a gem worth 300 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A crossbow and a gem worth 300 gold coins"
         }
@@ -829,10 +838,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Two spell scrolls lie here. For each one the hero draws a spell scroll card at random and writes it on the character sheet."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "2 random spell scrolls"
         }
@@ -850,6 +861,7 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest in this ice vault is empty. Its poison gas trap is the only danger: if it was not disarmed first, every hero in the room loses 2 Body Points."
         }
@@ -865,6 +877,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A narrow ice ledge runs around a deep crevasse. Moving along it follows the ice ledge rule from room E of Quest 4 (the ice ledge tile rule shows it)."
         }

@@ -495,6 +495,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Place the Barbarian on the spiral stairway. Gothar, the old Great Elder of the tribe, is held somewhere in this stronghold. Find him, free him and bring him back to the stairway. Monsters that meet the Barbarian go only for the Barbarian: they have orders to take Gothar alive. If the Barbarian dies, Gothar is captured and the quest is lost.",
           "title": "The Rescue"
@@ -513,10 +514,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A battle axe hangs on the weapons rack (see the armory)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A battle axe"
         }
@@ -534,10 +537,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds 70 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "70 gold coins"
         }
@@ -555,10 +560,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Inside the chest lies a helmet (see the armory)."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "A helmet"
         }
@@ -576,10 +583,12 @@
       "consumesTreasure": true,
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "The chest holds 150 gold coins."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "150 gold coins"
         }
@@ -595,6 +604,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Two Dread Warriors have only just strapped Gothar onto the rack. They ignore him and fight the Barbarian alone.",
           "title": "Gothar on the rack"
@@ -627,15 +637,18 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Gothar is free. Put any spare hero figure next to the Barbarian for him. The Barbarian controls him and moves him right after the Barbarian has moved. His stats are in the Companions list. The Barbarian must now bring him to the spiral stairway.",
           "title": "Gothar is freed"
         },
         {
+          "id": "e2",
           "type": "spawnNpc",
           "npc": "gothar"
         },
         {
+          "id": "e3",
           "type": "setFlag",
           "flag": "gotharFree",
           "value": true
@@ -647,7 +660,9 @@
     "monster": "orc",
     "count": 2
   },
-  "team": { "solo": true },
+  "team": {
+    "solo": true
+  },
   "objectives": [
     {
       "id": "o1",

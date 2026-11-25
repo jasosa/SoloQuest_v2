@@ -351,7 +351,9 @@
       },
       "spells": ["ballOfFlame", "firestorm", "tempest", "summon", "fear", "escape"],
       "spellLimit": "onePerTurn",
-      "spellOrder": { "escape": 1 },
+      "spellOrder": {
+        "escape": 1
+      },
       "special": true,
       "abilities": ["fireImmune"]
     }
@@ -430,6 +432,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -444,6 +447,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "placeMonster",
           "monster": "m-balur"
         }
@@ -457,6 +461,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "setFlag",
           "flag": "centerOpen",
           "value": true
@@ -478,16 +483,19 @@
       ],
       "effects": [
         {
+          "id": "e1",
           "type": "setMonsterState",
           "monster": "m-balur",
           "state": "away"
         },
         {
+          "id": "e2",
           "type": "setFlag",
           "flag": "escaped",
           "value": true
         },
         {
+          "id": "e3",
           "type": "showText",
           "text": "Balur vanishes. Take his figure off the board until he returns.",
           "title": "Balur escapes"
@@ -509,11 +517,13 @@
       ],
       "effects": [
         {
+          "id": "e1",
           "type": "placeMonster",
           "monster": "m-balur",
           "cell": [12, 9]
         },
         {
+          "id": "e2",
           "type": "showText",
           "text": "Balur vanishes in a flash and reappears elsewhere in the castle.",
           "title": "Balur escapes"
@@ -534,16 +544,19 @@
       ],
       "effects": [
         {
+          "id": "e1",
           "type": "placeMonster",
           "monster": "m-balur",
           "cell": [12, 9]
         },
         {
+          "id": "e2",
           "type": "setMonsterState",
           "monster": "m-balur",
           "state": "active"
         },
         {
+          "id": "e3",
           "type": "showText",
           "text": "The door opens and Balur is here.",
           "title": "Balur is here"
@@ -561,11 +574,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "Inside: 150 gold coins and the Wand of Magic. Read its artifact card for the rules.",
           "title": "Treasure chest"
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "150 gold coins and the Wand of Magic artifact card"
         }

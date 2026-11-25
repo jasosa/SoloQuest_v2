@@ -355,6 +355,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -369,10 +370,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "placeMonster",
           "monster": "m-witch"
         },
         {
+          "id": "e2",
           "type": "showText",
           "title": "The Witch Lord",
           "text": "Put the Dread sorcerer figure on the X square. Only the Spirit Blade can harm him. He is faster and tougher than in the barrow: Movement 10, Attack 5, Defend 6, Body 4, Mind 6."
@@ -389,6 +392,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The tomb",
           "text": "The Witch Lord's tomb stands open and empty. Nothing is left inside."
@@ -403,15 +407,18 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The Witch Lord is destroyed",
           "text": "With a hiss he collapses into a cloud of dark smoke. Once it thins, a small metal object clatters to the ground: the Spell Ring he wore. Its card explains how it works."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "Spell Ring artifact card"
         },
         {
+          "id": "e3",
           "type": "completeObjective",
           "objective": "o1"
         }

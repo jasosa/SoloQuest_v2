@@ -342,6 +342,7 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "Start",
           "text": "Place the heroes on the stairs."
@@ -358,11 +359,13 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "title": "The Star of the West",
           "text": "The slain zombie still grips the Star of the West. The heroes take it. Now they only need to return to the stairs."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Star of the West (quest item)"
         }
@@ -377,10 +380,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "placeBlock",
           "cells": [[0, 0]]
         },
         {
+          "id": "e2",
           "type": "showText",
           "title": "Behind you",
           "text": "The passage collapses behind the last hero. The square is blocked for good: nobody can go back through it."
@@ -406,10 +411,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "placeMonster",
           "monster": "m-witch"
         },
         {
+          "id": "e2",
           "type": "showText",
           "title": "The Witch Lord awakens",
           "text": "Read aloud: the heroes have shattered the magic seal that bound the Witch Lord, and he is awake. Escape is their only hope, since just the Spirit Blade can wound him. Stand the Dread Sorcerer figure on the X square. No weapon and no spell touches him. He walks 1 square each turn and strikes with 2 attack dice. His spells are summon undead, fear, command and ball of flame."
@@ -427,10 +434,12 @@
       },
       "effects": [
         {
+          "id": "e1",
           "type": "showText",
           "text": "A magic staff lies concealed behind the bookcase, and the first hero to search the room discovers it: this is the artifact called the Wizard's Staff. Its card tells how it works."
         },
         {
+          "id": "e2",
           "type": "giveItem",
           "text": "The Wizard's Staff (artifact, see its card)"
         }
