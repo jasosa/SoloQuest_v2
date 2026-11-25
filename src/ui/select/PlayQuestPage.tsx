@@ -10,6 +10,7 @@ export interface BoxEntry {
   readonly id: string;
   readonly name: string;
   readonly count: number;
+  readonly color: string;
 }
 
 /** The pseudo box that lists the quests made on this device. */
@@ -60,11 +61,11 @@ export function PlayQuestPage({
   }));
   return (
     <>
-      <PageHeader title={t('select.playAQuest', 'Play a quest')} onBack={onBack}>
-        <span className="hint head-hint">
-          {t('select.oneQuestNothingCarried', 'One quest, nothing carried over.')}
-        </span>
-      </PageHeader>
+      <PageHeader
+        title={t('select.playAQuest', 'Play a quest')}
+        hint={t('select.oneQuestNothingCarried', 'One quest, nothing carried over.')}
+        onBack={onBack}
+      />
       <main className="stage play-quest">
         <nav className="box-list" aria-label={t('select.boxes', 'Boxes')}>
           {boxes.map((b) => (
@@ -73,6 +74,7 @@ export function PlayQuestPage({
               className="box-pick"
               aria-pressed={b.id === box}
               data-testid={`pack-${b.id}`}
+              style={{ '--box': b.color } as React.CSSProperties}
               onClick={() => {
                 setPicked(undefined);
                 onBox(b.id);

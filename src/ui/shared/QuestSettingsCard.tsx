@@ -13,13 +13,30 @@ function SwitchRow({
   on,
   testId,
   onToggle,
+  variant = 'switch',
 }: {
   label: string;
   hint: string;
   on: boolean;
   testId: string;
   onToggle(): void;
+  /** `check`: a tick box with the label only (the setup screen). */
+  variant?: 'switch' | 'check';
 }) {
+  if (variant === 'check')
+    return (
+      <button
+        className="check-row"
+        role="checkbox"
+        aria-checked={on}
+        data-testid={testId}
+        title={hint}
+        onClick={onToggle}
+      >
+        <span className="check-box" aria-hidden="true" />
+        <span>{label}</span>
+      </button>
+    );
   return (
     <button
       className="switch-row"
@@ -57,11 +74,13 @@ export function SettingsRows({
   solo = false,
   campaign,
   campaignOnly = false,
+  variant = 'switch',
 }: {
   questId: string;
   solo?: boolean;
   campaign?: CampaignSettingsContext | undefined;
   campaignOnly?: boolean;
+  variant?: 'switch' | 'check';
 }) {
   const s = useQuestSettings(questId);
   const [stored, setStored] = useState<Campaign | undefined>(() =>
@@ -79,6 +98,7 @@ export function SettingsRows({
           )}
           on={s.ruleHints}
           testId="rule-hints"
+          variant={variant}
           onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
         />
       )}
@@ -91,6 +111,7 @@ export function SettingsRows({
           )}
           on={s.soloNoHug}
           testId="solo-no-hug"
+          variant={variant}
           onToggle={() => setQuestSetting(questId, 'soloNoHug', !s.soloNoHug)}
         />
       )}
@@ -119,6 +140,7 @@ export function SettingsRows({
                   hint={c.text}
                   on={on}
                   testId={`campaign-setting-${c.id}`}
+                  variant={variant}
                   onToggle={() => {
                     const next = { ...stored, settings: { ...stored.settings, [c.id]: !on } };
                     campaign.store.set(next);

@@ -22,26 +22,72 @@ export interface Playable {
 /** "scepterDestroyed" read as "scepter destroyed". */
 export const flagWords = (flag: string): string => flag.replace(/([A-Z])/g, ' $1').toLowerCase();
 
-/** The title band of a page of the start flow: Back, the title, links on the right. */
+/** The chevron of the Back button. */
+function Chevron() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12.5 4.5L7 10l5.5 5.5" />
+    </svg>
+  );
+}
+
+/**
+ * The title band of a page of the start flow (concept): Home has the wordmark; every other page has the
+ * square Back button and the title. `hint` sits on the title line, `subtitle` under it, buttons go right.
+ */
 export function PageHeader({
   title,
+  hint,
+  subtitle,
+  subtitleTestId,
   onBack,
   children,
 }: {
   title: string;
+  hint?: string | undefined;
+  subtitle?: string | undefined;
+  subtitleTestId?: string | undefined;
   onBack?: (() => void) | undefined;
   children?: ReactNode;
 }) {
   return (
-    <header>
-      {onBack && (
-        <button className="link" data-testid="back" onClick={onBack}>
-          {t('select.back', 'Back')}
+    <header className="page-head">
+      {onBack ? (
+        <button
+          className="back-btn"
+          data-testid="back"
+          aria-label={t('select.back', 'Back')}
+          onClick={onBack}
+        >
+          <Chevron />
         </button>
+      ) : (
+        <span className="wordmark">{t('select.soloquest', 'SoloQuest')}</span>
       )}
-      <span className="qn">{t('select.soloquest', 'SoloQuest')}</span>
-      {title && <h1>{title}</h1>}
-      <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>{children}</span>
+      {(title || subtitle) && (
+        <div className="head-titles">
+          <div className="head-line">
+            {title && <h1>{title}</h1>}
+            {hint && <span className="head-hint">{hint}</span>}
+          </div>
+          {subtitle && (
+            <p className="head-sub" data-testid={subtitleTestId}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
+      <span className="head-right">{children}</span>
     </header>
   );
 }

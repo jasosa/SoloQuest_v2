@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('fit to the screen', () => {
-  test('on a window shorter than the design, the Start button is on screen without scrolling and the screen is not shrunk', async ({
+  test('on a window shorter than the design, the Start button is reached by scrolling and the screen is not shrunk', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1194, height: 640 });
@@ -20,9 +20,10 @@ test.describe('fit to the screen', () => {
     await page.locator('.qcard').first().click();
     await page.getByTestId('choose-heroes').click();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
-    const start = page.getByRole('button', { name: 'Start the quest' });
-    const sb = (await start.boundingBox())!;
-    expect(sb.y + sb.height).toBeLessThanOrEqual(640);
+    const start = page.getByRole('button', { name: 'Start quest' });
+    // the Start button is at the bottom (concept): the page scrolls down to it
+    await start.scrollIntoViewIfNeeded();
+    await expect(start).toBeInViewport();
   });
 
   test('on a big window the select screen is not blown up: its text is as big as on the play screen', async ({

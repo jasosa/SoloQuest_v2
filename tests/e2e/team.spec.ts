@@ -7,7 +7,7 @@ test.describe('the team on the heroes page (decision 38)', () => {
   }) => {
     await page.goto('/?nosave=1');
     await openQuest(page, 0, 'frozen-horror');
-    const start = page.getByRole('button', { name: 'Start the quest' });
+    const start = page.getByRole('button', { name: 'Start quest' });
 
     // the pack's alternate Barbarian is offered; the mercenary and ally buttons need a hero first
     await expect(page.getByRole('button', { name: 'Barbarian (alternate)' })).toBeVisible();

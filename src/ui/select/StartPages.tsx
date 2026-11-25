@@ -8,6 +8,7 @@ export interface PackCard {
   readonly name: string;
   readonly total: number;
   readonly encoded: number;
+  readonly color: string;
 }
 
 /** The last saved game that can be opened, for "Continue your last game". */

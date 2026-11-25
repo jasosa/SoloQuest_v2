@@ -17,6 +17,7 @@ export interface SavedCampaign {
   readonly next: string | undefined;
   readonly nextInProgress: boolean;
   readonly heroes: string;
+  readonly color: string;
 }
 
 /** Campaigns: the saved ones with their progress, and the panel for a new one (concept "Campaigns"). */
@@ -44,14 +45,14 @@ export function CampaignsPage({
   const shownName = name ?? (pack ? nextName(pack) : '');
   return (
     <>
-      <PageHeader title={t('select.campaigns', 'Campaigns')} onBack={onBack}>
-        <span className="hint head-hint">
-          {t(
-            'select.aBoxPlayedInOrder',
-            'A box played in order. Skip or replay whenever you like.',
-          )}
-        </span>
-      </PageHeader>
+      <PageHeader
+        title={t('select.campaigns', 'Campaigns')}
+        hint={t(
+          'select.aBoxPlayedInOrder',
+          'A box played in order. Skip or replay whenever you like.',
+        )}
+        onBack={onBack}
+      />
       <main className="stage campaigns-page">
         <div className="camp-list">
           {saved.length === 0 && (
@@ -65,6 +66,7 @@ export function CampaignsPage({
                 <button
                   className="camp-row"
                   disabled={!s.usable}
+                  style={{ '--box': s.color } as React.CSSProperties}
                   data-testid={`campaign-${c.id}`}
                   onClick={() => onCampaign(c.id)}
                 >
@@ -122,6 +124,7 @@ export function CampaignsPage({
                 className="box-pick"
                 aria-pressed={p.id === pack}
                 data-testid={`pack-${p.id}`}
+                style={{ '--box': p.color } as React.CSSProperties}
                 onClick={() => {
                   setPack(p.id);
                   setName(undefined);

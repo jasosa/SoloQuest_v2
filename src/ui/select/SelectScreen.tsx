@@ -26,7 +26,7 @@ import { type Playable, type StartChoice } from './parts';
 import { CollectionPage, HomePage } from './HomePage';
 import { MINE, PlayQuestPage } from './PlayQuestPage';
 import { getRecord, onHistoryChange, type QuestRecord } from '../../persist/history';
-import { setOwned, useOwnedBoxes } from '../collection';
+import { setBoxColor, setOwned, useBoxColors, useOwnedBoxes } from '../collection';
 import { SettingsPage, type LastGame, type PackCard, type QuestCardData } from './StartPages';
 
 export type { StartChoice } from './parts';
@@ -244,6 +244,7 @@ export function SelectScreen({
   const encodedIn = (packId: string) =>
     playables.filter((p) => p.pack === packId && p.level).length;
   const installed = packs.packs.map((p) => p.manifest.id);
+  const colors = useBoxColors(installed);
   const owned = useOwnedBoxes(installed);
   const packCards: PackCard[] = packs.packs
     .filter((p) => owned.has(p.manifest.id))
@@ -252,6 +253,7 @@ export function SelectScreen({
       name: packLabel(p.manifest),
       total: p.manifest.quests.length,
       encoded: encodedIn(p.manifest.id),
+      color: colors[p.manifest.id]!,
     }));
   const counts = {
     quests: packCards.reduce((n, p) => n + p.encoded, 0),
@@ -314,8 +316,10 @@ export function SelectScreen({
               quests: p.manifest.quests.length,
               always: p.manifest.id === CORE_PACK,
               owned: owned.has(p.manifest.id),
+              color: colors[p.manifest.id]!,
             }))}
             onToggle={(id, on) => setOwned(id, on, installed)}
+            onColor={setBoxColor}
             onBack={() => go(HOME)}
           />
         </div>
@@ -362,9 +366,16 @@ export function SelectScreen({
               };
             });
       const entries = [
-        ...packCards.map((c) => ({ id: c.id, name: c.name, count: c.total })),
+        ...packCards.map((c) => ({ id: c.id, name: c.name, count: c.total, color: c.color })),
         ...(others.length > 0 || boxId === MINE
-          ? [{ id: MINE, name: t('select.myQuests', 'My quests'), count: others.length }]
+          ? [
+              {
+                id: MINE,
+                name: t('select.myQuests', 'My quests'),
+                count: others.length,
+                color: 'var(--muted)',
+              },
+            ]
           : []),
       ];
       const manifest = packs.byId.get(boxId)?.manifest;
@@ -443,6 +454,7 @@ export function SelectScreen({
             p !== undefined &&
             saveList.some((g) => g.questId === p.level.quest.id && g.campaignId === c.id),
           heroes: team.map((m) => labelOf(team, m.id)).join(', '),
+          color: colors[c.pack] ?? 'var(--ink)',
         };
       });
       return (

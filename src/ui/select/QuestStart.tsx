@@ -4,7 +4,7 @@ import { newCampaign, startFlagsFor, type Campaign } from '../../engine/pack/cam
 import { MemoryCampaignStore, type CampaignStore } from '../../persist/campaigns';
 import { resume, type Resumed, type SaveStore } from '../../persist/saves';
 import { CORE_PACK } from '../../engine/pack/registry';
-import { packs } from '../packs';
+import { packLabel, packs } from '../packs';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { SettingsRows } from '../shared/QuestSettingsCard';
 import { t } from '../../i18n/t';
@@ -123,7 +123,7 @@ export function QuestStart({
             title: quest.title,
           });
   const subtitle = [
-    manifest ? manifest.name : t('select.coreGame', 'Core game'),
+    manifest ? packLabel(manifest) : t('select.coreGame', 'Core game'),
     campaign && mode !== 'single'
       ? t('select.campaignNamed', 'Campaign "{name}"', { name: campaign.name })
       : undefined,
@@ -142,22 +142,7 @@ export function QuestStart({
 
   return (
     <>
-      <PageHeader title={title} onBack={onBack}>
-        <span className="hint head-hint">{subtitle}</span>
-        <button
-          className={resumed ? 'btn alt' : 'btn'}
-          data-testid="start-game"
-          disabled={!ready}
-          aria-describedby={ready ? undefined : 'team-hint'}
-          onClick={start}
-        >
-          {mode !== 'single'
-            ? t('select.start', 'Start')
-            : exists
-              ? t('select.replaceItAndStart', 'Replace it and start')
-              : t('select.startTheQuest', 'Start the quest')}
-        </button>
-      </PageHeader>
+      <PageHeader title={title} subtitle={subtitle} onBack={onBack} />
       <div className="setup-wrap">
         <main className="stage setup">
           <section className="card setup-col start-team" aria-label={t('select.heroes', 'Heroes')}>
@@ -166,9 +151,14 @@ export function QuestStart({
               {mode === 'new'
                 ? t(
                     'select.heroesCanBeChanged',
-                    'Heroes can be changed before each quest. Mercenaries and animals can be added.',
+                    'Heroes can be changed before each quest. Any hero from your boxes can play.',
                   )
-                : t('select.pick1To4Hint', 'Any hero from your boxes can play.')}
+                : mode === 'campaign'
+                  ? t(
+                      'select.fromTheCampaign',
+                      'From the campaign. Change them if a hero fell. Any hero from your boxes can play.',
+                    )
+                  : t('select.pick1To4Hint', 'Any hero from your boxes can play.')}
             </p>
             {fellLast.length > 0 && (
               <p className="hint">
@@ -187,10 +177,19 @@ export function QuestStart({
             aria-label={t('select.beforeYouStart', 'Before you start')}
           >
             <h2>{t('select.numberedBefore', '2 · Before you start')}</h2>
-            <h3 className="quest-title" data-testid="quest-title">
-              {quest.title}
-            </h3>
-            <p className="summary">{quest.intro.summary}</p>
+            {asked.length > 0 && (
+              <p className="hint">
+                {asked.length === 1
+                  ? t(
+                      'select.needsOneThing',
+                      'Nothing is carried over by the app. This quest needs to know one thing from your sheets.',
+                    )
+                  : t(
+                      'select.needsSomeThings',
+                      'Nothing is carried over by the app. This quest needs to know a few things from your sheets.',
+                    )}
+              </p>
+            )}
             {quest.suggestedPack && (
               <p className="hint" data-testid="suggested-pack">
                 {t('select.looksBestWithThe', 'Looks best with the texture pack {suggestedPack}.', {
@@ -198,40 +197,33 @@ export function QuestStart({
                 })}
               </p>
             )}
-            {asked.length > 0 ? (
-              asked.map((f) => (
-                <div key={f.flag} className="ask" data-testid={`ask-${f.flag}`}>
-                  <p>
-                    {t('select.carriedFlagQuestion', 'Carried from an earlier quest: {flag}?', {
-                      flag: flagWords(f.flag),
-                    })}
-                  </p>
-                  <div className="yesno">
-                    <button
-                      className={answer(f.flag) ? 'btn' : 'btn alt'}
-                      aria-pressed={answer(f.flag)}
-                      onClick={() => setAnswers({ ...answers, [f.flag]: true })}
-                    >
-                      {t('select.yes', 'Yes')}
-                    </button>
-                    <button
-                      className={answer(f.flag) ? 'btn alt' : 'btn'}
-                      aria-pressed={!answer(f.flag)}
-                      onClick={() => setAnswers({ ...answers, [f.flag]: false })}
-                    >
-                      {t('select.no', 'No')}
-                    </button>
+            {asked.length > 0
+              ? asked.map((f) => (
+                  <div key={f.flag} className="ask" data-testid={`ask-${f.flag}`}>
+                    <p>
+                      {t('select.carriedFlagQuestion', 'Carried from an earlier quest: {flag}?', {
+                        flag: flagWords(f.flag),
+                      })}
+                    </p>
+                    <div className="yesno">
+                      <button
+                        className={answer(f.flag) ? 'btn' : 'btn alt'}
+                        aria-pressed={answer(f.flag)}
+                        onClick={() => setAnswers({ ...answers, [f.flag]: true })}
+                      >
+                        {t('select.yes', 'Yes')}
+                      </button>
+                      <button
+                        className={answer(f.flag) ? 'btn alt' : 'btn'}
+                        aria-pressed={!answer(f.flag)}
+                        onClick={() => setAnswers({ ...answers, [f.flag]: false })}
+                      >
+                        {t('select.no', 'No')}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="hint">
-                {t(
-                  'select.nothingToAsk',
-                  'Nothing is carried over by the app. This quest asks nothing.',
-                )}
-              </p>
-            )}
+                ))
+              : null}
             {playable.edited && (
               <>
                 <p className="hint">{t('select.thisIsYourEdited', 'This is your edited copy.')}</p>
@@ -278,6 +270,12 @@ export function QuestStart({
                 {SAVED_GAME_FAILED}
               </p>
             )}
+            <p className="hint foot-note">
+              {t(
+                'select.otherQuestionsComeUp',
+                'Other questions come up during play, at the moment they matter.',
+              )}
+            </p>
           </section>
 
           <section className="card setup-col" aria-label={t('select.options', 'Options')}>
@@ -286,25 +284,25 @@ export function QuestStart({
               questId={quest.id}
               solo={quest.team?.solo === true}
               campaign={settingsCampaign}
+              variant="check"
             />
-            <p className="hint">
-              {mode === 'single'
-                ? t('select.optionsKeptForTheQuest', 'Options are kept for this quest.')
-                : t(
-                    'select.optionsKeptForCampaign',
-                    'Campaign options are kept for the whole campaign.',
-                  )}
-            </p>
+            {mode !== 'single' && (
+              <p className="hint foot-note">
+                {t('select.optionsKeptForCampaign', 'Options are kept for the whole campaign.')}
+              </p>
+            )}
           </section>
         </main>
         <footer className="setup-foot">
           <p className="hint" id="team-hint">
             {ready
-              ? t('select.nHeroesPicked', 'Heroes: {count}. Pick 1 to 4.', { count: heroCount })
+              ? heroCount === 1
+                ? t('select.oneHero', '1 hero')
+                : t('select.nHeroes', '{count} heroes', { count: heroCount })
               : t('select.pick1To42', 'Pick 1 to 4 heroes to start the quest.')}
           </p>
           {exists && (
-            <p className="hint" data-testid="replace-hint">
+            <p className="hint replace-hint" data-testid="replace-hint">
               {t(
                 'select.startingReplacesTheSaved',
                 'Starting replaces the saved game (turn {turn}). It cannot be brought back.',
@@ -312,6 +310,17 @@ export function QuestStart({
               )}
             </p>
           )}
+          <button
+            className={resumed ? 'btn alt' : 'btn'}
+            data-testid="start-game"
+            disabled={!ready}
+            aria-describedby={ready ? undefined : 'team-hint'}
+            onClick={start}
+          >
+            {exists
+              ? t('select.replaceItAndStart', 'Replace it and start')
+              : t('select.startTheQuest', 'Start quest')}
+          </button>
         </footer>
       </div>
     </>

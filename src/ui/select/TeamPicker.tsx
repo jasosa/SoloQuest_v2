@@ -12,6 +12,31 @@ import {
 import type { PackManifest } from '../../engine/pack/schema';
 import { t } from '../../i18n/t';
 
+/** One row of the hero list (concept): a square tick, the name, the box it comes from. */
+function HeroRow({
+  name,
+  box,
+  on,
+  onToggle,
+}: {
+  name: string;
+  box: string;
+  on: boolean;
+  onToggle(): void;
+}) {
+  return (
+    <div className="hero-wrap">
+      <button className="hero-row" aria-pressed={on} onClick={onToggle}>
+        <span className="hero-tick" aria-hidden="true" />
+        <span className="hero-name">{name}</span>
+      </button>
+      <span className="hero-box" data-on={on}>
+        {box}
+      </span>
+    </div>
+  );
+}
+
 /**
  * The three groups of the New game popup (decision 38): heroes, mercenaries, animal allies. The
  * value is the free team list. Warnings never stop the game.
@@ -35,7 +60,7 @@ export function TeamPicker({
   const heroes = value.filter((m) => m.kind === 'hero');
   const mercs = value.filter((m) => m.kind === 'mercenary');
   const allies = value.filter((m) => m.kind === 'ally');
-  const packHeroes = packs.flatMap((p) => p.team.heroes);
+  const packHeroes = packs.flatMap((p) => p.team.heroes.map((h) => ({ ...h, box: p.name })));
   const packAllies = packs.flatMap((p) => p.team.allies);
   const packMercs = packs.flatMap((p) => p.team.mercenaries);
   const grants = rule?.grantsAlly;
@@ -119,32 +144,26 @@ export function TeamPicker({
 
   return (
     <>
-      <div className="lbl">{t('select.heroes', 'Heroes')}</div>
-      <div className="pick-heroes" role="group" aria-label={t('select.heroes', 'Heroes')}>
-        {HEROES.map((h) => {
-          const m = heroMember(h);
-          return (
-            <button
-              key={h}
-              className="chip"
-              aria-pressed={value.some((x) => x.id === h)}
-              onClick={() => toggleHero(m)}
-            >
-              {HERO_NAMES[h]}
-            </button>
-          );
-        })}
+      <div className="hero-list" role="group" aria-label={t('select.heroes', 'Heroes')}>
+        {HEROES.map((h) => (
+          <HeroRow
+            key={h}
+            name={HERO_NAMES[h]}
+            box={t('select.coreGame', 'Core game')}
+            on={value.some((x) => x.id === h)}
+            onToggle={() => toggleHero(heroMember(h))}
+          />
+        ))}
         {packHeroes.map((h) => {
           const m: TeamMember = { id: `hero:${h.id}`, name: h.name, kind: 'hero', as: h.as };
           return (
-            <button
+            <HeroRow
               key={m.id}
-              className="chip"
-              aria-pressed={value.some((x) => x.id === m.id)}
-              onClick={() => toggleHero(m)}
-            >
-              {h.name}
-            </button>
+              name={h.name}
+              box={h.box}
+              on={value.some((x) => x.id === m.id)}
+              onToggle={() => toggleHero(m)}
+            />
           );
         })}
       </div>

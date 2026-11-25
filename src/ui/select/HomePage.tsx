@@ -150,11 +150,7 @@ export function HomePage({
               {t('select.continue', 'Continue')}
             </button>
           </section>
-        ) : (
-          <p className="hint" data-testid="home-continue-none">
-            {t('select.noSavedGameYet', 'No saved game yet.')}
-          </p>
-        )}
+        ) : null}
         <div className="home-cards">
           <button className="home-card" data-testid="home-single" onClick={onSingle}>
             <Icon name="quest" />
@@ -224,23 +220,26 @@ export interface BoxRow {
   readonly quests: number;
   readonly always: boolean;
   readonly owned: boolean;
+  readonly color: string;
 }
 
 /** My collection: tick the boxes you own. Quests, heroes and editor pieces follow this list. */
 export function CollectionPage({
   boxes,
   onToggle,
+  onColor,
   onBack,
 }: {
   boxes: readonly BoxRow[];
   onToggle(id: string, owned: boolean): void;
+  onColor(id: string, color: string): void;
   onBack(): void;
 }) {
   const ticked = boxes.filter((b) => b.owned).length;
   return (
     <>
       <PageHeader title={t('select.myCollection', 'My collection')} onBack={onBack}>
-        <span className="hint head-hint">
+        <span className="head-note">
           {t(
             'select.tickTheBoxesYou',
             'Tick the boxes you own. Quests, heroes and editor pieces follow this list.',
@@ -250,35 +249,48 @@ export function CollectionPage({
       <main className="stage collection">
         <div className="box-grid">
           {boxes.map((b) => (
-            <label key={b.id} className={`box-row${b.owned ? ' on' : ''}`} data-box={b.id}>
-              <span
-                className={`box-bar box-${b.id === 'core' ? 'core' : 'other'}`}
-                aria-hidden="true"
-              />
-              <span className="box-text">
+            <div
+              key={b.id}
+              className={`box-row${b.owned ? ' on' : ''}`}
+              data-box={b.id}
+              style={{ '--box': b.color } as React.CSSProperties}
+            >
+              <span className="box-bar" aria-hidden="true" />
+              <label className="box-text" htmlFor={`own-${b.id}`}>
                 <span className="box-name">{b.name}</span>
                 <span className="box-sub">
                   {b.always
                     ? t('select.nQuestsAlwaysOn', '{count} quests, always on', { count: b.quests })
                     : t('select.nQuestsCount', '{count} quests', { count: b.quests })}
                 </span>
-              </span>
+              </label>
               <input
+                type="color"
+                className="box-color"
+                value={b.color}
+                data-testid={`color-${b.id}`}
+                aria-label={t('select.colourOf', 'Colour of {name}', { name: b.name })}
+                onChange={(e) => onColor(b.id, e.target.value)}
+              />
+              <input
+                id={`own-${b.id}`}
                 type="checkbox"
                 checked={b.owned}
                 disabled={b.always}
                 data-testid={`own-${b.id}`}
                 onChange={(e) => onToggle(b.id, e.target.checked)}
               />
-            </label>
+            </div>
           ))}
         </div>
-        <p className="hint">
-          {t('select.boxesTicked', '{count} boxes ticked.', { count: ticked })}
-        </p>
-        <button className="btn" data-testid="collection-done" onClick={onBack}>
-          {t('select.done', 'Done')}
-        </button>
+        <div className="coll-foot">
+          <p className="hint">
+            {t('select.boxesTicked', '{count} boxes ticked.', { count: ticked })}
+          </p>
+          <button className="btn" data-testid="collection-done" onClick={onBack}>
+            {t('select.done', 'Done')}
+          </button>
+        </div>
       </main>
     </>
   );

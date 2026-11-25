@@ -98,15 +98,23 @@ export function CampaignOverview({
 
   return (
     <>
-      <PageHeader title={campaign.name || t('select.campaign', 'Campaign')} onBack={onBack}>
-        <span className="hint head-hint" data-testid="campaign-progress">
-          {packLabel(manifest)} ·{' '}
-          {t('select.nOfQuestsDone', '{done} of {total} quests done', {
+      <PageHeader
+        title={campaign.name || t('select.campaign', 'Campaign')}
+        subtitle={`${packLabel(manifest)} · ${t(
+          'select.nOfQuestsDone',
+          '{done} of {total} quests done',
+          {
             done: campaign.finished.length,
             total,
-          })}
-        </span>
-      </PageHeader>
+          },
+        )}${
+          campaign.skipped.length > 0
+            ? `, ${t('select.nSkipped', '{count} skipped', { count: campaign.skipped.length })}`
+            : ''
+        }`}
+        subtitleTestId="campaign-progress"
+        onBack={onBack}
+      />
       <main className="stage campaign-page">
         <div className="camp-main">
           <QuestGrid cards={cards} onPick={(c) => setPicked(manifest.quests[c.slot])} />

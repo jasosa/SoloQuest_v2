@@ -74,7 +74,7 @@ test.describe('quest and team select', () => {
     // the heroes are chosen on the next page: Start needs at least one
     await questCard(page, 1).click();
     await page.getByTestId('choose-heroes').click();
-    const start = page.getByRole('button', { name: 'Start the quest' });
+    const start = page.getByRole('button', { name: 'Start quest' });
     await expect(start).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await page.getByRole('button', { name: 'Elf', exact: true }).click();
