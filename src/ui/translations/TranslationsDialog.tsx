@@ -13,8 +13,7 @@ import {
 import { progressByArea } from '../../i18n/editorModel';
 import type { LanguageStore, LanguageSummary } from '../../persist/languages';
 import { t } from '../../i18n/t';
-import { ownerModeOn, rememberOwnerMode } from '../../persist/ownerMode';
-import { Dialog, Toggle } from '../shared/Frame';
+import { Dialog } from '../shared/Frame';
 import { TranslationEditor } from './TranslationEditor';
 
 function download(name: string, text: string): void {
@@ -60,7 +59,6 @@ export function TranslationsDialog({
   const [edits, setEdits] = useState<Record<string, string>>({});
   /** The changes of the owner to the built-in English (owner mode), applied under the device edits. */
   const [update, setUpdate] = useState<Record<string, string>>({});
-  const [owner, setOwner] = useState(ownerModeOn);
   const [resetting, setResetting] = useState(false);
   /** Something that shows only after the page loads again was changed. */
   const [pending, setPending] = useState(false);
@@ -122,23 +120,11 @@ export function TranslationsDialog({
       return;
     }
     const isEnglish = isEnglishCode(r.file.language.code);
-    const isUpdate = r.file.language.code === BUILTIN_UPDATE_CODE;
-    if (isUpdate && !owner) {
-      setMessage({
-        text: t('translations.updateNeedsOwner', 'Only owner mode can import an English update.'),
-        bad: true,
-      });
-      return;
-    }
     const replaced = languages.some((l) => l.code === r.file.language.code);
     try {
       // a file of English texts is merged into the edited English: English is never replaced or deleted
       await store.save(
-        isUpdate
-          ? englishEditsFile(builtin, { ...update, ...r.file.strings }, BUILTIN_UPDATE_CODE)
-          : isEnglish
-            ? englishEditsFile(shipped, { ...edits, ...r.file.strings })
-            : r.file,
+        isEnglish ? englishEditsFile(shipped, { ...edits, ...r.file.strings }) : r.file,
       );
     } catch {
       setMessage({
@@ -241,17 +227,6 @@ export function TranslationsDialog({
           'A translation changes the words of the app and of the quests. It never changes the rules or your saved games. A text that a language does not have is shown in English.',
         )}
       </p>
-      <Toggle
-        label={t(
-          'translations.ownerMode',
-          'Owner mode: you can export your English changes as an update of the shipped English',
-        )}
-        on={owner}
-        onChange={(on) => {
-          setOwner(on);
-          rememberOwnerMode(on);
-        }}
-      />
       <input
         ref={input}
         type="file"
@@ -342,33 +317,20 @@ export function TranslationsDialog({
             className="chip"
             onClick={() =>
               download(
-                `${ENGLISH_CODE}${LANGUAGE_EXTENSION}`,
-                languageToText(englishEditsFile(shipped, edits)),
+                `english-update${LANGUAGE_EXTENSION}`,
+                languageToText(
+                  englishEditsFile(
+                    builtin,
+                    { ...update, ...edits },
+                    BUILTIN_UPDATE_CODE,
+                    new Date().toISOString().slice(0, 10),
+                  ),
+                ),
               )
             }
           >
             {t('translations.export', 'Export')}
           </button>
-          {owner && (
-            <button
-              className="chip"
-              onClick={() =>
-                download(
-                  `english-update${LANGUAGE_EXTENSION}`,
-                  languageToText(
-                    englishEditsFile(
-                      builtin,
-                      { ...update, ...edits },
-                      BUILTIN_UPDATE_CODE,
-                      new Date().toISOString().slice(0, 10),
-                    ),
-                  ),
-                )
-              }
-            >
-              {t('translations.exportBuiltIn', 'Export as update')}
-            </button>
-          )}
           {resetting ? (
             <button
               className="chip main"

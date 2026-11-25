@@ -206,12 +206,11 @@ test.describe('translations (decision 92)', () => {
     ).toContainText('0 changed');
   });
 
-  test('owner mode: change English, export it as an update; others cannot', async ({ page }) => {
+  test('change English and export the update file', async ({ page }) => {
     await page.goto('/');
     await openSettings(page);
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
-    // the development build is in owner mode
     const en = dlg.locator('[data-language="en"]');
     await expect(dlg.locator('[data-language="en-core"]')).toHaveCount(0);
     await en.getByRole('button', { name: 'Edit', exact: true }).click();
@@ -231,7 +230,7 @@ test.describe('translations (decision 92)', () => {
     const again = page.getByRole('dialog', { name: 'Translations' });
     await expect(again.locator('[data-language="en"]')).toContainText('1 changed');
     const download = page.waitForEvent('download');
-    await again.getByRole('button', { name: 'Export as update' }).click();
+    await again.getByRole('button', { name: 'Export', exact: true }).click();
     const file = await (await download).path();
     const update = JSON.parse(readFileSync(file, 'utf8')) as {
       format: string;
@@ -246,13 +245,6 @@ test.describe('translations (decision 92)', () => {
     expect(update.base).toMatch(/^en-/);
     // only the changed key
     expect(update.strings).toEqual({ 'select.home': 'Pick a quest' });
-
-    // without owner mode the export button is gone and the update cannot be brought in
-    await again.getByRole('switch', { name: /Owner mode/ }).click();
-    await expect(again.getByRole('button', { name: 'Export as update' })).toHaveCount(0);
-    await again.getByLabel('Translation file').setInputFiles(file);
-    await expect(again.getByRole('alert')).toContainText('Only owner mode');
-    await again.getByRole('switch', { name: /Owner mode/ }).click();
 
     // undo the change
     await again.getByRole('button', { name: 'Undo all my changes' }).click();
