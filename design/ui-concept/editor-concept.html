@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SoloQuest concept: the quest editor and the rest of the screens</title>
+<link rel="stylesheet" href="../../src/ui/shared/tokens.css" />
+<style>
+  html, body { overflow: auto; height: auto; }
+  body { padding: 24px; background: #d8cdb5; }
+  h2.board-title { font: 700 14px 'Bonum'; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 28px 0 8px; }
+  .note { max-width: 1194px; font-size: 15px; color: var(--text); margin-bottom: 6px; }
+  /* one artboard = one tablet screen */
+  .ab { position: relative; width: 1194px; height: 834px; background: var(--paper); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); font-size: 14px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 20px; border: 2px solid var(--ink); background: var(--ink); color: var(--on-ink); font: 700 17px 'Bonum'; white-space: nowrap; }
+  .btn.alt { background: none; color: var(--ink); }
+  .btn.sm { height: 44px; font-size: 15px; padding: 0 14px; }
+  .btn.off { border-color: var(--off); color: var(--off); background: none; }
+  .link { background: none; border: 0; color: var(--ink); text-decoration: underline; font-style: italic; font-size: 15px; }
+  /* title band */
+  .head { display: flex; align-items: center; gap: 16px; padding: 22px 40px 14px; }
+  .wordmark { font: 700 38px/1 'Bonum'; font-variant-caps: small-caps; color: var(--ink); }
+  .back { flex: none; width: 50px; height: 50px; display: grid; place-items: center; border: 2px solid var(--ink); background: none; color: var(--ink); }
+  .head h1 { font: 700 36px/1.1 'Bonum'; font-variant-caps: small-caps; color: var(--ink); }
+  .head .line { display: flex; align-items: baseline; gap: 16px; }
+  .head .hint { font-size: 18px; font-style: italic; color: var(--muted); }
+  .head .sub { font-size: 17px; font-style: italic; color: var(--muted); margin-top: 4px; }
+  .head .right { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+  .stage { padding: 6px 40px 24px; min-height: 0; overflow: hidden; }
+  .lbl { font: 700 12px 'Bonum'; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .hintp { font-size: 14px; font-style: italic; color: var(--muted); }
+  /* cards */
+  .card { border: 2px solid var(--text); background: var(--paper-3); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .card h2 { font: 700 22px/1.15 'Bonum'; color: var(--ink); }
+  .card.sel { border-color: var(--ink); box-shadow: 5px 5px 0 var(--sel); }
+  /* tabs: same look as the box list of Play a quest */
+  .tabs { display: flex; gap: 10px; padding: 0 40px 12px; }
+  .tab { min-height: 46px; padding: 0 22px; border: 2px solid var(--off); background: var(--paper-3); font: 700 17px 'Bonum'; color: var(--text); }
+  .tab[aria-pressed='true'] { background: var(--sel); border-color: var(--ink); color: var(--ink); }
+  .tab .dot { margin-left: 8px; display: inline-block; min-width: 22px; padding: 0 6px; border: 1.5px solid var(--ink); font-size: 13px; color: var(--ink); }
+  /* rows with a colour bar */
+  .row { display: flex; align-items: center; gap: 14px; min-height: 64px; padding-right: 16px; border: 2px solid var(--text); background: var(--paper-3); margin-bottom: 10px; }
+  .row .bar { align-self: stretch; width: 14px; background: var(--box, var(--ink)); }
+  .row .t { flex: 1; display: flex; flex-direction: column; }
+  .row .t b { font: 700 20px/1.15 'Bonum'; color: var(--text); }
+  .row .t i { font-size: 14px; color: var(--muted); }
+  .row.on { border-color: var(--ink); background: var(--sel); box-shadow: 4px 4px 0 var(--ink); }
+  .pick { display: flex; align-items: center; justify-content: space-between; min-height: 46px; padding: 6px 12px; border: 2px solid var(--off); border-left: 12px solid var(--box, var(--ink)); background: var(--paper-3); margin-bottom: 8px; font: 700 17px 'Bonum'; }
+  .pick.on { background: var(--sel); border-color: var(--ink); border-left-color: var(--box, var(--ink)); }
+  .pick span.c { font: 14px 'Pagella'; color: var(--muted); }
+  .menu { display: flex; flex-direction: column; gap: 8px; min-height: 84px; padding: 14px 18px; border: 2px solid var(--text); background: var(--paper-3); margin-bottom: 12px; }
+  .menu b { font: 700 22px 'Bonum'; color: var(--ink); }
+  .menu span { font-size: 15px; color: var(--muted); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .q { border: 2px solid var(--ink); background: var(--paper-3); padding: 10px 12px; min-height: 112px; display: flex; flex-direction: column; }
+  .q .n { font: 700 12px 'Bonum'; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .q .tt { font: 700 16px/1.2 'Bonum'; color: var(--ink); margin-top: 4px; }
+  .q .nt { margin-top: auto; font-size: 13px; font-style: italic; color: var(--muted); }
+  .q.on { background: var(--sel); box-shadow: 4px 4px 0 var(--ink); }
+  .field { height: 46px; border: 2px solid var(--ink); background: var(--white); padding: 0 12px; display: flex; align-items: center; font-size: 16px; }
+  .field.area { height: 96px; align-items: flex-start; padding-top: 10px; }
+  .check { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 18px; }
+  .check i { width: 26px; height: 26px; border: 2px solid var(--ink); background: var(--white); display: inline-block; }
+  .check i.on { background: var(--ink); box-shadow: inset 0 0 0 4px var(--white); }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chip { min-height: 46px; border: 2px solid var(--ink); background: none; display: grid; place-items: center; font: 700 15px 'Bonum'; color: var(--ink); }
+  .chip.on { background: var(--ink); color: var(--on-ink); }
+  .board { border: 2px solid var(--ink); background: var(--corridor); }
+  .veil { position: absolute; inset: 0; background: var(--veil); }
+  .dialog { position: absolute; left: 180px; top: 90px; width: 834px; border: 2px solid var(--ink); background: var(--paper-3); box-shadow: 8px 8px 0 var(--sel); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .dialog h2 { font: 700 26px 'Bonum'; color: var(--ink); }
+  .toggle { width: 54px; height: 30px; border: 2px solid var(--ink); background: var(--ink); position: relative; }
+  .toggle::after { content: ''; position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; background: var(--paper-3); }
+  .toggle.off { background: none; } .toggle.off::after { right: auto; left: 3px; background: var(--ink); }
+</style>
+</head>
+<body>
+<p class="note"><b>Concept: the quest editor and the rest of the screens.</b> Same language as the six start-flow concepts: the square Back button and the small-caps title, cards with a 2 px outline, rows with a colour bar, the selection colour for what is picked, one primary filled button per screen, tabs and lists as the box list of "Play a quest". No new colour, font or control. Drawn at 1194 x 834.</p>
+
+<!-- 1. Editor start -->
+<h2 class="board-title">1 · Quest editor (start)</h2>
+<div class="ab">
+  <div class="head"><button class="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button>
+    <div><div class="line"><h1>Quest editor</h1><span class="hint">Make your own quests and campaigns, or check a printed one.</span></div></div></div>
+  <div class="stage" style="display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start">
+    <div>
+      <div class="lbl" style="margin-bottom:10px">Your quests</div>
+      <div class="row on"><span class="bar"></span><span class="t"><b>The Cellar</b><i>Quest 1 · changed yesterday 22:40 · 1 problem</i></span><button class="btn sm">Open</button><button class="btn sm alt">Delete</button></div>
+      <div class="row"><span class="bar" style="--box:var(--muted)"></span><span class="t"><b>Trial by Ice, edited</b><i>Copy of a printed quest · changed 12 Nov</i></span><button class="btn sm alt">Open</button><button class="btn sm alt">Delete</button></div>
+      <div class="row"><span class="bar" style="--box:var(--muted)"></span><span class="t"><b>The Cold Vault</b><i>Quest 3 · changed 2 Nov</i></span><button class="btn sm alt">Open</button><button class="btn sm alt">Delete</button></div>
+      <p class="hintp" style="margin-top:14px">Drop a quest file here to open it.</p>
+    </div>
+    <div class="card sel" style="gap:12px;min-height:420px">
+      <div class="menu" style="margin:0"><b>New quest</b><span>Start an empty quest with its stairs and map.</span></div>
+      <div class="menu" style="margin:0"><b>Open quest</b><span>Load a file, or copy a printed quest.</span></div>
+      <div class="menu" style="margin:0"><b>Library</b><span>Abilities, spells, enemies, heroes and companions.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Editor: Map -->
+<h2 class="board-title">2 · Editor, Map tab (the same title band and tabs on every tab)</h2>
+<div class="ab">
+  <div class="head"><button class="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button>
+    <div><div class="line"><h1>The Cellar</h1><span class="hint">Saved</span></div></div>
+    <div class="right"><button class="btn alt sm">1 problem</button><button class="btn alt sm">Undo</button><button class="btn alt sm off">Redo</button><button class="btn alt sm">Playtest</button><button class="btn sm">Save</button></div></div>
+  <div style="display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0">
+    <div class="tabs"><button class="tab" aria-pressed="false">Quest</button><button class="tab" aria-pressed="true">Map</button><button class="tab" aria-pressed="false">Actions</button><button class="tab" aria-pressed="false">Monsters</button><button class="tab" aria-pressed="false">Library</button><span style="margin-left:auto;display:flex;gap:10px"><button class="btn alt sm">Import</button><button class="btn alt sm">Export</button></span></div>
+    <div style="display:grid;grid-template-columns:230px 1fr 290px;gap:18px;padding:0 40px 24px;min-height:0">
+      <div class="card" style="gap:8px">
+        <h2>Tools</h2>
+        <div class="chips"><div class="chip on">Select</div><div class="chip">Rock</div><div class="chip">Doors</div><div class="chip">Blocks</div><div class="chip">Furniture</div><div class="chip">Tiles</div><div class="chip">Monsters</div><div class="chip">Traps</div><div class="chip">Markers</div><div class="chip">Zones</div><div class="chip">Merge rooms</div><div class="chip">Start</div></div>
+        <div class="lbl" style="margin-top:6px">View</div><div class="check"><i></i>Room ids</div>
+        <div class="lbl">Reference image</div><button class="btn alt sm">Load image</button>
+      </div>
+      <div class="board" style="position:relative;height:640px">
+        <div style="position:absolute;inset:14px;background:repeating-linear-gradient(0deg,transparent 0 24px,rgba(110,31,42,.12) 24px 25px),repeating-linear-gradient(90deg,transparent 0 24px,rgba(110,31,42,.12) 24px 25px)"></div>
+        <div style="position:absolute;left:30px;top:30px;width:230px;height:200px;border:3px solid var(--ink);background:var(--floor)"></div>
+        <div style="position:absolute;left:280px;top:30px;width:150px;height:130px;border:3px solid var(--ink);background:var(--floor)"></div>
+        <div style="position:absolute;left:190px;top:260px;width:200px;height:150px;border:3px solid var(--ink);background:var(--sel)"></div>
+        <div style="position:absolute;left:12px;bottom:12px;display:flex;gap:8px"><button class="btn alt sm">−</button><button class="btn alt sm">100%</button><button class="btn alt sm">+</button></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;gap:8px"><button class="tab" style="min-height:44px;font-size:15px" aria-pressed="true">Element</button><button class="tab" style="min-height:44px;font-size:15px" aria-pressed="false">Problems <span class="dot">1</span></button></div>
+        <p class="hintp">Select something on the map to edit it. The quest fields are in the Quest tab.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Editor: Quest tab -->
+<h2 class="board-title">3 · Editor, Quest tab (numbered cards, as the setup screen)</h2>
+<div class="ab">
+  <div class="head"><button class="back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button><div><div class="line"><h1>The Cellar</h1><span class="hint">Saved</span></div></div><div class="right"><button class="btn alt sm">1 problem</button><button class="btn alt sm">Undo</button><button class="btn alt sm off">Redo</button><button class="btn alt sm">Playtest</button><button class="btn sm">Save</button></div></div>
+  <div style="display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0">
+    <div class="tabs"><button class="tab" aria-pressed="true">Quest</button><button class="tab" aria-pressed="false">Map</button><button class="tab" aria-pressed="false">Actions</button><button class="tab" aria-pressed="false">Monsters</button><button class="tab" aria-pressed="false">Library</button></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 40px 24px">
+      <div class="card"><h2>1 · General</h2><div class="lbl">Title</div><div class="field">The Cellar</div><div class="lbl">Number</div><div class="field">1</div><div class="lbl">Start room</div><div class="field">R20</div><div class="lbl">Summary</div><div class="field area">Write a short summary of this quest.</div></div>
+      <div class="card"><h2>2 · Objectives and maps</h2><p class="hintp">A quest needs at least one objective.</p><button class="btn alt sm" style="align-self:flex-start">Add an objective</button><div class="lbl" style="margin-top:8px">Maps and links</div><p class="hintp">This quest has one map.</p><button class="btn alt sm" style="align-self:flex-start">New map</button><div class="lbl" style="margin-top:8px">Wandering monster</div><div class="chips"><div class="chip on">None</div><div class="chip">A monster</div></div></div>
+      <div class="card"><h2>3 · Rules</h2><div class="lbl">Falling block rule</div><div class="field">None</div><div class="lbl">No equipment until note</div><div class="field">None</div><div class="lbl">Door teleport (magic door)</div><div class="field">Dice to roll</div><div class="field">Squares to move to</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Actions -->
+<h2 class="board-title">4 · Editor, Actions and Monsters tabs (list, detail panel: as Play a quest)</h2>
+<div class="ab">
+  <div class="head"><button class="back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button><div><div class="line"><h1>The Cellar</h1><span class="hint">Saved</span></div></div><div class="right"><button class="btn alt sm">1 problem</button><button class="btn alt sm">Undo</button><button class="btn alt sm off">Redo</button><button class="btn alt sm">Playtest</button><button class="btn sm">Save</button></div></div>
+  <div style="display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0">
+    <div class="tabs"><button class="tab" aria-pressed="false">Quest</button><button class="tab" aria-pressed="false">Map</button><button class="tab" aria-pressed="true">Actions</button><button class="tab" aria-pressed="false">Monsters</button><button class="tab" aria-pressed="false">Library</button></div>
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;padding:0 40px 24px;align-items:start">
+      <div>
+        <div class="pick on"><span>Open the vault door</span><span class="c">Place</span></div>
+        <div class="pick"><span>Lever pulled</span><span class="c">Element</span></div>
+        <div class="pick"><span>Verag slain</span><span class="c">Moment</span></div>
+        <button class="btn alt" style="width:100%;margin-top:6px">Add action</button>
+      </div>
+      <div class="card sel" style="min-height:560px">
+        <div class="lbl">Action · on a place</div><h2>Open the vault door</h2>
+        <div class="lbl">When</div><div class="field">A hero enters room R07</div>
+        <div class="lbl">Effects</div><div class="row" style="margin:0;min-height:50px"><span class="bar"></span><span class="t"><b style="font-size:16px">Show a message</b><i>The vault door swings open.</i></span></div>
+        <div class="row" style="margin:0;min-height:50px"><span class="bar"></span><span class="t"><b style="font-size:16px">Complete an objective</b><i>o1</i></span></div>
+        <div style="margin-top:auto;display:flex;gap:12px"><button class="btn">Save action</button><button class="btn alt">Cancel</button><button class="btn alt" style="margin-left:auto">Delete</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Library -->
+<h2 class="board-title">5 · Library (one list of kinds, the items, the detail panel)</h2>
+<div class="ab">
+  <div class="head"><button class="back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button><div><div class="line"><h1>Library</h1><span class="hint">Made once, used in any quest.</span></div></div></div>
+  <div class="stage" style="display:grid;grid-template-columns:220px 1fr 330px;gap:20px;align-items:start">
+    <div><div class="pick on" style="--box:var(--ink)"><span>Enemies</span><span class="c">24</span></div><div class="pick" style="--box:var(--ink)"><span>Abilities</span><span class="c">9</span></div><div class="pick" style="--box:var(--ink)"><span>Spells</span><span class="c">12</span></div><div class="pick" style="--box:var(--ink)"><span>Heroes</span><span class="c">6</span></div><div class="pick" style="--box:var(--ink)"><span>Companions</span><span class="c">2</span></div></div>
+    <div><div class="grid3"><div class="q on"><span class="n">Core game</span><span class="tt">Goblin</span><span class="nt">Edited</span></div><div class="q"><span class="n">Core game</span><span class="tt">Orc</span></div><div class="q"><span class="n">Core game</span><span class="tt">Fimir</span></div><div class="q"><span class="n">Frozen Horror</span><span class="tt">Ice Gremlin</span></div><div class="q"><span class="n">Frozen Horror</span><span class="tt">Yeti</span></div><div class="q" style="border-style:dashed"><span class="tt">New enemy</span><span class="nt">Add</span></div></div></div>
+    <div class="card sel" style="min-height:560px"><div class="lbl">Core game · Enemy</div><h2>Goblin</h2><div class="lbl">Name</div><div class="field">Goblin</div><div class="lbl">Move · Attack · Defend · Body · Mind</div><div class="field">10 · 2 · 1 · 1 · 1</div><div style="margin-top:auto;display:flex;gap:12px"><button class="btn">Save</button><button class="btn alt">Reset to the printed one</button></div></div>
+  </div>
+</div>
+
+<!-- 6. Settings and dialogs -->
+<h2 class="board-title">6 · Settings, with Textures and Translations (dialogs use the same card, a veil and the offset shadow)</h2>
+<div class="ab">
+  <div class="head"><button class="back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button><div><div class="line"><h1>Settings</h1></div></div></div>
+  <div class="stage" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;align-items:start;max-width:880px">
+    <div class="menu"><b>Textures</b><span>Built-in look</span></div>
+    <div class="menu"><b>Translations</b><span>English</span></div>
+  </div>
+  <div class="veil"></div>
+  <div class="dialog">
+    <h2>Translations</h2>
+    <div class="row" style="margin:0"><span class="bar"></span><span class="t"><b>English</b><i>Built in · 2 texts changed</i></span><button class="btn sm alt">Edit</button><button class="btn sm alt">Export</button></div>
+    <div class="row" style="margin:0"><span class="bar" style="--box:var(--green)"></span><span class="t"><b>Español</b><i>1678 texts · 94% done</i></span><button class="btn sm">Use</button><button class="btn sm alt">Edit</button></div>
+    <div style="display:flex;gap:12px;margin-top:6px"><button class="btn alt">New language</button><button class="btn alt">Import</button><button class="btn" style="margin-left:auto">Close</button></div>
+  </div>
+</div>
+
+<!-- 7. Play screen -->
+<h2 class="board-title">7 · Quest screen title band (Back is the square button; Settings is Options)</h2>
+<div class="ab">
+  <div class="head"><button class="back"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg></button>
+    <div><div class="line"><h1>Quest 1 · The Trial</h1><span class="hint">Turn 3</span></div><p class="sub">Goal: slay Verag, the gargoyle. 0 of 1</p></div>
+    <div class="right"><button class="btn alt sm">Quest info</button><button class="btn alt sm">Options</button><button class="btn sm">Finish the quest</button></div></div>
+  <div class="stage" style="display:grid;grid-template-columns:1fr 300px;gap:18px"><div class="board" style="height:660px"></div><div class="card"><h2>Heroes</h2><p class="hintp">Roster, notes and Zargon's turn keep their present layout; only the title band and its buttons change.</p></div></div>
+</div>
+</body>
+</html>
