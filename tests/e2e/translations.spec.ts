@@ -28,8 +28,8 @@ test.describe('translations (decision 92)', () => {
     const editor = page.getByRole('dialog', { name: 'Translate Espanol' });
 
     // a select screen text
-    await editor.getByRole('searchbox').fill('select.home');
-    await editor.getByLabel('Translation of select.home').fill('Inicio');
+    await editor.getByRole('searchbox').fill('select.myCollection');
+    await editor.getByLabel('Translation of select.myCollection').fill('Inicio');
     // a quest note text
     await editor.getByRole('searchbox').fill(START);
     await expect(editor.locator(`[data-key="${START}"]`)).toContainText('Not translated');
@@ -47,7 +47,7 @@ test.describe('translations (decision 92)', () => {
       page.waitForNavigation(),
       dlg.locator('[data-language="es"]').getByRole('button', { name: 'Use', exact: true }).click(),
     ]);
-    await expect(page.getByRole('heading', { name: 'Inicio' })).toBeVisible();
+    await expect(page.getByTestId('home-collection')).toContainText('Inicio');
     await page.getByTestId('home-single').click();
     await page.getByTestId('pack-core').click();
     await expect(page.getByRole('button', { name: /La Prueba/ })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe('translations (decision 92)', () => {
       strings: Record<string, string>;
     };
     expect(exported.format).toBe('soloquest-language');
-    expect(exported.strings['select.home']).toBe('Inicio');
+    expect(exported.strings['select.myCollection']).toBe('Inicio');
     expect(exported.strings[START]).toBe('Pon a los heroes en la escalera.');
 
     await Promise.all([
@@ -92,7 +92,7 @@ test.describe('translations (decision 92)', () => {
             .click(),
         ),
     ]);
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
     await openSettings(page);
     await page.getByTestId('translations-link').click();
     const again = page.getByRole('dialog', { name: 'Translations' });
@@ -110,7 +110,7 @@ test.describe('translations (decision 92)', () => {
         JSON.stringify({
           ...exported,
           language: { name: 'English (edited)', code: 'en' },
-          strings: { 'select.home': 'Pick one' },
+          strings: { 'select.myCollection': 'Pick one' },
         }),
       ),
     });
@@ -141,18 +141,18 @@ test.describe('translations (decision 92)', () => {
     // change a text of English
     await en.getByRole('button', { name: 'Edit' }).click();
     const editor = page.getByRole('dialog', { name: 'Edit English' });
-    await editor.getByRole('searchbox').fill('select.home');
-    const field = editor.getByLabel('Translation of select.home');
-    await expect(field).toHaveValue('Home');
+    await editor.getByRole('searchbox').fill('select.myCollection');
+    const field = editor.getByLabel('Translation of select.myCollection');
+    await expect(field).toHaveValue('My collection');
     await field.fill('Pick a quest');
-    await expect(editor.locator('[data-key="select.home"]')).toContainText('Changed');
+    await expect(editor.locator('[data-key="select.myCollection"]')).toContainText('Changed');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(editor).toContainText('Saved.');
     await Promise.all([
       page.waitForNavigation(),
       editor.getByRole('button', { name: 'Back to the list' }).click(),
     ]);
-    await expect(page.getByRole('heading', { name: 'Pick a quest' })).toBeVisible();
+    await expect(page.getByTestId('home-collection')).toContainText('Pick a quest');
 
     // a language made now starts from the changed English, and falls back to it
     await openSettings(page);
@@ -163,15 +163,15 @@ test.describe('translations (decision 92)', () => {
     // reset one text, then everything
     await again.locator('[data-language="en"]').getByRole('button', { name: 'Edit' }).click();
     const ed2 = page.getByRole('dialog', { name: 'Edit English' });
-    await ed2.getByRole('searchbox').fill('select.home');
-    await ed2.getByRole('button', { name: 'Reset select.home' }).click();
-    await expect(ed2.getByLabel('Translation of select.home')).toHaveValue('Home');
+    await ed2.getByRole('searchbox').fill('select.myCollection');
+    await ed2.getByRole('button', { name: 'Reset select.myCollection' }).click();
+    await expect(ed2.getByLabel('Translation of select.myCollection')).toHaveValue('My collection');
     await ed2.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),
       ed2.getByRole('button', { name: 'Back to the list' }).click(),
     ]);
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
 
     // reset all to the original
     await openSettings(page);
@@ -215,15 +215,15 @@ test.describe('translations (decision 92)', () => {
     await expect(dlg.locator('[data-language="en-core"]')).toHaveCount(0);
     await en.getByRole('button', { name: 'Edit', exact: true }).click();
     const editor = page.getByRole('dialog', { name: 'Edit English' });
-    await editor.getByRole('searchbox').fill('select.home');
-    await editor.getByLabel('Translation of select.home').fill('Pick a quest');
+    await editor.getByRole('searchbox').fill('select.myCollection');
+    await editor.getByLabel('Translation of select.myCollection').fill('Pick a quest');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
     await Promise.all([
       page.waitForNavigation(),
       editor.getByRole('button', { name: 'Back to the list' }).click(),
     ]);
     // it shows in the app at once
-    await expect(page.getByRole('heading', { name: 'Pick a quest' })).toBeVisible();
+    await expect(page.getByTestId('home-collection')).toContainText('Pick a quest');
 
     await openSettings(page);
     await page.getByTestId('translations-link').click();
@@ -244,7 +244,7 @@ test.describe('translations (decision 92)', () => {
     expect(update.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(update.base).toMatch(/^en-/);
     // only the changed key
-    expect(update.strings).toEqual({ 'select.home': 'Pick a quest' });
+    expect(update.strings).toEqual({ 'select.myCollection': 'Pick a quest' });
 
     // undo the change
     await again.getByRole('button', { name: 'Undo all my changes' }).click();
@@ -255,6 +255,6 @@ test.describe('translations (decision 92)', () => {
         .click()
         .then(() => again.getByRole('button', { name: 'Close' }).click()),
     ]);
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
   });
 });

@@ -21,9 +21,10 @@ import { t } from '../../i18n/t';
 import { CampaignOverview } from './CampaignOverview';
 import { QuestStart } from './QuestStart';
 import { type Playable, type StartChoice } from './parts';
+import { CollectionPage, HomePage } from './HomePage';
+import { setOwned, useOwnedBoxes } from '../collection';
 import {
   CampaignPacksPage,
-  HomePage,
   SettingsPage,
   SinglePacksPage,
   SingleQuestsPage,
@@ -39,6 +40,7 @@ export type { StartChoice } from './parts';
 export type Route =
   | { page: 'home' }
   | { page: 'settings' }
+  | { page: 'collection' }
   | { page: 'singlePacks' }
   | { page: 'singleQuests'; pack: string }
   /** A quest played alone: choose the heroes. `key` is the quest id. */
@@ -246,12 +248,25 @@ export function SelectScreen({
 
   const encodedIn = (packId: string) =>
     playables.filter((p) => p.pack === packId && p.level).length;
-  const packCards: PackCard[] = packs.packs.map((p) => ({
-    id: p.manifest.id,
-    name: packLabel(p.manifest),
-    total: p.manifest.quests.length,
-    encoded: encodedIn(p.manifest.id),
-  }));
+  const installed = packs.packs.map((p) => p.manifest.id);
+  const owned = useOwnedBoxes(installed);
+  const packCards: PackCard[] = packs.packs
+    .filter((p) => owned.has(p.manifest.id))
+    .map((p) => ({
+      id: p.manifest.id,
+      name: packLabel(p.manifest),
+      total: p.manifest.quests.length,
+      encoded: encodedIn(p.manifest.id),
+    }));
+  const counts = {
+    quests: packCards.reduce((n, p) => n + p.encoded, 0),
+    boxes: packCards.length,
+    campaignsInProgress: campaigns
+      .list()
+      .filter((c) => (packs.byId.get(c.pack)?.manifest.quests.length ?? 0) > c.finished.length)
+      .length,
+    own: playables.filter((p) => p.pack === undefined).length,
+  };
   const others = playables.filter((p) => p.pack === undefined);
 
   const startChoice = (choice: StartChoice) => onStart(choice);
@@ -282,6 +297,23 @@ export function SelectScreen({
   };
 
   switch (route.page) {
+    case 'collection':
+      return (
+        <div className="app select page">
+          <CollectionPage
+            boxes={packs.packs.map((p) => ({
+              id: p.manifest.id,
+              name: packLabel(p.manifest),
+              quests: p.manifest.quests.length,
+              always: p.manifest.id === CORE_PACK,
+              owned: owned.has(p.manifest.id),
+            }))}
+            onToggle={(id, on) => setOwned(id, on, installed)}
+            onBack={() => go(HOME)}
+          />
+        </div>
+      );
+
     case 'settings':
       return (
         <div className="app select page">
@@ -479,6 +511,8 @@ export function SelectScreen({
         <div className="app select page">
           <HomePage
             last={last}
+            counts={counts}
+            onCollection={() => go({ page: 'collection' })}
             notice={notice}
             orphans={orphans}
             onSingle={() => go({ page: 'singlePacks' })}

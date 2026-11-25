@@ -37,7 +37,7 @@ export function PageHeader({
         </button>
       )}
       <span className="qn">{t('select.soloquest', 'SoloQuest')}</span>
-      <h1>{title}</h1>
+      {title && <h1>{title}</h1>}
       <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>{children}</span>
     </header>
   );

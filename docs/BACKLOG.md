@@ -322,3 +322,14 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] Cage Room and Bottomless Chasm Room are the 4 x 4 tiles. No cage piece and no sight-blocking tile (owner: the cage blocking sight is fine with a message): the cage type, `blocks` and `hiddenWhen` are dropped on load, quests 0 and 4 say it in their notes; the laid chasm is out of the palette and chasm squares migrate (decision 94)
 - [x] One end flow (decision 97): the goal line opens the end sheet (checklist, inline confirms, ways to end), "Finish the quest" when the goal is done, one confirmation
 - [x] Texture pack families (decision 99): core packs and expansion packs (`box` + required `extends`), the packs in use as `{ core, expansions }`, Textures dialog by family, the shipped Frozen Horror pack is made for `core-ah-2021`. Not built: applying a core pack and an expansion pack in one tap
+
+## UI concepts and feedback (owner, 2026-11-25)
+
+- [x] Slice 1: Home (Continue banner, three cards, My collection, settings icon), My collection page (decision 101)
+- [ ] Slice 2: Play a quest page (box list, quest grid with played marks, detail panel with map and last result)
+- [ ] Slice 3: Campaigns list and New campaign panel, Campaign detail (Done, Skipped, Next, Heroes, Journal, Read intro again)
+- [ ] Slice 4: Setup screen in three columns (Heroes, Before you start, Options)
+- [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
+- [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"
+- [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked
+- [ ] Texture packs: Frozen Horror preview, entrance doors

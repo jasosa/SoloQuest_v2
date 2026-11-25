@@ -7,7 +7,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     // 1. Home: four buttons, Continue is off while there is no saved game
     await expect(page.getByTestId('home-single')).toBeEnabled();
     await expect(page.getByTestId('home-campaign')).toBeEnabled();
-    await expect(page.getByTestId('home-continue')).toBeDisabled();
+    await expect(page.getByTestId('home-continue')).toHaveCount(0);
     await expect(page.getByTestId('home-settings')).toBeEnabled();
     await page.screenshot({ path: 'test-results/start-1-home.png' });
     // 2. Single quest: the installed packs and the other missions
@@ -46,7 +46,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('home-settings').click();
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
     await page.getByTestId('back').click();
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
     await page.getByTestId('home-single').click();
     await page.getByTestId('pack-core').click();
     await questCard(page, 2).click();
@@ -55,13 +55,13 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('back').click();
     await expect(page.getByText('Quest packs')).toBeVisible();
     await page.getByTestId('back').click();
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
     await page.getByTestId('back').click();
     await expect(page.getByText('Or continue a saved campaign')).toBeVisible();
     await page.getByTestId('back').click();
-    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible();
+    await expect(page.getByTestId('home-single')).toBeVisible();
   });
 
   test('a single quest makes no campaign, and leaving it returns to the quest page', async ({
@@ -87,7 +87,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.goto('/');
     await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
     await page.reload();
-    await expect(page.getByTestId('home-continue')).toBeDisabled();
+    await expect(page.getByTestId('home-continue')).toHaveCount(0);
     // a saved single quest
     await openQuest(page, 1);
     await newGame(page, ['Dwarf']);
@@ -96,7 +96,9 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.reload();
     const cont = page.getByTestId('home-continue');
     await expect(cont).toBeEnabled();
-    await expect(cont).toContainText('Quest 1, The Trial, turn 1');
+    await expect(page.getByTestId('home-continue-card')).toContainText(
+      'Quest 1, The Trial, turn 1',
+    );
     await cont.click();
     await expect(page.locator('header h1')).toHaveText('The Trial');
     // a campaign game made later is the newest: Continue opens it, and leaving goes to its overview
@@ -109,7 +111,9 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await dismissStart(page);
     await page.waitForTimeout(400);
     await page.reload();
-    await expect(page.getByTestId('home-continue')).toContainText('Quest 1, The Trial, turn 1');
+    await expect(page.getByTestId('home-continue-card')).toContainText(
+      'Quest 1, The Trial, turn 1',
+    );
     await page.getByTestId('home-continue').click();
     await expect(page.locator('header h1')).toHaveText('The Trial');
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
@@ -173,7 +177,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('confirm-delete').click();
     // no save is left: Continue is off, and a new campaign has no saved game
     await page.getByTestId('back').click();
-    await expect(page.getByTestId('home-continue')).toBeDisabled();
+    await expect(page.getByTestId('home-continue')).toHaveCount(0);
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('pack-core').click();
     await expect(page.getByTestId('replace-hint')).toHaveCount(0);
@@ -192,7 +196,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.waitForTimeout(400);
     await page.evaluate(() => localStorage.removeItem('soloquest-campaigns'));
     await page.reload();
-    await expect(page.getByTestId('home-continue')).toBeDisabled();
+    await expect(page.getByTestId('home-continue')).toHaveCount(0);
   });
 
   test('a campaign of a pack that is not installed is listed, disabled, with a Delete link', async ({
