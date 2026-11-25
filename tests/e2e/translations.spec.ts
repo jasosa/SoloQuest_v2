@@ -15,8 +15,8 @@ test.describe('translations (decision 92)', () => {
 
     // English is built in and has no edit, export or delete
     const en = dlg.locator('[data-language="en"]');
-    await expect(en).toContainText('Built in');
-    await expect(en).toContainText('never deleted');
+    await expect(en).toContainText('Stays on this device');
+    await expect(en).toContainText('cannot be deleted');
     await expect(en).toContainText('In use');
     await expect(en.getByRole('button', { name: 'Delete' })).toHaveCount(0);
 
@@ -135,7 +135,7 @@ test.describe('translations (decision 92)', () => {
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
     const en = dlg.locator('[data-language="en"]');
-    await expect(en).toContainText('never deleted');
+    await expect(en).toContainText('cannot be deleted');
     await expect(en.getByRole('button', { name: 'Delete' })).toHaveCount(0);
 
     // change a text of English
@@ -178,7 +178,7 @@ test.describe('translations (decision 92)', () => {
     await page.getByTestId('translations-link').click();
     const d3 = page.getByRole('dialog', { name: 'Translations' });
     const en3 = d3.locator('[data-language="en"]');
-    await expect(en3.getByRole('button', { name: 'Reset all to the original' })).toBeDisabled();
+    await expect(en3.getByRole('button', { name: 'Undo all my changes' })).toBeDisabled();
     await en3.getByRole('button', { name: 'Edit' }).click();
     const ed3 = page.getByRole('dialog', { name: 'Edit English' });
     await ed3.getByRole('searchbox').fill('select.singleQuest');
@@ -191,7 +191,7 @@ test.describe('translations (decision 92)', () => {
     await openSettings(page);
     await page.getByTestId('translations-link').click();
     const d4 = page.getByRole('dialog', { name: 'Translations' });
-    await d4.getByRole('button', { name: 'Reset all to the original' }).click();
+    await d4.getByRole('button', { name: 'Undo all my changes' }).click();
     await Promise.all([
       page.waitForNavigation(),
       d4
@@ -206,18 +206,15 @@ test.describe('translations (decision 92)', () => {
     ).toContainText('0 changed');
   });
 
-  test('owner mode: change the built-in English, export the update; others cannot', async ({
-    page,
-  }) => {
+  test('change English and export the update file', async ({ page }) => {
     await page.goto('/');
     await openSettings(page);
     await page.getByTestId('translations-link').click();
     const dlg = page.getByRole('dialog', { name: 'Translations' });
-    // the development build is in owner mode
-    const owner = dlg.getByTestId('owner-english');
-    await expect(owner).toContainText('The English file the app ships');
-    await owner.getByRole('button', { name: 'Edit the built-in English' }).click();
-    const editor = page.getByRole('dialog', { name: 'Edit the built-in English' });
+    const en = dlg.locator('[data-language="en"]');
+    await expect(dlg.locator('[data-language="en-core"]')).toHaveCount(0);
+    await en.getByRole('button', { name: 'Edit', exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Edit English' });
     await editor.getByRole('searchbox').fill('select.home');
     await editor.getByLabel('Translation of select.home').fill('Pick a quest');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
@@ -231,9 +228,9 @@ test.describe('translations (decision 92)', () => {
     await openSettings(page);
     await page.getByTestId('translations-link').click();
     const again = page.getByRole('dialog', { name: 'Translations' });
-    await expect(again.getByTestId('owner-english')).toContainText('1 changed');
+    await expect(again.locator('[data-language="en"]')).toContainText('1 changed');
     const download = page.waitForEvent('download');
-    await again.getByRole('button', { name: 'Export the built-in English' }).click();
+    await again.getByRole('button', { name: 'Export', exact: true }).click();
     const file = await (await download).path();
     const update = JSON.parse(readFileSync(file, 'utf8')) as {
       format: string;
@@ -249,19 +246,12 @@ test.describe('translations (decision 92)', () => {
     // only the changed key
     expect(update.strings).toEqual({ 'select.home': 'Pick a quest' });
 
-    // without owner mode the update cannot be brought in, and the owner row is gone
-    await again.getByRole('switch', { name: /Owner mode/ }).click();
-    await expect(again.getByTestId('owner-english')).toHaveCount(0);
-    await again.getByLabel('Translation file').setInputFiles(file);
-    await expect(again.getByRole('alert')).toContainText('Only owner mode');
-    await again.getByRole('switch', { name: /Owner mode/ }).click();
-
-    // reset the built-in changes
-    await again.getByRole('button', { name: 'Reset the built-in changes' }).click();
+    // undo the change
+    await again.getByRole('button', { name: 'Undo all my changes' }).click();
     await Promise.all([
       page.waitForNavigation(),
       again
-        .getByRole('button', { name: 'Really reset' })
+        .getByRole('button', { name: 'Really reset all' })
         .click()
         .then(() => again.getByRole('button', { name: 'Close' }).click()),
     ]);

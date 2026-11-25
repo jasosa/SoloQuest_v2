@@ -120,7 +120,7 @@ export function TranslationEditor({
       title={
         isEnglish
           ? code === BUILTIN_UPDATE_CODE
-            ? t('translations.editBuiltInEnglish', 'Edit the built-in English')
+            ? t('translations.editBuiltInEnglish', 'Edit the English update')
             : t('translations.editEnglish', 'Edit English')
           : t('translations.translate', 'Translate {name}', { name: file.language.name })
       }
@@ -243,33 +243,70 @@ export function TranslationEditor({
           const problem = placeholderProblem(english[key]!, own);
           const changed = isTranslated(english, strings, key);
           return (
-            <li key={key} data-key={key} style={{ display: 'block' }}>
-              <div className="fr-qnum">
-                {key}
-                {isEnglish
-                  ? changed && t('translations.changedTag', ' · Changed')
-                  : !changed && t('translations.notTranslated', ' · Not translated')}
-                {problem && t('translations.check', ' · Check: {problem}', { problem })}
+            <li key={key} data-key={key} style={{ display: 'block', padding: '12px 14px' }}>
+              <div className="fr-trans-header" style={{ marginBottom: 8 }}>
+                <div className="fr-qnum">
+                  {key}
+                  {isEnglish
+                    ? changed && t('translations.changedTag', ' · Changed')
+                    : !changed && t('translations.notTranslated', ' · Not translated')}
+                  {problem && t('translations.check', ' · Check: {problem}', { problem })}
+                </div>
+                {isEnglish && changed && (
+                  <button
+                    className="chip"
+                    aria-label={t('translations.resetKey', 'Reset {key}', { key })}
+                    onClick={() => change(key, '')}
+                  >
+                    {t('translations.reset', 'Reset')}
+                  </button>
+                )}
               </div>
-              <div className="fr-open-static" style={{ background: 'var(--paper-2)' }}>
-                {english[key]}
+              <div className="fr-trans-row">
+                <div className="fr-trans-col">
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontVariant: 'all-small-caps',
+                      color: 'var(--muted)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {t('translations.originalEnglish', 'Original English')}
+                  </div>
+                  <div
+                    className="fr-open-static"
+                    style={{
+                      background: 'var(--paper-2)',
+                      padding: '8px 12px',
+                      minHeight: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {english[key]}
+                  </div>
+                </div>
+                <div className="fr-trans-col">
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontVariant: 'all-small-caps',
+                      color: 'var(--muted)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {t('translations.translation', 'Translation')}
+                  </div>
+                  <textarea
+                    className="fr-ta"
+                    aria-label={t('translations.translationOf', 'Translation of {key}', { key })}
+                    value={own}
+                    rows={Math.min(6, Math.max(2, Math.ceil(english[key]!.length / 70)))}
+                    onChange={(e) => change(key, e.target.value)}
+                  />
+                </div>
               </div>
-              {isEnglish && changed && (
-                <button
-                  className="chip"
-                  aria-label={t('translations.resetKey', 'Reset {key}', { key })}
-                  onClick={() => change(key, '')}
-                >
-                  {t('translations.reset', 'Reset')}
-                </button>
-              )}
-              <textarea
-                className="fr-ta"
-                aria-label={t('translations.translationOf', 'Translation of {key}', { key })}
-                value={own}
-                rows={Math.min(6, Math.max(2, Math.ceil(english[key]!.length / 70)))}
-                onChange={(e) => change(key, e.target.value)}
-              />
             </li>
           );
         })}

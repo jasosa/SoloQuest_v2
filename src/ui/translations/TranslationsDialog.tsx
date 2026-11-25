@@ -13,8 +13,7 @@ import {
 import { progressByArea } from '../../i18n/editorModel';
 import type { LanguageStore, LanguageSummary } from '../../persist/languages';
 import { t } from '../../i18n/t';
-import { ownerModeOn, rememberOwnerMode } from '../../persist/ownerMode';
-import { Dialog, Toggle } from '../shared/Frame';
+import { Dialog } from '../shared/Frame';
 import { TranslationEditor } from './TranslationEditor';
 
 function download(name: string, text: string): void {
@@ -60,8 +59,6 @@ export function TranslationsDialog({
   const [edits, setEdits] = useState<Record<string, string>>({});
   /** The changes of the owner to the built-in English (owner mode), applied under the device edits. */
   const [update, setUpdate] = useState<Record<string, string>>({});
-  const [owner, setOwner] = useState(ownerModeOn);
-  const [resettingUpdate, setResettingUpdate] = useState(false);
   const [resetting, setResetting] = useState(false);
   /** Something that shows only after the page loads again was changed. */
   const [pending, setPending] = useState(false);
@@ -99,7 +96,6 @@ export function TranslationsDialog({
 
   const total = Object.keys(englishTexts).length;
   const editedCount = Object.keys(edits).length;
-  const updateCount = Object.keys(update).length;
   /** What the app ships: the built-in English with the update of the owner. */
   const shipped = { ...builtin, ...update };
 
@@ -124,26 +120,11 @@ export function TranslationsDialog({
       return;
     }
     const isEnglish = isEnglishCode(r.file.language.code);
-    const isUpdate = r.file.language.code === BUILTIN_UPDATE_CODE;
-    if (isUpdate && !owner) {
-      setMessage({
-        text: t(
-          'translations.updateNeedsOwner',
-          'Only owner mode can bring in an update of the built-in English.',
-        ),
-        bad: true,
-      });
-      return;
-    }
     const replaced = languages.some((l) => l.code === r.file.language.code);
     try {
       // a file of English texts is merged into the edited English: English is never replaced or deleted
       await store.save(
-        isUpdate
-          ? englishEditsFile(builtin, { ...update, ...r.file.strings }, BUILTIN_UPDATE_CODE)
-          : isEnglish
-            ? englishEditsFile(shipped, { ...edits, ...r.file.strings })
-            : r.file,
+        isEnglish ? englishEditsFile(shipped, { ...edits, ...r.file.strings }) : r.file,
       );
     } catch {
       setMessage({
@@ -246,14 +227,6 @@ export function TranslationsDialog({
           'A translation changes the words of the app and of the quests. It never changes the rules or your saved games. A text that a language does not have is shown in English.',
         )}
       </p>
-      <Toggle
-        label={t('translations.ownerMode', 'Owner mode: the built-in English can be changed')}
-        on={owner}
-        onChange={(on) => {
-          setOwner(on);
-          rememberOwnerMode(on);
-        }}
-      />
       <input
         ref={input}
         type="file"
@@ -324,7 +297,7 @@ export function TranslationsDialog({
             <span className="fr-qnum">
               {t(
                 'translations.builtInEnglish',
-                'Built in · Can be changed, never deleted · {total} texts · {edited} changed',
+                '{total} texts · {edited} changed by you · Stays on this device. English cannot be deleted.',
                 { total, edited: editedCount },
               )}
             </span>
@@ -344,8 +317,15 @@ export function TranslationsDialog({
             className="chip"
             onClick={() =>
               download(
-                `${ENGLISH_CODE}${LANGUAGE_EXTENSION}`,
-                languageToText(englishEditsFile(shipped, edits)),
+                `english-update${LANGUAGE_EXTENSION}`,
+                languageToText(
+                  englishEditsFile(
+                    builtin,
+                    { ...update, ...edits },
+                    BUILTIN_UPDATE_CODE,
+                    new Date().toISOString().slice(0, 10),
+                  ),
+                ),
               )
             }
           >
@@ -373,68 +353,10 @@ export function TranslationsDialog({
               disabled={editedCount === 0}
               onClick={() => setResetting(true)}
             >
-              {t('translations.resetAll', 'Reset all to the original')}
+              {t('translations.resetAll', 'Undo all my changes')}
             </button>
           )}
         </li>
-        {owner && (
-          <li data-language="en-core" data-testid="owner-english">
-            <div className="fr-open-static">
-              <span className="fr-qnum">
-                {t(
-                  'translations.ownerEnglish',
-                  'Owner mode · The English file the app ships · {count} changed',
-                  { count: updateCount },
-                )}
-              </span>
-              <span className="fr-qtitle">
-                {t('translations.builtInEnglishTitle', 'Built-in English')}
-              </span>
-            </div>
-            <button className="chip" onClick={() => setEditing(BUILTIN_UPDATE_CODE)}>
-              {t('translations.editBuiltIn', 'Edit the built-in English')}
-            </button>
-            <button
-              className="chip"
-              onClick={() =>
-                download(
-                  `english-update${LANGUAGE_EXTENSION}`,
-                  languageToText(
-                    englishEditsFile(
-                      builtin,
-                      update,
-                      BUILTIN_UPDATE_CODE,
-                      new Date().toISOString().slice(0, 10),
-                    ),
-                  ),
-                )
-              }
-            >
-              {t('translations.exportBuiltIn', 'Export the built-in English')}
-            </button>
-            {resettingUpdate ? (
-              <button
-                className="chip main"
-                onClick={async () => {
-                  await store.save(englishEditsFile(builtin, {}, BUILTIN_UPDATE_CODE));
-                  setResettingUpdate(false);
-                  setPending(true);
-                  await refresh();
-                }}
-              >
-                {t('translations.reallyResetBuiltIn', 'Really reset')}
-              </button>
-            ) : (
-              <button
-                className="chip"
-                disabled={updateCount === 0}
-                onClick={() => setResettingUpdate(true)}
-              >
-                {t('translations.resetBuiltIn', 'Reset the built-in changes')}
-              </button>
-            )}
-          </li>
-        )}
         {languages.map((l) => (
           <li key={l.code} data-language={l.code}>
             <div className="fr-open-static">
