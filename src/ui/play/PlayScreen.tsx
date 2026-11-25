@@ -1156,7 +1156,7 @@ export function PlayScreen({
           data-testid="settings-chip"
           onClick={() => setSettingsOpen(true)}
         >
-          {t('play.PlayScreen.settings', 'Settings')}
+          {t('play.PlayScreen.options', 'Options')}
         </button>
         {objectives.goalDone && (
           <button

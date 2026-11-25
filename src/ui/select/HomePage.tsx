@@ -134,16 +134,24 @@ export function HomePage({
               <div className="lbl">{t('select.continue', 'Continue')}</div>
               <h2>{lastPlayable.level.quest.title}</h2>
               <p className="hint" data-testid="home-continue-caption">
-                {lastPlayable.number === undefined
-                  ? t('select.lastGameOther', '{title}, turn {turn}', {
-                      title: lastPlayable.level.quest.title,
-                      turn: last.resumed.state.turn,
-                    })
-                  : t('select.lastGame', 'Quest {number}, {title}, turn {turn}', {
-                      number: lastPlayable.number,
-                      title: lastPlayable.level.quest.title,
-                      turn: last.resumed.state.turn,
-                    })}
+                {[
+                  last.box,
+                  lastPlayable.number === undefined
+                    ? undefined
+                    : t('select.questN', 'Quest {number}', { number: lastPlayable.number }),
+                  last.campaignName
+                    ? t('select.campaignNamed', 'Campaign "{name}"', { name: last.campaignName })
+                    : undefined,
+                  t('select.turnN', 'Turn {turn}', { turn: last.resumed.state.turn }),
+                  new Date(last.at).toLocaleString(undefined, {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                ]
+                  .filter((x) => x !== undefined)
+                  .join(' · ')}
               </p>
             </div>
             <button className="btn" data-testid="home-continue" onClick={onContinue}>

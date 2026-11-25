@@ -94,9 +94,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.reload();
     const cont = page.getByTestId('home-continue');
     await expect(cont).toBeEnabled();
-    await expect(page.getByTestId('home-continue-card')).toContainText(
-      'Quest 1, The Trial, turn 1',
-    );
+    await expect(page.getByTestId('home-continue-card')).toContainText('Quest 1 · Turn 1');
     await cont.click();
     await expect(page.locator('header h1')).toHaveText('The Trial');
     // a campaign game made later is the newest: Continue opens it, and leaving goes to its overview
@@ -111,7 +109,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.waitForTimeout(400);
     await page.reload();
     await expect(page.getByTestId('home-continue-card')).toContainText(
-      'Quest 1, The Trial, turn 1',
+      'Quest 1 · Campaign "Campaign 1" · Turn 1',
     );
     await page.getByTestId('home-continue').click();
     await expect(page.locator('header h1')).toHaveText('The Trial');
@@ -173,7 +171,8 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.waitForTimeout(400);
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
     await expect(questCard(page, 1)).toContainText('Saved game');
-    await page.getByTestId('delete-campaign').click();
+    await page.getByTestId('back').click();
+    await page.getByTestId('delete-campaign-core').click();
     await expect(page.getByRole('dialog')).toContainText('saved games');
     await page.getByTestId('confirm-delete').click();
     // no save is left: Continue is off, and a new campaign has no saved game
@@ -229,6 +228,7 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('home-campaign').click();
     await expect(page.getByTestId('campaign-gone')).toBeDisabled();
     await page.getByTestId('delete-campaign-gone').click();
+    await page.getByTestId('confirm-delete').click();
     await expect(page.getByTestId('campaign-gone')).toHaveCount(0);
   });
 });

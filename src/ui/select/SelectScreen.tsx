@@ -219,7 +219,14 @@ export function SelectScreen({
         if (cid !== undefined && !campaigns.get(cid)) continue;
         const r = await resume(saves, p.level);
         if (r.ok) {
-          newest = { playable: p, resumed: r };
+          const manifest = p.pack ? packs.byId.get(p.pack)?.manifest : undefined;
+          newest = {
+            playable: p,
+            resumed: r,
+            box: manifest ? packLabel(manifest) : t('select.myQuests', 'My quests'),
+            campaignName: cid !== undefined ? campaigns.get(cid)?.name || undefined : undefined,
+            at: g.updatedAt,
+          };
           break;
         }
       }
@@ -537,8 +544,6 @@ export function SelectScreen({
               campaigns.set(skipQuest(campaign, id, Date.now()));
               setTick((n) => n + 1);
             }}
-            onNewCampaign={() => go({ page: 'campaignNew', pack: campaign.pack })}
-            onDelete={() => void deleteCampaign(campaign.id)}
             onBack={() => go({ page: 'campaignPacks' })}
           />
         </div>

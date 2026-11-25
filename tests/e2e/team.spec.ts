@@ -88,9 +88,8 @@ test.describe('campaigns (decision 37)', () => {
     await page.getByTestId('back').click();
     await expect(page.getByTestId('campaign-core')).toContainText('Campaign 1');
     await expect(page.getByTestId('campaign-core')).toContainText('Next: Quest 1');
-    await page.getByTestId('campaign-core').click();
     // delete it: it asks first, and the list is empty after
-    await page.getByTestId('delete-campaign').click();
+    await page.getByTestId('delete-campaign-core').click();
     await page.getByTestId('confirm-delete').click();
     await expect(page.getByText('No saved campaign yet.')).toBeVisible();
   });
@@ -115,8 +114,10 @@ test.describe('campaigns (decision 37)', () => {
     await expect(page.getByTestId('campaign-core-2')).toContainText('Campaign 2');
     await page.getByTestId('campaign-core-2').click();
     await expect(page.locator('.camp-side .card').first()).toContainText('Wizard');
-    // "Start a new campaign" on the overview makes another one and keeps the others
-    await page.getByTestId('new-campaign').click();
+    // a new campaign from the list keeps the others
+    await page.getByTestId('back').click();
+    await page.getByTestId('pack-core').click();
+    await page.getByTestId('new-campaign-heroes').click();
     await expect(page.getByRole('heading', { name: 'Heroes for your campaign' })).toBeVisible();
     await page.getByTestId('back').click();
     await expect(page.getByTestId('campaign-core')).toBeVisible();
@@ -205,7 +206,7 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
 
     // in the play header the same switch is on
     await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Options' }).click();
     const play = page.getByRole('dialog', { name: 'Into the Northlands' });
     await expect(play.getByTestId(RAIMENT)).toHaveAttribute('aria-checked', 'true');
     await page.screenshot({ path: 'test-results/settings-campaign.png' });

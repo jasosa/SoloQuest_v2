@@ -4,7 +4,6 @@ import { nextQuest, type Campaign } from '../../engine/pack/campaign';
 import type { PackManifest } from '../../engine/pack/schema';
 import type { CampaignStore } from '../../persist/campaigns';
 import { packLabel } from '../packs';
-import { Dialog } from '../shared/Frame';
 import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { t } from '../../i18n/t';
 import { PageHeader, flagWords, type Playable } from './parts';
@@ -27,8 +26,6 @@ export function CampaignOverview({
   campaigns,
   onQuest,
   onSkip,
-  onNewCampaign,
-  onDelete,
   onBack,
 }: {
   campaign: Campaign;
@@ -40,12 +37,9 @@ export function CampaignOverview({
   campaigns: CampaignStore;
   onQuest(questId: string): void;
   onSkip(questId: string): void;
-  onNewCampaign(): void;
-  onDelete(): void;
   onBack(): void;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const next = nextQuest(manifest, campaign);
   const [picked, setPicked] = useState<string | undefined>();
   const total = manifest.quests.length;
@@ -163,16 +157,6 @@ export function CampaignOverview({
                 {t('select.campaignSettings', 'Campaign settings')}
               </button>
             )}
-            <button className="btn alt" data-testid="new-campaign" onClick={onNewCampaign}>
-              {t('select.startANewCampaign', 'Start a new campaign')}
-            </button>
-            <button
-              className="link"
-              data-testid="delete-campaign"
-              onClick={() => setConfirmDelete(true)}
-            >
-              {t('select.deleteThisCampaign', 'Delete this campaign')}
-            </button>
           </div>
         </div>
         <aside className="camp-side">
@@ -243,36 +227,6 @@ export function CampaignOverview({
           campaign={{ store: campaigns, pack: manifest, campaignId: campaign.id }}
           onClose={() => setSettingsOpen(false)}
         />
-      )}
-      {confirmDelete && (
-        <Dialog
-          title={t('select.deleteThisCampaign', 'Delete this campaign')}
-          onClose={() => setConfirmDelete(false)}
-          foot={
-            <>
-              <button className="btn alt" autoFocus onClick={() => setConfirmDelete(false)}>
-                {t('select.keepIt', 'Keep it')}
-              </button>
-              <button
-                className="btn"
-                data-testid="confirm-delete"
-                onClick={() => {
-                  setConfirmDelete(false);
-                  onDelete();
-                }}
-              >
-                {t('select.deleteThisCampaign', 'Delete this campaign')}
-              </button>
-            </>
-          }
-        >
-          <p>
-            {t(
-              'select.thisForgetsTheFinished2',
-              'This forgets the finished quests, the carried flags, the heroes, the settings and the saved games of this campaign. It cannot be brought back.',
-            )}
-          </p>
-        </Dialog>
       )}
     </>
   );

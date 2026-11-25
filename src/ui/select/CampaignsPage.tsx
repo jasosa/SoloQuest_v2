@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Campaign } from '../../engine/pack/campaign';
 import { t } from '../../i18n/t';
 import { dayLabel } from './CampaignOverview';
+import { Dialog } from '../shared/Frame';
 import { PageHeader } from './parts';
 import type { PackCard } from './StartPages';
 
@@ -42,6 +43,7 @@ export function CampaignsPage({
 }) {
   const [pack, setPack] = useState<string | undefined>(cards[0]?.id);
   const [name, setName] = useState<string | undefined>();
+  const [confirmDelete, setConfirmDelete] = useState<string | undefined>();
   const shownName = name ?? (pack ? nextName(pack) : '');
   return (
     <>
@@ -101,15 +103,13 @@ export function CampaignsPage({
                     {s.heroes && <span className="camp-heroes"> {s.heroes}</span>}
                   </span>
                 </button>
-                {!s.usable && (
-                  <button
-                    className="link"
-                    data-testid={`delete-campaign-${c.id}`}
-                    onClick={() => onDeleteCampaign(c.id)}
-                  >
-                    {t('select.deleteThisCampaign', 'Delete this campaign')}
-                  </button>
-                )}
+                <button
+                  className="link"
+                  data-testid={`delete-campaign-${c.id}`}
+                  onClick={() => setConfirmDelete(c.id)}
+                >
+                  {t('select.deleteThisCampaign', 'Delete this campaign')}
+                </button>
               </div>
             );
           })}
@@ -154,6 +154,37 @@ export function CampaignsPage({
           </button>
         </aside>
       </main>
+      {confirmDelete !== undefined && (
+        <Dialog
+          title={t('select.deleteThisCampaign', 'Delete this campaign')}
+          onClose={() => setConfirmDelete(undefined)}
+          foot={
+            <>
+              <button className="btn alt" autoFocus onClick={() => setConfirmDelete(undefined)}>
+                {t('select.keepIt', 'Keep it')}
+              </button>
+              <button
+                className="btn"
+                data-testid="confirm-delete"
+                onClick={() => {
+                  const id = confirmDelete;
+                  setConfirmDelete(undefined);
+                  onDeleteCampaign(id);
+                }}
+              >
+                {t('select.deleteThisCampaign', 'Delete this campaign')}
+              </button>
+            </>
+          }
+        >
+          <p>
+            {t(
+              'select.thisForgetsTheFinished2',
+              'This forgets the finished quests, the carried flags, the heroes, the settings and the saved games of this campaign. It cannot be brought back.',
+            )}
+          </p>
+        </Dialog>
+      )}
     </>
   );
 }

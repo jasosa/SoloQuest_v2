@@ -86,13 +86,14 @@ test.describe('dialogs (M8: focus and Escape)', () => {
     await newGame(page, ['Elf']);
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
-    await page.getByTestId('delete-campaign').click();
+    await page.getByTestId('back').click();
+    await page.getByTestId('delete-campaign-core').click();
     const dlg = page.getByRole('dialog', { name: 'Delete this campaign' });
     await expect(dlg).toBeVisible();
     expect(await insideDialog(page)).toBe(true);
     await page.keyboard.press('Escape');
     await expect(dlg).toHaveCount(0);
-    await expect(page.getByTestId('delete-campaign')).toBeFocused();
+    await expect(page.getByTestId('delete-campaign-core')).toBeFocused();
   });
 
   test('a margin note closes with Escape', async ({ page }) => {

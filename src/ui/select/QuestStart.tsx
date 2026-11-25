@@ -286,11 +286,6 @@ export function QuestStart({
               campaign={settingsCampaign}
               variant="check"
             />
-            {mode !== 'single' && (
-              <p className="hint foot-note">
-                {t('select.optionsKeptForCampaign', 'Options are kept for the whole campaign.')}
-              </p>
-            )}
           </section>
         </main>
         <footer className="setup-foot">

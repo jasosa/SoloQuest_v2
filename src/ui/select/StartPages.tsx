@@ -15,6 +15,12 @@ export interface PackCard {
 export interface LastGame {
   readonly playable: Playable;
   readonly resumed: Extract<Resumed, { ok: true }>;
+  /** The box of the quest, as the player reads it. */
+  readonly box: string;
+  /** The name of the campaign the game belongs to, if any. */
+  readonly campaignName?: string | undefined;
+  /** When the game was last saved (milliseconds). */
+  readonly at: number;
 }
 
 export function SettingsPage({

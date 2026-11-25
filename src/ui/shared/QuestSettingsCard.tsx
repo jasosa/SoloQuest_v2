@@ -183,7 +183,7 @@ export function QuestSettingsCard({
       kind={
         campaignOnly
           ? t('shared.QuestSettingsCard.campaignSettings', 'Campaign settings')
-          : t('shared.QuestSettingsCard.questSettings', 'Quest settings')
+          : t('shared.QuestSettingsCard.options', 'Options')
       }
       title={title}
       onClose={onClose}
