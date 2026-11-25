@@ -25,6 +25,7 @@ import { DexieSaveStore, MemorySaveStore, type SaveExtra, type SaveStore } from 
 import { LocalCampaignStore, MemoryCampaignStore, type CampaignStore } from '../persist/campaigns';
 import { newCampaign, startFlagsFor, type Campaign } from '../engine/pack/campaign';
 import { trackCampaign } from './store/campaignTracker';
+import { trackHistory } from './store/historyTracker';
 import { packs } from './packs';
 import { toStored } from '../engine/data/team';
 import { BoardView } from './board/BoardView';
@@ -312,9 +313,12 @@ function Game({ params }: { params: URLSearchParams }) {
     stopTracking.current = null;
     setGame(null);
   };
-  const track = (store: GameStore, campaign: Campaign, questId: string) => {
+  /** Listens to a game: the quest history, and the campaign when there is one. */
+  const track = (store: GameStore, campaign: Campaign | undefined, questId: string) => {
     stopTracking.current?.();
-    stopTracking.current = trackCampaign(store, campaigns, campaign, questId);
+    const stops = [trackHistory(store, questId)];
+    if (campaign) stops.push(trackCampaign(store, campaigns, campaign, questId));
+    stopTracking.current = () => stops.forEach((stop) => stop());
   };
 
   /** Opens the game. False when it could not be opened (the page does not change then). */
@@ -331,7 +335,7 @@ function Game({ params }: { params: URLSearchParams }) {
           campaignId,
         });
         const c = campaignId ? campaigns.get(campaignId) : undefined;
-        if (wasCampaign && c) track(store, c, choice.questId);
+        track(store, wasCampaign ? c : undefined, choice.questId);
         setGame(store);
         return true;
       } catch {
@@ -361,7 +365,7 @@ function Game({ params }: { params: URLSearchParams }) {
           campaignId: campaign?.id,
         });
         void store.getState().save(); // a new game replaces the old save at once
-        if (campaign) track(store, campaign, choice.questId);
+        track(store, campaign, choice.questId);
         setGame(store);
         return true;
       } catch {

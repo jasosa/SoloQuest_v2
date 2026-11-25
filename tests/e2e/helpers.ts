@@ -53,6 +53,7 @@ export async function openQuest(
   await page.getByTestId('home-single').click();
   await page.getByTestId(`pack-${pack}`).click();
   await questCard(page, number).click();
+  await page.getByTestId('choose-heroes').click();
 }
 
 /** From Home: Settings. */

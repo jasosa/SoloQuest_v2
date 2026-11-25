@@ -22,12 +22,12 @@ import { CampaignOverview } from './CampaignOverview';
 import { QuestStart } from './QuestStart';
 import { type Playable, type StartChoice } from './parts';
 import { CollectionPage, HomePage } from './HomePage';
+import { MINE, PlayQuestPage } from './PlayQuestPage';
+import { getRecord, onHistoryChange, type QuestRecord } from '../../persist/history';
 import { setOwned, useOwnedBoxes } from '../collection';
 import {
   CampaignPacksPage,
   SettingsPage,
-  SinglePacksPage,
-  SingleQuestsPage,
   campaignCaption,
   type LastGame,
   type PackCard,
@@ -268,6 +268,18 @@ export function SelectScreen({
     own: playables.filter((p) => p.pack === undefined).length,
   };
   const others = playables.filter((p) => p.pack === undefined);
+  // Results of past games, read again when one is written.
+  const [historyTick, setHistoryTick] = useState(0);
+  useEffect(() => onHistoryChange(() => setHistoryTick((n) => n + 1)), []);
+  const records = useMemo(() => {
+    void historyTick;
+    const m = new Map<string, QuestRecord>();
+    for (const p of playables) {
+      const r = getRecord(p.key);
+      if (r) m.set(p.key, r);
+    }
+    return m;
+  }, [playables, historyTick]);
 
   const startChoice = (choice: StartChoice) => onStart(choice);
   /** Forget a campaign and the saved games that belong to it (they must not show up in the next campaign of that id). */
@@ -328,42 +340,57 @@ export function SelectScreen({
       );
 
     case 'singlePacks':
-      return (
-        <div className="app select page">
-          <SinglePacksPage
-            cards={packCards}
-            others={others}
-            onPack={(pack) => go({ page: 'singleQuests', pack })}
-            onOther={(key) => go({ page: 'single', key, back: route })}
-            onBack={() => go(HOME)}
-          />
-        </div>
-      );
-
     case 'singleQuests': {
-      const manifest = packs.byId.get(route.pack)?.manifest;
-      const inThisPack = bundledEntries.filter((q) =>
-        q.level
-          ? (packOfQuest(q.level.quest.id) ?? CORE_PACK) === route.pack
-          : route.pack === CORE_PACK,
-      );
-      const cards: QuestCardData[] = inThisPack.map((q) => {
-        const p = q.level ? byKey.get(q.level.quest.id) : undefined;
-        const hasSave = p && saveList.some((g) => g.questId === p.level.quest.id);
-        return {
-          slot: q.slot,
-          number: q.number,
-          playable: p,
-          note: hasSave ? t('select.savedGame', 'Saved game') : undefined,
-        };
-      });
+      const boxId = route.page === 'singleQuests' ? route.pack : CORE_PACK;
+      const inBox = (id: string) =>
+        bundledEntries.filter((q) =>
+          q.level ? (packOfQuest(q.level.quest.id) ?? CORE_PACK) === id : id === CORE_PACK,
+        );
+      const cards: QuestCardData[] =
+        boxId === MINE
+          ? others.map((p, i) => ({
+              slot: i,
+              number: undefined,
+              playable: p,
+              note: saveList.some((g) => g.questId === p.level.quest.id)
+                ? t('select.savedGame', 'Saved game')
+                : undefined,
+            }))
+          : inBox(boxId).map((q) => {
+              const p = q.level ? byKey.get(q.level.quest.id) : undefined;
+              const hasSave = p && saveList.some((g) => g.questId === p.level.quest.id);
+              return {
+                slot: q.slot,
+                number: q.number,
+                playable: p,
+                note: hasSave ? t('select.savedGame', 'Saved game') : undefined,
+              };
+            });
+      const entries = [
+        ...packCards.map((c) => ({ id: c.id, name: c.name, count: c.total })),
+        ...(others.length > 0 || boxId === MINE
+          ? [{ id: MINE, name: t('select.myQuests', 'My quests'), count: others.length }]
+          : []),
+      ];
+      const manifest = packs.byId.get(boxId)?.manifest;
       return (
         <div className="app select page">
-          <SingleQuestsPage
-            title={manifest ? packLabel(manifest) : route.pack}
+          <PlayQuestPage
+            key={boxId}
+            boxes={entries}
+            box={boxId}
+            boxName={
+              boxId === MINE
+                ? t('select.myQuests', 'My quests')
+                : manifest
+                  ? packLabel(manifest)
+                  : boxId
+            }
             cards={cards}
-            onPick={(c) => c.playable && go({ page: 'single', key: c.playable.key, back: route })}
-            onBack={() => go({ page: 'singlePacks' })}
+            records={records}
+            onBox={(pack) => go({ page: 'singleQuests', pack })}
+            onChoose={(p) => go({ page: 'single', key: p.key, back: route })}
+            onBack={() => go(HOME)}
           />
         </div>
       );

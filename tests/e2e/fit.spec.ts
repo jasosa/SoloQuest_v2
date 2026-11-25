@@ -18,6 +18,7 @@ test.describe('fit to the screen', () => {
     await page.getByTestId('home-single').click();
     await page.getByTestId('pack-core').click();
     await page.locator('.qcard').first().click();
+    await page.getByTestId('choose-heroes').click();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     const start = page.getByRole('button', { name: 'Start the quest' });
     const sb = (await start.boundingBox())!;

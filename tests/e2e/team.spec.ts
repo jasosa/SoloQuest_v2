@@ -168,12 +168,12 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
     // a quest for a group has no Yeti switch
     await page.getByTestId('back').click();
     await questCard(page, 4).click();
+    await page.getByTestId('choose-heroes').click();
     await page.getByTestId('quest-settings').click();
     await expect(page.getByTestId('solo-no-hug')).toHaveCount(0);
     await page.getByRole('button', { name: 'Done' }).click();
 
     // a new campaign: the Raiment switch is set before it starts
-    await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('home-campaign').click();

@@ -326,7 +326,7 @@ All the texts of the application can be translated or modified with a tool, for 
 ## UI concepts and feedback (owner, 2026-11-25)
 
 - [x] Slice 1: Home (Continue banner, three cards, My collection, settings icon), My collection page (decision 101)
-- [ ] Slice 2: Play a quest page (box list, quest grid with played marks, detail panel with map and last result)
+- [x] Slice 2: Play a quest page (box list, quest grid with played marks, detail panel with map and last result)
 - [ ] Slice 3: Campaigns list and New campaign panel, Campaign detail (Done, Skipped, Next, Heroes, Journal, Read intro again)
 - [ ] Slice 4: Setup screen in three columns (Heroes, Before you start, Options)
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)

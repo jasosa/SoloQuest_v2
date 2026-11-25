@@ -62,20 +62,18 @@ test.describe('quest and team select', () => {
     await shot(page, 'select-start');
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
-    await page.getByTestId('back').click();
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.locator('.qcard')).toHaveCount(10);
     await expect(page.locator('.qcard').first()).toContainText('Quest 0');
     // Frozen Horror 3 shares its number with Core 3: both must be playable
     await questCard(page, 3).click();
-    await expect(page.locator('.side h2')).toHaveText('The Rescue');
-    await page.getByTestId('back').click();
-    await page.getByTestId('back').click();
+    await expect(page.locator('.detail h2')).toHaveText('The Rescue');
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
     await expect(page.getByText('Not encoded yet')).toHaveCount(0);
     // the heroes are chosen on the next page: Start needs at least one
     await questCard(page, 1).click();
+    await page.getByTestId('choose-heroes').click();
     const start = page.getByRole('button', { name: 'Start the quest' });
     await expect(start).toBeDisabled();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
@@ -239,6 +237,7 @@ test.describe('new game over a saved game', () => {
     await page.getByTestId('back').click();
     await expect(questCard(page, 1)).toContainText('Saved game');
     await questCard(page, 1).click();
+    await page.getByTestId('choose-heroes').click();
     await expect(page.getByText('Saved game', { exact: true })).toBeVisible();
     await newGame(page, ['Elf']);
     await dismissStart(page);

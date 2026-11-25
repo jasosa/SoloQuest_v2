@@ -306,7 +306,6 @@ test.describe('editor: storage and files', () => {
     await page.getByTestId('pack-frozen-horror').click();
     await expect(page.locator('.qcard', { hasText: 'Trial by Ice, edited' })).toHaveCount(1);
     await expect(page.locator('.qcard')).toHaveCount(10);
-    await page.getByTestId('back').click();
     await page.getByTestId('pack-core').click();
     await expect(page.locator('.qcard')).toHaveCount(14);
   });

@@ -83,51 +83,10 @@ export function PackGrid({
   );
 }
 
-export function SinglePacksPage({
-  cards,
-  others,
-  onPack,
-  onOther,
-  onBack,
-}: {
-  cards: readonly PackCard[];
-  others: readonly Playable[];
-  onPack(id: string): void;
-  onOther(key: string): void;
-  onBack(): void;
-}) {
-  return (
-    <>
-      <PageHeader title={t('select.singleQuest', 'Single Quest')} onBack={onBack} />
-      <main className="stage">
-        <div className="lbl">{t('select.questPacks', 'Quest packs')}</div>
-        <PackGrid cards={cards} onPick={onPack} />
-        <div className="lbl">{t('select.otherMissions', 'Other missions')}</div>
-        {others.length === 0 && (
-          <p className="hint">
-            {t('select.questsYouMakeIn', 'Quests you make in the editor are listed here.')}
-          </p>
-        )}
-        <div className="menu-grid">
-          {others.map((o) => (
-            <MenuButton
-              key={o.key}
-              title={o.level.quest.title}
-              caption={t('select.madeOnThisDevice', 'Made on this device')}
-              testId={`other-${o.key}`}
-              onClick={() => onOther(o.key)}
-            />
-          ))}
-        </div>
-      </main>
-    </>
-  );
-}
-
 /** One card of the quest grid. */
 export interface QuestCardData {
   readonly slot: number;
-  readonly number: number;
+  readonly number: number | undefined;
   /** Undefined: not encoded yet. */
   readonly playable: Playable | undefined;
   /** The small line under the title ("Done", "Next", "Saved game"). */
@@ -153,7 +112,11 @@ export function QuestGrid({
           disabled={!q.playable}
           onClick={() => onPick(q)}
         >
-          <span className="qnum">{t('select.quest', 'Quest {number}', { number: q.number })}</span>
+          {q.number !== undefined && (
+            <span className="qnum">
+              {t('select.quest', 'Quest {number}', { number: q.number })}
+            </span>
+          )}
           {q.playable && <span className="qtitle">{q.playable.level.quest.title}</span>}
           {q.playable?.edited && <span className="qnote">{t('select.edited', 'Edited')}</span>}
           {q.note && (
@@ -167,28 +130,6 @@ export function QuestGrid({
         </button>
       ))}
     </div>
-  );
-}
-
-export function SingleQuestsPage({
-  title,
-  cards,
-  onPick,
-  onBack,
-}: {
-  title: string;
-  cards: readonly QuestCardData[];
-  onPick(card: QuestCardData): void;
-  onBack(): void;
-}) {
-  return (
-    <>
-      <PageHeader title={title} onBack={onBack} />
-      <main className="stage">
-        <p className="hint">{t('select.selectTheQuestToPlay', 'Select the quest to play.')}</p>
-        <QuestGrid cards={cards} onPick={onPick} />
-      </main>
-    </>
   );
 }
 

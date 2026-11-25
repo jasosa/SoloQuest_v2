@@ -27,8 +27,8 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
     await page.getByTestId('pack-core').click();
     expect(await violations(page)).toEqual([]); // the pack's quests
     await page.locator('.qcard').first().click();
+    await page.getByTestId('choose-heroes').click();
     expect(await violations(page)).toEqual([]); // the heroes of a quest
-    await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('home-campaign').click();

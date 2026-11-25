@@ -12,18 +12,16 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.screenshot({ path: 'test-results/start-1-home.png' });
     // 2. Single quest: the installed packs and the other missions
     await page.getByTestId('home-single').click();
-    await expect(page.getByTestId('pack-core')).toContainText('14 quests');
-    await expect(page.getByTestId('pack-frozen-horror')).toContainText('10 quests');
-    await expect(page.getByText('Other missions')).toBeVisible();
+    await expect(page.getByTestId('pack-core')).toContainText('14');
+    await expect(page.getByTestId('pack-frozen-horror')).toContainText('10');
     await page.screenshot({ path: 'test-results/start-2-single-packs.png' });
     // 3. the pack's quests
     await page.getByTestId('pack-frozen-horror').click();
-    await expect(page.getByText('Select the quest to play.')).toBeVisible();
     await page.screenshot({ path: 'test-results/start-3-single-quests.png' });
     await questCard(page, 1).click();
+    await page.getByTestId('choose-heroes').click();
     await expect(page.locator('.side h2')).toHaveText('Xanon Pass');
     await page.screenshot({ path: 'test-results/start-3b-quest-start.png' });
-    await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     // 4. Campaign: packs, and the saved campaigns
@@ -50,10 +48,9 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByTestId('home-single').click();
     await page.getByTestId('pack-core').click();
     await questCard(page, 2).click();
+    await page.getByTestId('choose-heroes').click();
     await page.getByTestId('back').click();
-    await expect(page.getByText('Select the quest to play.')).toBeVisible();
-    await page.getByTestId('back').click();
-    await expect(page.getByText('Quest packs')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Play a quest' })).toBeVisible();
     await page.getByTestId('back').click();
     await expect(page.getByTestId('home-single')).toBeVisible();
     await page.getByTestId('home-campaign').click();
@@ -74,7 +71,6 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
     // back where it began: the heroes of the quest
     await expect(page.getByTestId('start-game')).toBeVisible();
-    await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('back').click();
     await page.getByTestId('home-campaign').click();
@@ -133,9 +129,9 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
-    const mine = page.getByRole('button', { name: /The Cellar/ });
-    await expect(mine).toContainText('Made on this device');
-    await mine.click();
+    await page.getByTestId('pack-mine').click();
+    await page.getByRole('button', { name: /The Cellar/ }).click();
+    await page.getByTestId('choose-heroes').click();
     await expect(page.locator('.side h2')).toHaveText('The Cellar');
     await newGame(page, ['Wizard']);
     await dismissStart(page);

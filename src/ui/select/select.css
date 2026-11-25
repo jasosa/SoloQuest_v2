@@ -398,6 +398,71 @@
   font-style: italic;
   color: var(--muted);
 }
+/* Play a quest: boxes, quests, detail (DESIGN.md, "Play a quest"). */
+.app.select .stage.play-quest {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+.box-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.box-pick {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid var(--off);
+  border-left: 8px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--text);
+  text-align: left;
+}
+.box-pick[aria-pressed='true'] {
+  background: var(--sel);
+  border-color: var(--ink);
+}
+.box-pick .box-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.box-pick[aria-pressed='true'] .box-count {
+  color: var(--ink);
+}
+.play-quest .pick {
+  width: auto;
+  padding: 0;
+  grid-template-columns: repeat(3, 1fr);
+}
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 420px;
+  padding: 16px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  box-shadow: 5px 5px 0 var(--sel);
+}
+.detail h2 {
+  font: 700 22px/1.15 'Bonum';
+  color: var(--ink);
+}
+.detail .mini-map {
+  border: 2px solid var(--paper-2);
+  align-self: center;
+}
+.detail .summary {
+  font-size: 14px;
+}
+.detail .btn {
+  margin-top: auto;
+}
 .box-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
