@@ -772,3 +772,22 @@
   flex: 1 1 0;
   min-height: 44px;
 }
+
+/* Translation editor table rows */
+.fr-trans-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.fr-trans-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fr-trans-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
