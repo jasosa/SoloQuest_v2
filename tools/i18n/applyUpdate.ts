@@ -303,7 +303,7 @@ export async function applyUpdate(
   if (!parsed.ok) throw new Error(parsed.message);
   if (parsed.file.language.code !== BUILTIN_UPDATE_CODE)
     throw new Error(
-      `This file is not an update of the built-in English (its code is "${parsed.file.language.code}", it should be "${BUILTIN_UPDATE_CODE}"). Export it with "Export the built-in English" in owner mode.`,
+      `This file is not an update of the built-in English (its code is "${parsed.file.language.code}", it should be "${BUILTIN_UPDATE_CODE}"). Export it with "Export as update" on the English row in owner mode.`,
     );
   const update = parsed.file.strings;
 

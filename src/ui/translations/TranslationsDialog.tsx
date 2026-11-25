@@ -61,7 +61,6 @@ export function TranslationsDialog({
   /** The changes of the owner to the built-in English (owner mode), applied under the device edits. */
   const [update, setUpdate] = useState<Record<string, string>>({});
   const [owner, setOwner] = useState(ownerModeOn);
-  const [resettingUpdate, setResettingUpdate] = useState(false);
   const [resetting, setResetting] = useState(false);
   /** Something that shows only after the page loads again was changed. */
   const [pending, setPending] = useState(false);
@@ -99,7 +98,6 @@ export function TranslationsDialog({
 
   const total = Object.keys(englishTexts).length;
   const editedCount = Object.keys(edits).length;
-  const updateCount = Object.keys(update).length;
   /** What the app ships: the built-in English with the update of the owner. */
   const shipped = { ...builtin, ...update };
 
@@ -246,7 +244,7 @@ export function TranslationsDialog({
       <Toggle
         label={t(
           'translations.ownerMode',
-          'Owner mode: you can also prepare an update of the English the app ships',
+          'Owner mode: you can export your English changes as an update of the shipped English',
         )}
         on={owner}
         onChange={(on) => {
@@ -351,6 +349,26 @@ export function TranslationsDialog({
           >
             {t('translations.export', 'Export')}
           </button>
+          {owner && (
+            <button
+              className="chip"
+              onClick={() =>
+                download(
+                  `english-update${LANGUAGE_EXTENSION}`,
+                  languageToText(
+                    englishEditsFile(
+                      builtin,
+                      { ...update, ...edits },
+                      BUILTIN_UPDATE_CODE,
+                      new Date().toISOString().slice(0, 10),
+                    ),
+                  ),
+                )
+              }
+            >
+              {t('translations.exportBuiltIn', 'Export as update')}
+            </button>
+          )}
           {resetting ? (
             <button
               className="chip main"
@@ -377,64 +395,6 @@ export function TranslationsDialog({
             </button>
           )}
         </li>
-        {owner && (
-          <li data-language="en-core" data-testid="owner-english">
-            <div className="fr-open-static">
-              <span className="fr-qnum">
-                {t(
-                  'translations.ownerEnglish',
-                  'English update · {count} changed · Not shipped yet. Export it, then run npm run i18n:apply.',
-                  { count: updateCount },
-                )}
-              </span>
-              <span className="fr-qtitle">
-                {t('translations.builtInEnglishTitle', 'English update')}
-              </span>
-            </div>
-            <button className="chip" onClick={() => setEditing(BUILTIN_UPDATE_CODE)}>
-              {t('translations.editBuiltInEnglish', 'Edit the English update')}
-            </button>
-            <button
-              className="chip"
-              onClick={() =>
-                download(
-                  `english-update${LANGUAGE_EXTENSION}`,
-                  languageToText(
-                    englishEditsFile(
-                      builtin,
-                      update,
-                      BUILTIN_UPDATE_CODE,
-                      new Date().toISOString().slice(0, 10),
-                    ),
-                  ),
-                )
-              }
-            >
-              {t('translations.exportBuiltIn', 'Export the English update')}
-            </button>
-            {resettingUpdate ? (
-              <button
-                className="chip main"
-                onClick={async () => {
-                  await store.save(englishEditsFile(builtin, {}, BUILTIN_UPDATE_CODE));
-                  setResettingUpdate(false);
-                  setPending(true);
-                  await refresh();
-                }}
-              >
-                {t('translations.reallyResetBuiltIn', 'Really reset')}
-              </button>
-            ) : (
-              <button
-                className="chip"
-                disabled={updateCount === 0}
-                onClick={() => setResettingUpdate(true)}
-              >
-                {t('translations.resetBuiltIn', 'Undo my changes to the English update')}
-              </button>
-            )}
-          </li>
-        )}
         {languages.map((l) => (
           <li key={l.code} data-language={l.code}>
             <div className="fr-open-static">

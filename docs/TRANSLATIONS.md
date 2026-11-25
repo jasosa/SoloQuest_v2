@@ -47,7 +47,7 @@ An export of English or of the update has the same format, with the code `en` or
 
 ## Owner mode: updating the shipped English
 
-Owner mode is the switch of decision 76 (Designer, "Owner mode"), kept on the device (`src/persist/ownerMode.ts`); the development build has it on. The Translations dialog shows the same switch. In owner mode the dialog has one more row, **Built-in English**: "Edit the built-in English", **"Export the built-in English"** (the update file), and "Reset the built-in changes". The owner's changes show in the app at once (layer 2) and are exported with `base` (the version of the built-in English they are made against), `date` and only the changed keys. Users who are not in owner mode have no way to change or export the built-in English, and cannot import an update file (a clear message says so).
+Owner mode is the switch of decision 76 (Designer, "Owner mode"), kept on the device (`src/persist/ownerMode.ts`); the development build has it on. The Translations dialog shows the same switch. In owner mode the English row has one more button, **"Export as update"**: it writes the update file (code `en-core`) from the English changes of the device, on top of any older update kept on the device. The owner's changes show in the app at once (layer 2) and are exported with `base` (the version of the built-in English they are made against), `date` and only the changed keys. Users who are not in owner mode have no way to change or export the built-in English, and cannot import an update file (a clear message says so).
 
 Apply the update to the repository:
 
