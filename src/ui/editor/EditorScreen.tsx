@@ -180,66 +180,74 @@ export function EditorScreen({
         active={tab}
         badges={{ Actions: lettersMissingNotes(quest).length }}
         onTab={(t) => s.setTab(t as EditorTabName)}
-      >
-        <h1 className="fr-title">{quest.title}</h1>
-        <span className="ed-status">
-          {dirty
-            ? t('editor.EditorScreen.unsavedChanges', 'Unsaved changes')
-            : t('editor.EditorScreen.saved', 'Saved')}
-        </span>
-        {!s.stored && (
-          <span className="ed-status ed-nostore" role="alert">
-            {t(
-              'editor.EditorScreen.thisDeviceCannotKeep',
-              'This device cannot keep a draft. Save the quest, or Export it, before you leave.',
+        title={quest.title}
+        onBack={onBack}
+        hint={
+          <>
+            <span className="ed-status">
+              {dirty
+                ? t('editor.EditorScreen.unsavedChanges', 'Unsaved changes')
+                : t('editor.EditorScreen.saved', 'Saved')}
+            </span>
+            {!s.stored && (
+              <span className="ed-status ed-nostore" role="alert">
+                {t(
+                  'editor.EditorScreen.thisDeviceCannotKeep',
+                  'This device cannot keep a draft. Save the quest, or Export it, before you leave.',
+                )}
+              </span>
             )}
-          </span>
-        )}
-      </TopBar>
-      <div className="fr-bar" role="toolbar" aria-label={t('editor.EditorScreen.quest', 'Quest')}>
-        <button
-          className="chip ed-issues"
-          onClick={() => {
-            s.select(null);
-            s.setTab('Map');
-            s.setPanel('problems');
-          }}
-          data-errors={errors}
-        >
-          {countLabel(issues)}
-        </button>
-        {onPlaytest && (
-          <button
-            className="chip"
-            data-testid="playtest"
-            disabled={errors > 0}
-            title={
-              errors > 0
-                ? t('editor.EditorScreen.fixTheProblemsFirst', 'Fix the problems first')
-                : t('editor.EditorScreen.playThisQuestTo', 'Play this quest to try it')
-            }
-            onClick={() => onPlaytest(s.canon)}
+          </>
+        }
+        actions={
+          <div
+            className="ed-actions"
+            role="toolbar"
+            aria-label={t('editor.EditorScreen.quest', 'Quest')}
           >
-            {t('editor.EditorScreen.playtest', 'Playtest')}
-          </button>
-        )}
-        <button className="chip" disabled={s.past.length === 0} onClick={() => s.undo()}>
-          {t('editor.EditorScreen.undo', 'Undo')}
-        </button>
-        <button className="chip" disabled={s.future.length === 0} onClick={() => s.redo()}>
-          {t('editor.EditorScreen.redo', 'Redo')}
-        </button>
+            <button
+              className="chip ed-issues"
+              onClick={() => {
+                s.select(null);
+                s.setTab('Map');
+                s.setPanel('problems');
+              }}
+              data-errors={errors}
+            >
+              {countLabel(issues)}
+            </button>
+            <button className="chip" disabled={s.past.length === 0} onClick={() => s.undo()}>
+              {t('editor.EditorScreen.undo', 'Undo')}
+            </button>
+            <button className="chip" disabled={s.future.length === 0} onClick={() => s.redo()}>
+              {t('editor.EditorScreen.redo', 'Redo')}
+            </button>
+            {onPlaytest && (
+              <button
+                className="chip"
+                data-testid="playtest"
+                disabled={errors > 0}
+                title={
+                  errors > 0
+                    ? t('editor.EditorScreen.fixTheProblemsFirst', 'Fix the problems first')
+                    : t('editor.EditorScreen.playThisQuestTo', 'Play this quest to try it')
+                }
+                onClick={() => onPlaytest(s.canon)}
+              >
+                {t('editor.EditorScreen.playtest', 'Playtest')}
+              </button>
+            )}
+            <button className="chip main" onClick={() => void s.save()}>
+              {t('editor.EditorScreen.save', 'Save')}
+            </button>
+          </div>
+        }
+      >
         <ImportButton store={store} />
         <button className="chip" data-testid="export" onClick={() => exportDraft(store)}>
           {t('editor.EditorScreen.export', 'Export')}
         </button>
-        <button className="chip main" onClick={() => void s.save()}>
-          {t('editor.EditorScreen.save', 'Save')}
-        </button>
-        <button className="link" onClick={onBack}>
-          {t('editor.EditorScreen.back', 'Back')}
-        </button>
-      </div>
+      </TopBar>
 
       {tab === 'Quest' && <QuestTab store={store} />}
       {tab === 'Actions' && <ActionsTab store={store} />}

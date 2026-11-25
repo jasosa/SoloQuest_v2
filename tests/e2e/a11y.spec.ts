@@ -84,7 +84,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
   test('quest editor: start, every tab, and the dialogs', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
     expect(await violations(page)).toEqual([]);
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     expect(await violations(page)).toEqual([]); // the New quest dialog
     await page.getByLabel('Title').first().fill('Axe quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
@@ -100,7 +100,7 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
 
   test('Library popups and a texture pack preview', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^LIBRARY/ }).click();
+    await page.getByRole('button', { name: /^Library/ }).click();
     await page.getByRole('button', { name: /^Enemies/ }).click();
     await page.getByRole('button', { name: 'New enemy' }).click();
     expect(await violations(page)).toEqual([]);

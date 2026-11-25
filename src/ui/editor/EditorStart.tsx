@@ -11,6 +11,7 @@ import type { UserQuestStore, UserQuestSummary } from '../../persist/userQuests'
 import { setOverride } from '../../persist/questOverrides';
 import { useFitMode } from '../FitToScreen';
 import { Dialog, Fld } from '../shared/Frame';
+import { PageHeader } from '../select/parts';
 import { questEntries } from '../quests';
 import { packs } from '../packs';
 import { t } from '../../i18n/t';
@@ -141,10 +142,17 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
         void onFile(e.dataTransfer.files[0]);
       }}
     >
+      <PageHeader
+        title={t('editor.EditorStart.questEditor', 'Quest editor')}
+        hint={t(
+          'editor.EditorStart.makeYourOwn',
+          'Make your own quests and campaigns, or check a printed one.',
+        )}
+        onBack={onBack}
+      />
       <div className="fr-start">
         <div>
-          <h1>{t('editor.EditorStart.questEditor', 'Quest editor')}</h1>
-          <h2>{t('editor.EditorStart.recentQuests', 'Recent quests')}</h2>
+          <h2>{t('editor.EditorStart.recentQuests', 'Your quests')}</h2>
           {rows.length === 0 && (
             <p className="fr-help">
               {t(
@@ -183,7 +191,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                     </button>
                   </>
                 ) : (
-                  <button className="link" onClick={() => setConfirm(r.id)}>
+                  <button className="btn alt" onClick={() => setConfirm(r.id)}>
                     {t('editor.EditorStart.delete', 'Delete')}
                   </button>
                 )}
@@ -244,7 +252,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
 
         <div className="fr-cards">
           <button className="fr-card" onClick={() => setPopup('new')}>
-            <b>{t('editor.EditorStart.newQuest', 'NEW QUEST')}</b>
+            <b>{t('editor.EditorStart.newQuest', 'New quest')}</b>
             <span>
               {t(
                 'editor.EditorStart.startAnEmptyQuest',
@@ -253,7 +261,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
             </span>
           </button>
           <button className="fr-card" onClick={() => setPopup('open')}>
-            <b>{t('editor.EditorStart.openQuest', 'OPEN QUEST')}</b>
+            <b>{t('editor.EditorStart.openQuest', 'Open quest')}</b>
             <span>
               {t(
                 'editor.EditorStart.loadAQuestFrom',
@@ -263,7 +271,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           </button>
           {onDesigner && (
             <button className="fr-card" onClick={onDesigner}>
-              <b>{t('editor.EditorStart.library', 'LIBRARY')}</b>
+              <b>{t('editor.EditorStart.library', 'Library')}</b>
               <span>
                 {t(
                   'editor.EditorStart.abilitiesSpellsEnemiesHeroes',
@@ -272,28 +280,8 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
               </span>
             </button>
           )}
-          <div className="fr-card off" aria-disabled="true">
-            <b>{t('editor.EditorStart.packagerLater', 'PACKAGER (later)')}</b>
-            <span>
-              {t(
-                'editor.EditorStart.arrangeQuestsAndExport',
-                'Arrange quests and export a custom campaign.',
-              )}
-            </span>
-          </div>
-          <button className="link" onClick={onBack} style={{ justifySelf: 'start' }}>
-            {t('editor.EditorStart.back', 'Back')}
-          </button>
         </div>
       </div>
-      <div className="fr-foot">
-        <span>{t('editor.EditorStart.editor01', 'Editor 0.1')}</span>
-        <span>{t('editor.EditorStart.questFormat1', 'Quest format 1')}</span>
-        <span style={{ marginLeft: 'auto' }}>
-          {t('editor.EditorStart.worksOffline', 'Works offline')}
-        </span>
-      </div>
-
       {popup === 'new' && (
         <Dialog
           title={t('editor.EditorStart.newQuest2', 'New quest')}

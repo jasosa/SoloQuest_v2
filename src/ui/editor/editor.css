@@ -4,15 +4,6 @@
   grid-template-columns: 1fr;
   grid-template-rows: 64px 1fr;
 }
-.editor header {
-  margin: 0 16px;
-  gap: 14px;
-}
-.editor header .ed-status {
-  margin-left: auto;
-  font-size: 14px;
-  color: var(--muted);
-}
 .editor header .ed-issues[data-errors]:not([data-errors='0']) {
   color: var(--ink);
   font-weight: 700;
@@ -22,7 +13,7 @@
   display: grid;
   grid-template-columns: 180px 1fr 274px;
   gap: 14px;
-  padding: 12px 16px 0;
+  padding: 0 40px 0;
   min-height: 0;
 }
 

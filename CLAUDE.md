@@ -52,6 +52,7 @@ Every agent has `model: sonnet` in its frontmatter. Override it for one run only
 
 ## Working rules (enforced by hooks in `.claude/hooks/`)
 
+- **Agents:** the main session only coordinates. Every task goes to the matching agent: UI to `ui-dev`, engine and schema to `engine-dev`, quests to `quest-encoder`, review to `reviewer`, rules checks to `rules-referee`. The main session plans, briefs the agent with full context, collects the result and reports.
 - **Git:** commit and push are separate commands, never chained. Push only when the owner asks. More than a small fix goes on a branch, merged when green. Parallel work uses `node scripts/wt.mjs`, never loose `git worktree` calls; run `clean` after merging.
 - **Windows edits:** working copies are CRLF. Change files with the Edit or Write tools. For a scripted edit use Python with `newline=''` and detect the line ending first. No shell heredocs for content with quotes or `$`; write a script file instead. Never `sed -i` a CRLF file.
 - **Rules questions:** tag each `[book]` (cite the page) or `[proposal]` (edge case the book does not cover). Never present an invented rule as a game rule.

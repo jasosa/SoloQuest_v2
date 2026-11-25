@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { labelOf, normalizeTeam, type TeamInput } from '../../engine/data/team';
 import { nextQuest, type Campaign } from '../../engine/pack/campaign';
 import type { PackManifest } from '../../engine/pack/schema';
-import type { CampaignStore } from '../../persist/campaigns';
 import { packLabel } from '../packs';
-import { QuestSettingsCard } from '../shared/QuestSettingsCard';
 import { t } from '../../i18n/t';
 import { PageHeader, flagWords, type Playable } from './parts';
 import { QuestGrid, type QuestCardData } from './StartPages';
@@ -23,7 +21,6 @@ export function CampaignOverview({
   manifest,
   playables,
   savedHere,
-  campaigns,
   onQuest,
   onSkip,
   onBack,
@@ -34,12 +31,10 @@ export function CampaignOverview({
   playables: ReadonlyMap<string, Playable>;
   /** The ids of the quests that have a saved game of this campaign. */
   savedHere: ReadonlySet<string>;
-  campaigns: CampaignStore;
   onQuest(questId: string): void;
   onSkip(questId: string): void;
   onBack(): void;
 }) {
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const next = nextQuest(manifest, campaign);
   const [picked, setPicked] = useState<string | undefined>();
   const total = manifest.quests.length;
@@ -147,17 +142,6 @@ export function CampaignOverview({
               {t('select.everyQuestDoneOrSkipped', 'Every quest is done or skipped.')}
             </p>
           )}
-          <div className="camp-links">
-            {manifest.campaignSettings.length > 0 && (
-              <button
-                className="btn alt"
-                data-testid="campaign-settings"
-                onClick={() => setSettingsOpen(true)}
-              >
-                {t('select.campaignSettings', 'Campaign settings')}
-              </button>
-            )}
-          </div>
         </div>
         <aside className="camp-side">
           <section className="card">
@@ -218,16 +202,6 @@ export function CampaignOverview({
           </section>
         </aside>
       </main>
-
-      {settingsOpen && (
-        <QuestSettingsCard
-          questId={manifest.quests[0] ?? ''}
-          title={campaign.name || packLabel(manifest)}
-          campaignOnly
-          campaign={{ store: campaigns, pack: manifest, campaignId: campaign.id }}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
     </>
   );
 }

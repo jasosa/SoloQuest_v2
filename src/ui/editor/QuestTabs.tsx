@@ -19,7 +19,7 @@ export function QuestTab({ store }: { store: EditorStore }) {
   const { quest } = useStore(store);
   const st = store.getState();
   return (
-    <Frame>
+    <Frame numbered>
       <Col label={t('editor.QuestTabs.actions', 'Actions')}>
         <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="quest-actions">
           <ActionsPanel store={store} />

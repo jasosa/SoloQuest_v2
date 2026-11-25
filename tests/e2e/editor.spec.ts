@@ -27,10 +27,10 @@ async function pointAt(page: Page, x: number, y: number, fx = 0.5, fy = 0.5) {
 
 async function newQuest(page: Page, title = 'My quest', url = '/?editor=1&nosave=1') {
   await page.goto(url);
-  await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+  await page.getByRole('button', { name: /^New quest/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await btn(page, 'Create the quest').click();
-  await expect(page.locator('.fr-title')).toHaveText(title);
+  await expect(page.locator('header.page-head h1')).toHaveText(title);
 }
 
 test.describe('editor: shell and board tools', () => {
@@ -41,10 +41,10 @@ test.describe('editor: shell and board tools', () => {
     await page.getByTestId('home-editor').click();
     await expect(page.getByRole('heading', { name: 'Quest editor' })).toBeVisible();
     await shot(page, 'editor-start');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');
     await btn(page, 'Create the quest').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Cellar');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Cellar');
     await expect(board(page)).toBeVisible();
     // the stairs of the empty quest, and no fog: rock hatch only where the quest has rock
     await expect(page.locator('[data-furniture="f-stairs"]')).toHaveCount(1);
@@ -217,7 +217,7 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('li[data-quest]')).toHaveCount(1);
     await expect(page.locator('li[data-quest]')).toContainText('Unsaved draft');
     await page.getByRole('button', { name: 'Open Persistent' }).click();
-    await expect(page.locator('.fr-title')).toHaveText('Persistent');
+    await expect(page.locator('header.page-head h1')).toHaveText('Persistent');
     await expect(page.locator('[data-monster]')).toHaveCount(1);
   });
 
@@ -245,7 +245,7 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('.es-imported')).toContainText('was changed to user-the-trial');
     await shot(page, 'editor-import');
     await btn(page, 'Open it').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     // everything of Quest 1 is on the board: 24 monsters, the furniture, doors
     await expect(page.locator('[data-monster]')).toHaveCount(24);
     expect(await page.locator('[data-furniture]').count()).toBeGreaterThan(8);
@@ -265,10 +265,10 @@ test.describe('editor: storage and files', () => {
 
   test('edit a bundled quest now: it opens in the editor as your own copy', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Edit it now').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -276,14 +276,14 @@ test.describe('editor: storage and files', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Edit it now').click();
     await page.getByRole('tab', { name: 'Quest', exact: true }).click();
     const title = page.getByTestId('quest-general').getByLabel('Title');
     await title.fill('The Trial, edited');
     await title.blur();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial, edited');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial, edited');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
@@ -293,7 +293,7 @@ test.describe('editor: storage and files', () => {
 
   test('an edited Frozen Horror quest stays in the Frozen Horror tab (bug)', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('102');
     await btn(page, 'Edit it now').click();
     await page.getByRole('tab', { name: 'Quest', exact: true }).click();
@@ -312,11 +312,11 @@ test.describe('editor: storage and files', () => {
 
   test('copy a bundled quest from the list', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -336,7 +336,7 @@ test.describe('editor: storage and files', () => {
 
     // a blank draft is replaced at once, as one undo step
     await page.getByLabel('Import file').setInputFiles(file('q1.hqquest.json', q1));
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
 
     // export: the file name comes from the title, and there is no userText
@@ -354,7 +354,7 @@ test.describe('editor: storage and files', () => {
     await shot(page, 'editor-import-error');
     await dialog.getByRole('button', { name: 'Close' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
 
     // a good file on a draft with content asks first
     const other = JSON.stringify({ ...JSON.parse(q1), title: 'Second Trial' });
@@ -366,12 +366,12 @@ test.describe('editor: storage and files', () => {
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
     await sheet.getByRole('button', { name: 'Keep my draft' }).click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await page.getByLabel('Import file').setInputFiles(file('two.hqquest.json', other));
     await sheet.getByRole('button', { name: 'Replace the draft' }).click();
-    await expect(page.locator('.fr-title')).toHaveText('Second Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('Second Trial');
     await btn(page, 'Undo').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
   });
 
   test('export refuses a draft with errors and counts them', async ({ page }) => {
@@ -1149,11 +1149,11 @@ test.describe('editor: problems panel and playtest', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await expect(page.getByTestId('playtest')).toBeEnabled();
     await page.getByTestId('playtest').click();
     await dismissStart(page);
@@ -1181,7 +1181,7 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
 
     await btn(page, 'Back to editor').click();
-    await expect(page.locator('.fr-title')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 });
@@ -1696,7 +1696,7 @@ test.describe('editor: Frozen Horror features', () => {
       mimeType: 'application/json',
       buffer: Buffer.from(source),
     });
-    await expect(page.locator('.fr-title')).toHaveText(original.title);
+    await expect(page.locator('header.page-head h1')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
     await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-room-tile]')).toHaveCount(2);
@@ -1728,7 +1728,7 @@ test.describe('editor: Frozen Horror features', () => {
       mimeType: 'application/json',
       buffer: Buffer.from(out),
     });
-    await expect(page.locator('.fr-title')).toHaveText(original.title);
+    await expect(page.locator('header.page-head h1')).toHaveText(original.title);
     await expect(page.locator('[data-tunnel]')).toHaveCount(6);
     await expect(page.locator('[data-board-tile]')).toHaveCount(1);
     await expect(page.locator('[data-edge-door]')).toHaveCount(original.edgeDoors.length);
@@ -1738,7 +1738,7 @@ test.describe('editor: Frozen Horror features', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('105');
     await page.getByRole('button', { name: 'Edit it now' }).click();
     await expect(board(page)).toBeVisible();
@@ -1762,7 +1762,7 @@ test('a copy of Frozen Horror quest 0 opens in the editor and keeps its tunnels 
   page,
 }) => {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+  await page.getByRole('button', { name: /^Open quest/ }).click();
   await page.getByLabel('Bundled quest').selectOption('0');
   await page.getByRole('button', { name: 'Edit it now' }).click();
   await expect(board(page)).toBeVisible();
@@ -1777,7 +1777,7 @@ test('the editor lists the Frozen Horror quests that share a number with a core 
   page,
 }) => {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+  await page.getByRole('button', { name: /^Open quest/ }).click();
   const options = page.getByLabel('Bundled quest').locator('option');
   await expect(options).toHaveCount(1 + 14 + 10);
   await page.getByLabel('Bundled quest').selectOption('103');

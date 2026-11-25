@@ -54,7 +54,7 @@ export function PageHeader({
   children,
 }: {
   title: string;
-  hint?: string | undefined;
+  hint?: ReactNode;
   subtitle?: string | undefined;
   subtitleTestId?: string | undefined;
   onBack?: (() => void) | undefined;

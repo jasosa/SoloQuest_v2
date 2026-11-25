@@ -6,18 +6,18 @@ const tab = (page: Page, name: string) => page.getByRole('tab', { name, exact: t
 
 async function newQuest(page: Page, title = 'Maps test') {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+  await page.getByRole('button', { name: /^New quest/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await btn(page, 'Create the quest').click();
-  await expect(page.locator('.fr-title')).toHaveText(title);
+  await expect(page.locator('header.page-head h1')).toHaveText(title);
 }
 
 async function openHeartOfIce(page: Page) {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+  await page.getByRole('button', { name: /^Open quest/ }).click();
   await page.getByLabel('Bundled quest').selectOption('109');
   await btn(page, 'Edit it now').click();
-  await expect(page.locator('.fr-title')).toContainText('The Heart of Ice');
+  await expect(page.locator('header.page-head h1')).toContainText('The Heart of Ice');
 }
 
 test.describe('editor: double quests', () => {

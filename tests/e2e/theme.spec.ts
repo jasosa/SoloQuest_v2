@@ -23,7 +23,7 @@ test.describe('themes (decision 78)', () => {
 
   test('without a theme a monster token shows its letter, not a picture', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();
@@ -33,7 +33,7 @@ test.describe('themes (decision 78)', () => {
 
   test('editor: floor and furniture use the theme pictures, rock too', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1&theme=test');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();
@@ -50,7 +50,7 @@ test.describe('themes (decision 78)', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1&theme=board');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();
@@ -102,7 +102,7 @@ test.describe('themes (decision 78)', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1&theme=board');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();
@@ -125,13 +125,13 @@ test.describe('themes (decision 78)', () => {
   }) => {
     // no pack in use: no switch
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('No pack');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await expect(page.getByTestId('editor-textures')).toHaveCount(0);
 
     await page.goto('/?editor=1&nosave=1&theme=board');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('3');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();

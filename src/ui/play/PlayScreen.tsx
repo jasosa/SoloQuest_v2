@@ -1101,6 +1101,29 @@ export function PlayScreen({
   return (
     <div className="app play" onClick={onRootClick}>
       <header>
+        <button
+          className="back-btn"
+          aria-label={
+            playtest
+              ? t('play.PlayScreen.backToEditor', 'Back to editor')
+              : t('play.PlayScreen.quests', 'Quests')
+          }
+          onClick={playtest ? playtest.onBack : onLeave}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12.5 4.5L7 10l5.5 5.5" />
+          </svg>
+        </button>
         <div className="titleblock">
           <h1 title={quest.title}>{quest.title}</h1>
           <div className="subline">
@@ -1177,11 +1200,6 @@ export function PlayScreen({
             {t('play.PlayScreen.zargonView', 'Zargon view')}
           </button>
         )}
-        <button className="link" onClick={playtest ? playtest.onBack : onLeave}>
-          {playtest
-            ? t('play.PlayScreen.backToEditor', 'Back to editor')
-            : t('play.PlayScreen.quests', 'Quests')}
-        </button>
       </header>
 
       <ZoomLayer

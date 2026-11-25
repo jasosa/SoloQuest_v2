@@ -123,10 +123,10 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await expect(page.locator('.fr-title')).toHaveText('The Cellar');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Cellar');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();

@@ -8,10 +8,10 @@ const tab = (page: Page, name: string) => page.getByRole('tab', { name, exact: t
 
 async function newQuest(page: Page, title = 'The Cellar') {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+  await page.getByRole('button', { name: /^New quest/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-  await expect(page.locator('.fr-title')).toHaveText(title);
+  await expect(page.locator('header.page-head h1')).toHaveText(title);
 }
 
 test.describe('editor tabs (the mockup of decision 70)', () => {
@@ -41,7 +41,7 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     const general = page.getByTestId('quest-general');
     await general.getByLabel('Title').fill('The Wine Cellar');
     await general.getByLabel('Title').blur();
-    await expect(page.locator('.fr-title')).toHaveText('The Wine Cellar');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Wine Cellar');
     await general.getByLabel('Summary').fill('The King sends the heroes down.');
     await general.getByLabel('Summary').blur();
     await page.getByRole('button', { name: 'Add an objective' }).click();

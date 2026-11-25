@@ -73,13 +73,11 @@ export function SettingsRows({
   questId,
   solo = false,
   campaign,
-  campaignOnly = false,
   variant = 'switch',
 }: {
   questId: string;
   solo?: boolean;
   campaign?: CampaignSettingsContext | undefined;
-  campaignOnly?: boolean;
   variant?: 'switch' | 'check';
 }) {
   const s = useQuestSettings(questId);
@@ -89,20 +87,18 @@ export function SettingsRows({
   const listed = campaign?.pack.campaignSettings ?? [];
   return (
     <>
-      {!campaignOnly && (
-        <SwitchRow
-          label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
-          hint={t(
-            'shared.QuestSettingsCard.shortRemindersOfRules',
-            'Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake.',
-          )}
-          on={s.ruleHints}
-          testId="rule-hints"
-          variant={variant}
-          onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
-        />
-      )}
-      {solo && !campaignOnly && (
+      <SwitchRow
+        label={t('shared.QuestSettingsCard.ruleHints', 'Rule hints')}
+        hint={t(
+          'shared.QuestSettingsCard.shortRemindersOfRules',
+          'Short reminders of rules the app does not enforce: terrain and special rooms the first time they are seen, and moving without rolling when no monster is awake.',
+        )}
+        on={s.ruleHints}
+        testId="rule-hints"
+        variant={variant}
+        onToggle={() => setQuestSetting(questId, 'ruleHints', !s.ruleHints)}
+      />
+      {solo && (
         <SwitchRow
           label={t('shared.QuestSettingsCard.noYetiHugIn', 'No Yeti hug in solo quests')}
           hint={t(
@@ -166,7 +162,6 @@ export function QuestSettingsCard({
   title,
   solo = false,
   campaign,
-  campaignOnly = false,
   onClose,
 }: {
   questId: string;
@@ -174,21 +169,15 @@ export function QuestSettingsCard({
   /** The quest is for one hero: "No Yeti hug in solo quests" applies (decision 59). */
   solo?: boolean;
   campaign?: CampaignSettingsContext | undefined;
-  /** Only the campaign switches ("Campaign settings"), no quest switches. */
-  campaignOnly?: boolean;
   onClose(): void;
 }) {
   return (
     <NoteCard
-      kind={
-        campaignOnly
-          ? t('shared.QuestSettingsCard.campaignSettings', 'Campaign settings')
-          : t('shared.QuestSettingsCard.options', 'Options')
-      }
+      kind={t('shared.QuestSettingsCard.options', 'Options')}
       title={title}
       onClose={onClose}
     >
-      <SettingsRows questId={questId} solo={solo} campaign={campaign} campaignOnly={campaignOnly} />
+      <SettingsRows questId={questId} solo={solo} campaign={campaign} />
       <button className="btn alt" onClick={onClose}>
         {t('shared.QuestSettingsCard.done', 'Done')}
       </button>

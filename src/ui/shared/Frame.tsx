@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from 'react';
 import { useModal } from './useModal';
 import './frame.css';
 import { t } from '../../i18n/t';
+import { PageHeader } from '../select/parts';
 
 /**
  * The building blocks of the Designer mockups (design/play-a/editor-mockups.html): the top bar with
@@ -21,11 +22,19 @@ export const editorTabLabel = (tab: string): string =>
     Library: t('shared.Frame.tabLibrary', 'Library'),
   })[tab] ?? tab;
 
+/**
+ * The title band and the tabs of the editor and the Library (concept "editor"): the square Back button,
+ * the title and a hint, the actions on the right, then the tabs as buttons with the extra actions at the end.
+ */
 export function TopBar({
   tabs,
   active,
   onTab,
   badges = {},
+  title,
+  hint,
+  onBack,
+  actions,
   children,
 }: {
   tabs: readonly string[];
@@ -33,41 +42,61 @@ export function TopBar({
   onTab?(tab: string): void;
   /** A small count on a tab (the editor: letters that still need an action). */
   badges?: Readonly<Record<string, number>>;
-  /** The right side: status and links. */
+  title: string;
+  hint?: ReactNode;
+  onBack(): void;
+  /** The buttons on the right of the title. */
+  actions?: ReactNode;
+  /** The buttons at the end of the tab row. */
   children?: ReactNode;
 }) {
   return (
-    <div className="fr-top">
-      <span className="fr-ttl">{t('shared.Frame.questEditor', 'Quest editor')}</span>
-      <div
-        role="tablist"
-        aria-label={t('shared.Frame.editor', 'Editor')}
-        style={{ display: 'flex', gap: 6 }}
-      >
-        {tabs.map((t) => (
-          <button
-            key={t}
-            role="tab"
-            className="fr-tab"
-            aria-selected={t === active}
-            onClick={() => onTab?.(t)}
-          >
-            {editorTabLabel(t)}
-            {(badges[t] ?? 0) > 0 && (
-              <span className="ed-badge" data-testid="missing-count">
-                {badges[t]}
-              </span>
-            )}
-          </button>
-        ))}
+    <>
+      <PageHeader title={title} hint={hint} onBack={onBack}>
+        {actions}
+      </PageHeader>
+      <div className="ed-tabrow">
+        <div
+          role="tablist"
+          aria-label={t('shared.Frame.editor', 'Editor')}
+          style={{ display: 'flex', gap: 10 }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              role="tab"
+              className="fr-tab"
+              aria-selected={tab === active}
+              onClick={() => onTab?.(tab)}
+            >
+              {editorTabLabel(tab)}
+              {(badges[tab] ?? 0) > 0 && (
+                <span className="ed-badge" data-testid="missing-count">
+                  {badges[tab]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <span className="fr-sp">{children}</span>
       </div>
-      <span className="fr-sp">{children}</span>
-    </div>
+    </>
   );
 }
 
-export const Frame = ({ children, narrow }: { children: ReactNode; narrow?: boolean }) => (
-  <div className="fr-frame" style={narrow ? { gridTemplateColumns: '250px 1fr' } : undefined}>
+export const Frame = ({
+  children,
+  narrow,
+  numbered,
+}: {
+  children: ReactNode;
+  narrow?: boolean;
+  numbered?: boolean;
+}) => (
+  <div
+    className={numbered ? 'fr-frame fr-numbered' : 'fr-frame'}
+    style={narrow ? { gridTemplateColumns: '250px 1fr' } : undefined}
+  >
     {children}
   </div>
 );

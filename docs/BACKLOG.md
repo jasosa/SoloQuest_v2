@@ -329,6 +329,7 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] Slice 2: Play a quest page (box list, quest grid with played marks, detail panel with map and last result)
 - [x] Slice 3: Campaigns list and New campaign panel, Campaign detail (Done, Skipped, Next, Heroes, Journal, Read intro again)
 - [x] Slice 4: Setup screen in three columns (Heroes, Before you start, Options)
+- [x] Slice 5: editor and the other screens follow `design/ui-concept/editor-concept.html`: title band with the square Back button and a tab row on the editor, start screen as rows and cards, numbered cards on the Quest tab, dialogs on the same card. Not built: the Library as one list of kinds beside a card grid
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
 - [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"
 - [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked

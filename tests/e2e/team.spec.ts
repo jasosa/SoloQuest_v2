@@ -213,8 +213,8 @@ test.describe('settings of a quest and of a campaign (decisions 59, 61, 84)', ()
     await play.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('button', { name: 'Quests', exact: true }).click();
 
-    // the campaign remembers it
-    await page.getByTestId('campaign-settings').click();
+    // the campaign remembers it: it is in the Options of the next quest
+    await page.getByTestId('play-next').click();
     await expect(page.getByTestId(RAIMENT)).toHaveAttribute('aria-checked', 'true');
   });
 });

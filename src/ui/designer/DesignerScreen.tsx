@@ -1974,11 +1974,13 @@ export function DesignerScreen({ store, quests, updateQuests, onBack }: Designer
   useFitMode('width');
   return (
     <div className="app fr designer">
-      <TopBar tabs={['Library']} active="Library">
-        <button className="link" onClick={onBack}>
-          {t('designer.DesignerScreen.back', 'Back')}
-        </button>
-      </TopBar>
+      <TopBar
+        tabs={['Library']}
+        active="Library"
+        title={t('designer.DesignerScreen.library', 'Library')}
+        hint={t('designer.DesignerScreen.madeOnce', 'Made once, used in any quest.')}
+        onBack={onBack}
+      />
       <DesignerBody store={store} quests={quests} updateQuests={updateQuests} />
     </div>
   );

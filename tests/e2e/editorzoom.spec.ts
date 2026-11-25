@@ -12,7 +12,7 @@ test.describe('editor map zoom', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Zoom quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     const before = (await board(page).boundingBox())!;
@@ -51,7 +51,7 @@ test.describe('editor map zoom', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Pan quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     const pan = page.getByTestId('pan-controls');

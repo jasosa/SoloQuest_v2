@@ -5,10 +5,10 @@ const btn = (page: Page, name: string) => page.getByRole('button', { name, exact
 
 async function newQuest(page: Page, title = 'Frozen test') {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+  await page.getByRole('button', { name: /^New quest/ }).click();
   await page.getByLabel('Title').first().fill(title);
   await btn(page, 'Create the quest').click();
-  await expect(page.locator('.fr-title')).toHaveText(title);
+  await expect(page.locator('header.page-head h1')).toHaveText(title);
 }
 
 test.describe('editor: Frozen Horror pieces', () => {

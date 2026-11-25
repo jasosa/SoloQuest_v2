@@ -110,7 +110,7 @@ test.describe('dialogs (M8: focus and Escape)', () => {
 test.describe('quest editor keys', () => {
   async function openQuest1(page: Page) {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await page.getByRole('button', { name: 'Make a copy', exact: true }).click();
     await page.getByRole('button', { name: 'Open it', exact: true }).click();

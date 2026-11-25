@@ -236,7 +236,7 @@ test.describe('texture pack families (decision 99)', () => {
   }) => {
     await useBoth(page);
     await page.goto('/?editor=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     const sel = page.getByLabel('Bundled quest');
     const label = await sel
       .locator('option')

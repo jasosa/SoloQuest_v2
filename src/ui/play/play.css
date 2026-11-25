@@ -919,3 +919,14 @@ header .goalline b {
   border-top: 1px solid var(--rock-line);
   padding-top: 10px;
 }
+.app.play header .back-btn {
+  flex: none;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  background: none;
+  color: var(--ink);
+}

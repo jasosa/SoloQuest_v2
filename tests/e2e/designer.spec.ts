@@ -17,7 +17,7 @@ const card = (page: Page) => page.getByTestId('dz-card');
 
 async function open(page: Page) {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^LIBRARY/ }).click();
+  await page.getByRole('button', { name: /^Library/ }).click();
   await expect(page.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true');
 }
 const kind = (page: Page, name: RegExp) => lib(page).getByRole('button', { name }).click();
@@ -177,7 +177,7 @@ test.describe('designer: the library', () => {
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
@@ -219,7 +219,7 @@ test.describe('designer: the library', () => {
     await page.getByLabel('att', { exact: true }).fill('4');
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
 
@@ -278,7 +278,7 @@ test.describe('designer: the library', () => {
     await expect(page.getByTestId('dz-pic')).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
@@ -304,7 +304,7 @@ test.describe('designer: the library', () => {
     await name(page, 'Slime');
     await page.getByLabel('att', { exact: true }).fill('2');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
@@ -340,7 +340,7 @@ test.describe('designer: the library', () => {
     await make(page, 'enemy');
     await name(page, 'Slime');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();

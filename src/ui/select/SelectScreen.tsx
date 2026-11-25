@@ -538,7 +538,6 @@ export function SelectScreen({
             manifest={manifest}
             playables={inPack}
             savedHere={savedHere}
-            campaigns={campaigns}
             onQuest={(key) => go({ page: 'campaignQuest', id: campaign.id, key })}
             onSkip={(id) => {
               campaigns.set(skipQuest(campaign, id, Date.now()));

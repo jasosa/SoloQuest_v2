@@ -5,7 +5,7 @@ test.describe('editor polish (M8)', () => {
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('The Cellar');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.getByRole('tab', { name: 'Quest', exact: true }).click();
@@ -13,7 +13,7 @@ test.describe('editor polish (M8)', () => {
     await title.fill('');
     await title.blur();
     await expect(title).toHaveValue('The Cellar');
-    await expect(page.locator('.fr-title')).toHaveText('The Cellar');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Cellar');
   });
 
   test('when this device cannot store a quest, the start screen says so', async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe('editor polish (M8)', () => {
       Object.defineProperty(window, 'indexedDB', { configurable: true, value: undefined });
     });
     await page.goto('/?editor=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Nowhere');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     const err = page.getByTestId('store-error');
@@ -33,10 +33,10 @@ test.describe('editor polish (M8)', () => {
 
   test('when the draft cannot be kept, the editor says so', async ({ page }) => {
     await page.goto('/?editor=1');
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Draft quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await expect(page.locator('.fr-title')).toHaveText('Draft quest');
+    await expect(page.locator('header.page-head h1')).toHaveText('Draft quest');
     await expect(page.locator('.ed-nostore')).toHaveCount(0);
     // from now on the browser refuses to write
     await page.evaluate(() => {
@@ -54,7 +54,7 @@ test.describe('editor polish (M8)', () => {
 
   test('the file chooser shows keyboard focus', async ({ page }) => {
     await page.goto('/?editor=1&nosave=1');
-    await page.getByRole('button', { name: /^OPEN QUEST/ }).click();
+    await page.getByRole('button', { name: /^Open quest/ }).click();
     const input = page.getByLabel('Choose a .hqquest.json file').or(page.locator('.es-file input'));
     await input.first().focus();
     const outline = await page

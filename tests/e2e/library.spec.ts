@@ -7,7 +7,7 @@ const card = (page: Page) => page.getByTestId('dz-card');
 
 async function open(page: Page) {
   await page.goto('/?editor=1&nosave=1');
-  await page.getByRole('button', { name: /^LIBRARY/ }).click();
+  await page.getByRole('button', { name: /^Library/ }).click();
   await expect(page.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true');
 }
 const kind = (page: Page, name: RegExp) => lib(page).getByRole('button', { name }).click();
@@ -82,7 +82,7 @@ test.describe('Library layers (decision 76)', () => {
 
     // a quest that uses it
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Frost quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
@@ -103,7 +103,7 @@ test.describe('Library layers (decision 76)', () => {
     await expect(chips.getByRole('button', { name: /Frosty/ })).toBeVisible();
     // a new quest does not offer it
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByRole('button', { name: /^NEW QUEST/ }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Second quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
