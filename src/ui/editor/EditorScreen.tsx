@@ -19,6 +19,7 @@ import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
 import { SpellDialog } from './SpellDialog';
 import { Inspector } from './Inspector';
+import { ProblemsPanel } from './ProblemsPanel';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -90,6 +91,7 @@ export function EditorScreen({
   const issues = useMemo(() => validateQuestIssues(s.canon, board), [s.canon]);
   const errors = issues.filter((i) => i.severity === 'error').length;
   const dirty = s.canon !== s.clean;
+  const problemsOpen = tab === 'Map' && s.panel === 'problems';
 
   // Toasts go away on their own.
   useEffect(() => {
@@ -179,7 +181,13 @@ export function EditorScreen({
           >
             <button
               className="chip ed-issues"
+              aria-pressed={problemsOpen}
               onClick={() => {
+                // opens the Problems list in the right card; a second tap closes it (decision 105)
+                if (problemsOpen) {
+                  s.setPanel('element');
+                  return;
+                }
                 s.select(null);
                 s.setTab('Map');
                 s.setPanel('problems');
@@ -280,9 +288,19 @@ export function EditorScreen({
             className="ed-inspector fr-panel"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
-            <h2 className="fr-hd">{TOOLS.find((x) => x.tool === tool)?.label}</h2>
-            <RightToolOptions store={store} />
-            <Inspector store={store} issues={issues} saveErrors={saveErrors} />
+            <h2 className="fr-hd">
+              {problemsOpen
+                ? t('editor.EditorScreen.problems', 'Problems')
+                : TOOLS.find((x) => x.tool === tool)?.label}
+            </h2>
+            {problemsOpen ? (
+              <ProblemsPanel store={store} issues={issues} />
+            ) : (
+              <>
+                <RightToolOptions store={store} />
+                <Inspector store={store} saveErrors={saveErrors} />
+              </>
+            )}
           </aside>
         </div>
       )}

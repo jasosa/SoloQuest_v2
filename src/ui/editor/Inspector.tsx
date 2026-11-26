@@ -12,7 +12,6 @@ import {
   updateMarker,
   updateTrap,
   type DoorKind,
-  type Issue,
   type TrapKind,
 } from '../../engine/editor';
 import { MONSTER_STATS } from '../../engine/data/monsters';
@@ -27,7 +26,6 @@ import type { EditorStore, EditSelection } from './editorStore';
 import { SubjectActions } from './ActionsSection';
 import { shownName } from './monsterLabel';
 import { elementOf } from './elementActions';
-import { ProblemsPanel } from './ProblemsPanel';
 import { parseMapLetter } from './noteForms';
 import { STAT_KEYS, parseOverrides, type StatKey } from './inspectorForms';
 import { deleteSelection, rotateSelection } from './selectionActions';
@@ -73,15 +71,12 @@ const SELECTION_NAMES: Record<NonNullable<EditSelection>['kind'], string> = {
 
 export function Inspector({
   store,
-  issues,
   saveErrors,
 }: {
   store: EditorStore;
-  issues: readonly Issue[];
   saveErrors: readonly string[] | null;
 }) {
-  const { quest, selection, panel, tool } = useStore(store);
-  const st = store.getState();
+  const { quest, selection, tool } = useStore(store);
 
   const door = selection?.kind === 'door' ? findDoor(quest, selection.id) : undefined;
   const edgeDoor =
@@ -99,48 +94,8 @@ export function Inspector({
   const trap =
     selection?.kind === 'trap' ? quest.traps.find((t) => t.id === selection.id) : undefined;
 
-  const tabs = (
-    <div
-      className="ed-insp-tabs"
-      role="group"
-      aria-label={t('editor.Inspector.inspectorTabs', 'Inspector tabs')}
-    >
-      <button
-        className="fr-tab"
-        aria-pressed={panel === 'element'}
-        onClick={() => st.setPanel('element')}
-      >
-        {t('editor.Inspector.element', 'Element')}
-      </button>
-      <button
-        className="fr-tab"
-        aria-pressed={panel === 'problems'}
-        onClick={() => st.setPanel('problems')}
-      >
-        {t('editor.Inspector.problems', 'Problems')}
-        {issues.length > 0 && (
-          <>
-            {' '}
-            <span className="ed-badge" data-testid="problem-count">
-              {issues.length}
-            </span>
-          </>
-        )}
-      </button>
-    </div>
-  );
-
-  if (panel === 'problems')
-    return (
-      <>
-        {tabs}
-        <ProblemsPanel store={store} issues={issues} />
-      </>
-    );
-
   return (
     <>
-      {tabs}
       {!selection && tool === 'select' && (
         <p className="ed-note" data-testid="inspector-hint">
           {t(

@@ -1004,6 +1004,12 @@
 .app.editor.fr .ed-tools .ed-ref-panel .lbl {
   margin-top: 0;
 }
+/* The "N problems" button is pressed while the Problems list is open (decision 105): the picked-tab look. */
+.ed-actions .chip.ed-issues[aria-pressed='true'] {
+  background: var(--sel);
+  color: var(--ink);
+  border-color: var(--ink);
+}
 .ed-insp-tabs {
   display: flex;
   gap: 8px;

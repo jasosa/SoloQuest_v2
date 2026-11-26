@@ -155,4 +155,31 @@ describe('editor store', () => {
     s.getState().setTool('rock');
     expect(s.getState().monsterDraft).toBeNull();
   });
+
+  it('Problems view: a tool chip, even the one already on, puts the tool back; a jump to an element picks Select', () => {
+    const s = make();
+    s.getState().apply((q) => addDoor(q, [3, 17], [3, 18]));
+    s.getState().setTool('rock');
+    s.getState().setPanel('problems');
+    expect(s.getState().panel).toBe('problems');
+    s.getState().setTool('rock');
+    expect(s.getState().panel).toBe('element');
+    s.getState().setPanel('problems');
+    s.getState().setTab('Quest');
+    expect(s.getState().panel).toBe('element');
+    s.getState().setPanel('problems');
+    s.getState().jump({ kind: 'door', id: 'd1' });
+    const st = s.getState();
+    expect(st.tool).toBe('select');
+    expect(st.tab).toBe('Map');
+    expect(st.selection).toEqual({ kind: 'door', id: 'd1' });
+    expect(st.panel).toBe('element');
+  });
+
+  it('a problem of the quest itself opens the Quest tab', () => {
+    const s = make();
+    s.getState().jump({ kind: 'objective', id: 'o1' });
+    expect(s.getState().tab).toBe('Quest');
+    expect(s.getState().selection).toBeNull();
+  });
 });

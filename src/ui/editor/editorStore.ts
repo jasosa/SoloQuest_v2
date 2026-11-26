@@ -463,7 +463,14 @@ export function createEditorStore(init: EditorInit): EditorStore {
       // picking a tool (even the one already on) clears the selection and any half-done pick (decision 104)
       setTool(tool) {
         get().dropMonster();
-        set({ tool, selection: null, monsterDraft: null, pendingBlock: null, pendingTunnel: null });
+        set({
+          tool,
+          panel: 'element', // a tool chip puts the tool's options back after the Problems view (decision 105)
+          selection: null,
+          monsterDraft: null,
+          pendingBlock: null,
+          pendingTunnel: null,
+        });
       },
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
       select(selection) {
@@ -478,6 +485,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
         get().dropMonster();
         set({
           tab,
+          panel: 'element',
           picking: null,
           noteId: null,
           noteDraft: null,
@@ -657,8 +665,15 @@ export function createEditorStore(init: EditorInit): EditorStore {
         if (noteMap && noteMap !== get().mapId) get().setMap(noteMap);
         const hasFlash = j.flash.cells.length > 0 || j.flash.areas.length > 0;
         set({
-          tab: j.panel === 'notes' ? 'Actions' : 'Map',
+          // a problem of an element picks Select and selects it; one of the quest itself opens the Quest tab
+          tab:
+            j.panel === 'notes'
+              ? 'Actions'
+              : j.panel === 'element' && !j.selection
+                ? 'Quest'
+                : 'Map',
           panel: j.panel === 'notes' ? 'element' : j.panel,
+          ...(j.selection ? { tool: 'select' as const } : {}),
           selection: j.selection,
           monsterDraft: null,
           picking: null,

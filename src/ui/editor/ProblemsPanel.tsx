@@ -15,11 +15,11 @@ export function ProblemsPanel({ store, issues }: { store: EditorStore; issues: r
   const errors = sorted.filter((i) => i.severity === 'error').length;
   return (
     <section data-testid="problems-panel">
-      <div className="lbl">
-        {t('editor.ProblemsPanel.problems', 'Problems{v1}', {
-          v1: errors > 0 ? ` (${errors} to fix before saving)` : '',
-        })}
-      </div>
+      {errors > 0 && (
+        <div className="lbl">
+          {t('editor.ProblemsPanel.toFixBeforeSaving', '{v1} to fix before saving', { v1: errors })}
+        </div>
+      )}
       {saveErrors && (
         <p className="ed-note" role="alert">
           {t(

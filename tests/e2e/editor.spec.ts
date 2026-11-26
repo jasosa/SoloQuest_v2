@@ -193,9 +193,26 @@ test.describe('editor: shell and board tools', () => {
   test('the issue counter and the issue list select the element', async ({ page }) => {
     await newQuest(page);
     await expect(page.locator('.ed-issues')).not.toHaveText('No problems');
+    await expect(page.locator('.ed-issues')).toHaveAttribute('aria-pressed', 'false');
     await page.locator('.ed-issues').click();
-    await expect(page.locator('.ed-inspector')).toContainText('Problems');
+    // the button is pressed and the right card is the Problems list, with no tab pair and no Back
+    await expect(page.locator('.ed-issues')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.ed-inspector h2').first()).toHaveText('Problems');
+    await expect(page.getByTestId('problems-panel')).toBeVisible();
+    await expect(
+      page.locator('.ed-inspector').getByRole('button', { name: 'Element' }),
+    ).toHaveCount(0);
     await shot(page, 'editor-issues');
+    // a tool chip, even the one already on, puts the tool's options back
+    await tool(page, 'Select').click();
+    await expect(page.locator('.ed-inspector h2').first()).toHaveText('Select');
+    await expect(page.locator('.ed-issues')).toHaveAttribute('aria-pressed', 'false');
+    await page.locator('.ed-issues').click();
+    await expect(page.getByTestId('problems-panel')).toBeVisible();
+    // a second tap on the button closes the list
+    await page.locator('.ed-issues').click();
+    await expect(page.getByTestId('problems-panel')).toHaveCount(0);
+    await expect(page.locator('.ed-issues')).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('save lists the errors that stop it', async ({ page }) => {
@@ -1208,15 +1225,20 @@ test.describe('editor: problems panel and playtest', () => {
     await insp(page).getByLabel('Letter').fill('A');
     await insp(page).getByLabel('Letter').blur();
 
-    // the header count and the tab badge agree
+    // the header count agrees with the rows
     await page.locator('.ed-issues').click();
     const rows = page.getByTestId('problem-row');
     const n = await rows.count();
     expect(n).toBeGreaterThan(1);
     await expect(page.locator('.ed-issues')).toHaveText(/^\d+ (problems?|warnings?)$/);
-    await expect(page.getByTestId('problem-count')).toHaveText(String(n));
     // errors first
     const kinds = await rows.locator('b').allTextContents();
+    const errorRows = kinds.filter((k) => k === 'Problem').length;
+    await expect(page.locator('.ed-issues')).toHaveText(
+      errorRows > 0
+        ? `${errorRows} problem${errorRows === 1 ? '' : 's'}`
+        : `${n} warning${n === 1 ? '' : 's'}`,
+    );
     expect(kinds[0]).toBe('Problem');
     const firstWarning = kinds.indexOf('Warning');
     if (firstWarning >= 0)
@@ -1230,6 +1252,8 @@ test.describe('editor: problems panel and playtest', () => {
 
     // the row about the lettered chest jumps to it
     await rows.filter({ hasText: 'Furniture' }).first().click();
+    // a tap on a row picks Select and selects the thing it names
+    await expect(page.locator('.ed-inspector h2').first()).toHaveText('Select');
     await expect(page.getByTestId('selection-id')).toContainText('f');
     await expect(page.locator('[data-flash]')).toHaveCount(1);
     await shot(page, 'editor-problems-jump');
@@ -1279,8 +1303,6 @@ test.describe('editor: problems panel and playtest', () => {
 });
 
 test.describe('editor: quest fields', () => {
-  const insp = (page: Page) => page.locator('.ed-inspector');
-  const tab = (page: Page, name: RegExp) => insp(page).getByRole('button', { name });
   const quest = (page: Page) => page.locator('.fr-frame');
   const goQuest = (page: Page) => page.getByRole('tab', { name: 'Quest' }).click();
   const goMap = (page: Page) => page.getByRole('tab', { name: 'Map' }).click();
@@ -1289,8 +1311,8 @@ test.describe('editor: quest fields', () => {
     page,
   }) => {
     await newQuest(page);
-    // no objective: the Problems tab says so
-    await tab(page, /^Problems/).click();
+    // no objective: the Problems list says so
+    await page.locator('.ed-issues').click();
     await expect(page.getByTestId('problems-panel')).toContainText('no objective');
     await goQuest(page);
     await expect(page.getByTestId('no-objectives')).toBeVisible();
@@ -1320,7 +1342,7 @@ test.describe('editor: quest fields', () => {
 
     // the 'no objective' error is gone
     await goMap(page);
-    await tab(page, /^Problems/).click();
+    await page.locator('.ed-issues').click();
     await expect(page.getByTestId('problems-panel')).not.toContainText('no objective');
 
     // an action can complete it
