@@ -417,7 +417,9 @@ test.describe('editor: inspector', () => {
     await tool(page, 'Select').click();
     await clickAt(page, 3, 17, 0.5, 0.97);
     await expect(page.getByTestId('selection-id')).toHaveText('d1');
-    await expect(insp(page).locator('h2').first()).toHaveText('Select');
+    // with Select the card is titled by the element: its kind, then its id
+    await expect(insp(page).locator('.ed-kind')).toHaveText('Door');
+    await expect(insp(page).locator('h2').first()).toHaveText('d1');
 
     // another tool: the card is named after it and the old selection is gone
     await tool(page, 'Rock').click();
@@ -1253,7 +1255,7 @@ test.describe('editor: problems panel and playtest', () => {
     // the row about the lettered chest jumps to it
     await rows.filter({ hasText: 'Furniture' }).first().click();
     // a tap on a row picks Select and selects the thing it names
-    await expect(page.locator('.ed-inspector h2').first()).toHaveText('Select');
+    await expect(page.locator('.ed-inspector .ed-kind')).toHaveText('Furniture');
     await expect(page.getByTestId('selection-id')).toContainText('f');
     await expect(page.locator('[data-flash]')).toHaveCount(1);
     await shot(page, 'editor-problems-jump');

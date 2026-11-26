@@ -18,7 +18,7 @@ import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
 import { SpellDialog } from './SpellDialog';
-import { Inspector } from './Inspector';
+import { Inspector, selectionHeading } from './Inspector';
 import { ProblemsPanel } from './ProblemsPanel';
 import { AlignDialog, ReferencePanel, useReference } from './ReferenceImage';
 import { ImportButton, exportDraft } from './QuestFile';
@@ -92,6 +92,9 @@ export function EditorScreen({
   const errors = issues.filter((i) => i.severity === 'error').length;
   const dirty = s.canon !== s.clean;
   const problemsOpen = tab === 'Map' && s.panel === 'problems';
+  // with Select and an element picked the card is titled by the element: its kind, then its id
+  const heading =
+    !problemsOpen && tool === 'select' && s.selection ? selectionHeading(quest, s.selection) : null;
 
   // Toasts go away on their own.
   useEffect(() => {
@@ -288,10 +291,13 @@ export function EditorScreen({
             className="ed-inspector fr-panel"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
-            <h2 className="fr-hd">
+            {heading && <div className="lbl ed-kind">{heading.label}</div>}
+            <h2 className="fr-hd" data-testid={heading ? 'selection-id' : undefined}>
               {problemsOpen
                 ? t('editor.EditorScreen.problems', 'Problems')
-                : TOOLS.find((x) => x.tool === tool)?.label}
+                : heading
+                  ? heading.title
+                  : TOOLS.find((x) => x.tool === tool)?.label}
             </h2>
             {problemsOpen ? (
               <ProblemsPanel store={store} issues={issues} />

@@ -118,12 +118,15 @@ export function Inspector({
 
       {selection ? (
         <section data-testid="inspector-selection">
-          <div className="lbl">{SELECTION_NAMES[selection.kind]}</div>
-          <p className="ed-id" data-testid="selection-id">
-            {selectionLabel(selection)}
-            {furniture ? ` · ${FURNITURE_NAMES[furniture.type]}` : ''}
-            {monster ? ` · ${shownName(quest, monster)}` : ''}
-          </p>
+          {/* with Select the card itself is titled by the element (EditorScreen) */}
+          {tool !== 'select' && (
+            <>
+              <div className="lbl">{selectionHeading(quest, selection).label}</div>
+              <p className="ed-id" data-testid="selection-id">
+                {selectionHeading(quest, selection).title}
+              </p>
+            </>
+          )}
           {door && <DoorFields store={store} door={door} />}
           {edgeDoor && <ExteriorDoorFields store={store} id={edgeDoor.id} />}
           {selection.kind === 'tile' && <TileFields store={store} index={selection.index} />}
@@ -211,6 +214,24 @@ function ZoneFields({ store, zone }: { store: EditorStore; zone: Quest['zones'][
       </button>
     </>
   );
+}
+
+/** The small label (what it is) and the title (its id) of the picked element, for the right card. */
+export function selectionHeading(
+  quest: Quest,
+  selection: NonNullable<EditSelection>,
+): { label: string; title: string } {
+  const furniture =
+    selection.kind === 'furniture' ? quest.furniture.find((f) => f.id === selection.id) : undefined;
+  const monster =
+    selection.kind === 'monster' ? quest.monsters.find((m) => m.id === selection.id) : undefined;
+  return {
+    label: SELECTION_NAMES[selection.kind],
+    title:
+      selectionLabel(selection) +
+      (furniture ? ` · ${FURNITURE_NAMES[furniture.type]}` : '') +
+      (monster ? ` · ${shownName(quest, monster)}` : ''),
+  };
 }
 
 function selectionLabel(selection: NonNullable<EditSelection>): string {

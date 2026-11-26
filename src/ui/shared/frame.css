@@ -985,6 +985,12 @@
 .app.editor.fr .ed-inspector > .fr-hd {
   padding: 14px 0 0;
 }
+.app.editor.fr .ed-inspector > .ed-kind {
+  margin-top: 14px;
+}
+.app.editor.fr .ed-inspector > .ed-kind + .fr-hd {
+  padding-top: 0;
+}
 .app.editor.fr .ed-tools .ed-chips {
   gap: 6px;
 }
@@ -1009,28 +1015,6 @@
   background: var(--sel);
   color: var(--ink);
   border-color: var(--ink);
-}
-.ed-insp-tabs {
-  display: flex;
-  gap: 8px;
-  padding-top: 14px;
-}
-.ed-insp-tabs .fr-tab {
-  flex: 1;
-  padding: 0 8px;
-  font-size: 15px;
-}
-.fr-tab[aria-pressed='true'] {
-  background: var(--sel);
-  border-color: var(--ink);
-  color: var(--ink);
-}
-.ed-insp-tabs .ed-badge {
-  margin-left: 4px;
-  min-width: 18px;
-  padding: 0 4px;
-  font-size: 12px;
-  line-height: 18px;
 }
 
 /* Check box (DESIGN.md, "Check box"): a 26 px square and a label, one 44 px row. */

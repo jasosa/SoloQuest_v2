@@ -283,9 +283,6 @@
 }
 
 /* note builder */
-.ed-tabs {
-  margin-bottom: 0;
-}
 .ed-badge {
   display: inline-block;
   min-width: 22px;
@@ -517,23 +514,6 @@
 }
 .play header .chip {
   margin: 0 4px;
-}
-.ed-tabs {
-  grid-template-columns: repeat(3, auto);
-  gap: 4px;
-}
-.ed-tabs .chip {
-  padding-left: 3px;
-  padding-right: 3px;
-  font-size: 13px;
-  white-space: nowrap;
-}
-.ed-tabs .ed-badge {
-  margin-left: 3px;
-  min-width: 16px;
-  padding: 0 3px;
-  font-size: 12px;
-  line-height: 18px;
 }
 
 /* import sheet */
