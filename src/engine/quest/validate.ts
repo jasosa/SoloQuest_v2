@@ -11,6 +11,7 @@ import {
   isWall,
   keyOf,
   mergedBoard,
+  mergedWallRooms,
   outsideOf,
   parseKey,
   type Level,
@@ -394,6 +395,13 @@ export function validateQuestIssues(
       }
       if (areaAt(board, d.a[0], d.a[1]) === areaAt(board, d.b[0], d.b[1]))
         err(`${where}: edge ${key(d.a)} | ${key(d.b)} is not on a wall (same area)`, ref);
+      // [proposal] a door cannot sit on a wall that merging has removed
+      const gone = mergedWallRooms(board, quest.areaOverrides, d.a, d.b);
+      if (gone)
+        err(
+          `${where}: on the wall between ${gone[0]} and ${gone[1]}, which are merged into one room`,
+          ref,
+        );
       if (!mayTouchRock && (isRock(d.a) || isRock(d.b))) err(`${where}: touches rock`, ref);
       const ek = [key(d.a), key(d.b)].sort().join('|');
       const other = edges.get(ek);

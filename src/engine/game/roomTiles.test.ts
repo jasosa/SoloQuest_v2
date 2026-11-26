@@ -49,6 +49,8 @@ describe('room tiles and the validator', () => {
       problems({
         roomTiles: [{ type: 'gremlinTreasure', area: 'R20' }],
         areaOverrides: [{ merge: ['R20', 'R17'] }],
+        // the door d2 sat on the wall the merge removes [proposal], so it goes
+        doors: testQuestData.doors.filter((d) => d.id !== 'd2'),
       }),
     ).toBe('');
   });

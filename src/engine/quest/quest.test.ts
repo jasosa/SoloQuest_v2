@@ -222,3 +222,42 @@ describe('validateQuest', () => {
     expect(out).toHaveLength(4); // the fixture note n-m3 is gone, so m3 is never placed
   });
 });
+
+describe('doors on a merged wall [proposal]', () => {
+  /*
+   * R20 | R17 share the wall x4|x5 (y 14..16). The fixture door d2 is on it.
+   *
+   *   x:  3 4 5 6
+   *   y15 . 0 7 7      0 = R20, 7 = R17
+   *   (4,15) | (5,15) is the door d2
+   */
+  const merge = { areaOverrides: [{ merge: ['R20', 'R17'] }] };
+  it('is an error for a normal door', () => {
+    expect(validateQuest(withPatch(merge), board)).toContain(
+      'door d2: on the wall between R20 and R17, which are merged into one room',
+    );
+  });
+  it('is an error for a secret door and a false door', () => {
+    const q = withPatch({
+      ...merge,
+      doors: testQuestData.doors.filter((d) => d.id !== 'd2'),
+      secretDoors: [{ id: 's1', a: [4, 15], b: [5, 15] }],
+      falseDoors: [{ id: 'x1', a: [4, 16], b: [5, 16] }],
+    });
+    const out = validateQuest(q, board);
+    expect(out).toContain(
+      'secret door s1: on the wall between R20 and R17, which are merged into one room',
+    );
+    expect(out).toContain(
+      'false door x1: on the wall between R20 and R17, which are merged into one room',
+    );
+  });
+  it('is fine when the door is on another wall, or there is no merge', () => {
+    expect(validateQuest(withPatch({}), board).filter((m) => m.includes('merged'))).toEqual([]);
+    expect(
+      validateQuest(withPatch({ areaOverrides: [{ merge: ['R13', 'R14'] }] }), board).filter((m) =>
+        m.includes('merged into one room'),
+      ),
+    ).toEqual([]);
+  });
+});
