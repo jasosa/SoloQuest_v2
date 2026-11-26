@@ -17,12 +17,22 @@ import {
 import type { LibraryContent } from '../../engine/editor/library';
 import type { BoardTileType, RoomTileType } from '../../engine/data/roomTiles';
 import { foreignIdsOf, swapTo } from '../../engine/editor/maps';
-import { withForeignIds } from '../../engine/editor/result';
+import { ok, withForeignIds } from '../../engine/editor/result';
 import { firstMapId, questMaps } from '../../engine/quest/maps';
 import type { EnemyDef, FurnitureDef, Quest } from '../../engine/quest/schema';
 import type { UserQuestStore } from '../../persist/userQuests';
 import type { IssueRef } from '../../engine/quest/validate';
 import { jumpFor, type Flash } from './problems';
+import {
+  commitMonsterDraft,
+  isMonsterDirty,
+  monsterDraftOf,
+  runOnMonsterDraft,
+  type MonsterDraft,
+} from './monsterDraft';
+import { commitDraft, draftOf, isDirty, patchDraft, type NoteDraft } from './noteDraft';
+import type { NotePatch } from '../../engine/editor';
+import type { Note } from '../../engine/quest/schema';
 
 export type Tool =
   | 'select'
@@ -165,6 +175,10 @@ export interface EditorState {
   readonly panel: Panel;
   /** The note open in the note builder. */
   readonly noteId: string | null;
+  /** The copy of that action the form edits. Nothing reaches the quest until `saveNote`. */
+  readonly noteDraft: NoteDraft | null;
+  /** The copy of the picked monster the Monsters tab edits. Nothing reaches the quest until `saveMonster`. */
+  readonly monsterDraft: MonsterDraft | null;
   /** The ability of the quest open in its popup (decision 70). */
   readonly abilityId: string | null;
   /** The spell of the quest open in its popup. */
@@ -198,7 +212,29 @@ export interface EditorState {
   select(sel: EditSelection): void;
   setTab(tab: EditorTabName): void;
   setPanel(panel: Panel): void;
+  /** Open an action of the quest in the form (a fresh copy), or close the form: edits are dropped. */
   setNoteId(id: string | null): void;
+  /** Open a new action in the form. It is added to the quest by `saveNote`. */
+  startNewNote(note: Note): void;
+  /**
+   * Open a new monster in the Monsters tab, made by an engine edit that is not applied. It is added to
+   * the quest by `saveMonster`. What the edit makes outside the monster (an enemy copied from the
+   * Library) is written at once.
+   */
+  addMonsterDraft(op: (q: Quest) => EditResult): boolean;
+  /**
+   * Run an engine edit on the monster draft. What the edit makes outside the monster (a library
+   * ability or spell copied into the quest) is written at once. False when the engine refuses.
+   */
+  editMonster(op: (q: Quest) => EditResult): boolean;
+  /** Write the monster draft into the quest as one change. The card stays open on the saved monster. */
+  saveMonster(): boolean;
+  /** Drop the edits of the monster draft: the card shows the saved monster again (a new monster is dropped). */
+  cancelMonster(): void;
+  /** Change the draft of the open action. False when the engine refuses (a toast says why). */
+  patchNote(patch: NotePatch): boolean;
+  /** Write the draft into the quest as one change. The form closes, or stays open on the saved action. */
+  saveNote(keepOpen?: boolean): boolean;
   setAbilityId(id: string | null): void;
   setSpellId(id: string | null): void;
   setPicking(req: PickRequest | null): void;
@@ -228,6 +264,18 @@ export interface EditorInit {
 
 const HISTORY_LIMIT = 200;
 
+/** The form state for an action id: the id and a fresh draft, or both empty when it is gone. */
+/** The draft of the picked monster, or none when the selection is not a monster. */
+const monsterDraftFor = (q: Quest, sel: EditSelection): MonsterDraft | null => {
+  const m = sel?.kind === 'monster' ? q.monsters.find((x) => x.id === sel.id) : undefined;
+  return m ? monsterDraftOf(m) : null;
+};
+
+const openNote = (q: Quest, id: string | null) => {
+  const n = id ? q.notes.find((x) => x.id === id) : undefined;
+  return { noteId: n ? n.id : null, noteDraft: n ? draftOf(n) : null };
+};
+
 export function createEditorStore(init: EditorInit): EditorStore {
   const now = init.now ?? (() => Date.now());
   let counter = 0;
@@ -256,6 +304,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
     };
     const reset = {
       selection: null,
+      monsterDraft: null,
       picking: null,
       pickReturn: null,
       pendingBlock: null,
@@ -276,6 +325,8 @@ export function createEditorStore(init: EditorInit): EditorStore {
       tab: 'Map',
       panel: 'element',
       noteId: null,
+      noteDraft: null,
+      monsterDraft: null,
       abilityId: null,
       spellId: null,
       picking: null,
@@ -348,10 +399,12 @@ export function createEditorStore(init: EditorInit): EditorStore {
         if (!prev) return;
         set({
           ...orient(prev, mapId),
+          ...openNote(orient(prev, mapId).quest, get().noteId),
           canon: prev,
           past: past.slice(0, -1),
           future: [canon, ...future],
           selection: null,
+          monsterDraft: null,
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
@@ -367,10 +420,12 @@ export function createEditorStore(init: EditorInit): EditorStore {
         if (!next) return;
         set({
           ...orient(next, mapId),
+          ...openNote(orient(next, mapId).quest, get().noteId),
           canon: next,
           past: [...past, canon],
           future: future.slice(1),
           selection: null,
+          monsterDraft: null,
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
@@ -383,20 +438,113 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setTool: (tool) => set({ tool, pendingBlock: null, pendingTunnel: null }),
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
       select: (selection) =>
-        set(selection ? { selection, panel: 'element', picking: null } : { selection }),
-      setTab: (tab) => set({ tab, picking: null }),
+        set({
+          monsterDraft: monsterDraftFor(get().quest, selection),
+          ...(selection ? { selection, panel: 'element', picking: null } : { selection }),
+        }),
+      // a draft belongs to the tab it was opened in: changing tab drops it
+      setTab: (tab) =>
+        set({
+          tab,
+          picking: null,
+          noteId: null,
+          noteDraft: null,
+          monsterDraft: tab === 'Monsters' ? monsterDraftFor(get().quest, get().selection) : null,
+        }),
+      addMonsterDraft(op) {
+        const { quest } = get();
+        const r = withForeignIds(foreignIdsOf(quest), () => op(quest));
+        if (!r.ok) {
+          set({ toast: toastOf(r.error) });
+          return false;
+        }
+        const made = r.quest.monsters.at(-1);
+        if (!made) return false;
+        const outside = (Object.keys(r.quest) as (keyof Quest)[]).some(
+          (k) => k !== 'monsters' && r.quest[k] !== quest[k],
+        );
+        if (outside && !get().apply((q) => ok({ ...r.quest, monsters: q.monsters }, r.warnings)))
+          return false;
+        set({ selection: null, monsterDraft: { monster: made, isNew: true }, picking: null });
+        return true;
+      },
+      editMonster(op) {
+        const { quest, monsterDraft } = get();
+        if (!monsterDraft) return false;
+        const r = withForeignIds(foreignIdsOf(quest), () =>
+          runOnMonsterDraft(quest, monsterDraft, op),
+        );
+        if (!r.ok) {
+          set({ toast: toastOf(r.error) });
+          return false;
+        }
+        const outside = r.quest;
+        if (outside && !get().apply((q) => ok({ ...outside, monsters: q.monsters }, [])))
+          return false;
+        set({ monsterDraft: r.draft });
+        return true;
+      },
+      saveMonster() {
+        const { monsterDraft } = get();
+        if (!monsterDraft) return false;
+        if (
+          isMonsterDirty(get().quest, monsterDraft) &&
+          !get().apply((q) => commitMonsterDraft(q, monsterDraft))
+        )
+          return false;
+        const saved = get().quest.monsters.find((m) => m.id === monsterDraft.monster.id);
+        set({
+          selection: saved ? { kind: 'monster', id: saved.id } : null,
+          monsterDraft: saved ? monsterDraftOf(saved) : null,
+        });
+        return true;
+      },
+      cancelMonster() {
+        set({ monsterDraft: monsterDraftFor(get().quest, get().selection) });
+      },
       setPanel: (panel) =>
         set(
           // the actions list is the Actions tab now, not a panel beside the map
           panel === 'notes'
-            ? { panel: 'element', picking: null, selection: null, tab: 'Actions' }
+            ? {
+                panel: 'element',
+                picking: null,
+                selection: null,
+                monsterDraft: null,
+                tab: 'Actions',
+              }
             : { panel, picking: null },
         ),
       setNoteId(noteId) {
         // an action of another map opens that map, so its places and elements are the ones shown
         const note = noteId ? get().canon.notes.find((n) => n.id === noteId) : undefined;
         if (note?.map && note.map !== get().mapId) get().setMap(note.map);
-        set({ noteId, picking: null });
+        set({ ...openNote(get().quest, noteId), picking: null });
+      },
+      startNewNote(note) {
+        set({ noteId: note.id, noteDraft: { note, isNew: true }, picking: null });
+      },
+      patchNote(patch) {
+        const { quest, noteDraft } = get();
+        if (!noteDraft) return false;
+        const r = patchDraft(quest, noteDraft, patch);
+        if (!r.ok) {
+          set({ toast: toastOf(r.error) });
+          return false;
+        }
+        set({ noteDraft: r.draft });
+        return true;
+      },
+      saveNote(keepOpen = false) {
+        const { noteDraft } = get();
+        if (!noteDraft) return false;
+        // nothing changed: close the form without an undo step
+        if (isDirty(get().quest, noteDraft) && !get().apply((q) => commitDraft(q, noteDraft)))
+          return false;
+        set(
+          keepOpen ? openNote(get().quest, noteDraft.note.id) : { noteId: null, noteDraft: null },
+        );
+        return true;
       },
       setAbilityId: (abilityId) => set({ abilityId }),
       setSpellId: (spellId) => set({ spellId }),
@@ -436,11 +584,12 @@ export function createEditorStore(init: EditorInit): EditorStore {
           tab: j.panel === 'notes' ? 'Actions' : 'Map',
           panel: j.panel === 'notes' ? 'element' : j.panel,
           selection: j.selection,
+          monsterDraft: null,
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
 
-          ...(j.panel === 'notes' ? { noteId: j.noteId } : {}),
+          ...(j.panel === 'notes' ? openNote(get().quest, j.noteId) : {}),
           flash: hasFlash ? { ...j.flash, id: ++counter } : null,
         });
       },

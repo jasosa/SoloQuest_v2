@@ -192,7 +192,7 @@ test.describe('designer: the library', () => {
     await page.mouse.click(at(4, 17).x, at(4, 17).y);
     // a monster is edited in the Monsters tab
     await page.getByRole('tab', { name: 'Monsters' }).click();
-    const insp = page.getByRole('tabpanel').or(page.locator('.fr-frame'));
+    const insp = page.getByRole('tabpanel').or(page.locator('.fr-frame, .fr-split'));
 
     await insp.getByLabel('Enemy', { exact: true }).selectOption({ label: 'Marsh Skeleton' });
     await expect(page.getByTestId('monster-list')).toContainText('Skeleton');
@@ -250,7 +250,10 @@ test.describe('designer: the library', () => {
       .getByTestId('monster-list')
       .getByRole('button', { name: 'Add', exact: true })
       .click();
-    await expect(page.getByTestId('monster-list').locator('li')).toHaveCount(2);
+    // a draft until it is saved
+    await expect(page.getByTestId('monster-list').locator('[data-monster-row]')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Save monster' }).click();
+    await expect(page.getByTestId('monster-list').locator('[data-monster-row]')).toHaveCount(2);
   });
 
   test('an enemy can be completely its own: stats, plan, weights and a picture, shown on the map', async ({

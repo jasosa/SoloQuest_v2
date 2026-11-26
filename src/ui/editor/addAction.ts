@@ -1,9 +1,12 @@
 /**
  * Start a new action on a subject (decision 68): the first trigger that fits, the element filled
- * in, a placeholder text. The new action opens in the popup. Shared by the Actions tab, the
- * inspector of an element and the quest fields.
+ * in, a placeholder text. The new action opens in the form as a draft: it joins the quest when
+ * the author saves it, and "Cancel" leaves no trace. Shared by the Actions tab, the inspector of
+ * an element and the quest fields.
  */
 import { addNote } from '../../engine/editor';
+import { foreignIdsOf } from '../../engine/editor/maps';
+import { withForeignIds } from '../../engine/editor/result';
 import { triggerChoices, triggerFor, type Subject } from './actionSubjects';
 import type { EditorStore } from './editorStore';
 
@@ -16,17 +19,21 @@ export function addAction(store: EditorStore, subject: Subject, letter?: string)
     st.say(r.error);
     return false;
   }
-  const ok = st.apply((q) =>
-    addNote(q, {
+  // run the engine operation on the quest, but keep the result: only the draft is opened
+  const made = withForeignIds(foreignIdsOf(st.quest), () =>
+    addNote(st.quest, {
       trigger: r.value.trigger,
       ...(r.value.target ? { target: r.value.target } : {}),
       ...(letter ? { letter } : {}),
       effects: [{ type: 'showText', text: 'Write the text here.' }],
     }),
   );
-  if (!ok) return false;
-  const q = store.getState().quest;
-  const made = q.notes[q.notes.length - 1];
-  if (made) st.setNoteId(made.id);
+  if (!made.ok) {
+    st.say(made.error);
+    return false;
+  }
+  const note = made.quest.notes[made.quest.notes.length - 1];
+  if (!note) return false;
+  st.startNewNote(note);
   return true;
 }

@@ -126,12 +126,30 @@ header.page-head {
 .page-head .back-btn:active {
   transform: translate(2px, 2px);
 }
+.page-head .head-titles {
+  flex: 0 1 auto;
+  min-width: 0;
+}
 .page-head .head-line {
   display: flex;
   align-items: baseline;
   gap: 16px;
+  min-width: 0;
+}
+.page-head .head-hint {
+  flex: none;
+  white-space: nowrap;
+}
+.page-head .head-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .page-head h1 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font: 700 36px/1.1 'Bonum';
   font-variant-caps: small-caps;
   color: var(--ink);
@@ -148,6 +166,7 @@ header.page-head {
   color: var(--muted);
 }
 .page-head .head-right {
+  flex: none;
   margin-left: auto;
   display: flex;
   align-items: center;

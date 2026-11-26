@@ -77,7 +77,7 @@ export function PageHeader({
       {(title || subtitle) && (
         <div className="head-titles">
           <div className="head-line">
-            {title && <h1>{title}</h1>}
+            {title && <h1 title={title}>{title}</h1>}
             {hint && <span className="head-hint">{hint}</span>}
           </div>
           {subtitle && (

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import type { EditorStore } from './editorStore';
-import { ActionForm } from './NotesPanel';
+import { ActionCard } from './ActionCard';
 import { t } from '../../i18n/t';
 
 /**
@@ -11,10 +11,10 @@ import { t } from '../../i18n/t';
  * square, a door or a room on the board the dialog steps aside and a small bar says what to click.
  */
 export function ActionDialog({ store }: { store: EditorStore }) {
-  const { quest, noteId, picking, tab } = useStore(store);
+  const { noteDraft, picking, tab } = useStore(store);
   const st = store.getState();
   const box = useRef<HTMLDivElement>(null);
-  const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
+  const note = noteDraft?.note;
 
   useModal(box, {
     active: Boolean(note && !picking && tab !== 'Actions'),
@@ -37,21 +37,13 @@ export function ActionDialog({ store }: { store: EditorStore }) {
   return (
     <div className="ed-veil">
       <div
-        className="ed-dialog"
+        className="ed-dialog ed-actiondialog"
         ref={box}
         role="dialog"
         aria-modal="true"
         aria-label={t('editor.ActionDialog.action', 'Action')}
       >
-        <div className="ed-dialog-hd">
-          <h2>{t('editor.ActionDialog.action', 'Action')}</h2>
-          <button className="btn alt" onClick={() => st.setNoteId(null)}>
-            {t('editor.ActionDialog.close', 'Close')}
-          </button>
-        </div>
-        <div className="ed-dialog-body">
-          <ActionForm key={note.id} store={store} note={note} quest={quest} />
-        </div>
+        <ActionCard store={store} popup />
       </div>
     </div>
   );

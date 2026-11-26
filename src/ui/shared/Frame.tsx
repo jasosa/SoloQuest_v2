@@ -222,3 +222,89 @@ export function Dialog({
     </div>
   );
 }
+
+/** A check box with a label (DESIGN.md, "Check box"). A button with `aria-pressed`. */
+export function CheckRow({
+  label,
+  on,
+  onClick,
+  testId,
+}: {
+  label: string;
+  on: boolean;
+  onClick(): void;
+  testId?: string;
+}) {
+  return (
+    <button className="fr-check" aria-pressed={on} data-testid={testId} onClick={onClick}>
+      <i aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
+
+/**
+ * A list on the left and one picked item on the right (DESIGN.md, "List and detail tabs"): the
+ * Actions and Monsters tabs. As the Library: the same rows and the same detail card.
+ */
+export const Split = ({ children }: { children: ReactNode }) => (
+  <div className="fr-split">{children}</div>
+);
+
+/** One row of such a list: the name and a small kind. The picked row is in the selection colour. */
+export function PickRow({
+  name,
+  kind,
+  on,
+  onClick,
+  title,
+  data,
+  sub,
+}: {
+  name: ReactNode;
+  kind?: ReactNode;
+  /** A second, smaller line under the name. */
+  sub?: ReactNode;
+  on: boolean;
+  onClick(): void;
+  title?: string;
+  data?: Record<string, string>;
+}) {
+  return (
+    <button
+      className="box-pick fr-pickrow"
+      aria-pressed={on}
+      title={title}
+      onClick={onClick}
+      {...data}
+    >
+      <span>{name}</span>
+      {kind && <span className="box-count">{kind}</span>}
+      {sub && <span className="fr-picksub">{sub}</span>}
+    </button>
+  );
+}
+
+/** The picked item: a small label, the title, the fields, and the buttons at the bottom. */
+export function DetailCard({
+  label,
+  title,
+  children,
+  foot,
+  testId,
+}: {
+  label: string;
+  title: ReactNode;
+  children: ReactNode;
+  foot?: ReactNode;
+  testId?: string;
+}) {
+  return (
+    <section className="detail fr-detail" data-testid={testId}>
+      <div className="lbl">{label}</div>
+      <h2>{title}</h2>
+      {children}
+      {foot && <div className="fr-detail-foot">{foot}</div>}
+    </section>
+  );
+}

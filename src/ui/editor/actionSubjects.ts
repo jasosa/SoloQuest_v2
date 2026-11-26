@@ -16,6 +16,20 @@ export type Subject = { readonly kind: 'quest' } | NoteTarget;
 
 export const subjectOf = (n: Note): Subject => noteTarget(n) ?? { kind: 'quest' };
 
+/** The kind chip of an action in the Actions list: a moment of the quest, a place or an element. */
+export function actionKind(s: Subject): string {
+  switch (s.kind) {
+    case 'quest':
+      return tr('editor.actionSubjects.moment', 'Moment');
+    case 'area':
+    case 'square':
+    case 'zone':
+      return tr('editor.actionSubjects.place', 'Place');
+    default:
+      return tr('editor.actionSubjects.element', 'Element');
+  }
+}
+
 /** A short name for the "Applies to" line: "The quest", "Room R03", "Door d1"... */
 export function subjectLabel(q: Quest, s: Subject): string {
   switch (s.kind) {

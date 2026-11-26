@@ -35,7 +35,7 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 
-  test('Quest tab: general fields, objectives, rules and the actions list', async ({ page }) => {
+  test('Quest tab: general fields, objectives and rules; no actions card', async ({ page }) => {
     await newQuest(page);
     await tab(page, 'Quest').click();
     const general = page.getByTestId('quest-general');
@@ -46,16 +46,17 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await general.getByLabel('Summary').blur();
     await page.getByRole('button', { name: 'Add an objective' }).click();
     await expect(page.getByTestId('quest-objectives').getByTestId('objective-row')).toHaveCount(1);
-    await expect(page.getByTestId('quest-actions')).toContainText('No action yet.');
+    // actions are only in the Actions tab
+    await expect(page.getByTestId('quest-actions')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Add action' })).toHaveCount(0);
     await shot(page, 'tab-quest');
   });
 
   test('Actions tab lists the actions; a row opens it beside the list', async ({ page }) => {
     await newQuest(page);
-    await tab(page, 'Quest').click();
-    await page.getByTestId('quest-actions').getByRole('button', { name: 'Add action' }).click();
-    await page.getByRole('button', { name: 'Close', exact: true }).click();
     await tab(page, 'Actions').click();
+    await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
+    await page.getByRole('button', { name: 'Save action', exact: true }).click();
     await expect(page.getByTestId('actions-list').getByTestId('note-list')).toBeVisible();
     await page
       .getByTestId('actions-list')
@@ -81,9 +82,9 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
     await expect(card).toBeVisible();
     await card.getByLabel('Name', { exact: true }).fill('Grak');
     await card.getByLabel('Name', { exact: true }).blur();
-    await expect(page.getByTestId('monster-list')).toContainText('Grak');
     await card.getByRole('switch', { name: /Special monster/ }).click();
-    await expect(page.getByTestId('monster-list')).toContainText('★');
+    // a draft: the list has no monster until "Save monster"
+    await expect(page.getByTestId('monster-list')).toContainText('No monster yet.');
     await card.getByLabel('Type').selectOption('orc');
     await page.getByLabel('Add an ability').selectOption('stone');
     await page.getByRole('button', { name: 'Add', exact: true }).nth(1).click();
@@ -95,11 +96,59 @@ test.describe('editor tabs (the mockup of decision 70)', () => {
       'true',
     );
     await shot(page, 'tab-monsters');
-    await page
-      .getByTestId('monster-list')
-      .getByRole('button', { name: 'Remove', exact: true })
-      .click();
+    await card.getByRole('button', { name: 'Save monster' }).click();
+    await expect(page.getByTestId('monster-list')).toContainText('Grak');
+    await expect(page.getByTestId('monster-list')).toContainText('★');
+    await expect(card.getByLabel('Starts')).toHaveValue('dormant');
+    await card.getByRole('button', { name: 'Delete monster' }).click();
     await expect(page.getByTestId('monster-list')).toContainText('No monster yet.');
+  });
+
+  test('Monsters tab: edits are a draft; Cancel and changing tab drop them; Save is one undo step', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tab(page, 'Monsters').click();
+    await shot(page, 'tab-monsters-empty');
+    const list = page.getByTestId('monster-list');
+    await list.getByRole('button', { name: 'Add', exact: true }).click();
+    const card = page.getByTestId('monster-card');
+    await card.getByLabel('Name', { exact: true }).fill('Grak');
+    await card.getByLabel('Name', { exact: true }).blur();
+    // a new monster has no Delete and no actions until it is saved
+    await expect(card.getByRole('button', { name: 'Delete monster' })).toHaveCount(0);
+    await card.getByRole('button', { name: 'Save monster' }).click();
+    await expect(list).toContainText('Grak');
+
+    // Cancel shows the saved monster again
+    await card.getByLabel('Name', { exact: true }).fill('Changed');
+    await card.getByLabel('Name', { exact: true }).blur();
+    await expect(card.getByTestId('draft-note')).toBeVisible();
+    await expect(list).toContainText('Grak');
+    await card.getByRole('button', { name: 'Cancel' }).click();
+    await expect(card.getByLabel('Name', { exact: true })).toHaveValue('Grak');
+    await expect(card.getByTestId('draft-note')).toHaveCount(0);
+
+    // changing tab drops the edits
+    await card.getByLabel('Name', { exact: true }).fill('Lost');
+    await card.getByLabel('Name', { exact: true }).blur();
+    await tab(page, 'Quest').click();
+    await tab(page, 'Monsters').click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await expect(page.getByTestId('monster-card').getByLabel('Name', { exact: true })).toHaveValue(
+      'Grak',
+    );
+
+    // one Save is one undo step
+    await card.getByLabel('Name', { exact: true }).fill('Grak the Bold');
+    await card.getByLabel('Name', { exact: true }).blur();
+    await card.getByRole('switch', { name: /Special monster/ }).click();
+    await card.getByRole('button', { name: 'Save monster' }).click();
+    await expect(list).toContainText('Grak the Bold');
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await expect(list).toContainText('Grak');
+    await expect(list).not.toContainText('Grak the Bold');
+    await expect(list).not.toContainText('★');
   });
 
   test('Monsters tab: waits for and goes toward are prompts; a marked square needs a marker', async ({

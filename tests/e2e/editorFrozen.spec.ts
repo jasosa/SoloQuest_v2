@@ -84,6 +84,10 @@ test.describe('editor: Frozen Horror pieces', () => {
     await page.getByLabel('Attacks per turn').selectOption('2');
     await expect(page.getByLabel('Attacks per turn')).toHaveValue('2');
 
+    // actions on a monster need a saved monster
+    await expect(page.getByTestId('element-actions')).toHaveCount(0);
+    await btn(page, 'Save monster').click();
+    await expect(page.getByLabel('Starts')).toHaveValue('passive');
     await page.getByTestId('monster-card').scrollIntoViewIfNeeded();
     await btn(page, 'Add action').first().click();
     await page.getByLabel('When').selectOption('monsterLeft');

@@ -11,7 +11,7 @@ import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
 import type { DoorTool, EditorStore, EditorTabName, Tool } from './editorStore';
 import { MAX_TUNNEL_PAIRS } from '../../engine/data/roomTiles';
-import { EDITOR_TABS, TopBar } from '../shared/Frame';
+import { CheckRow, EDITOR_TABS, TopBar } from '../shared/Frame';
 import { DesignerBody, type QuestSource, type QuestUpdater } from '../designer/DesignerScreen';
 import { useLibrary } from '../designer/LibraryContext';
 import type { LibraryStore } from '../../persist/library';
@@ -257,7 +257,8 @@ export function EditorScreen({
       )}
       {tab === 'Map' && (
         <div className="ed-body">
-          <nav className="ed-tools" aria-label={t('editor.EditorScreen.tools', 'Tools')}>
+          <nav className="ed-tools fr-panel" aria-label={t('editor.EditorScreen.tools', 'Tools')}>
+            <h2 className="fr-hd">{t('editor.EditorScreen.tools', 'Tools')}</h2>
             <MapChips store={store} />
             <div className="ed-chips">
               {TOOLS.map((tv) => (
@@ -304,7 +305,7 @@ export function EditorScreen({
           </main>
 
           <aside
-            className="ed-inspector"
+            className="ed-inspector fr-panel"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
             {tool === 'tiles' && <TilePalette store={store} />}
@@ -542,18 +543,20 @@ function ToolOptions({ store }: { store: EditorStore }) {
         </p>
       )}
       <div className="lbl ed-gap">{t('editor.EditorScreen.view', 'View')}</div>
-      {chip(t('editor.EditorScreen.roomIds', 'Room ids'), opts.roomIds, () =>
-        set({ roomIds: !opts.roomIds }),
-      )}
+      <CheckRow
+        label={t('editor.EditorScreen.roomIds', 'Room ids')}
+        on={opts.roomIds}
+        onClick={() => set({ roomIds: !opts.roomIds })}
+      />
       {packInUse && (
-        <button
-          className="chip"
-          aria-pressed={mapTextures}
-          data-testid="editor-textures"
+        <CheckRow
+          testId="editor-textures"
+          on={mapTextures}
           onClick={() => setEditorTextures(!mapTextures)}
-        >
-          {t('editor.EditorScreen.textures', 'Textures: {v1}', { v1: mapTextures ? 'on' : 'off' })}
-        </button>
+          label={t('editor.EditorScreen.textures', 'Textures: {v1}', {
+            v1: mapTextures ? 'on' : 'off',
+          })}
+        />
       )}
     </div>
   );

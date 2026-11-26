@@ -92,9 +92,19 @@ test.describe('accessibility (axe, WCAG 2.1 A and AA)', () => {
       await page.getByRole('tab', { name: tab, exact: true }).click();
       expect(await violations(page), tab).toEqual([]);
     }
-    // an action dialog
-    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
-    await page.getByTestId('quest-actions').getByRole('button', { name: 'Add action' }).click();
+    // an action card beside the list
+    await page.getByRole('tab', { name: 'Actions', exact: true }).click();
+    await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
+    expect(await violations(page)).toEqual([]);
+    // a monster card, then the action popup of a saved monster
+    await page.getByRole('tab', { name: 'Monsters', exact: true }).click();
+    await page
+      .getByTestId('monster-list')
+      .getByRole('button', { name: 'Add', exact: true })
+      .click();
+    expect(await violations(page)).toEqual([]);
+    await page.getByRole('button', { name: 'Save monster', exact: true }).click();
+    await page.getByTestId('element-actions').getByRole('button', { name: 'Add action' }).click();
     expect(await violations(page)).toEqual([]);
   });
 

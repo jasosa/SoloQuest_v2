@@ -1,16 +1,18 @@
 /**
- * The Actions tab (decision 68): every action of the quest, grouped by what it belongs to (the
- * quest, rooms, zones, squares, doors, furniture, monsters, traps). A row opens the action in the
- * popup; "Add action" starts one on the quest. There are no "notes" here: an action is always
- * tied to a moment of the quest, a place or an element.
+ * The list of the Actions tab (decision 68): every action of the quest, in the order of what it
+ * belongs to (the quest, rooms, zones, squares, doors, furniture, monsters, traps), one row each
+ * with its kind (Moment, Place or Element). A row opens the action in the card beside the list;
+ * "Add action" starts one on the quest. There are no "notes" here: an action is always tied to a
+ * moment of the quest, a place or an element.
  */
 import { useStore } from 'zustand';
 import { lettersMissingNotes } from '../../engine/editor';
 import type { Note, Quest } from '../../engine/quest/schema';
 import { addAction } from './addAction';
-import { subjectLabel, subjectOf, type Subject } from './actionSubjects';
+import { actionKind, subjectLabel, subjectOf, type Subject } from './actionSubjects';
 import type { EditorStore } from './editorStore';
 import { mainText, triggerSummary } from './noteForms';
+import { PickRow } from '../shared/Frame';
 import { t } from '../../i18n/t';
 
 const ORDER: readonly Subject['kind'][] = [
@@ -25,18 +27,6 @@ const ORDER: readonly Subject['kind'][] = [
   'marker',
 ];
 
-const GROUP_NAMES: Record<Subject['kind'], string> = {
-  quest: 'The quest',
-  area: 'Rooms',
-  zone: 'Zones',
-  square: 'Squares',
-  door: 'Doors',
-  furniture: 'Furniture',
-  monster: 'Monsters',
-  trap: 'Traps',
-  marker: 'Markers',
-};
-
 /** The actions of a quest, grouped by the kind of thing they belong to, in a fixed order. */
 export function groupActions(q: Quest): { kind: Subject['kind']; notes: Note[] }[] {
   const groups = new Map<Subject['kind'], Note[]>();
@@ -48,7 +38,7 @@ export function groupActions(q: Quest): { kind: Subject['kind']; notes: Note[] }
 }
 
 export function ActionsPanel({ store }: { store: EditorStore }) {
-  const { quest } = useStore(store);
+  const { quest, noteId } = useStore(store);
   const st = store.getState();
   const missing = lettersMissingNotes(quest);
   const groups = groupActions(quest);
@@ -56,7 +46,7 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
   return (
     <>
       {missing.length > 0 && (
-        <section>
+        <section className="fr-missing">
           <div className="lbl">
             {t('editor.ActionsPanel.lettersOnTheMap', 'Letters on the map with no action')}
           </div>
@@ -73,37 +63,36 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
           </div>
         </section>
       )}
-      <section>
-        <div className="lbl">{t('editor.ActionsPanel.actions', 'Actions')}</div>
-        {quest.notes.length === 0 ? (
-          <p className="ed-note" data-testid="no-actions">
-            {t('editor.ActionsPanel.noActionYet', 'No action yet.')}
-          </p>
-        ) : (
-          groups.map((g) => (
-            <div key={g.kind} data-testid={`actions-${g.kind}`}>
-              <div className="ed-sub">{GROUP_NAMES[g.kind]}</div>
-              <ul className="ed-notelist" data-testid="note-list">
-                {g.notes.map((n) => (
-                  <li key={n.id}>
-                    <button onClick={() => st.setNoteId(n.id)}>
-                      <b>{n.letter ?? '·'}</b>
-                      <span>
-                        {g.kind === 'quest' ? '' : `${subjectLabel(quest, subjectOf(n))}: `}
-                        {triggerSummary(n.trigger)}
-                      </span>
-                      <i>{mainText(n)}</i>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        )}
-        <button className="btn" onClick={() => addAction(store, { kind: 'quest' })}>
-          {t('editor.ActionsPanel.addAction2', 'Add action')}
-        </button>
-      </section>
+      {quest.notes.length === 0 ? (
+        <p className="ed-note" data-testid="no-actions">
+          {t('editor.ActionsPanel.noActionYet', 'No action yet.')}
+        </p>
+      ) : (
+        <div className="fr-picks" data-testid="note-list">
+          {groups.flatMap((g) =>
+            g.notes.map((n) => (
+              <PickRow
+                key={n.id}
+                on={n.id === noteId}
+                sub={mainText(n)}
+                data={{ 'data-action-row': n.id }}
+                name={
+                  <>
+                    {n.letter ? `${n.letter} · ` : ''}
+                    {g.kind === 'quest' ? '' : `${subjectLabel(quest, subjectOf(n))}: `}
+                    {triggerSummary(n.trigger)}
+                  </>
+                }
+                kind={actionKind(subjectOf(n))}
+                onClick={() => st.setNoteId(n.id)}
+              />
+            )),
+          )}
+        </div>
+      )}
+      <button className="btn alt" onClick={() => addAction(store, { kind: 'quest' })}>
+        {t('editor.ActionsPanel.addAction2', 'Add action')}
+      </button>
     </>
   );
 }

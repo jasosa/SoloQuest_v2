@@ -8,7 +8,7 @@
 import { board, roomIds } from '../../engine/board/board';
 import { isMultiMap, questMaps } from '../../engine/quest/maps';
 import { shownName } from './monsterLabel';
-import { removeNote, updateNote, type NotePatch } from '../../engine/editor';
+import type { NotePatch } from '../../engine/editor';
 import { MONSTER_NAMES } from '../../engine/data/monsters';
 import {
   MONSTER_TYPES,
@@ -303,7 +303,7 @@ function AppliesTo({ store, quest, note }: { store: EditorStore; quest: Quest; n
       st.say(r.error);
       return;
     }
-    st.apply((q) => updateNote(q, note.id, { trigger: r.value.trigger, target: r.value.target }));
+    st.patchNote({ trigger: r.value.trigger, target: r.value.target });
   };
   const all = subjectChoices(quest);
   const known = all.some((s) => subjectKey(s) === subjectKey(subject));
@@ -346,7 +346,7 @@ export function ActionForm({
   quest: Quest;
 }) {
   const st = store.getState();
-  const patch = (p: NotePatch) => st.apply((q) => updateNote(q, note.id, p));
+  const patch = (p: NotePatch) => st.patchNote(p);
   const subject = subjectOf(note);
   const fits = triggerChoices(subject);
   // An old action may use a trigger that has no subject (a kind of monster slain): keep it listed.
@@ -364,7 +364,6 @@ export function ActionForm({
   return (
     <>
       <section>
-        <div className="lbl">{t('editor.NotesPanel.action', 'Action')}</div>
         <p className="ed-id" data-testid="note-id">
           {note.id}
         </p>
@@ -480,17 +479,6 @@ export function ActionForm({
             {t('editor.NotesPanel.searchingHereIsNot', 'Searching here is not possible')}
           </button>
         )}
-      </section>
-
-      <section>
-        <button
-          className="btn"
-          onClick={() => {
-            if (st.apply((q) => removeNote(q, note.id))) st.setNoteId(null);
-          }}
-        >
-          {t('editor.NotesPanel.deleteAction', 'Delete action')}
-        </button>
       </section>
     </>
   );

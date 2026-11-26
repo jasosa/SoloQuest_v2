@@ -1,10 +1,10 @@
 import { useStore } from 'zustand';
 import { renameQuest, setStartArea, setSummary } from '../../engine/editor';
 import { board, roomIds } from '../../engine/board/board';
-import { Col, Fld, Frame, Panel } from '../shared/Frame';
+import { Col, DetailCard, Fld, Frame, Panel, Split } from '../shared/Frame';
 import { ActionsPanel } from './ActionsPanel';
 import type { EditorStore } from './editorStore';
-import { ActionForm } from './NotesPanel';
+import { ActionCard } from './ActionCard';
 import { FeaturesPanel } from './FeaturesPanel';
 import { QuestPanel } from './QuestPanel';
 import { MapsPanel } from './MapsPanel';
@@ -12,8 +12,9 @@ import { t } from '../../i18n/t';
 
 /**
  * The Quest tab (concept screen 3): three numbered cards, 1 General, 2 Objectives and maps (with the
- * wandering monster) and 3 Rules. Under them, without a number: the actions list and the characters
- * (left), the ending (middle), leaving and textures and the quest's own abilities and spells (right).
+ * wandering monster) and 3 Rules. Under them, without a number: the characters (left), the ending
+ * (middle), leaving and textures and the quest's own abilities and spells (right). Actions are only
+ * in the Actions tab.
  */
 export function QuestTab({ store }: { store: EditorStore }) {
   const { quest } = useStore(store);
@@ -87,9 +88,6 @@ export function QuestTab({ store }: { store: EditorStore }) {
             />
           </Fld>
         </Panel>
-        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="quest-actions">
-          <ActionsPanel store={store} />
-        </Panel>
         <Panel
           title={t('editor.QuestTabs.charactersBringInHelpers', 'Characters (bring-in helpers)')}
         >
@@ -135,39 +133,32 @@ export function QuestTab({ store }: { store: EditorStore }) {
 }
 
 /**
- * The Actions tab: the list of every action on the left and the selected action beside it, like
- * the Monsters tab (no popup over the text). Elsewhere an action still opens in the popup.
+ * The Actions tab (concept screen 4): the list of every action on the left and the picked action
+ * in a detail card on the right, like the Monsters tab. The card edits a draft: "Save action"
+ * writes it, "Cancel" drops it. On the other tabs an action opens in a popup with the same card.
  */
 export function ActionsTab({ store }: { store: EditorStore }) {
-  const { quest, noteId } = useStore(store);
-  const st = store.getState();
-  const note = noteId ? quest.notes.find((n) => n.id === noteId) : undefined;
+  const { noteDraft } = useStore(store);
   return (
-    <Frame narrow>
-      <Col label={t('editor.QuestTabs.actions', 'Actions')}>
-        <Panel title={t('editor.QuestTabs.actions', 'Actions')} testId="actions-list">
-          <ActionsPanel store={store} />
-        </Panel>
-      </Col>
-      <Col label={t('editor.QuestTabs.action', 'Action')}>
-        {note ? (
-          <Panel title={t('editor.QuestTabs.action', 'Action')} testId="action-card">
-            <ActionForm key={note.id} store={store} note={note} quest={quest} />
-            <button className="btn alt" onClick={() => st.setNoteId(null)}>
-              {t('editor.QuestTabs.close', 'Close')}
-            </button>
-          </Panel>
-        ) : (
-          <Panel title={t('editor.QuestTabs.howActionsWork', 'How actions work')}>
-            <p className="fr-help">
-              {t(
-                'editor.QuestTabs.anActionHappensAt',
-                'An action happens at a moment of the quest, on a place, or on an element. Pick one on the left to change it. To add one to an element, select it on the Map or in the Monsters tab and use its Add action button.',
-              )}
-            </p>
-          </Panel>
-        )}
-      </Col>
-    </Frame>
+    <Split>
+      <div className="fr-picks-col" data-testid="actions-list">
+        <ActionsPanel store={store} />
+      </div>
+      {noteDraft ? (
+        <ActionCard store={store} />
+      ) : (
+        <DetailCard
+          label={t('editor.QuestTabs.action', 'Action')}
+          title={t('editor.QuestTabs.howActionsWork', 'How actions work')}
+        >
+          <p className="hintp">
+            {t(
+              'editor.QuestTabs.anActionHappensAt',
+              'An action happens at a moment of the quest, on a place, or on an element. Pick one on the left to change it. To add one to an element, select it on the Map or in the Monsters tab and use its Add action button.',
+            )}
+          </p>
+        </DetailCard>
+      )}
+    </Split>
   );
 }

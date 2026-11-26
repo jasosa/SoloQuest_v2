@@ -184,6 +184,7 @@ Order of work. Each slice ends green with tests and a commit.
 - [x] Slice 5: campaign / one-shot (decision 37, details in 89): finished quests, carried flags with one-shot defaults (`flagsIn`, `flagsOut`), the team, campaign settings and the campaign seed, kept per pack on this device (`src/engine/pack/campaign.ts`, `src/persist/campaigns.ts`). The campaign settings have no switch yet (slice 6)
 - [x] Start flow (owner, Campaign.pptx, decision 93): Home (Single Quest, Quest Pack Campaign, Continue your last game, Settings), Single Quest (packs from the registry, Other missions, the pack's quests, heroes), Quest Pack Campaign (packs, saved campaigns, heroes for a new campaign, campaign overview with status, heroes per quest, campaign settings), several campaigns per pack (store keyed by id, older single campaign migrated). Replaces the pack tabs, the side panel and the New game popup. e2e updated to the new flow
 - [x] Slice 6: settings: Rule hints is per quest (decision 84, done earlier); "No Yeti hug in solo quests" (decision 59) and the pack's campaign settings as switches in the settings popup (decision 91). Left: the Raiment artifact draw (kill notes with the strongest monster of four quests; needs the book)
+- [x] Slice 7: the editor Map tab as in the concept (Tools card, board, Element / Problems card, 230 / 290 px columns)
 
 ## M10 · Frozen Horror (`FROZEN_HORROR.md`, decisions 41 to 63)
 

@@ -51,7 +51,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
   const lib = useLibrary();
   const lookup = abilityLookup(quest);
   const mine = monster.abilities ?? [];
-  const patch = (p: Patch) => st.apply((q) => updateMonster(q, monster.id, p));
+  const patch = (p: Patch) => st.editMonster((q) => updateMonster(q, monster.id, p));
   // an ability of an expansion that is switched off is not offered, unless the quest has it already
   const ownIds = new Set(quest.abilityDefs.map((a) => a.id));
   const free = [...lookup.values()].filter(
@@ -116,7 +116,7 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
           onClick={() => {
             if (pick.startsWith('lib:')) {
               const def = lib.abilities.find((a) => a.id === pick.slice(4));
-              if (def && st.apply((q) => addLibraryAbilityToMonster(q, monster.id, def)))
+              if (def && st.editMonster((q) => addLibraryAbilityToMonster(q, monster.id, def)))
                 setPick('');
               return;
             }
@@ -158,7 +158,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
   const list = monster.spells ?? [];
   const ids = [...new Set(list)];
   const count = (id: string) => list.filter((x) => x === id).length;
-  const patch = (p: Patch) => st.apply((q) => updateMonster(q, monster.id, p));
+  const patch = (p: Patch) => st.editMonster((q) => updateMonster(q, monster.id, p));
   /** The spell list for these counts, in the order of first appearance. */
   const build = (counts: Map<string, number>) =>
     [...counts].flatMap(([id, n]) => Array<string>(n).fill(id));
@@ -268,7 +268,8 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
           onClick={() => {
             if (pick.startsWith('lib:')) {
               const def = lib.spells.find((s) => s.id === pick.slice(4));
-              if (def && st.apply((q) => addLibrarySpellToMonster(q, monster.id, def))) setPick('');
+              if (def && st.editMonster((q) => addLibrarySpellToMonster(q, monster.id, def)))
+                setPick('');
               return;
             }
             if (patch({ spells: [...list, pick] })) setPick('');
@@ -331,7 +332,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
             if (v.startsWith('lib:')) {
               const def = lib.enemies.find((x) => x.id === v.slice(4));
               if (def)
-                st.apply((q) =>
+                st.editMonster((q) =>
                   setMonsterEnemyFromLibrary(q, monster.id, def, {
                     abilities: lib.abilities,
                     spells: lib.spells,
@@ -340,7 +341,7 @@ export function MonsterEnemy({ store, monster }: { store: EditorStore; monster: 
               return;
             }
             const def = quest.enemyDefs.find((x) => x.id === v);
-            st.apply((q) =>
+            st.editMonster((q) =>
               updateMonster(
                 q,
                 monster.id,

@@ -4,6 +4,7 @@ import { parseQuest } from '../../engine/quest/loader';
 import type { Note, Quest } from '../../engine/quest/schema';
 import { testQuestData } from '../../engine/quest/testQuest';
 import {
+  actionKind,
   changeTrigger,
   markerSubject,
   parseSubjectKey,
@@ -223,5 +224,16 @@ describe('Frozen Horror subjects', () => {
     expect(keys).toContain('door:out');
     expect(subjectLabel(q, { kind: 'door', id: 'in' })).toBe('Entry door in');
     expect(subjectLabel(q, { kind: 'door', id: 'out' })).toBe('Exit door out');
+  });
+});
+
+describe('actionKind', () => {
+  it('names a moment, a place or an element', () => {
+    expect(actionKind({ kind: 'quest' })).toBe('Moment');
+    expect(actionKind({ kind: 'area', id: 'R01' })).toBe('Place');
+    expect(actionKind({ kind: 'square', id: '1,1' })).toBe('Place');
+    expect(actionKind({ kind: 'zone', id: 'z1' })).toBe('Place');
+    expect(actionKind({ kind: 'door', id: 'd1' })).toBe('Element');
+    expect(actionKind({ kind: 'monster', id: 'm1' })).toBe('Element');
   });
 });

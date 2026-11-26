@@ -382,7 +382,7 @@ export function ReferencePanel({
           e.target.value = '';
         }}
       />
-      <button className="chip" onClick={() => input.current?.click()}>
+      <button className="btn alt" onClick={() => input.current?.click()}>
         {s
           ? t('editor.ReferenceImage.changeImage', 'Change image')
           : t('editor.ReferenceImage.loadImage', 'Load image')}

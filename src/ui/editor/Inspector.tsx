@@ -101,19 +101,19 @@ export function Inspector({
 
   const tabs = (
     <div
-      className="ed-chips ed-tabs"
+      className="ed-insp-tabs"
       role="group"
       aria-label={t('editor.Inspector.inspectorTabs', 'Inspector tabs')}
     >
       <button
-        className="chip"
+        className="fr-tab"
         aria-pressed={panel === 'element'}
         onClick={() => st.setPanel('element')}
       >
         {t('editor.Inspector.element', 'Element')}
       </button>
       <button
-        className="chip"
+        className="fr-tab"
         aria-pressed={panel === 'problems'}
         onClick={() => st.setPanel('problems')}
       >
