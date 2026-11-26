@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { pickMonster } from './helpers';
 
 const board = (page: Page) => page.locator('#editor-board');
 async function pointAt(page: Page, x: number, y: number) {
@@ -24,7 +25,7 @@ test.describe('editor map zoom', () => {
     expect(after.width).toBeGreaterThan(before.width * 1.9);
 
     // a monster placed on a square of the zoomed board lands on that square
-    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await pickMonster(page);
     const centre = await page.locator('.ed-zoom').boundingBox();
     // pick the square under the middle of the visible area
     const cx = centre!.x + centre!.width / 2;

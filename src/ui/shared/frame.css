@@ -1315,3 +1315,140 @@
   min-height: 44px;
   padding: 0 14px;
 }
+
+/* Monsters tool: kinds and cards in the right card (DESIGN.md, "Monsters tool: kinds and cards"). */
+.ed-options:has(> .mk) {
+  flex: 1;
+  min-height: 0;
+}
+.mk {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1;
+}
+.mk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.mk-list .box-pick,
+.mk-head .box-pick {
+  font: 700 17px 'Bonum';
+  min-height: 54px;
+  width: 100%;
+  flex: none;
+}
+.mk-head {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.mk-head .box-pick {
+  min-height: 44px;
+  flex: 1;
+}
+.mk-back {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  background: none;
+  color: var(--ink);
+}
+.mk-back:active {
+  transform: translate(2px, 2px);
+}
+.mk-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  overflow-y: auto;
+  min-height: 0;
+  align-content: start;
+  padding: 0 6px 6px 0;
+}
+.mk-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  min-height: 74px;
+  padding: 6px 8px;
+  border: 2px solid var(--text);
+  border-left: 10px solid var(--box, var(--ink));
+  background: var(--paper-3);
+  color: var(--text);
+}
+.mk-card[aria-pressed='true'] {
+  background: var(--sel);
+  border-color: var(--ink);
+  border-left-color: var(--box, var(--ink));
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.mk-kind {
+  font: 700 11px 'Bonum';
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.mk-name {
+  font: 700 15px/1.15 'Bonum';
+  color: var(--ink);
+  margin-top: 2px;
+}
+.mk-stats {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mk-placing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 8px;
+  border: 2px solid var(--ink);
+  border-left: 12px solid var(--box, var(--ink));
+  background: var(--sel);
+  flex: none;
+}
+.mk-ptext {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mk-ptext b {
+  font: 700 15px 'Bonum';
+  color: var(--ink);
+}
+.mk-ptext i {
+  font-size: 13px;
+  color: var(--muted);
+}
+.mk-placing .btn {
+  width: auto;
+  padding: 0 14px;
+}
+.mk-link {
+  display: inline;
+  position: relative;
+  min-height: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.mk-link::after {
+  content: '';
+  position: absolute;
+  inset: -14px -8px;
+}
+.mk-head .box-pick[aria-pressed='true'] {
+  border-left-color: var(--box, var(--ink));
+}

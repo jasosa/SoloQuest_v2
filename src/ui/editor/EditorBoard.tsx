@@ -159,6 +159,7 @@ export function previewOp(
           footprintCells(opts.furnitureType, cell, opts.furnitureTurned),
         );
     case 'monsters':
+      if (!opts.monsterPicked) return undefined;
       return opts.monsterEnemy
         ? (q) =>
             addMonsterOfEnemy(q, opts.monsterEnemy!.def, cell, {
@@ -462,6 +463,15 @@ export function EditorBoard({
     }
     if (s.tool === 'traps' && s.opts.trapKind === 'chest' && !previewOp(store, cell, edge)) {
       s.say(t('editor.EditorBoard.clickAChestTo', 'Click a chest to put a chest trap on it.'));
+      return;
+    }
+    if (s.tool === 'monsters' && !s.opts.monsterPicked) {
+      s.say(
+        t(
+          'editor.EditorBoard.pickAMonsterFirst',
+          'Pick a monster on the right, then tap a square.',
+        ),
+      );
       return;
     }
     if (s.tool === 'rock' && s.opts.rockRoom && areaAt(board, cell[0], cell[1]) === 'C') {

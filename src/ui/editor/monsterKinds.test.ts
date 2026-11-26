@@ -60,10 +60,11 @@ describe('the kinds of the Monsters tool', () => {
     expect(kinds.map((k) => k.key)).toEqual(['core', 'quest', 'mine']);
   });
 
-  it('a quest enemy of an expansion stays under that box even when the library does not offer it', () => {
+  it('a box switched off for the add menus has no kind; its enemy of the quest is under This quest only', () => {
     const gremlin = enemy('iceGremlin', 'Ice Gremlin', { expansion: 'Frozen Horror' });
     const kinds = monsterKinds({ questEnemies: [gremlin], libraryEnemies: [], expansionOf: box });
-    expect(kinds.find((k) => k.key === 'exp:Frozen Horror')?.items).toHaveLength(1);
+    expect(kinds.find((k) => k.key === 'exp:Frozen Horror')).toBeUndefined();
+    expect(kinds.find((k) => k.key === 'quest')?.items.map((i) => i.id)).toEqual(['iceGremlin']);
   });
 
   it('many expansions: one kind each, by name, nothing lost (the list scrolls in the card)', () => {

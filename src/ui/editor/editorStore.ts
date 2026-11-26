@@ -90,6 +90,8 @@ export interface ToolOpts {
   readonly furnitureType: FurnitureDef['type'];
   readonly furnitureTurned: boolean;
   readonly monsterType: MonsterKind;
+  /** A monster is picked in the Monsters tool (the "Placing" row). Nothing is placed until one is. */
+  readonly monsterPicked: boolean;
   /** A custom enemy to put on the map instead of a core type (the quest's own or the library's). */
   readonly monsterEnemy: {
     readonly def: EnemyDef;
@@ -123,6 +125,7 @@ export const DEFAULT_OPTS: ToolOpts = {
   furnitureType: 'table',
   furnitureTurned: false,
   monsterType: 'orc',
+  monsterPicked: false,
   monsterEnemy: null,
   trapKind: 'pit',
   markerLabel: 'A',
@@ -499,6 +502,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
         get().dropMonster();
         set({
           tool,
+          opts: { ...get().opts, monsterPicked: false }, // a tool change drops the monster pick
           panel: 'element', // a tool chip puts the tool's options back after the Problems view (decision 105)
           selection: null,
           monsterDraft: null,

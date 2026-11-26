@@ -4,12 +4,10 @@
  * in one layout: a small-caps label, chips or fields, one italic note.
  */
 import { useStore } from 'zustand';
-import { pickTunnelDesign, type MonsterKind } from '../../engine/editor';
-import { FURNITURE_TYPES, MONSTER_TYPES } from '../../engine/quest/schema';
-import { MONSTER_NAMES } from '../../engine/data/monsters';
+import { pickTunnelDesign } from '../../engine/editor';
+import { FURNITURE_TYPES } from '../../engine/quest/schema';
 import { MAX_TUNNEL_PAIRS } from '../../engine/data/roomTiles';
 import { FURNITURE_NAMES } from '../board/furnitureNames';
-import { useLibrary } from '../designer/LibraryContext';
 import { CheckRow } from '../shared/Frame';
 import { useActiveTheme } from '../theme/activeTheme';
 import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
@@ -17,6 +15,7 @@ import { CLASSIC_THEME } from '../theme/theme';
 import type { DoorTool, EditorStore, Tool } from './editorStore';
 import { MergesPanel } from './MapsPanel';
 import { TilePalette } from './TilePalette';
+import { MonsterKinds } from './MonsterKindsCard';
 import { t } from '../../i18n/t';
 
 const DOOR_TOOLS: readonly { kind: DoorTool; label: string }[] = [
@@ -167,50 +166,7 @@ function FurnitureOptions({ store }: P) {
 }
 
 function MonsterOptions({ store }: P) {
-  const { opts, quest } = useStore(store);
-  const set = store.getState().setOpts;
-  const library = useLibrary();
-  const lib = { abilities: library.abilities, spells: library.spells };
-  const mine = new Set(quest.enemyDefs.map((e) => e.id));
-  const libEnemies = library.addable.enemies.filter((e) => !mine.has(e.id));
-  return (
-    <>
-      <div className="lbl">{t('editor.EditorScreen.type', 'Type')}</div>
-      <div className="ed-chips ed-small">
-        {MONSTER_TYPES.map((m: MonsterKind) => (
-          <Chip
-            key={m}
-            label={MONSTER_NAMES[m]}
-            on={!opts.monsterEnemy && opts.monsterType === m}
-            onClick={() => set({ monsterType: m, monsterEnemy: null })}
-          />
-        ))}
-      </div>
-      {(quest.enemyDefs.length > 0 || libEnemies.length > 0) && (
-        <>
-          <div className="lbl">{t('editor.EditorScreen.customMonsters', 'Custom monsters')}</div>
-          <div className="ed-chips ed-small" data-testid="custom-monsters">
-            {quest.enemyDefs.map((e) => (
-              <Chip
-                key={e.id}
-                label={e.name}
-                on={opts.monsterEnemy?.def.id === e.id && !opts.monsterEnemy.fromLibrary}
-                onClick={() => set({ monsterEnemy: { def: e, fromLibrary: false, lib } })}
-              />
-            ))}
-            {libEnemies.map((e) => (
-              <Chip
-                key={`lib:${e.id}`}
-                label={`${e.name} (library)`}
-                on={opts.monsterEnemy?.def.id === e.id && opts.monsterEnemy.fromLibrary}
-                onClick={() => set({ monsterEnemy: { def: e, fromLibrary: true, lib } })}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </>
-  );
+  return <MonsterKinds store={store} />;
 }
 
 function TrapOptions({ store }: P) {

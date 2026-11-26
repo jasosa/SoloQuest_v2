@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { pickMonster } from './helpers';
 import { expect, test, type Page } from '@playwright/test';
 
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
@@ -108,7 +109,7 @@ test.describe('editor: double quests', () => {
     await maps.getByRole('tab', { name: 'map2' }).click();
     // no stairs on map 2, and a monster placed here stays here
     await expect(page.locator('[data-furniture]')).toHaveCount(0);
-    await btn(page, 'Monsters').click();
+    await pickMonster(page);
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + (10.5 * 34 + 2) * k, box.y + (2.5 * 34 + 2) * k);

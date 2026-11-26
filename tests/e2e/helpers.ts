@@ -66,3 +66,30 @@ export async function newGame(page: Page, heroes: string[]): Promise<void> {
   for (const h of heroes) await page.getByRole('button', { name: h, exact: true }).click();
   await page.getByTestId('start-game').click();
 }
+
+/** The monster card with this name in the open kind of the Monsters tool. */
+export const monsterCard = (page: Page, name: string | RegExp) =>
+  page.locator('.mk-card').filter({
+    has: page.locator('.mk-name', {
+      hasText: typeof name === 'string' ? new RegExp(`^${name}$`) : name,
+    }),
+  });
+
+/**
+ * Turn the Monsters tool on and pick a monster: its kind row, then its card. The pick stays, so the
+ * next taps on the board place that monster. Back to the list of kinds first when a kind is open.
+ */
+export async function pickMonster(
+  page: Page,
+  name: string | RegExp = 'Orc',
+  kind: string | RegExp = 'Core game',
+): Promise<void> {
+  await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+  const back = page.getByRole('button', { name: 'Back to the kinds' });
+  if (await back.isVisible()) await back.click();
+  const row = page
+    .getByTestId('monster-kind-list')
+    .getByRole('button', { name: typeof kind === 'string' ? new RegExp(`^${kind}`) : kind });
+  await row.click();
+  await monsterCard(page, name).click();
+}

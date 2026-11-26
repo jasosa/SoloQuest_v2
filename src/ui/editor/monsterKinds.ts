@@ -89,11 +89,11 @@ export function monsterKinds(input: KindsInput): Kind[] {
       byExpansion.get(x)!.set(e.id, item(e));
     }
   }
-  // an enemy the quest has, of an expansion, is listed there even when the library no longer offers it
+  // an enemy the quest has, of an expansion the library offers, is listed there too. When the box is
+  // switched off for the add menus (the library offers none of it) the enemy is only under This quest.
   for (const e of input.questEnemies) {
     const x = e.expansion ?? input.expansionOf(e);
-    if (x === undefined) continue;
-    if (!byExpansion.has(x)) byExpansion.set(x, new Map());
+    if (x === undefined || !byExpansion.has(x)) continue;
     if (!byExpansion.get(x)!.has(e.id)) byExpansion.get(x)!.set(e.id, item(e));
   }
   const kinds: Kind[] = [

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { pickMonster } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(150);
@@ -180,7 +181,7 @@ test.describe('designer: the library', () => {
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await pickMonster(page);
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     const at = (x: number, y: number) => ({
@@ -227,7 +228,6 @@ test.describe('designer: the library', () => {
 
     const abilityDlg = page.getByRole('dialog', { name: 'Ability' });
     const mine = () => page.getByTestId('abilities-section');
-    const chips = () => page.locator('.ed-inspector').getByTestId('custom-monsters');
     const copyAll = async () => {
       const card = page.getByTestId('monster-card');
       await card.getByLabel('Enemy', { exact: true }).selectOption({ label: 'Marsh Skeleton' });
@@ -266,7 +266,9 @@ test.describe('designer: the library', () => {
     await expect(own).not.toContainText('Quick feet');
     await page.getByRole('tab', { name: 'Map', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await expect(chips()).toContainText('Marsh Skeleton (library)');
+    // the enemy is only in the library again: no "This quest" kind, still under My library
+    await expect(page.getByTestId('monster-kind-list')).not.toContainText('This quest');
+    await expect(page.getByTestId('monster-kind-list')).toContainText('My library');
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
 
     // changing tab drops them too
@@ -308,11 +310,11 @@ test.describe('designer: the library', () => {
     await page.getByLabel('Title').first().fill('Marsh');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
 
-    // on the map: the custom monster is a chip next to the core types
+    // on the map: the enemy is a card of My library, not a "Custom monsters" chip
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    const chips = page.getByTestId('custom-monsters');
-    await expect(chips).toContainText('Marsh Skeleton');
-    await chips.getByRole('button', { name: /Marsh Skeleton/ }).click();
+    await expect(page.getByTestId('monster-kind-list')).not.toContainText('Custom');
+    await expect(page.getByTestId('monster-kind-list')).toContainText('My library');
+    await pickMonster(page, 'Marsh Skeleton', 'My library');
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
@@ -369,8 +371,7 @@ test.describe('designer: the library', () => {
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    await pickMonster(page, 'Slime', 'My library');
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
@@ -395,8 +396,7 @@ test.describe('designer: the library', () => {
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    await pickMonster(page, 'Slime', 'My library');
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
@@ -431,8 +431,7 @@ test.describe('designer: the library', () => {
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
-    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await page.getByTestId('custom-monsters').getByRole('button', { name: /Slime/ }).click();
+    await pickMonster(page, 'Slime', 'My library');
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);

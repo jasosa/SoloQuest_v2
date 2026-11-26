@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { pickMonster } from './helpers';
 import { expect, test, type Page } from '@playwright/test';
 
 const lib = (page: Page) => page.getByTestId('dz-library');
@@ -86,9 +87,9 @@ test.describe('Library layers (decision 76)', () => {
     await page.getByLabel('Title').first().fill('Frost quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    const chips = page.getByTestId('custom-monsters');
-    await expect(chips.getByRole('button', { name: /Frosty/ })).toBeVisible();
-    await chips.getByRole('button', { name: /Frosty/ }).click();
+    // the enemy of the Test pack box is under its own kind
+    await expect(page.getByTestId('monster-kind-list')).toContainText('Test pack');
+    await pickMonster(page, 'Frosty', 'Test pack');
     const box = (await page.locator('#editor-board').boundingBox())!;
     const k = box.width / (26 * 34 + 4);
     await page.mouse.click(box.x + ((4 + 0.5) * 34 + 2) * k, box.y + ((17 + 0.5) * 34 + 2) * k);
@@ -100,16 +101,17 @@ test.describe('Library layers (decision 76)', () => {
     await page.getByRole('tab', { name: 'Map' }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
     await expect(page.locator('[data-monster]')).toHaveCount(1);
-    await expect(chips.getByRole('button', { name: /Frosty/ })).toBeVisible();
+    // the quest keeps its own copy: Frosty is under This quest, and the switched-off box has no kind
+    await expect(page.getByTestId('monster-kind-list')).not.toContainText('Test pack');
+    await pickMonster(page, 'Frosty', 'This quest');
     // a new quest does not offer it
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Second quest');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
-    await expect(
-      page.getByTestId('custom-monsters').getByRole('button', { name: /Frosty/ }),
-    ).toHaveCount(0);
+    await expect(page.getByTestId('monster-kind-list')).not.toContainText('Test pack');
+    await expect(page.getByTestId('monster-kind-list')).not.toContainText('This quest');
     // and the Library screen still lists it
     await page.getByRole('tab', { name: 'Library' }).click();
     await kind(page, /^Enemies/);

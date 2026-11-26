@@ -126,6 +126,8 @@ export function EditorScreen({
       if (e.key === 'Escape') {
         st.setPendingBlock(null);
         if (st.picking) st.setPicking(null);
+        else if (st.tool === 'monsters' && st.opts.monsterPicked)
+          st.setOpts({ monsterPicked: false });
         else st.select(null);
         return;
       }

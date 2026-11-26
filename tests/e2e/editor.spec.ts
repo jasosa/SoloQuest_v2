@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart } from './helpers';
+import { dismissStart, monsterCard, pickMonster } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(300);
@@ -131,7 +131,7 @@ test.describe('editor: shell and board tools', () => {
 
   test('monsters, blocks, traps and markers; undo and redo', async ({ page }) => {
     await newQuest(page);
-    await tool(page, 'Monsters').click();
+    await pickMonster(page);
     await clickAt(page, 4, 17);
     await expect(page.locator('[data-monster]')).toHaveCount(1);
     await tool(page, 'Blocks').click();
@@ -179,6 +179,12 @@ test.describe('editor: shell and board tools', () => {
     await newQuest(page);
     await page.keyboard.press('m');
     await expect(tool(page, 'Monsters')).toHaveAttribute('aria-pressed', 'true');
+    // with nothing picked there is nothing to place: pick an Orc with the cards, then use the keys
+    await page
+      .getByTestId('monster-kind-list')
+      .getByRole('button', { name: /^Core game/ })
+      .click();
+    await monsterCard(page, 'Orc').click();
     await board(page).focus();
     // the cursor starts on the stairs; move it to a free square of the start room
     await page.keyboard.press('ArrowRight');
@@ -226,7 +232,7 @@ test.describe('editor: shell and board tools', () => {
 test.describe('editor: storage and files', () => {
   test('a reload keeps the draft', async ({ page }) => {
     await newQuest(page, 'Persistent', '/?editor=1');
-    await tool(page, 'Monsters').click();
+    await pickMonster(page);
     await clickAt(page, 4, 17);
     await expect(page.locator('[data-monster]')).toHaveCount(1);
     await page.waitForTimeout(500); // let the draft be written
@@ -490,7 +496,7 @@ test.describe('editor: inspector', () => {
     page,
   }) => {
     await newQuest(page);
-    await tool(page, 'Monsters').click();
+    await pickMonster(page);
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
@@ -829,7 +835,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     page,
   }) => {
     await newQuest(page);
-    await tool(page, 'Monsters').click();
+    await pickMonster(page);
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
@@ -970,7 +976,7 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
 
   async function selectedMonster(page: Page) {
     await newQuest(page);
-    await tool(page, 'Monsters').click();
+    await pickMonster(page);
     await clickAt(page, 4, 17);
     await tool(page, 'Select').click();
     await clickAt(page, 4, 17);
