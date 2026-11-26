@@ -35,6 +35,8 @@ import {
   runOnMonsterDraft,
   type MonsterDraft,
 } from './monsterDraft';
+import { NO_PICK, mergeTrial, tapRoom, type MergePick } from './mergePick';
+import { addAreaMerge } from '../../engine/editor';
 import { commitDraft, draftOf, isDirty, patchDraft, type NoteDraft } from './noteDraft';
 import type { NotePatch } from '../../engine/editor';
 import type { Note } from '../../engine/quest/schema';
@@ -182,6 +184,14 @@ export interface EditorState {
   readonly noteId: string | null;
   /** The copy of that action the form edits. Nothing reaches the quest until `saveNote`. */
   readonly noteDraft: NoteDraft | null;
+  /** Merge rooms: the room that stays and the room that joins it (decision 106). Cleared with the tool. */
+  readonly mergePick: MergePick;
+  /** Merge rooms: the sentence of the last refused tap, until the next tap. */
+  readonly mergeError: string | null;
+  /** Merge rooms: the absorbed room whose list row is picked (its merged room is ringed on the board). */
+  readonly mergeRow: string | null;
+  /** A refusal of the tool in use (a door on a merged wall), shown in its card until the next tap or tool change. */
+  readonly toolError: string | null;
   /** The copy of the picked monster the Monsters tab edits. Nothing reaches the quest until `saveMonster`. */
   readonly monsterDraft: MonsterDraft | null;
   /** The ability of the quest open in its popup (decision 70). */
@@ -234,6 +244,16 @@ export interface EditorState {
   editMonster(op: (q: Quest) => EditResult): boolean;
   /** Drop the monster draft and take out the definitions it added (no undo step). */
   dropMonster(): void;
+  /** Merge rooms: a tap on a room (null: the corridor or rock, which does nothing). */
+  mergeTap(room: string | null): void;
+  /** Merge rooms: empty both slots. */
+  mergeClear(): void;
+  /** Merge rooms: merge the picked pair. False when the engine refuses (the card says why). */
+  mergeNow(): boolean;
+  /** Merge rooms: pick (or drop) the list row of an absorbed room. */
+  setMergeRow(room: string | null): void;
+  /** Show or clear the refusal of the tool in use. */
+  setToolError(text: string | null): void;
   /** Write the monster draft into the quest as one change. The card stays open on the saved monster. */
   saveMonster(): boolean;
   /** Drop the edits of the monster draft: the card shows the saved monster again (a new monster is dropped). */
@@ -324,6 +344,10 @@ export function createEditorStore(init: EditorInit): EditorStore {
     };
     const reset = {
       selection: null,
+      mergePick: NO_PICK,
+      mergeError: null,
+      mergeRow: null,
+      toolError: null,
       monsterDraft: null,
       picking: null,
       pickReturn: null,
@@ -347,6 +371,10 @@ export function createEditorStore(init: EditorInit): EditorStore {
       noteId: null,
       noteDraft: null,
       monsterDraft: null,
+      mergePick: NO_PICK,
+      mergeError: null,
+      mergeRow: null,
+      toolError: null,
       abilityId: null,
       spellId: null,
       picking: null,
@@ -429,6 +457,9 @@ export function createEditorStore(init: EditorInit): EditorStore {
           future: [canon, ...future],
           selection: null,
           monsterDraft: null,
+          mergePick: NO_PICK,
+          mergeError: null,
+          mergeRow: null,
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
@@ -451,6 +482,9 @@ export function createEditorStore(init: EditorInit): EditorStore {
           future: future.slice(1),
           selection: null,
           monsterDraft: null,
+          mergePick: NO_PICK,
+          mergeError: null,
+          mergeRow: null,
           picking: null,
           pendingBlock: null,
           pendingTunnel: null,
@@ -470,6 +504,10 @@ export function createEditorStore(init: EditorInit): EditorStore {
           monsterDraft: null,
           pendingBlock: null,
           pendingTunnel: null,
+          mergePick: NO_PICK,
+          mergeError: null,
+          mergeRow: null,
+          toolError: null,
         });
       },
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
@@ -492,6 +530,23 @@ export function createEditorStore(init: EditorInit): EditorStore {
           monsterDraft: tab === 'Monsters' ? monsterDraftFor(get().quest, get().selection) : null,
         });
       },
+      mergeTap(room) {
+        if (room === null) return;
+        const r = tapRoom(get().quest, get().mergePick, room);
+        set({ mergePick: r.pick, mergeError: r.error, mergeRow: null });
+      },
+      mergeClear: () => set({ mergePick: NO_PICK, mergeError: null }),
+      mergeNow() {
+        const { quest, mergePick } = get();
+        if (mergeTrial(quest, mergePick).state !== 'ready' || !mergePick.a || !mergePick.b)
+          return false;
+        const { a, b } = mergePick;
+        if (!get().apply((q) => addAreaMerge(q, a, b))) return false;
+        set({ mergePick: NO_PICK, mergeError: null });
+        return true;
+      },
+      setMergeRow: (mergeRow) => set({ mergeRow }),
+      setToolError: (toolError) => set({ toolError }),
       dropMonster() {
         const { monsterDraft, quest } = get();
         if (!monsterDraft) return;

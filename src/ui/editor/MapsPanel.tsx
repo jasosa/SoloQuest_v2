@@ -5,9 +5,7 @@
  */
 import { useState } from 'react';
 import { useStore } from 'zustand';
-import { board, roomIds } from '../../engine/board/board';
 import {
-  addAreaMerge,
   addLink,
   addMap,
   removeAreaMerge,
@@ -19,9 +17,9 @@ import {
 import { isMultiMap, questMaps } from '../../engine/quest/maps';
 import { Fld } from '../shared/Frame';
 import type { EditorStore } from './editorStore';
+import { mergeTrial } from './mergePick';
 import { t } from '../../i18n/t';
 
-const ROOMS = roomIds(board);
 const endKey = (map: string, cell: readonly number[]) => `${map}|${cell[0]},${cell[1]}`;
 
 /** The maps of the quest and the links between their stairways. */
@@ -202,79 +200,92 @@ export function MapsPanel({ store }: { store: EditorStore }) {
   );
 }
 
-/** Rooms that count as one room in this quest (a tile laid over two rooms). The map on show. */
+/**
+ * Merge rooms (decision 106), in the right card. Two slots filled by tapping rooms on the board (the
+ * first room stays, the second joins it), the Merge button, Clear, one inline error line, and a row
+ * per room merged away, with Split. The map on show.
+ */
 export function MergesPanel({ store }: { store: EditorStore }) {
-  const { quest } = useStore(store);
+  const { quest, mergePick, mergeError, mergeRow } = useStore(store);
   const st = store.getState();
-  const [a, setA] = useState('R01');
-  const [b, setB] = useState('R02');
-  const absorbed = new Set(quest.areaOverrides.map((m) => m.merge[1]));
+  const trial = mergeTrial(quest, mergePick);
+  // a refused tap, else why the pair cannot be merged
+  const error = mergeError ?? trial.error;
+  const { a, b } = mergePick;
+  const slot = (room: string | null, role: string, active: boolean, testId: string) => (
+    <div className={active ? 'mg-slot on' : 'mg-slot'} data-testid={testId}>
+      {room ? <b>{room}</b> : <i>{t('editor.MapsPanel.tapARoom', 'Tap a room')}</i>}
+      <span>{role}</span>
+    </div>
+  );
   return (
-    <div data-testid="merges-panel">
+    <div className="mg" data-testid="merges-panel">
+      <p className="ed-note">
+        {t(
+          'editor.MapsPanel.tapTheRoomThat',
+          'Tap the room that stays, then the room that joins it. They must touch.',
+        )}
+      </p>
+      {slot(a, t('editor.MapsPanel.stays', 'Stays'), a === null, 'merge-slot-a')}
+      {slot(b, t('editor.MapsPanel.joinsIt', 'Joins it'), a !== null && b === null, 'merge-slot-b')}
+      {error && (
+        <div className="mg-err" role="alert" data-testid="merge-error">
+          <span />
+          <div>{error}</div>
+        </div>
+      )}
+      <button
+        className="btn"
+        data-testid="merge-rooms"
+        disabled={trial.state !== 'ready'}
+        onClick={() => st.mergeNow()}
+      >
+        {a && b
+          ? t('editor.MapsPanel.mergeInto', 'Merge {b} into {a}', { a, b })
+          : t('editor.MapsPanel.merge', 'Merge')}
+      </button>
+      <button
+        className="btn alt mg-clear"
+        disabled={trial.state === 'empty'}
+        onClick={() => st.mergeClear()}
+      >
+        {t('editor.MapsPanel.clear', 'Clear')}
+      </button>
+      <div className="lbl mg-head">{t('editor.MapsPanel.mergedRooms', 'Merged rooms')}</div>
       {quest.areaOverrides.length === 0 && (
-        <p className="fr-help">
-          {t(
-            'editor.MapsPanel.noMergedRoomsMerge',
-            'No merged rooms. Merge two rooms that touch into one.',
-          )}
-        </p>
+        <p className="ed-note">{t('editor.MapsPanel.noneYet', 'None yet.')}</p>
       )}
       {quest.areaOverrides.map((m) => (
-        <div className="ed-row" key={m.merge[1]} data-testid="merge-row">
-          <div className="ed-row-head">
-            <span>
+        <div
+          className={mergeRow === m.merge[1] ? 'mg-row on' : 'mg-row'}
+          key={m.merge[1]}
+          data-testid="merge-row"
+        >
+          <span className="mg-bar" />
+          <button
+            className="mg-pick"
+            aria-pressed={mergeRow === m.merge[1]}
+            onClick={() => st.setMergeRow(mergeRow === m.merge[1] ? null : m.merge[1])}
+          >
+            <b>
               {t('editor.MapsPanel.isPartOf', '{v1} is part of {v2}', {
                 v1: m.merge[1],
                 v2: m.merge[0],
               })}
-            </span>
-            <button
-              className="chip"
-              aria-label={t('editor.MapsPanel.splitRoom', 'Split room {v1}', { v1: m.merge[1] })}
-              onClick={() => st.apply((q) => removeAreaMerge(q, m.merge[1]))}
-            >
-              {t('editor.MapsPanel.split', 'Split')}
-            </button>
-          </div>
+            </b>
+            <i>{t('editor.MapsPanel.oneRoomInPlay', 'One room in play.')}</i>
+          </button>
+          <button
+            className="btn alt"
+            aria-label={t('editor.MapsPanel.splitRoom', 'Split room {v1}', { v1: m.merge[1] })}
+            onClick={() => {
+              if (st.apply((q) => removeAreaMerge(q, m.merge[1]))) st.setMergeRow(null);
+            }}
+          >
+            {t('editor.MapsPanel.split', 'Split')}
+          </button>
         </div>
       ))}
-      <div className="fr-row2">
-        <Fld label={t('editor.MapsPanel.mainRoom', 'Main room')}>
-          <select
-            className="fr-sel"
-            aria-label={t('editor.MapsPanel.mainRoom', 'Main room')}
-            value={a}
-            onChange={(e) => setA(e.target.value)}
-          >
-            {ROOMS.filter((r) => !absorbed.has(r)).map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </Fld>
-        <Fld label={t('editor.MapsPanel.roomThatJoinsIt', 'Room that joins it')}>
-          <select
-            className="fr-sel"
-            aria-label={t('editor.MapsPanel.roomThatJoinsIt', 'Room that joins it')}
-            value={b}
-            onChange={(e) => setB(e.target.value)}
-          >
-            {ROOMS.filter((r) => !absorbed.has(r)).map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </Fld>
-      </div>
-      <button
-        className="btn"
-        data-testid="merge-rooms"
-        onClick={() => st.apply((q) => addAreaMerge(q, a, b))}
-      >
-        {t('editor.MapsPanel.merge', 'Merge')}
-      </button>
     </div>
   );
 }

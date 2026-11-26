@@ -4,6 +4,16 @@ import { expect, test, type Page } from '@playwright/test';
 const btn = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 const tab = (page: Page, name: string) => page.getByRole('tab', { name, exact: true });
 
+const board = (page: Page) => page.locator('#editor-board');
+/** Click the middle of a square (or a point `fx`, `fy` squares in) of the editor board. */
+async function clickAt(page: Page, x: number, y: number, fx = 0.5, fy = 0.5) {
+  const box = (await board(page).boundingBox())!;
+  const k = box.width / (26 * 34 + 4);
+  await page.mouse.click(box.x + ((x + fx) * 34 + 2) * k, box.y + ((y + fy) * 34 + 2) * k);
+}
+const mergeTool = (page: Page) =>
+  page.locator('.ed-tools').getByRole('button', { name: 'Merge rooms', exact: true });
+
 async function newQuest(page: Page, title = 'Maps test') {
   await page.goto('/?editor=1&nosave=1');
   await page.getByRole('button', { name: /^New quest/ }).click();
@@ -142,26 +152,88 @@ test.describe('editor: double quests', () => {
     );
   });
 
-  test('merged rooms: merge two rooms that touch, refuse two that do not, split', async ({
+  test('merged rooms: tap two rooms that touch to merge them, refuse two that do not, split', async ({
     page,
   }) => {
     await newQuest(page);
-    await page
-      .locator('.ed-tools')
-      .getByRole('button', { name: 'Merge rooms', exact: true })
-      .click();
+    await mergeTool(page).click();
     const merges = page.getByTestId('map-merges');
-    await merges.getByLabel('Main room').selectOption('R20');
-    await merges.getByLabel('Room that joins it').selectOption('R17');
+    // room ids are drawn while the tool is on
+    await expect(board(page).locator('text', { hasText: 'R20' })).toHaveCount(1);
+    await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
+    // the first room tapped stays, the second joins it
+    await clickAt(page, 1, 15); // R20
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('R20');
+    await expect(merges.getByTestId('merge-slot-b')).toContainText('Tap a room');
+    await clickAt(page, 7, 15); // R17
+    await expect(merges.getByTestId('merge-slot-b')).toContainText('R17');
+    await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R17 into R20');
     await merges.getByTestId('merge-rooms').click();
     await expect(merges.getByTestId('merge-row')).toContainText('R17 is part of R20');
-    await merges.getByLabel('Main room').selectOption('R01');
-    await merges.getByLabel('Room that joins it').selectOption('R05');
-    await merges.getByTestId('merge-rooms').click();
+    // the slots are empty again
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('Tap a room');
+    // a room that does not touch: the engine sentence is inline, the button is off, nothing is merged
+    await clickAt(page, 3, 2); // R01
+    await clickAt(page, 17, 3); // R05
+    await expect(merges.getByTestId('merge-error')).toContainText(
+      'Cannot merge: the rooms do not touch',
+    );
+    await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
+    await expect(page.locator('.toast')).toHaveCount(0);
     await expect(merges.getByTestId('merge-row')).toHaveCount(1);
-    await expect(page.getByText(/Cannot merge/)).toBeVisible();
+    // the corridor does nothing and says nothing
+    await clickAt(page, 0, 0);
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('R01');
+    await expect(merges.getByTestId('merge-slot-b')).toContainText('R05');
+    // a tap on a room that is merged away is refused, and the slots stay
+    await clickAt(page, 7, 15);
+    await expect(merges.getByTestId('merge-error')).toHaveText(
+      'R17 is part of R20. Split it first.',
+    );
+    await expect(merges.getByTestId('merge-slot-b')).toContainText('R05');
+    // a tap on a picked room takes it out; Clear empties both slots
+    await clickAt(page, 17, 3);
+    await expect(merges.getByTestId('merge-slot-b')).toContainText('Tap a room');
+    await expect(merges.getByTestId('merge-error')).toHaveCount(0);
+    await merges.getByRole('button', { name: 'Clear' }).click();
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('Tap a room');
+    // Split, one undo step each
     await btn(page, 'Split room R17').click();
     await expect(merges.getByTestId('merge-row')).toHaveCount(0);
+    await btn(page, 'Undo').click();
+    await expect(merges.getByTestId('merge-row')).toHaveCount(1);
+    await btn(page, 'Undo').click();
+    await expect(merges.getByTestId('merge-row')).toHaveCount(0);
+  });
+
+  test('merged rooms: a door on the wall between the rooms refuses the merge, inline', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await page.locator('.ed-tools').getByRole('button', { name: 'Doors', exact: true }).click();
+    await clickAt(page, 6, 11, 0.97, 0.5); // the wall between R13 and R14
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
+    await mergeTool(page).click();
+    const merges = page.getByTestId('map-merges');
+    await clickAt(page, 5, 10); // R13
+    await clickAt(page, 7, 10); // R14
+    await expect(merges.getByTestId('merge-error')).toHaveText(
+      'Cannot merge: door d1 is on the wall between them. Remove it first.',
+    );
+    await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
+    await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R14 into R13');
+    await expect(page.locator('.toast')).toHaveCount(0);
+    // after the door is gone, the same pair merges
+    await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
+    await clickAt(page, 6, 11, 0.97, 0.5);
+    await page.keyboard.press('Delete');
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(0);
+    await mergeTool(page).click();
+    await clickAt(page, 5, 10);
+    await clickAt(page, 7, 10);
+    await expect(merges.getByTestId('merge-error')).toHaveCount(0);
+    await merges.getByTestId('merge-rooms').click();
+    await expect(merges.getByTestId('merge-row')).toContainText('R14 is part of R13');
   });
 
   test('rules: door teleport, and a large monster', async ({ page }) => {

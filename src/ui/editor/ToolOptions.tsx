@@ -54,7 +54,7 @@ function RockOptions({ store }: P) {
   const { opts } = useStore(store);
   const set = store.getState().setOpts;
   return (
-    <Chip
+    <CheckRow
       label={t('editor.EditorScreen.wholeRoom', 'Whole room')}
       on={opts.rockRoom}
       onClick={() => set({ rockRoom: !opts.rockRoom })}
@@ -292,12 +292,6 @@ function MarkerOptions({ store }: P) {
 function MergeOptions({ store }: P) {
   return (
     <>
-      <p className="ed-note">
-        {t(
-          'editor.EditorScreen.mergeHelp',
-          'A tile laid over two rooms makes them one room in this quest. This map only.',
-        )}
-      </p>
       <div data-testid="map-merges">
         <MergesPanel store={store} />
       </div>

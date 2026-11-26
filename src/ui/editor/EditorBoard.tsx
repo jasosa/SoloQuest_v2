@@ -41,6 +41,7 @@ import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
+import { outlineSegments, roomAtCell } from './mergePick';
 import { useTheme } from '../theme/activeTheme';
 import { boxOfMonster, pictureTypeOf } from '../../engine/data/enemies';
 import { boxTokenFill } from '../shared/boxColor';
@@ -191,7 +192,7 @@ export function EditorBoard({
   store: EditorStore;
   reference?: ReferenceApi;
 }) {
-  const { quest, tool, opts, selection, pendingBlock, pendingTunnel, picking, flash } =
+  const { quest, tool, opts, selection, pendingBlock, pendingTunnel, picking, flash, mergePick } =
     useStore(store);
   const theme = useTheme();
   const level = useMemo(() => buildLevel(quest), [quest]);
@@ -312,6 +313,11 @@ export function EditorBoard({
     }
     if (s.tool === 'select') {
       s.select(pick(cell, edge, outer));
+      return;
+    }
+    if (s.tool === 'merge') {
+      // the corridor and rock do nothing and say nothing (decision 106)
+      s.mergeTap(roomAtCell(quest, cell));
       return;
     }
     if (s.tool === 'doors' && s.opts.doorKind === 'tunnel') {
@@ -647,6 +653,74 @@ export function EditorBoard({
           ),
         );
       }
+    }
+
+  // Merge rooms: the room that stays and the room that joins it, in the selection colour with a caption
+  const mergeArt: ReactNode[] = [];
+  const mergeOutline: ReactNode[] = [];
+  if (tool === 'merge')
+    for (const [room, role] of [
+      [mergePick.a, 'stays'],
+      [mergePick.b, 'joins'],
+    ] as const) {
+      if (!room) continue;
+      const inRoom = (x: number, y: number) => areaAt(boardData, x, y) === room;
+      let first: Cell | undefined;
+      for (let y = 0; y < BOARD_H && !first; y++)
+        for (let x = 0; x < BOARD_W; x++)
+          if (inRoom(x, y)) {
+            first = [x, y];
+            break;
+          }
+      for (let y = 0; y < BOARD_H; y++)
+        for (let x = 0; x < BOARD_W; x++)
+          if (inRoom(x, y))
+            mergeArt.push(
+              <rect
+                key={`m${role}${x},${y}`}
+                x={x * U}
+                y={y * U}
+                width={U}
+                height={U}
+                fill={color.sel}
+                opacity={role === 'stays' ? 0.95 : 0.6}
+                pointerEvents="none"
+              />,
+            );
+      if (role === 'joins')
+        outlineSegments(BOARD_W, BOARD_H, inRoom).forEach(([x1, y1, x2, y2], i) =>
+          mergeOutline.push(
+            <line
+              key={`mo${i}`}
+              x1={x1 * U}
+              y1={y1 * U}
+              x2={x2 * U}
+              y2={y2 * U}
+              stroke={color.floor}
+              strokeWidth={3}
+              strokeDasharray="7 6"
+              pointerEvents="none"
+            />,
+          ),
+        );
+      if (first)
+        mergeArt.push(
+          <text
+            key={`mc${role}`}
+            x={first[0] * U + 6}
+            y={first[1] * U + 13}
+            fontFamily="Bonum"
+            fontWeight={700}
+            fontSize={11}
+            letterSpacing={1}
+            fill={color.ink}
+            pointerEvents="none"
+          >
+            {role === 'stays'
+              ? t('editor.EditorBoard.stays', 'STAYS')
+              : t('editor.EditorBoard.joins', 'JOINS')}
+          </text>,
+        );
     }
 
   const startTint: ReactNode[] = [];
@@ -1128,7 +1202,8 @@ export function EditorBoard({
   }
 
   const roomLabels: ReactNode[] = [];
-  if (opts.roomIds)
+  // the Merge rooms tool shows the ids so rooms can be told apart, even with View > Room ids off
+  if (opts.roomIds || tool === 'merge')
     for (const id of roomIds(board)) {
       const cs: Cell[] = [];
       for (let y = 0; y < BOARD_H; y++)
@@ -1362,9 +1437,11 @@ export function EditorBoard({
             </defs>
             {cells}
             {startTint}
+            {mergeArt}
             {zoneArt}
             {tileArt}
             {walls}
+            {mergeOutline}
             {blockArt}
             {things}
             {doors}
