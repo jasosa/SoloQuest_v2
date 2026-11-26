@@ -981,7 +981,8 @@
   min-height: 0;
   overflow: auto;
 }
-.app.editor.fr .ed-tools .fr-hd {
+.app.editor.fr .ed-tools .fr-hd,
+.app.editor.fr .ed-inspector > .fr-hd {
   padding: 14px 0 0;
 }
 .app.editor.fr .ed-tools .ed-chips {

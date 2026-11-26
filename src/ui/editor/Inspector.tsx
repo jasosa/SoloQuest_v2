@@ -80,7 +80,7 @@ export function Inspector({
   issues: readonly Issue[];
   saveErrors: readonly string[] | null;
 }) {
-  const { quest, selection, panel } = useStore(store);
+  const { quest, selection, panel, tool } = useStore(store);
   const st = store.getState();
 
   const door = selection?.kind === 'door' ? findDoor(quest, selection.id) : undefined;
@@ -141,7 +141,7 @@ export function Inspector({
   return (
     <>
       {tabs}
-      {!selection && (
+      {!selection && tool === 'select' && (
         <p className="ed-note" data-testid="inspector-hint">
           {t(
             'editor.Inspector.selectSomethingOnThe',

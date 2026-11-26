@@ -19,13 +19,15 @@ import type { EditorStore } from './editorStore';
 
 export function rotateSelection(store: EditorStore) {
   const st = store.getState();
-  if (st.selection?.kind === 'furniture') {
+  // the selection is turned only with Select; with Furniture or Tiles R turns the piece to place
+  const turnsSelection = st.tool === 'select';
+  if (turnsSelection && st.selection?.kind === 'furniture') {
     const id = st.selection.id;
     st.apply((q) => rotateFurniture(q, id));
-  } else if (st.selection?.kind === 'tile') {
+  } else if (turnsSelection && st.selection?.kind === 'tile') {
     const index = st.selection.index;
     st.apply((q) => rotateBoardTile(q, index));
-  } else if (st.selection?.kind === 'roomTile') {
+  } else if (turnsSelection && st.selection?.kind === 'roomTile') {
     const index = st.selection.index;
     st.apply((q) => rotateRoomTile(q, index));
   } else if (st.tool === 'furniture') st.setOpts({ furnitureTurned: !st.opts.furnitureTurned });

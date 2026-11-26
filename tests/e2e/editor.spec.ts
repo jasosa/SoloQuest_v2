@@ -390,6 +390,42 @@ test.describe('editor: storage and files', () => {
 test.describe('editor: inspector', () => {
   const insp = (page: Page) => page.locator('.ed-inspector');
 
+  test('picking a tool clears the selection; Delete works with Select only (decision 104)', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(page.getByTestId('selection-id')).toHaveText('d1');
+    await expect(insp(page).locator('h2').first()).toHaveText('Select');
+
+    // another tool: the card is named after it and the old selection is gone
+    await tool(page, 'Rock').click();
+    await expect(insp(page).locator('h2').first()).toHaveText('Rock');
+    await expect(page.getByTestId('selection-id')).toHaveCount(0);
+    await expect(page.getByTestId('inspector-selection')).toHaveCount(0);
+    // even the tool that is already on clears a pick
+    await tool(page, 'Select').click();
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await expect(page.getByTestId('selection-id')).toHaveText('d1');
+    await tool(page, 'Select').click();
+    await expect(page.getByTestId('selection-id')).toHaveCount(0);
+    await expect(page.getByTestId('inspector-hint')).toBeVisible();
+
+    // Delete removes the selection with Select, and does nothing with another tool
+    await clickAt(page, 3, 17, 0.5, 0.97);
+    await page.keyboard.press('Delete');
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(0);
+    await tool(page, 'Doors').click();
+    await clickAt(page, 5, 17, 0.5, 0.97);
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
+    await page.keyboard.press('Delete');
+    await expect(page.locator('[data-door="d1"]')).toHaveCount(1);
+  });
+
   test('monster: the map inspector points to the Monsters tab, where type, name, stats, state, spells, traits are edited; undo', async ({
     page,
   }) => {

@@ -460,7 +460,11 @@ export function createEditorStore(init: EditorInit): EditorStore {
         persist(next);
       },
 
-      setTool: (tool) => set({ tool, pendingBlock: null, pendingTunnel: null }),
+      // picking a tool (even the one already on) clears the selection and any half-done pick (decision 104)
+      setTool(tool) {
+        get().dropMonster();
+        set({ tool, selection: null, monsterDraft: null, pendingBlock: null, pendingTunnel: null });
+      },
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
       select(selection) {
         get().dropMonster();

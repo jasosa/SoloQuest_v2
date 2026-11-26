@@ -129,4 +129,30 @@ describe('editor store', () => {
     s.getState().clearFlash();
     expect(s.getState().flash).toBeNull();
   });
+
+  it('picking a tool clears the selection and the half-done picks, even the tool already on', () => {
+    const s = make();
+    s.getState().apply((q) => addDoor(q, [3, 17], [3, 18]));
+    s.getState().select({ kind: 'door', id: 'd1' });
+    s.getState().setPendingBlock([1, 1]);
+    s.getState().setPendingTunnel([2, 2]);
+    s.getState().setTool('doors');
+    const st = s.getState();
+    expect(st.tool).toBe('doors');
+    expect(st.selection).toBeNull();
+    expect(st.pendingBlock).toBeNull();
+    expect(st.pendingTunnel).toBeNull();
+    s.getState().select({ kind: 'door', id: 'd1' });
+    s.getState().setTool('doors');
+    expect(s.getState().selection).toBeNull();
+  });
+
+  it('a monster draft is dropped when a tool is picked', () => {
+    const s = make();
+    s.getState().apply((q) => addMonster(q, 'orc', [4, 17]));
+    s.getState().select({ kind: 'monster', id: 'm1' });
+    expect(s.getState().monsterDraft?.monster.id).toBe('m1');
+    s.getState().setTool('rock');
+    expect(s.getState().monsterDraft).toBeNull();
+  });
 });

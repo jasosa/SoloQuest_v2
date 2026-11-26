@@ -156,7 +156,8 @@ export function EditorScreen({
       if (e.key === 'Delete' || e.key === 'Backspace') {
         // only on the board (or with nothing focused): on a button Backspace must not delete the selection
         const onBoard = el === document.body || Boolean(el.closest('#editor-board'));
-        if (st.selection && onBoard) {
+        // the selection is deleted with Select only (decision 104)
+        if (st.selection && onBoard && st.tool === 'select') {
           e.preventDefault();
           deleteSelection(store);
         }
@@ -308,6 +309,7 @@ export function EditorScreen({
             className="ed-inspector fr-panel"
             aria-label={t('editor.EditorScreen.inspector', 'Inspector')}
           >
+            <h2 className="fr-hd">{TOOLS.find((x) => x.tool === tool)?.label}</h2>
             {tool === 'tiles' && <TilePalette store={store} />}
             <Inspector store={store} issues={issues} saveErrors={saveErrors} />
           </aside>
