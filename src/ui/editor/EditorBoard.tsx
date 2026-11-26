@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { areaAt, board as boardData, isWallBetween, roomIds } from '../../engine/board/board';
-import { buildLevel, cellKey, edgeKey } from '../../engine/board/level';
+import { buildLevel, cellKey, edgeKey, mergedWallRooms } from '../../engine/board/level';
 import {
   addBlock,
   addZone,
@@ -287,6 +287,7 @@ export function EditorBoard({
   const act = (cell: Cell | undefined, edge: Edge | undefined, outer?: OuterEdge) => {
     const s = store.getState();
     if (!cell) return;
+    if (s.toolError) s.setToolError(null);
     if (s.picking) {
       const req = s.picking;
       if (req.kind === 'cell') {
@@ -474,6 +475,19 @@ export function EditorBoard({
       return;
     }
     const op = previewOp(store, cell, edge);
+    // a door on a wall that a merge took away is refused in the card of the tool, not as a toast
+    if (
+      op &&
+      s.tool === 'doors' &&
+      edge &&
+      mergedWallRooms(boardData, quest.areaOverrides, edge.a, edge.b)
+    ) {
+      const r = op(quest);
+      if (!r.ok) {
+        s.setToolError(r.error);
+        return;
+      }
+    }
     if (op) s.apply(op);
   };
 

@@ -63,7 +63,7 @@ function RockOptions({ store }: P) {
 }
 
 function DoorOptions({ store }: P) {
-  const { opts, quest } = useStore(store);
+  const { opts, quest, toolError } = useStore(store);
   const set = store.getState().setOpts;
   return (
     <>
@@ -114,6 +114,12 @@ function DoorOptions({ store }: P) {
             'Tap the outer edge of a square on the board border, or an edge that touches rock.',
           )}
         </p>
+      )}
+      {toolError && (
+        <div className="mg-err" role="alert" data-testid="tool-error">
+          <span />
+          <div>{toolError}</div>
+        </div>
       )}
     </>
   );

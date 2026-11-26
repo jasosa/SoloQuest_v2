@@ -251,6 +251,18 @@ test.describe('editor: double quests', () => {
     await expect(page.locator('[data-merge-door]')).toHaveCount(0);
     await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
     await expect(page.locator('[data-merged-wall]')).toHaveCount(3);
+    // the door tool refuses a door on that wall, inline in its own card
+    await page.locator('.ed-tools').getByRole('button', { name: 'Doors', exact: true }).click();
+    await clickAt(page, 6, 11, 0.97, 0.5);
+    await expect(page.getByTestId('tool-error')).toHaveText(
+      'Cannot add a door: R13 and R14 are one room. Split them first.',
+    );
+    await expect(page.locator('.toast')).toHaveCount(0);
+    await expect(page.locator('[data-door]')).toHaveCount(0);
+    // the sentence goes away with the next tap, and a wall of another room still takes a door
+    await clickAt(page, 4, 11, 0.97, 0.5);
+    await expect(page.getByTestId('tool-error')).toHaveCount(0);
+    await expect(page.locator('[data-door]')).toHaveCount(1);
   });
 
   test('rules: door teleport, and a large monster', async ({ page }) => {
