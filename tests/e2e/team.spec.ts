@@ -168,6 +168,26 @@ test.describe('skipping a quest (decision 101)', () => {
     await page.getByTestId('skip-quest').click();
     await expect(page.getByTestId('camp-panel')).toContainText('Quest 2');
     await expect(page.locator('.qcard.skipped')).toHaveCount(1);
+    // the outline of a skipped quest is dashed, but the colour bar of its box stays solid
+    const skipped = page.locator('.qcard.skipped');
+    const sides = await skipped.evaluate((e) => {
+      const c = getComputedStyle(e);
+      return {
+        top: c.borderTopStyle,
+        right: c.borderRightStyle,
+        bottom: c.borderBottomStyle,
+        left: c.borderLeftStyle,
+        bar: c.borderLeftWidth,
+      };
+    });
+    expect(sides).toEqual({
+      top: 'dashed',
+      right: 'dashed',
+      bottom: 'dashed',
+      left: 'solid',
+      bar: '12px',
+    });
+    await page.screenshot({ path: 'test-results/campaign-skipped.png' });
     await expect(page.locator('.journal')).toContainText('Skipped.');
   });
 });

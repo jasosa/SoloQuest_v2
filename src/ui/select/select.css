@@ -790,6 +790,10 @@ header.page-head {
 .qcard.skipped {
   border-style: dashed;
 }
+/* the outline is dashed; the colour bar of the box stays a solid bar */
+.qcard.bar.skipped {
+  border-left-style: solid;
+}
 .camp-panel {
   display: flex;
   align-items: flex-start;
