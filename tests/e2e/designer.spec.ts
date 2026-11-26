@@ -227,7 +227,7 @@ test.describe('designer: the library', () => {
 
     const abilityDlg = page.getByRole('dialog', { name: 'Ability' });
     const mine = () => page.getByTestId('abilities-section');
-    const chips = () => page.locator('.ed-tools').getByTestId('custom-monsters');
+    const chips = () => page.locator('.ed-inspector').getByTestId('custom-monsters');
     const copyAll = async () => {
       const card = page.getByTestId('monster-card');
       await card.getByLabel('Enemy', { exact: true }).selectOption({ label: 'Marsh Skeleton' });

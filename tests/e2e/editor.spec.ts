@@ -10,7 +10,7 @@ const btn = (page: Page, name: string) => page.getByRole('button', { name, exact
 // A tile chip may end with its count, "Ice Vault 0 of 2".
 const tool = (page: Page, name: string) =>
   page
-    .locator('.ed-tools, .ed-palette')
+    .locator('.ed-tools, .ed-palette, [data-testid="tool-options"]')
     .getByRole('button', { name: new RegExp(String.raw`^${name}( \d+ of \d+)?$`) });
 const board = (page: Page) => page.locator('#editor-board');
 
@@ -1702,7 +1702,10 @@ test.describe('editor: Frozen Horror features', () => {
     await shot(page, 'editor-tunnels');
 
     // change the design of the second; a design that is used is off
-    const designs = inspector(page).getByRole('group', { name: 'Tunnel design' });
+    // the selected tunnel end's own design chips (the tool's chips are "Next tunnel design")
+    const designs = page
+      .getByTestId('inspector-selection')
+      .getByRole('group', { name: 'Tunnel design' });
     await designs.getByRole('button', { name: '7' }).click();
     await expect(page.locator('[data-tunnel="tun2:b"]')).toHaveAttribute('data-design', '7');
     await expect(designs.getByRole('button', { name: '1', exact: true })).toBeDisabled();

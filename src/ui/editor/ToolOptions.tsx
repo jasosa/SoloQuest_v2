@@ -49,6 +49,9 @@ export const RIGHT_TOOLS: readonly Tool[] = [
   'zones',
   'markers',
   'start',
+  'doors',
+  'traps',
+  'monsters',
 ];
 
 const Chip = ({ label, on, onClick }: { label: string; on: boolean; onClick(): void }) => (
