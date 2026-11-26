@@ -3,19 +3,18 @@
  * to the two slots, whether the pair can be merged, and the outline of a room. Pure, no React.
  */
 import { areaAt, board as baseBoard } from '../../engine/board/board';
-import { mergedWallRooms } from '../../engine/board/level';
-import { addAreaMerge, type Cell } from '../../engine/editor';
+import { addAreaMerges, type Cell } from '../../engine/editor';
 import { isRockCell } from '../../engine/editor/result';
 import type { Quest } from '../../engine/quest/schema';
 import { t } from '../../i18n/t';
 
-/** The room that stays and the room that joins it (a base room id each), or nothing yet. */
+/** The room that stays and the rooms that join it (base room ids), in the order they were tapped. */
 export interface MergePick {
   readonly a: string | null;
-  readonly b: string | null;
+  readonly joins: readonly string[];
 }
 
-export const NO_PICK: MergePick = { a: null, b: null };
+export const NO_PICK: MergePick = { a: null, joins: [] };
 
 /** The base room of a square, or null for the corridor, rock or a square off the board. */
 export function roomAtCell(q: Quest, cell: readonly number[]): string | null {
@@ -29,28 +28,20 @@ export const mainOf = (q: Quest, room: string): string | undefined =>
   q.areaOverrides.find((m) => m.merge[1] === room)?.merge[0];
 
 /**
- * What a tap on a room does. A tap on nothing (corridor, rock) changes nothing. A room merged away is
- * refused with a sentence. A picked room is taken out of its slot. The first free slot takes the room;
- * with both full the joining room is replaced.
+ * What a tap on a room does (decisions 106 and 108). A tap on nothing (corridor, rock) or on a room
+ * that is merged away changes nothing and says nothing. A picked room is taken out. The first room
+ * tapped stays; every other room joins it. A room that has rooms merged into it cannot join another
+ * room: the tap is refused with a sentence.
  */
 export function tapRoom(
   q: Quest,
   pick: MergePick,
   room: string | null,
 ): { pick: MergePick; error: string | null } {
-  if (room === null) return { pick, error: null };
-  const main = mainOf(q, room);
-  if (main !== undefined)
-    return {
-      pick,
-      error: t('editor.mergePick.partOf', '{room} is part of {main}. Split it first.', {
-        room,
-        main,
-      }),
-    };
-  if (pick.a === room) return { pick: { a: null, b: pick.b }, error: null };
-  if (pick.b === room) return { pick: { a: pick.a, b: null }, error: null };
-  // a room that others were merged into cannot join another room (its rooms would be left behind)
+  if (room === null || mainOf(q, room) !== undefined) return { pick, error: null };
+  if (pick.a === room) return { pick: { a: null, joins: pick.joins }, error: null };
+  if (pick.joins.includes(room))
+    return { pick: { a: pick.a, joins: pick.joins.filter((j) => j !== room) }, error: null };
   const hasRooms = q.areaOverrides.some((m) => m.merge[0] === room);
   if (hasRooms && pick.a !== null)
     return {
@@ -59,32 +50,29 @@ export function tapRoom(
         room,
       }),
     };
-  if (pick.a === null) return { pick: { a: room, b: pick.b }, error: null };
-  return { pick: { a: pick.a, b: room }, error: null };
+  if (pick.a === null) return { pick: { a: room, joins: pick.joins }, error: null };
+  return { pick: { a: pick.a, joins: [...pick.joins, room] }, error: null };
 }
 
 export type MergeState = 'empty' | 'partial' | 'ready' | 'blocked';
 
-/** Can the picked pair be merged? The engine says no with a sentence (apart, a door on the wall...). */
+/** Can the picked rooms be merged? The engine says no with a sentence naming the room that blocks it. */
 export function mergeTrial(q: Quest, pick: MergePick): { state: MergeState; error: string | null } {
-  if (pick.a === null && pick.b === null) return { state: 'empty', error: null };
-  if (pick.a === null || pick.b === null) return { state: 'partial', error: null };
-  const r = addAreaMerge(q, pick.a, pick.b);
+  if (pick.a === null && pick.joins.length === 0) return { state: 'empty', error: null };
+  if (pick.a === null || pick.joins.length === 0) return { state: 'partial', error: null };
+  const r = addAreaMerges(q, pick.a, pick.joins);
   return r.ok ? { state: 'ready', error: null } : { state: 'blocked', error: r.error };
 }
 
-/** The door on the wall between the picked rooms, when it is why the merge is refused. */
+/** The door that stops the merge, read from the engine sentence (to ring it on the board). */
 export function doorOnMergeWall(
   q: Quest,
   pick: MergePick,
 ): { id: string; a: Cell; b: Cell } | undefined {
-  if (pick.a === null || pick.b === null) return undefined;
-  const next = [...q.areaOverrides, { merge: [pick.a, pick.b] as [string, string] }];
-  const d = [...q.doors, ...q.secretDoors, ...q.falseDoors].find(
-    (x) =>
-      mergedWallRooms(baseBoard, next, x.a, x.b) !== undefined &&
-      mergedWallRooms(baseBoard, q.areaOverrides, x.a, x.b) === undefined,
-  );
+  const t = mergeTrial(q, pick);
+  const id = t.error?.match(/door (\S+) is on the wall/)?.[1];
+  if (!id) return undefined;
+  const d = [...q.doors, ...q.secretDoors, ...q.falseDoors].find((x) => x.id === id);
   return d ? { id: d.id, a: d.a as Cell, b: d.b as Cell } : undefined;
 }
 

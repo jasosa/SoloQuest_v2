@@ -761,7 +761,7 @@ export function EditorBoard({
   if (tool === 'merge')
     for (const [room, role] of [
       [mergePick.a, 'stays'],
-      [mergePick.b, 'joins'],
+      ...mergePick.joins.map((j) => [j, 'joins'] as const),
     ] as const) {
       if (!room) continue;
       const inRoom = (x: number, y: number) => areaAt(boardData, x, y) === room;

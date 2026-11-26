@@ -50,70 +50,83 @@ describe('the room under a square', () => {
 });
 
 describe('taps on rooms', () => {
-  it('the first room stays, the second joins', () => {
+  it('the first room stays, every further room joins', () => {
     const q = blank();
     const one = tapRoom(q, NO_PICK, 'R13');
-    expect(one).toEqual({ pick: { a: 'R13', b: null }, error: null });
+    expect(one).toEqual({ pick: { a: 'R13', joins: [] }, error: null });
     const two = tapRoom(q, one.pick, 'R14');
-    expect(two.pick).toEqual({ a: 'R13', b: 'R14' });
-    // a third room replaces the joining one
-    expect(tapRoom(q, two.pick, 'R17').pick).toEqual({ a: 'R13', b: 'R17' });
+    expect(two.pick).toEqual({ a: 'R13', joins: ['R14'] });
+    // a third room joins too, in the order tapped
+    expect(tapRoom(q, two.pick, 'R17').pick).toEqual({ a: 'R13', joins: ['R14', 'R17'] });
   });
 
-  it('a tap on a picked room takes it out of its slot; the next tap fills the first free slot', () => {
+  it('a tap on a picked room takes it out; the next tap fills the empty Stays slot first', () => {
     const q = blank();
-    const both = { a: 'R13', b: 'R14' };
-    expect(tapRoom(q, both, 'R13').pick).toEqual({ a: null, b: 'R14' });
-    expect(tapRoom(q, both, 'R14').pick).toEqual({ a: 'R13', b: null });
-    expect(tapRoom(q, { a: null, b: 'R14' }, 'R17').pick).toEqual({ a: 'R17', b: 'R14' });
+    const all = { a: 'R13', joins: ['R14', 'R17'] };
+    expect(tapRoom(q, all, 'R13').pick).toEqual({ a: null, joins: ['R14', 'R17'] });
+    expect(tapRoom(q, all, 'R14').pick).toEqual({ a: 'R13', joins: ['R17'] });
+    expect(tapRoom(q, { a: null, joins: ['R14'] }, 'R17').pick).toEqual({
+      a: 'R17',
+      joins: ['R14'],
+    });
   });
 
   it('a tap on nothing does nothing and says nothing', () => {
     const q = blank();
-    const p = { a: 'R13', b: null };
+    const p = { a: 'R13', joins: [] };
     expect(tapRoom(q, p, null)).toEqual({ pick: p, error: null });
   });
 
-  it('a room merged away is refused with its main room named', () => {
+  it('a tap on a room merged away does nothing and says nothing, like a corridor (decision 108)', () => {
     const q = good(addAreaMerge(blank(), 'R13', 'R14'));
     expect(mainOf(q, 'R14')).toBe('R13');
-    const r = tapRoom(q, NO_PICK, 'R14');
-    expect(r.pick).toBe(NO_PICK);
-    expect(r.error).toBe('R14 is part of R13. Split it first.');
+    const p = { a: 'R17', joins: [] };
+    const r = tapRoom(q, p, 'R14');
+    expect(r.pick).toBe(p);
+    expect(r.error).toBeNull();
   });
 
   it('a room that others joined can stay (a chain) but cannot join another room', () => {
     const q = good(addAreaMerge(blank(), 'R13', 'R14'));
-    expect(tapRoom(q, NO_PICK, 'R13').pick).toEqual({ a: 'R13', b: null });
-    const r = tapRoom(q, { a: 'R17', b: null }, 'R13');
-    expect(r.pick).toEqual({ a: 'R17', b: null });
+    expect(tapRoom(q, NO_PICK, 'R13').pick).toEqual({ a: 'R13', joins: [] });
+    const r = tapRoom(q, { a: 'R17', joins: [] }, 'R13');
+    expect(r.pick).toEqual({ a: 'R17', joins: [] });
     expect(r.error).toBe('R13 has rooms merged into it. Split them first.');
   });
 });
 
-describe('can the pair be merged', () => {
+describe('can the picked rooms be merged', () => {
   it('empty, partial, ready and blocked', () => {
     const q = blank();
     expect(mergeTrial(q, NO_PICK).state).toBe('empty');
-    expect(mergeTrial(q, { a: 'R13', b: null }).state).toBe('partial');
-    expect(mergeTrial(q, { a: 'R13', b: 'R14' })).toEqual({ state: 'ready', error: null });
-    const apart = mergeTrial(q, { a: 'R13', b: 'R05' });
+    expect(mergeTrial(q, { a: 'R13', joins: [] }).state).toBe('partial');
+    expect(mergeTrial(q, { a: null, joins: ['R14'] }).state).toBe('partial');
+    expect(mergeTrial(q, { a: 'R13', joins: ['R14'] })).toEqual({ state: 'ready', error: null });
+    const apart = mergeTrial(q, { a: 'R13', joins: ['R05'] });
     expect(apart.state).toBe('blocked');
-    expect(apart.error).toBe('Cannot merge: the rooms do not touch');
+    expect(apart.error).toBe('Cannot merge R05: the rooms do not touch');
+  });
+
+  it('three rooms: ready when each touches the main room or a picked room; one apart names it', () => {
+    const q = blank();
+    expect(mergeTrial(q, { a: 'R13', joins: ['R14', 'R17'] }).state).toBe('ready');
+    const bad = mergeTrial(q, { a: 'R13', joins: ['R14', 'R05'] });
+    expect(bad.state).toBe('blocked');
+    expect(bad.error).toBe('Cannot merge R05: the rooms do not touch');
   });
 
   it('[proposal] a door on the wall blocks, and the door is found for the ring', () => {
     const q = good(addDoor(blank(), [6, 11], [7, 11]));
-    const t = mergeTrial(q, { a: 'R13', b: 'R14' });
+    const t = mergeTrial(q, { a: 'R13', joins: ['R14'] });
     expect(t.state).toBe('blocked');
-    expect(t.error).toBe('Cannot merge: door d1 is on the wall between them. Remove it first.');
-    expect(doorOnMergeWall(q, { a: 'R13', b: 'R14' })).toEqual({
+    expect(t.error).toBe('Cannot merge R14: door d1 is on the wall between them. Remove it first.');
+    expect(doorOnMergeWall(q, { a: 'R13', joins: ['R14'] })).toEqual({
       id: 'd1',
       a: [6, 11],
       b: [7, 11],
     });
-    expect(doorOnMergeWall(q, { a: 'R13', b: 'R17' })).toBeUndefined();
-    expect(doorOnMergeWall(q, { a: 'R13', b: null })).toBeUndefined();
+    expect(doorOnMergeWall(q, { a: 'R13', joins: ['R17'] })).toBeUndefined();
+    expect(doorOnMergeWall(q, { a: 'R13', joins: [] })).toBeUndefined();
   });
 });
 

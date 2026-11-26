@@ -164,9 +164,9 @@ test.describe('editor: double quests', () => {
     // the first room tapped stays, the second joins it
     await clickAt(page, 1, 15); // R20
     await expect(merges.getByTestId('merge-slot-a')).toContainText('R20');
-    await expect(merges.getByTestId('merge-slot-b')).toContainText('Tap a room');
+    await expect(merges.getByTestId('merge-slot-next')).toContainText('Tap a room');
     await clickAt(page, 7, 15); // R17
-    await expect(merges.getByTestId('merge-slot-b')).toContainText('R17');
+    await expect(merges.getByTestId('merge-join')).toHaveText(/R17/);
     await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R17 into R20');
     await merges.getByTestId('merge-rooms').click();
     await expect(merges.getByTestId('merge-row')).toContainText('R17 is part of R20');
@@ -182,7 +182,7 @@ test.describe('editor: double quests', () => {
     await clickAt(page, 3, 2); // R01
     await clickAt(page, 17, 3); // R05
     await expect(merges.getByTestId('merge-error')).toContainText(
-      'Cannot merge: the rooms do not touch',
+      'Cannot merge R05: the rooms do not touch',
     );
     await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
     await expect(page.locator('.toast')).toHaveCount(0);
@@ -190,16 +190,17 @@ test.describe('editor: double quests', () => {
     // the corridor does nothing and says nothing
     await clickAt(page, 0, 0);
     await expect(merges.getByTestId('merge-slot-a')).toContainText('R01');
-    await expect(merges.getByTestId('merge-slot-b')).toContainText('R05');
-    // a tap on a room that is merged away is refused, and the slots stay
+    await expect(merges.getByTestId('merge-join')).toHaveText(/R05/);
+    // a tap on a room that is merged away does nothing and says nothing (decision 108)
     await clickAt(page, 7, 15);
     await expect(merges.getByTestId('merge-error')).toHaveText(
-      'R17 is part of R20. Split it first.',
+      'Cannot merge R05: the rooms do not touch',
     );
-    await expect(merges.getByTestId('merge-slot-b')).toContainText('R05');
-    // a tap on a picked room takes it out; Clear empties both slots
+    await expect(merges.getByTestId('merge-join')).toHaveCount(1);
+    await expect(merges.getByTestId('merge-join')).toHaveText(/R05/);
+    // a tap on a picked room takes it out; Clear empties the slots
     await clickAt(page, 17, 3);
-    await expect(merges.getByTestId('merge-slot-b')).toContainText('Tap a room');
+    await expect(merges.getByTestId('merge-join')).toHaveCount(0);
     await expect(merges.getByTestId('merge-error')).toHaveCount(0);
     await merges.getByRole('button', { name: 'Clear' }).click();
     await expect(merges.getByTestId('merge-slot-a')).toContainText('Tap a room');
@@ -210,6 +211,72 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-row')).toHaveCount(1);
     await btn(page, 'Undo').click();
     await expect(merges.getByTestId('merge-row')).toHaveCount(0);
+  });
+
+  test('merged rooms: three rooms in one merge, one undo step; a set with a room that cannot merge merges nothing', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await mergeTool(page).click();
+    const merges = page.getByTestId('map-merges');
+    await clickAt(page, 5, 10); // R13 stays
+    await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
+    await clickAt(page, 7, 10); // R14 joins
+    await clickAt(page, 7, 12); // R14 again takes it out
+    await clickAt(page, 6, 12); // R13 takes the Stays room out
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('Tap a room');
+    await expect(merges.getByTestId('merge-join')).toHaveCount(0);
+
+    // refused: R05 is far from R13. Nothing is merged, not even R14, and the error names R05
+    await clickAt(page, 5, 10); // R13
+    await clickAt(page, 7, 10); // R14
+    await clickAt(page, 17, 3); // R05
+    await expect(merges.getByTestId('merge-join')).toHaveCount(2);
+    await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R14, R05 into R13');
+    await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
+    await expect(merges.getByTestId('merge-error')).toHaveText(
+      'Cannot merge R05: the rooms do not touch',
+    );
+    await expect(merges.getByTestId('merge-row')).toHaveCount(0);
+    // take R05 out and put R17 in: R17 touches R13, so the three merge together
+    await clickAt(page, 17, 3);
+    await expect(merges.getByTestId('merge-error')).toHaveCount(0);
+    await clickAt(page, 7, 15); // R17
+    await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R14, R17 into R13');
+    await expect(merges.getByTestId('merge-rooms')).toBeEnabled();
+    await merges.getByTestId('merge-rooms').click();
+    await expect(merges.getByTestId('merge-row')).toHaveCount(2);
+    await expect(merges.getByTestId('merge-row').nth(0)).toContainText('R14 is part of R13');
+    await expect(merges.getByTestId('merge-row').nth(1)).toContainText('R17 is part of R13');
+    await expect(merges.getByTestId('merge-join')).toHaveCount(0);
+    // one undo step takes both back
+    await btn(page, 'Undo').click();
+    await expect(merges.getByTestId('merge-row')).toHaveCount(0);
+  });
+
+  test('merged rooms: a tap on a merged-away room does nothing and says nothing', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await mergeTool(page).click();
+    const merges = page.getByTestId('map-merges');
+    await clickAt(page, 5, 10);
+    await clickAt(page, 7, 10);
+    await merges.getByTestId('merge-rooms').click();
+    await expect(merges.getByTestId('merge-row')).toHaveCount(1);
+    // R14 is part of R13 now: tapping it changes nothing, with no error and no toast
+    await clickAt(page, 1, 15); // R20 stays
+    await clickAt(page, 7, 10); // R14 (merged away)
+    await expect(merges.getByTestId('merge-slot-a')).toContainText('R20');
+    await expect(merges.getByTestId('merge-join')).toHaveCount(0);
+    await expect(merges.getByTestId('merge-error')).toHaveCount(0);
+    await expect(page.locator('.toast')).toHaveCount(0);
+    // the room that has rooms merged into it cannot join another room: that sentence stays
+    await clickAt(page, 5, 10); // R13
+    await expect(merges.getByTestId('merge-error')).toHaveText(
+      'R13 has rooms merged into it. Split them first.',
+    );
+    await expect(merges.getByTestId('merge-join')).toHaveCount(0);
   });
 
   test('merged rooms: a door on the wall between the rooms refuses the merge, inline', async ({
@@ -224,7 +291,7 @@ test.describe('editor: double quests', () => {
     await clickAt(page, 5, 10); // R13
     await clickAt(page, 7, 10); // R14
     await expect(merges.getByTestId('merge-error')).toHaveText(
-      'Cannot merge: door d1 is on the wall between them. Remove it first.',
+      'Cannot merge R14: door d1 is on the wall between them. Remove it first.',
     );
     await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
     await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R14 into R13');

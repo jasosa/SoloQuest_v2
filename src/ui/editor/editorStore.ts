@@ -36,7 +36,7 @@ import {
   type MonsterDraft,
 } from './monsterDraft';
 import { NO_PICK, mergeTrial, tapRoom, type MergePick } from './mergePick';
-import { addAreaMerge } from '../../engine/editor';
+import { addAreaMerges } from '../../engine/editor';
 import { commitDraft, draftOf, isDirty, patchDraft, type NoteDraft } from './noteDraft';
 import type { NotePatch } from '../../engine/editor';
 import type { Note } from '../../engine/quest/schema';
@@ -533,15 +533,17 @@ export function createEditorStore(init: EditorInit): EditorStore {
       mergeTap(room) {
         if (room === null) return;
         const r = tapRoom(get().quest, get().mergePick, room);
+        // a tap that changes nothing (a merged-away room) says nothing and leaves everything as it was
+        if (r.pick === get().mergePick && r.error === null) return;
         set({ mergePick: r.pick, mergeError: r.error, mergeRow: null });
       },
       mergeClear: () => set({ mergePick: NO_PICK, mergeError: null }),
       mergeNow() {
         const { quest, mergePick } = get();
-        if (mergeTrial(quest, mergePick).state !== 'ready' || !mergePick.a || !mergePick.b)
-          return false;
-        const { a, b } = mergePick;
-        if (!get().apply((q) => addAreaMerge(q, a, b))) return false;
+        if (mergeTrial(quest, mergePick).state !== 'ready' || !mergePick.a) return false;
+        const { a, joins } = mergePick;
+        // all of them in one undo step, or none (an empty list is never sent)
+        if (joins.length === 0 || !get().apply((q) => addAreaMerges(q, a, joins))) return false;
         set({ mergePick: NO_PICK, mergeError: null });
         return true;
       },

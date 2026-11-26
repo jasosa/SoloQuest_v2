@@ -211,7 +211,7 @@ export function MergesPanel({ store }: { store: EditorStore }) {
   const trial = mergeTrial(quest, mergePick);
   // a refused tap, else why the pair cannot be merged
   const error = mergeError ?? trial.error;
-  const { a, b } = mergePick;
+  const { a, joins } = mergePick;
   const slot = (room: string | null, role: string, active: boolean, testId: string) => (
     <div className={active ? 'mg-slot on' : 'mg-slot'} data-testid={testId}>
       {room ? <b>{room}</b> : <i>{t('editor.MapsPanel.tapARoom', 'Tap a room')}</i>}
@@ -223,11 +223,12 @@ export function MergesPanel({ store }: { store: EditorStore }) {
       <p className="ed-note">
         {t(
           'editor.MapsPanel.tapTheRoomThat',
-          'Tap the room that stays, then the room that joins it. They must touch.',
+          'Tap the room that stays, then every room that joins it. Each must touch.',
         )}
       </p>
       {slot(a, t('editor.MapsPanel.stays', 'Stays'), a === null, 'merge-slot-a')}
-      {slot(b, t('editor.MapsPanel.joinsIt', 'Joins it'), a !== null && b === null, 'merge-slot-b')}
+      {joins.map((room) => slot(room, t('editor.MapsPanel.joins', 'Joins'), false, 'merge-join'))}
+      {slot(null, t('editor.MapsPanel.joins', 'Joins'), a !== null, 'merge-slot-next')}
       {error && (
         <div className="mg-err" role="alert" data-testid="merge-error">
           <span />
@@ -240,8 +241,8 @@ export function MergesPanel({ store }: { store: EditorStore }) {
         disabled={trial.state !== 'ready'}
         onClick={() => st.mergeNow()}
       >
-        {a && b
-          ? t('editor.MapsPanel.mergeInto', 'Merge {b} into {a}', { a, b })
+        {a && joins.length > 0
+          ? t('editor.MapsPanel.mergeInto', 'Merge {b} into {a}', { a, b: joins.join(', ') })
           : t('editor.MapsPanel.merge', 'Merge')}
       </button>
       <button
