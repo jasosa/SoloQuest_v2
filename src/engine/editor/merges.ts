@@ -4,6 +4,7 @@
  */
 import { tr } from '../../i18n/translate';
 import { board } from '../board/board';
+import { mergedWallRooms } from '../board/level';
 import type { Quest } from '../quest/schema';
 import { validateQuestIssues } from '../quest/validate';
 import { fail, newIssues, ok, type EditResult } from './result';
@@ -20,6 +21,20 @@ export function addAreaMerge(q: Quest, a: string, b: string): EditResult {
       problem.message.replace(
         /^areaOverrides \S+ \+ \S+: /,
         tr('editor.merges.cannotMerge', 'Cannot merge: '),
+      ),
+    );
+  // [proposal] a door on the wall between the two rooms would be inside one room
+  const door = [...q.doors, ...q.secretDoors, ...q.falseDoors].find(
+    (d) =>
+      mergedWallRooms(board, quest.areaOverrides, d.a, d.b) !== undefined &&
+      mergedWallRooms(board, q.areaOverrides, d.a, d.b) === undefined,
+  );
+  if (door)
+    return fail(
+      tr(
+        'editor.merges.doorOnTheWall',
+        'Cannot merge: door {id} is on the wall between them. Remove it first.',
+        { id: door.id },
       ),
     );
   return ok(quest, newIssues(q, quest));

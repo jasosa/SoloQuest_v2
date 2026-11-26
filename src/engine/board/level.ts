@@ -103,6 +103,27 @@ export function mergedBoard(base: Board, merges: Quest['areaOverrides']): Board 
 }
 
 /**
+ * [proposal] The two rooms of a wall that merging has removed: the squares `a` and `b` are in
+ * different rooms of the base board but in one room of the merged board. Gives the base room ids,
+ * the room that kept its id first. Undefined when the wall still stands.
+ */
+export function mergedWallRooms(
+  base: Board,
+  merges: Quest['areaOverrides'],
+  a: readonly number[],
+  b: readonly number[],
+): [string, string] | undefined {
+  if (merges.length === 0) return undefined;
+  const ra = areaAt(base, a[0] as number, a[1] as number);
+  const rb = areaAt(base, b[0] as number, b[1] as number);
+  if (ra === undefined || rb === undefined || ra === rb) return undefined;
+  const merged = mergedBoard(base, merges);
+  const ma = areaAt(merged, a[0] as number, a[1] as number);
+  if (ma === undefined || ma !== areaAt(merged, b[0] as number, b[1] as number)) return undefined;
+  return rb === ma ? [rb, ra] : [ra, rb];
+}
+
+/**
  * The level of a quest. A multi-map quest gives the level of map 1 with `maps` added (see
  * `Level.maps`); every other quest gives a plain level.
  */

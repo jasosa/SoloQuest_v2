@@ -467,6 +467,7 @@
   "editor.MapsPanel.thisQuestHasOne": "This quest has one map. A double quest has two or more, joined by stairways.",
   "editor.MapsPanel.to": " to ",
   "editor.merges.cannotMerge": "Cannot merge: ",
+  "editor.merges.doorOnTheWall": "Cannot merge: door {id} is on the wall between them. Remove it first.",
   "editor.merges.roomIsNotMerged": "Room {b} is not merged.",
   "editor.meta.aCharacterNeedsAName": "A character needs a name.",
   "editor.meta.aCharacterWithIdAlreadyExists": "A character with id {id} already exists.",
