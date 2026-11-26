@@ -346,7 +346,7 @@ A room that holds a tile (Ice Vault, Living Fog Room, Cage Room...) shows its na
 
 ## Edge doors (M10, slice 4a)
 
-A door in the outer wall of the board (the Frozen Horror iron entry and wooden exit) is drawn on the wall line, moved 6 px into the board so it stays inside the picture. The iron entry is an ink slab with a white arrow pointing into the board; the wooden exit is a white slab with an ink arrow pointing out. An opened door is drawn at 45% opacity. Tap targets are the usual 44 px. Texture packs do not change these two pictures yet. The heroes at an iron entry door see only that door until it is opened; the first tap opens it and looks in from the square inside it.
+A door in the outer wall of the board (the Frozen Horror iron entry and wooden exit) is drawn on the wall line, moved 6 px into the board so it stays inside the picture. The iron entry is an ink slab with a white arrow pointing into the board; the wooden exit is a white slab with an ink arrow pointing out. An opened door is drawn at 45% opacity. Tap targets are the usual 44 px. With a texture pack that has the two pictures (Frozen Horror), the door is drawn instead on the wall line itself, with its arrow just outside the board, pointing out of it, for both kinds and on all four sides. The picture is drawn above tiles, rock and fog, past the board edge. The play map and the editor map keep one arrow's width (three quarters of a square) of room on a side only when the quest has an edge door in that wall; other quests keep their size and layout (see `docs/TEXTURE_PACKS.md`). The heroes at an iron entry door see only that door until it is opened; the first tap opens it and looks in from the square inside it.
 
 ## Dialogs: focus and Escape (M8)
 

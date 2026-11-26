@@ -128,6 +128,7 @@
 }
 .ed-boardwrap svg {
   display: block;
+  overflow: visible; /* the arrow of a door in the outer wall lies outside the board */
   touch-action: manipulation;
   outline: none;
 }

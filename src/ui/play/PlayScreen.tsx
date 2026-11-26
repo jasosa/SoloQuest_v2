@@ -56,7 +56,7 @@ import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
 import { QuestSheet } from './QuestSheet';
 import { EndAsk, EndSheet, type EndChoice } from './EndSheet';
-import { ZOOM_STRIP, ZoomLayer } from './ZoomLayer';
+import { EDGE_DOOR_MARGIN, PLAY_BOARD_EAST, ZOOM_STRIP, ZoomLayer } from './ZoomLayer';
 import { Helpers, Heroes } from './sidebar';
 import {
   ChestBody,
@@ -1204,6 +1204,13 @@ export function PlayScreen({
 
       <ZoomLayer
         strip={ZOOM_STRIP}
+        // a door in the east wall has its arrow outside the board: room for it on that side only
+        {...(quest.edgeDoors.some((e) => e.side === 'e')
+          ? {
+              content: PLAY_BOARD_EAST,
+              padding: `18px ${EDGE_DOOR_MARGIN}px 18px 28px`,
+            }
+          : {})}
         notes={
           <>
             {sheet?.t === 'place' && sheet.p.cell ? (

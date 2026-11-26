@@ -77,6 +77,19 @@ import { t } from '../../i18n/t';
 export const EDITOR_CELL_PX = 26;
 /** The editor board as drawn (px): what the zoom fits to the area. */
 const EDITOR_CONTENT = { w: BOARD_W * EDITOR_CELL_PX + 4, h: BOARD_H * EDITOR_CELL_PX + 4 };
+/** Room outside a board side for the arrow of a door in that wall (three quarters of a square). */
+const EDGE_ROOM = Math.ceil(EDITOR_CELL_PX * 0.75);
+const contentCache = new Map<string, { w: number; h: number }>();
+/** The zoomed content with room on some sides: the same object for the same sizes. */
+function contentWith(n: number, e: number, s: number, w: number) {
+  const key = `${n},${e},${s},${w}`;
+  let c = contentCache.get(key);
+  if (!c) {
+    c = { w: EDITOR_CONTENT.w + e + w, h: EDITOR_CONTENT.h + n + s };
+    contentCache.set(key, c);
+  }
+  return c;
+}
 const VBW = BOARD_W * U + 4;
 const VBH = BOARD_H * U + 4;
 
@@ -1507,12 +1520,17 @@ export function EditorBoard({
       />,
     );
 
+  // a side that has a door in its wall gets room for the arrow; the other sides stay flush
+  const room = (side: 'n' | 'e' | 's' | 'w') =>
+    quest.edgeDoors.some((e) => e.side === side) ? EDGE_ROOM : 0;
+  const [roomN, roomE, roomS, roomW] = [room('n'), room('e'), room('s'), room('w')];
+
   return (
     <div className="ed-boardarea">
       <ZoomLayer
         className="ed-zoom"
-        content={EDITOR_CONTENT}
-        padding="0"
+        content={contentWith(roomN, roomE, roomS, roomW)}
+        padding={`${roomN}px ${roomE}px ${roomS}px ${roomW}px`}
         onePointerPan={false}
         wheelPan
         strip={ZOOM_STRIP}

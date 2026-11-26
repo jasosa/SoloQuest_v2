@@ -364,8 +364,8 @@ export function tunnelPiece(
 }
 
 /**
- * A door in the outer wall of the board: the picture of its kind inside the square next to the wall,
- * turned so its arrow points into the board for the entry and out of it for the exit. (dx, dy) points
+ * A door in the outer wall of the board: the picture of its kind with the door on the wall line and the
+ * arrow just outside it, turned so its arrow points into the board for the entry and out of it for the exit. (dx, dy) points
  * from outside into the board. Null for the drawn look.
  */
 export function edgeDoorPiece(
@@ -380,25 +380,61 @@ export function edgeDoorPiece(
 ): ReactNode {
   const href = theme.edgeDoor?.[kind];
   if (!href) return null;
-  // the pictures are drawn with the arrow pointing right
-  const ax = kind === 'ironEntry' ? dx : -dx;
-  const ay = kind === 'ironEntry' ? dy : -dy;
+  // The pictures are drawn with the arrow pointing right. The wooden exit picture has the door on the
+  // left and its arrow pointing away from it. The iron entry picture has the arrow on the left pointing
+  // at the door on the right: its arrow is mirrored in place so that it points away from the door too.
+  // Turned, the door half lies inside the board and the arrow half outside, pointing out of the board.
+  const iron = kind === 'ironEntry';
+  const ax = iron ? dx : -dx;
+  const ay = iron ? dy : -dy;
   const angle = (Math.atan2(ay, ax) * 180) / Math.PI;
-  // the whole picture sits in the square next to the wall: half a square in from the wall line
-  const mx = cx + dx * size * 0.5;
-  const my = cy + dy * size * 0.5;
+  // the picture has the arrow in one half and the door in the other half. The door half is centred on
+  // the wall line, so the picture centre is a quarter of a square outside the wall and the arrow
+  // lies just outside the board
+  const mx = cx - dx * size * 0.25;
+  const my = cy - dy * size * 0.25;
   const box = tuned(mx, my, size, size, size, theme.tune?.edgeDoor?.[kind]);
+  const turn = angle
+    ? `rotate(${angle} ${box.x + box.width / 2} ${box.y + box.height / 2})`
+    : undefined;
+  if (!iron)
+    return (
+      <image
+        href={href}
+        {...box}
+        preserveAspectRatio="xMidYMid meet"
+        transform={turn}
+        opacity={open ? 0.45 : 1}
+        data-themed="edge-door"
+      />
+    );
+  // iron entry: the door half as it is, and the arrow half mirrored about its own middle
+  const half = box.width / 2;
+  const id = `edge-clip-${Math.round(cx)}-${Math.round(cy)}`;
   return (
-    <image
-      href={href}
-      {...box}
-      preserveAspectRatio="xMidYMid meet"
-      transform={
-        angle ? `rotate(${angle} ${box.x + box.width / 2} ${box.y + box.height / 2})` : undefined
-      }
-      opacity={open ? 0.45 : 1}
-      data-themed="edge-door"
-    />
+    <g transform={turn} opacity={open ? 0.45 : 1}>
+      <clipPath id={`${id}-door`}>
+        <rect x={box.x + half} y={box.y} width={half} height={box.height} />
+      </clipPath>
+      <clipPath id={`${id}-arrow`}>
+        <rect x={box.x} y={box.y} width={half} height={box.height} />
+      </clipPath>
+      <image
+        href={href}
+        {...box}
+        preserveAspectRatio="xMidYMid meet"
+        clipPath={`url(#${id}-door)`}
+        data-themed="edge-door"
+      />
+      <image
+        href={href}
+        {...box}
+        preserveAspectRatio="xMidYMid meet"
+        clipPath={`url(#${id}-arrow)`}
+        transform={`translate(${2 * (box.x + half / 2)} 0) scale(-1 1)`}
+        data-themed="edge-door-arrow"
+      />
+    </g>
   );
 }
 

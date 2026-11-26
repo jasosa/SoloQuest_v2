@@ -226,6 +226,9 @@ export function PlayBoard({
   const layers = { old: [] as ReactNode[], neu: [] as ReactNode[] };
   const into = (isFresh: boolean) => (isFresh ? layers.neu : layers.old);
 
+  // Doors in the outer wall of the board: drawn above the tiles and rock, and past the board edge
+  const edgeArt = { old: [] as ReactNode[], neu: [] as ReactNode[] };
+
   const floors = { old: [] as ReactNode[], neu: [] as ReactNode[] };
   const walls = { old: [] as ReactNode[], neu: [] as ReactNode[] };
   for (let y = 0; y < H; y++)
@@ -351,7 +354,7 @@ export function PlayBoard({
     const open = state.openDoors.has(id);
     const isFresh = fresh(keyOf(d.a)) || fresh(keyOf(d.b));
     const selected = selection?.kind === 'door' && selection.id === id;
-    into(isFresh).push(
+    (d.edge ? (isFresh ? edgeArt.neu : edgeArt.old) : into(isFresh)).push(
       <g key={`d${id}`}>
         {selected && <circle cx={cx} cy={cy} r={20} fill={color.sel} className="selring" />}
         {d.edge
@@ -1438,6 +1441,8 @@ export function PlayBoard({
         {walls.neu}
         {layers.neu}
       </g>
+      <g>{edgeArt.old}</g>
+      <g mask={ink ? 'url(#inkmask)' : undefined}>{edgeArt.neu}</g>
       {zargonView && <ZargonOverlay level={level} state={state} />}
       <rect
         x={0}

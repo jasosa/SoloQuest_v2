@@ -16,6 +16,10 @@ export interface Content {
 }
 /** The play board: 26 x 19 squares of 34 px with a 2 px margin, and the map padding (18 px above and below). */
 export const PLAY_BOARD: Content = { w: 28 + 26 * 34 + 4, h: 18 + 19 * 34 + 4 + 18 };
+/** Room right of the board for the arrow of a door in its east wall (three quarters of a square). */
+export const EDGE_DOOR_MARGIN = 26;
+/** The play board with that room on its east side. */
+export const PLAY_BOARD_EAST: Content = { w: PLAY_BOARD.w + EDGE_DOOR_MARGIN, h: PLAY_BOARD.h };
 /** How far the board can be zoomed in from its fitted size. */
 /** The strip under the play board for the zoom chips: 44 px chips and a margin. */
 export const ZOOM_STRIP = 56;
