@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { NEUTRAL_BAR, barOfExpansion, useBarContext } from '../boxBars';
 import { CORE_ABILITIES } from '../../engine/data/abilities';
 import {
   applyCoreFile,
@@ -685,6 +686,7 @@ function NewItemPopup({
  * only; "Mine" items save as they change. Export and import move the library between devices.
  */
 export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps) {
+  const bars = useBarContext();
   const [owner, setOwner] = useState(ownerModeOn);
   const [del, setDel] = useState<{
     id: string;
@@ -1456,6 +1458,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
               <button
                 key={k}
                 className="box-pick"
+                style={{ '--box': NEUTRAL_BAR } as CSSProperties}
                 aria-pressed={k === kind}
                 onClick={() => switchKind(k)}
               >
@@ -1631,7 +1634,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 .map((r) => (
                   <button
                     key={r.id}
-                    className="qcard"
+                    className="qcard bar"
+                    style={
+                      {
+                        '--box': barOfExpansion(expansionOf(kind, r.id, r.data), !r.core, bars),
+                      } as CSSProperties
+                    }
                     aria-pressed={r.id === selected}
                     onClick={() => pick(r.id)}
                   >

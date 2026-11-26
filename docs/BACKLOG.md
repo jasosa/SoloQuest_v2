@@ -356,6 +356,7 @@ All the texts of the application can be translated or modified with a tool, for 
 - [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [x] Editor start screen: an Open button on each quest of the list of quests
 - [x] Editor, Map tab, Monsters tool: Frozen Horror monsters show as Custom monster in the right card; use a concept like the Library (kinds and item cards), restricted to the right card. Needs a concept board in `design/ui-concept/` first
+- [x] Colour bars follow the box colour of My collection on every row of a quest or an item (Play a quest grid and Campaign detail, editor start list, Library kinds and cards, Actions and Monsters tab rows, Map Monsters kinds); what the player made is neutral (`--muted`). One lookup in `src/ui/boxBars.ts`. Open: a copy of a core quest has no `pack`, so it shows neutral
 - [ ] Monster tokens and chips on the map and roster follow the box colour chosen in My collection (today `boxTokenFill` in `src/ui/shared/boxColor.ts` is fixed: green for the base game, ice for Frozen Horror). Not urgent (owner, 2026-11-26)
 - [ ] Editor, Map tab, Monsters tool: build `design/ui-concept/editor-map-monsters-concept.html` (list of kinds, one kind opened with a back button, bars in the box colour, "Placing" row, My library always listed with the hint). Replaces the "Custom monsters" group
 - [ ] Texture packs: Frozen Horror preview, entrance doors

@@ -6,11 +6,9 @@
  */
 import { useState, type CSSProperties } from 'react';
 import { useStore } from 'zustand';
-import { CORE_PACK } from '../../engine/pack/registry';
-import { useBoxColors } from '../collection';
+import { barOfExpansion, useBarContext } from '../boxBars';
 import { expansionOf } from '../designer/expansions';
 import { useLibrary } from '../designer/LibraryContext';
-import { packs } from '../packs';
 import type { EditorStore } from './editorStore';
 import { kindOfPick, monsterKinds, type Kind, type KindItem } from './monsterKinds';
 import { t } from '../../i18n/t';
@@ -38,16 +36,10 @@ export function MonsterKinds({ store }: { store: EditorStore }) {
   const lib = { abilities: library.abilities, spells: library.spells };
   const [open, setOpen] = useState<string | null>(null);
 
-  const installed = packs.packs.map((p) => p.manifest.id);
-  const colors = useBoxColors(installed);
-  /** The colour of a kind: its box, or the base game when it has none (This quest, My library). */
-  const colorOf = (kind: Kind): string => {
-    const pack =
-      kind.expansion === undefined
-        ? undefined
-        : packs.packs.find((p) => p.manifest.name === kind.expansion);
-    return colors[pack?.manifest.id ?? CORE_PACK] ?? 'var(--ink)';
-  };
+  const bars = useBarContext();
+  /** The colour of a kind: its box; neutral for what the player made (This quest, My library). */
+  const colorOf = (kind: Kind): string =>
+    barOfExpansion(kind.expansion, kind.key === 'quest' || kind.key === 'mine', bars);
   const bar = (kind: Kind) => ({ '--box': colorOf(kind) }) as CSSProperties;
 
   const kinds = monsterKinds({

@@ -9,6 +9,8 @@ type BehaviorWaits = NonNullable<MonsterBehavior['waitsFor']>;
 type BehaviorToward = NonNullable<MonsterBehavior['goesToward']>;
 import { useLibrary } from '../designer/LibraryContext';
 import { DetailCard, Fld, PickRow, Split, Toggle } from '../shared/Frame';
+import { barOfExpansion, useBarContext } from '../boxBars';
+import { expansionOf } from '../designer/expansions';
 import { SubjectActions } from './ActionsSection';
 import type { EditorStore } from './editorStore';
 import { StatFields } from './Inspector';
@@ -56,6 +58,14 @@ export function MonstersTab({ store }: { store: EditorStore }) {
   );
   const monster = monsterDraft?.monster;
   const dirty = monsterDraft ? isMonsterDirty(quest, monsterDraft) : false;
+  // the bar of a row: the box of its enemy's expansion; a core type is the base game; an enemy the player made is neutral
+  const bars = useBarContext();
+  const rowColor = (m: (typeof quest.monsters)[number]): string => {
+    const def = m.enemy ? quest.enemyDefs.find((e) => e.id === m.enemy) : undefined;
+    if (!def) return barOfExpansion(undefined, false, bars);
+    const exp = expansionOf('enemy', def.id, def);
+    return barOfExpansion(exp, exp === undefined, bars);
+  };
   const patch = (p: Parameters<typeof updateMonster>[2]) =>
     monster ? st.editMonster((q) => updateMonster(q, monster.id, p)) : false;
 
@@ -69,6 +79,7 @@ export function MonstersTab({ store }: { store: EditorStore }) {
               <PickRow
                 key={m.id}
                 on={m.id === monster?.id}
+                color={rowColor(m)}
                 data={{ 'data-monster-row': m.id }}
                 name={
                   <>

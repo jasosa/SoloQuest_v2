@@ -19,6 +19,8 @@ export interface UserQuestSummary {
   title: string;
   number: number;
   updatedAt: number;
+  /** The pack the quest came from (a copy of a printed quest of an expansion); none for one made here. */
+  pack?: string | undefined;
 }
 
 export interface UserQuestStore {
@@ -58,6 +60,7 @@ const summary = (q: Quest, updatedAt: number): UserQuestSummary => ({
   title: q.title,
   number: q.number,
   updatedAt,
+  ...(q.pack !== undefined ? { pack: q.pack } : {}),
 });
 
 export class MemoryUserQuestStore implements UserQuestStore {
@@ -125,7 +128,13 @@ export class DexieUserQuestStore implements UserQuestStore {
     for (const r of rows) {
       const q = readBack(r?.quest);
       if (q && typeof r.updatedAt === 'number')
-        out.push({ id: q.id, title: q.title, number: q.number, updatedAt: r.updatedAt });
+        out.push({
+          id: q.id,
+          title: q.title,
+          number: q.number,
+          updatedAt: r.updatedAt,
+          ...(q.pack !== undefined ? { pack: q.pack } : {}),
+        });
     }
     return out;
   }

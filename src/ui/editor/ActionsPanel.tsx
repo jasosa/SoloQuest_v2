@@ -13,6 +13,7 @@ import { actionKind, subjectLabel, subjectOf, type Subject } from './actionSubje
 import type { EditorStore } from './editorStore';
 import { mainText, triggerSummary } from './noteForms';
 import { PickRow } from '../shared/Frame';
+import { NEUTRAL_BAR } from '../boxBars';
 import { t } from '../../i18n/t';
 
 const ORDER: readonly Subject['kind'][] = [
@@ -74,6 +75,7 @@ export function ActionsPanel({ store }: { store: EditorStore }) {
               <PickRow
                 key={n.id}
                 on={n.id === noteId}
+                color={NEUTRAL_BAR}
                 sub={mainText(n)}
                 data={{ 'data-action-row': n.id }}
                 name={

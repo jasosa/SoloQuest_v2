@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import {
   emptyQuest,
   exportQuest,
@@ -14,6 +14,7 @@ import { Dialog, Fld } from '../shared/Frame';
 import { PageHeader } from '../select/parts';
 import { questEntries } from '../quests';
 import { packs } from '../packs';
+import { barOfPack, useBarContext } from '../boxBars';
 import { t } from '../../i18n/t';
 
 export interface EditorStartProps {
@@ -37,6 +38,7 @@ const storeErrorText = () =>
   );
 
 export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
+  const bars = useBarContext();
   useFitMode('width');
   const [rows, setRows] = useState<Row[]>([]);
   const [title, setTitle] = useState('');
@@ -163,7 +165,11 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
           )}
           <ul className="fr-recent">
             {rows.map((r) => (
-              <li key={r.id} data-quest={r.id}>
+              <li
+                key={r.id}
+                data-quest={r.id}
+                style={{ '--box': barOfPack(r.pack, bars) } as CSSProperties}
+              >
                 <button
                   className="fr-open"
                   aria-label={t('editor.EditorStart.open', 'Open {title}', { title: r.title })}

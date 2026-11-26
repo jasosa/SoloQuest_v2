@@ -1449,6 +1449,15 @@
   position: absolute;
   inset: -14px -8px;
 }
-.mk-head .box-pick[aria-pressed='true'] {
+.mk-head .box-pick.box-pick[aria-pressed='true'] {
+  border-left-color: var(--box, var(--ink));
+}
+.qcard.bar {
+  border-left: 12px solid var(--box, var(--ink));
+}
+.qcard.bar[aria-pressed='true'] {
+  border-left-color: var(--box, var(--ink));
+}
+.box-pick.box-pick[aria-pressed='true'] {
   border-left-color: var(--box, var(--ink));
 }

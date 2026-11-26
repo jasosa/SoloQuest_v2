@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { useModal } from './useModal';
 import './frame.css';
 import { t } from '../../i18n/t';
@@ -260,7 +260,10 @@ export function PickRow({
   title,
   data,
   sub,
+  color,
 }: {
+  /** The colour of the left bar (a box colour, or the neutral one). */
+  color?: string;
   name: ReactNode;
   kind?: ReactNode;
   /** A second, smaller line under the name. */
@@ -276,6 +279,7 @@ export function PickRow({
       aria-pressed={on}
       title={title}
       onClick={onClick}
+      style={color ? ({ '--box': color } as CSSProperties) : undefined}
       {...data}
     >
       <span>{name}</span>

@@ -43,7 +43,7 @@ test.describe('editor: the Monsters tool, kinds and cards', () => {
     await shot(page, 'monsters-kinds');
   });
 
-  test('every bar is the colour of its box: the base game and Frozen Horror from My collection', async ({
+  test('every bar is the colour of its box from My collection; what the player made is neutral', async ({
     page,
   }) => {
     await newQuest(page);
@@ -55,8 +55,8 @@ test.describe('editor: the Monsters tool, kinds and cards', () => {
     const core = await colour(/^Core game/);
     expect(core).toBe('rgb(110, 31, 42)');
     expect(await colour(/^Frozen Horror/)).toBe('rgb(59, 107, 140)');
-    // an item with no expansion takes the base game colour
-    expect(await colour(/^My library/)).toBe(core);
+    // what the player made (My library, This quest) is neutral: the --muted token
+    expect(await colour(/^My library/)).toBe('rgb(109, 90, 78)');
   });
 
   test('open Frozen Horror, pick Yeti, go back and place with the pick still on, Clear', async ({

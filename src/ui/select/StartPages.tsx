@@ -1,6 +1,8 @@
 import type { Resumed } from '../../persist/saves';
 import { t } from '../../i18n/t';
+import { barOfPack, useBarContext } from '../boxBars';
 import { MenuButton, PageHeader, type Playable } from './parts';
+import type { CSSProperties } from 'react';
 
 /** A pack in a list: its name, how many quests it lists and how many of them are encoded. */
 export interface PackCard {
@@ -82,12 +84,19 @@ export function QuestGrid({
   cards: readonly QuestCardData[];
   onPick(card: QuestCardData): void;
 }) {
+  const bars = useBarContext();
   return (
     <div className="pick">
       {cards.map((q) => (
         <button
           key={q.slot}
-          className={`qcard${q.status ? ` ${q.status}` : ''}`}
+          // the bar is the colour of the box of the quest (neutral for a quest made here)
+          className={`qcard${q.playable ? ' bar' : ''}${q.status ? ` ${q.status}` : ''}`}
+          style={
+            q.playable
+              ? ({ '--box': barOfPack(q.playable.pack, bars) } as CSSProperties)
+              : undefined
+          }
           aria-pressed={q.selected === true}
           disabled={!q.playable}
           onClick={() => onPick(q)}
