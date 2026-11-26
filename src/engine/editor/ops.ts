@@ -13,6 +13,7 @@
  */
 import { tr } from '../../i18n/translate';
 import { areaAt, board, cellsOf, inBoard, isWallBetween } from '../board/board';
+import { mergedWallRooms } from '../board/level';
 import { abilityLookup } from '../data/abilities';
 import { spellLookup } from '../data/spells';
 import {
@@ -339,6 +340,14 @@ function doorEdgeProblem(
       'editor.ops.thereIsNoWallBetweenAnd',
       'There is no wall between {at} and {at2}, so a door cannot go there.',
       { at: at(a), at2: at(b) },
+    );
+  // [proposal] merged rooms are one room: no door on the wall that merging removed
+  const gone = mergedWallRooms(board, q.areaOverrides, a, b);
+  if (gone)
+    return tr(
+      'editor.ops.doorOnMergedWall',
+      'Cannot add a door: {a} and {b} are one room. Split them first.',
+      { a: gone[0], b: gone[1] },
     );
   const twin = allDoors(q).find(
     (d) =>

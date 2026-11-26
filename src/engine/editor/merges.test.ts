@@ -1,3 +1,7 @@
+import { board } from '../board/board';
+import { validateQuestIssues } from '../quest/validate';
+import { testMapsQuest } from '../quest/testMaps';
+import { swapTo } from './maps';
 import { describe, expect, it } from 'vitest';
 import { emptyQuest, addDoor, type EditResult } from './ops';
 import { addAreaMerge, removeAreaMerge } from './merges';
@@ -69,5 +73,49 @@ describe('addAreaMerge and doors [proposal]', () => {
     expect(error(addAreaMerge(m, 'R14', 'R17'))).toBe(
       'Cannot merge: a room that was merged into another cannot be merged again',
     );
+  });
+});
+
+describe('addDoor on merged rooms [proposal]', () => {
+  const merged = () => ok(addAreaMerge(blank(), 'R13', 'R14'));
+  it('[proposal] refuses a door on the wall inside a merged room', () => {
+    expect(error(addDoor(merged(), [6, 11], [7, 11]))).toBe(
+      'Cannot add a door: R13 and R14 are one room. Split them first.',
+    );
+    // the order of the two squares does not matter
+    expect(error(addDoor(merged(), [7, 11], [6, 11], 'secret'))).toBe(
+      'Cannot add a door: R13 and R14 are one room. Split them first.',
+    );
+    expect(error(addDoor(merged(), [6, 10], [7, 10], 'false'))).toContain('one room');
+  });
+  it('[proposal] a chain names the two rooms of the wall', () => {
+    // R13 + R14 + R17: a door R14 | R17 (y12|y13, x7) is inside the chain
+    const chain = ok(addAreaMerge(merged(), 'R13', 'R17'));
+    expect(error(addDoor(chain, [7, 12], [7, 13]))).toBe(
+      'Cannot add a door: R14 and R17 are one room. Split them first.',
+    );
+  });
+  it('[proposal] a door on another wall of the merged room still works', () => {
+    // R13 | R17 are not merged here, only R13 + R14
+    expect(ok(addDoor(merged(), [5, 12], [5, 13])).doors).toHaveLength(1);
+  });
+  it('[proposal] Split, then the door goes in', () => {
+    const split = ok(removeAreaMerge(merged(), 'R14'));
+    expect(ok(addDoor(split, [6, 11], [7, 11])).doors[0]?.id).toBe('d1');
+  });
+  it('[proposal] a merge on one map of a double quest does not touch the other map', () => {
+    const one = testMapsQuest();
+    const mergedOne = ok(addAreaMerge(one, 'R13', 'R14'));
+    expect(error(addDoor(mergedOne, [6, 11], [7, 11]))).toContain('one room');
+    // map two has no merge, so its door is fine
+    const two = swapTo(mergedOne, 'two');
+    expect(two.areaOverrides).toEqual([]);
+    const withDoor = ok(addDoor(two, [6, 11], [7, 11]));
+    // back on map one nothing is flagged, and the whole quest has no merged-wall error
+    const back = swapTo(withDoor, 'one');
+    const bad = validateQuestIssues(back, board).filter((i) =>
+      i.message.includes('merged into one'),
+    );
+    expect(bad).toEqual([]);
   });
 });

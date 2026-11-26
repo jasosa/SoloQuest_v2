@@ -757,6 +757,7 @@
   "editor.ops.aZoneNeedsAtLeastOne": "A zone needs at least one square. Delete the zone instead.",
   "editor.ops.blockIsAlreadyOn": "Block: {hit} is already on {at}.",
   "editor.ops.cannotMakeRockRemoveItFirst": "Cannot make {at} rock: {hit}. Remove it first.",
+  "editor.ops.doorOnMergedWall": "Cannot add a door: {a} and {b} are one room. Split them first.",
   "editor.ops.cannotMakeRockRemoveItFirst2": "Cannot make {room} rock: {hit}. Remove it first.",
   "editor.ops.doorIsAlreadyOnThatEdge": "Door {id} is already on that edge.",
   "editor.ops.doorTouches": "door {id} touches {at}",
