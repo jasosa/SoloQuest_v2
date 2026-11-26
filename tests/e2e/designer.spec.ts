@@ -208,6 +208,91 @@ test.describe('designer: the library', () => {
     await expect(page.getByText('Saved in the library.')).toBeVisible();
   });
 
+  test('Cancel on a monster takes out what it copied or made; Save keeps it as one undo step', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Abilities/);
+    await make(page, 'ability');
+    await name(page, 'Bog skin');
+    await card(page).getByLabel('What it does').fill('Mud spells fail on it.');
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Marsh Skeleton');
+    await card(page).getByLabel('Starts from').selectOption('skeleton');
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
+    await page.getByLabel('Title').first().fill('Marsh');
+    await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
+
+    const abilityDlg = page.getByRole('dialog', { name: 'Ability' });
+    const mine = () => page.getByTestId('abilities-section');
+    const chips = () => page.locator('.ed-tools').getByTestId('custom-monsters');
+    const copyAll = async () => {
+      const card = page.getByTestId('monster-card');
+      await card.getByLabel('Enemy', { exact: true }).selectOption({ label: 'Marsh Skeleton' });
+      const abilities = page.getByTestId('monster-abilities');
+      await abilities.getByLabel('Add an ability').selectOption({ label: 'Bog skin' });
+      await abilities.getByRole('button', { name: 'Add', exact: true }).click();
+      await abilities.getByRole('button', { name: 'New ability…' }).click();
+      await abilityDlg.getByLabel('Name').fill('Quick feet');
+      await abilityDlg.getByLabel('Name').blur();
+      await abilityDlg.getByRole('button', { name: 'Close' }).click();
+      await expect(abilities.locator('[data-ability]')).toHaveCount(2);
+    };
+    const quest = async () => {
+      await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+      return mine();
+    };
+
+    // a saved monster, with nothing from the library yet
+    await page.getByRole('tab', { name: 'Monsters', exact: true }).click();
+    await page
+      .getByTestId('monster-list')
+      .getByRole('button', { name: 'Add', exact: true })
+      .click();
+    await page.getByRole('button', { name: 'Save monster' }).click();
+
+    // copy a library enemy and ability and make an ability, then Cancel: all of it is gone
+    await copyAll();
+    await expect(page.getByTestId('draft-note')).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(page.getByTestId('monster-abilities').locator('[data-ability]')).toHaveCount(0);
+    await expect(page.getByTestId('monster-card').getByLabel('Enemy', { exact: true })).toHaveValue(
+      '',
+    );
+    let own = await quest();
+    await expect(own).not.toContainText('Bog skin');
+    await expect(own).not.toContainText('Quick feet');
+    await page.getByRole('tab', { name: 'Map', exact: true }).click();
+    await page.locator('.ed-tools').getByRole('button', { name: 'Monsters', exact: true }).click();
+    await expect(chips()).toContainText('Marsh Skeleton (library)');
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
+
+    // changing tab drops them too
+    await page.getByRole('tab', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await copyAll();
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    own = mine();
+    await expect(own).not.toContainText('Quick feet');
+
+    // Save keeps them, in one undo step
+    await page.getByRole('tab', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await copyAll();
+    await page.getByRole('button', { name: 'Save monster' }).click();
+    own = await quest();
+    await expect(own).toContainText('Bog skin');
+    await expect(own).toContainText('Quick feet');
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await expect(own).not.toContainText('Bog skin');
+    await expect(own).not.toContainText('Quick feet');
+    await page.getByRole('tab', { name: 'Monsters', exact: true }).click();
+    await page.getByTestId('monster-list').getByRole('button').first().click();
+    await expect(page.getByTestId('monster-abilities').locator('[data-ability]')).toHaveCount(0);
+  });
+
   test('a custom enemy is in the Monsters tool and can be added from the Monsters tab, with its stats', async ({
     page,
   }) => {

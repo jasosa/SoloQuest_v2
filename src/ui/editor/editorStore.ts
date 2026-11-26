@@ -25,8 +25,13 @@ import type { IssueRef } from '../../engine/quest/validate';
 import { jumpFor, type Flash } from './problems';
 import {
   commitMonsterDraft,
+  defChanges,
+  hasAddedDefs,
   isMonsterDirty,
   monsterDraftOf,
+  newMonsterDraft,
+  onlyAddedDefs,
+  removeAddedDefs,
   runOnMonsterDraft,
   type MonsterDraft,
 } from './monsterDraft';
@@ -227,6 +232,8 @@ export interface EditorState {
    * ability or spell copied into the quest) is written at once. False when the engine refuses.
    */
   editMonster(op: (q: Quest) => EditResult): boolean;
+  /** Drop the monster draft and take out the definitions it added (no undo step). */
+  dropMonster(): void;
   /** Write the monster draft into the quest as one change. The card stays open on the saved monster. */
   saveMonster(): boolean;
   /** Drop the edits of the monster draft: the card shows the saved monster again (a new monster is dropped). */
@@ -266,6 +273,12 @@ const HISTORY_LIMIT = 200;
 
 /** The form state for an action id: the id and a fresh draft, or both empty when it is gone. */
 /** The draft of the picked monster, or none when the selection is not a monster. */
+/** Every touched definition of a change is a new one. */
+const onlyAdded = (c: ReturnType<typeof defChanges>): boolean =>
+  (['abilities', 'spells', 'enemies'] as const).every((k) =>
+    c.touched[k].every((id) => c.added[k].includes(id)),
+  );
+
 const monsterDraftFor = (q: Quest, sel: EditSelection): MonsterDraft | null => {
   const m = sel?.kind === 'monster' ? q.monsters.find((x) => x.id === sel.id) : undefined;
   return m ? monsterDraftOf(m) : null;
@@ -295,6 +308,13 @@ export function createEditorStore(init: EditorInit): EditorStore {
       });
     };
     const toastOf = (text: string): EditorToast => ({ id: ++counter, text });
+    /** Write a quest without an undo step (definitions of a monster draft). */
+    const writeSilently = (next: Quest, warnings: readonly Issue[]) => {
+      const canon = get().canon;
+      const nextCanon = swapTo(next, firstMapId(canon));
+      set({ quest: next, canon: nextCanon, warnings, saveErrors: null, toast: null });
+      persist(nextCanon);
+    };
 
     // The oriented quest of a canonical one, for the map on show (map 1 when it is gone).
     const orient = (canon: Quest, wanted: string): { quest: Quest; mapId: string } => {
@@ -340,7 +360,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       stored: true,
 
       apply(fn) {
-        const { quest, canon, past, mapId } = get();
+        const { quest, canon, past, mapId, monsterDraft } = get();
         // new ids must not repeat the ids of the other maps
         const r = withForeignIds(foreignIdsOf(quest), () => fn(quest));
         if (!r.ok) {
@@ -349,12 +369,14 @@ export function createEditorStore(init: EditorInit): EditorStore {
         }
         if (r.quest === quest) return true; // nothing changed
         const nextCanon = swapTo(r.quest, firstMapId(canon));
+        // an edit of a definition the monster draft added (in its ability or spell popup) is part of
+        // the draft: no undo step of its own, "Save monster" makes the one step
+        const silent = monsterDraft !== null && onlyAddedDefs(quest, r.quest, monsterDraft);
         set({
           quest: r.quest,
           canon: nextCanon,
           mapId,
-          past: [...past, canon].slice(-HISTORY_LIMIT),
-          future: [],
+          ...(silent ? {} : { past: [...past, canon].slice(-HISTORY_LIMIT), future: [] }),
           warnings: r.warnings,
           saveErrors: null,
           toast: null,
@@ -389,11 +411,13 @@ export function createEditorStore(init: EditorInit): EditorStore {
       setMap(id) {
         const { canon, mapId } = get();
         if (id === mapId) return;
+        get().dropMonster();
         const view = orient(canon, id);
         set({ ...view, ...reset, tool: 'select', warnings: [], toast: null });
       },
 
       undo() {
+        get().dropMonster();
         const { past, future, canon, mapId } = get();
         const prev = past[past.length - 1];
         if (!prev) return;
@@ -415,6 +439,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       },
 
       redo() {
+        get().dropMonster();
         const { past, future, canon, mapId } = get();
         const next = future[0];
         if (!next) return;
@@ -437,21 +462,39 @@ export function createEditorStore(init: EditorInit): EditorStore {
 
       setTool: (tool) => set({ tool, pendingBlock: null, pendingTunnel: null }),
       setOpts: (patch) => set({ opts: { ...get().opts, ...patch } }),
-      select: (selection) =>
+      select(selection) {
+        get().dropMonster();
         set({
           monsterDraft: monsterDraftFor(get().quest, selection),
           ...(selection ? { selection, panel: 'element', picking: null } : { selection }),
-        }),
+        });
+      },
       // a draft belongs to the tab it was opened in: changing tab drops it
-      setTab: (tab) =>
+      setTab(tab) {
+        get().dropMonster();
         set({
           tab,
           picking: null,
           noteId: null,
           noteDraft: null,
           monsterDraft: tab === 'Monsters' ? monsterDraftFor(get().quest, get().selection) : null,
-        }),
+        });
+      },
+      dropMonster() {
+        const { monsterDraft, quest } = get();
+        if (!monsterDraft) return;
+        // take out the definitions only this draft added; the undo history is untouched
+        const cleaned = removeAddedDefs(quest, monsterDraft);
+        if (cleaned) {
+          const canon = get().canon;
+          const nextCanon = swapTo(cleaned, firstMapId(canon));
+          set({ quest: cleaned, canon: nextCanon, abilityId: null, spellId: null });
+          persist(nextCanon);
+        }
+        set({ monsterDraft: null });
+      },
       addMonsterDraft(op) {
+        get().dropMonster();
         const { quest } = get();
         const r = withForeignIds(foreignIdsOf(quest), () => op(quest));
         if (!r.ok) {
@@ -460,12 +503,25 @@ export function createEditorStore(init: EditorInit): EditorStore {
         }
         const made = r.quest.monsters.at(-1);
         if (!made) return false;
-        const outside = (Object.keys(r.quest) as (keyof Quest)[]).some(
-          (k) => k !== 'monsters' && r.quest[k] !== quest[k],
-        );
-        if (outside && !get().apply((q) => ok({ ...r.quest, monsters: q.monsters }, r.warnings)))
-          return false;
-        set({ selection: null, monsterDraft: { monster: made, isNew: true }, picking: null });
+        const outside = { ...r.quest, monsters: quest.monsters };
+        let draft = newMonsterDraft(made);
+        if (
+          outside.abilityDefs !== quest.abilityDefs ||
+          outside.spellDefs !== quest.spellDefs ||
+          outside.enemyDefs !== quest.enemyDefs
+        ) {
+          const c = defChanges(quest, outside);
+          if (!c.other && onlyAdded(c)) {
+            const res = ok(outside, r.warnings);
+            if (!res.ok) {
+              set({ toast: toastOf(res.error) });
+              return false;
+            }
+            draft = { ...draft, added: c.added, base: get().canon };
+            writeSilently(res.quest, res.warnings);
+          } else if (!get().apply(() => ok(outside, r.warnings))) return false;
+        }
+        set({ selection: null, monsterDraft: draft, picking: null });
         return true;
       },
       editMonster(op) {
@@ -478,20 +534,32 @@ export function createEditorStore(init: EditorInit): EditorStore {
           set({ toast: toastOf(r.error) });
           return false;
         }
+        let draft = r.draft;
         const outside = r.quest;
-        if (outside && !get().apply((q) => ok({ ...outside, monsters: q.monsters }, [])))
-          return false;
-        set({ monsterDraft: r.draft });
+        if (outside) {
+          const res = ok(outside, []);
+          if (!res.ok) {
+            set({ toast: toastOf(res.error) });
+            return false;
+          }
+          if (r.onlyNew) {
+            // new definitions are written at once and stay part of the draft
+            draft = { ...draft, base: draft.base ?? get().canon };
+            writeSilently(res.quest, res.warnings);
+          } else if (!get().apply(() => res)) return false;
+        }
+        set({ monsterDraft: draft });
         return true;
       },
       saveMonster() {
         const { monsterDraft } = get();
         if (!monsterDraft) return false;
-        if (
-          isMonsterDirty(get().quest, monsterDraft) &&
-          !get().apply((q) => commitMonsterDraft(q, monsterDraft))
-        )
-          return false;
+        if (isMonsterDirty(get().quest, monsterDraft) || hasAddedDefs(monsterDraft)) {
+          if (!get().apply((q) => commitMonsterDraft(q, monsterDraft))) return false;
+          // one undo step: back to the quest before the draft added its definitions
+          const { base } = monsterDraft;
+          if (base) set({ past: [...get().past.slice(0, -1), base] });
+        }
         const saved = get().quest.monsters.find((m) => m.id === monsterDraft.monster.id);
         set({
           selection: saved ? { kind: 'monster', id: saved.id } : null,
@@ -500,9 +568,11 @@ export function createEditorStore(init: EditorInit): EditorStore {
         return true;
       },
       cancelMonster() {
+        get().dropMonster();
         set({ monsterDraft: monsterDraftFor(get().quest, get().selection) });
       },
-      setPanel: (panel) =>
+      setPanel: (panel) => {
+        if (panel === 'notes') get().dropMonster();
         set(
           // the actions list is the Actions tab now, not a panel beside the map
           panel === 'notes'
@@ -514,7 +584,8 @@ export function createEditorStore(init: EditorInit): EditorStore {
                 tab: 'Actions',
               }
             : { panel, picking: null },
-        ),
+        );
+      },
       setNoteId(noteId) {
         // an action of another map opens that map, so its places and elements are the ones shown
         const note = noteId ? get().canon.notes.find((n) => n.id === noteId) : undefined;
@@ -574,6 +645,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
           const target = questMaps(get().canon).find((m) => (m.name ?? m.id) === named);
           if (target) get().setMap(target.id);
         }
+        get().dropMonster();
         const j = jumpFor(get().quest, ref);
         const noteMap = j.noteId
           ? get().canon.notes.find((n) => n.id === j.noteId)?.map

@@ -129,7 +129,9 @@ export function MonsterAbilities({ store, monster }: { store: EditorStore; monst
           className="btn alt"
           onClick={() => {
             if (
-              !st.apply((q) => addAbility(q, { name: 'New ability', text: 'Write what it does.' }))
+              !st.editMonster((q) =>
+                addAbility(q, { name: 'New ability', text: 'Write what it does.' }),
+              )
             )
               return;
             const made = store.getState().quest.abilityDefs.at(-1);
@@ -280,7 +282,7 @@ export function MonsterSpells({ store, monster }: { store: EditorStore; monster:
         <button
           className="btn alt"
           onClick={() => {
-            if (!st.apply((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
+            if (!st.editMonster((q) => addSpell(q, { name: 'New spell', tags: ['any'] }))) return;
             const made = store.getState().quest.spellDefs.at(-1);
             if (!made) return;
             patch({ spells: [...list, made.id] });
