@@ -172,6 +172,12 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-row')).toContainText('R17 is part of R20');
     // the slots are empty again
     await expect(merges.getByTestId('merge-slot-a')).toContainText('Tap a room');
+    // a tap on a row picks it (its merged room is ringed on the board), a second tap drops it
+    const pickRow = merges.getByTestId('merge-row').locator('.mg-pick');
+    await pickRow.click();
+    await expect(pickRow).toHaveAttribute('aria-pressed', 'true');
+    await pickRow.click();
+    await expect(pickRow).toHaveAttribute('aria-pressed', 'false');
     // a room that does not touch: the engine sentence is inline, the button is off, nothing is merged
     await clickAt(page, 3, 2); // R01
     await clickAt(page, 17, 3); // R05

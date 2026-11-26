@@ -1206,3 +1206,112 @@
   min-height: 0;
   margin-right: 0;
 }
+
+/* Merge rooms in the right card (DESIGN.md, "Merge rooms"; concept boards M1 to M8). */
+.mg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mg-slot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 46px;
+  padding: 6px 12px;
+  border: 2px solid var(--off);
+  background: var(--paper-3);
+}
+.mg-slot b {
+  font: 700 17px 'Bonum';
+  color: var(--ink);
+}
+.mg-slot i {
+  font-size: 14px;
+  color: var(--muted);
+}
+.mg-slot span {
+  font-size: 14px;
+  color: var(--muted);
+}
+.mg-slot.on {
+  background: var(--sel);
+  border-color: var(--ink);
+}
+.mg-err {
+  display: flex;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+}
+.mg-err > span {
+  flex: none;
+  width: 14px;
+  background: var(--ink);
+}
+.mg-err > div {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.mg .btn {
+  width: 100%;
+  min-height: 46px;
+}
+.mg .mg-clear {
+  width: auto;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 18px;
+}
+.mg .btn:disabled {
+  background: none;
+  border-color: var(--off);
+  color: var(--off);
+}
+.mg-head {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--paper-2);
+}
+.mg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding-right: 8px;
+  border: 2px solid var(--text);
+  background: var(--paper-3);
+}
+.mg-row.on {
+  border-color: var(--ink);
+  background: var(--sel);
+  box-shadow: 4px 4px 0 var(--ink);
+  margin-right: 4px;
+}
+.mg-bar {
+  align-self: stretch;
+  flex: none;
+  width: 14px;
+  background: var(--ink);
+}
+.mg-pick {
+  all: unset;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 44px;
+  justify-content: center;
+  cursor: pointer;
+}
+.mg-pick b {
+  font: 700 15px 'Bonum';
+  color: var(--text);
+}
+.mg-pick i {
+  font-size: 13px;
+  color: var(--muted);
+}
+.mg-row .btn {
+  width: auto;
+  min-height: 44px;
+  padding: 0 14px;
+}
