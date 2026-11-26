@@ -238,6 +238,33 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('[data-monster]')).toHaveCount(1);
   });
 
+  test('each quest of the list has an Open button; the title still opens it too', async ({
+    page,
+  }) => {
+    await newQuest(page, 'First one');
+    await btn(page, 'Back').click();
+    await page.getByRole('button', { name: /^New quest/ }).click();
+    await page.getByLabel('Title').first().fill('Second one');
+    await btn(page, 'Create the quest').click();
+    await expect(page.locator('header.page-head h1')).toHaveText('Second one');
+    await btn(page, 'Back').click();
+    const rows = page.locator('li[data-quest]');
+    await expect(rows).toHaveCount(2);
+    // one Open button per row, 44 px or taller
+    const open = page.getByTestId('open-quest');
+    await expect(open).toHaveCount(2);
+    for (const b of await open.all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await shot(page, 'editor-start-list');
+    // the button of a row opens that quest
+    await rows.filter({ hasText: 'First one' }).getByTestId('open-quest').click();
+    await expect(page.locator('header.page-head h1')).toHaveText('First one');
+    await btn(page, 'Back').click();
+    // the title of a row still opens it, as before
+    await page.getByRole('button', { name: 'Open Second one' }).click();
+    await expect(page.locator('header.page-head h1')).toHaveText('Second one');
+  });
+
   test('delete asks first', async ({ page }) => {
     await newQuest(page, 'Gone soon');
     await btn(page, 'Back').click();

@@ -308,6 +308,7 @@
   "editor.EditorStart.noQuestYetMake": "No quest yet. Make a new one, or import a file.",
   "editor.EditorStart.number": "Number",
   "editor.EditorStart.open": "Open {title}",
+  "editor.EditorStart.openButton": "Open",
   "editor.EditorStart.openIt": "Open it",
   "editor.EditorStart.openQuest": "Open quest",
   "editor.EditorStart.openQuest2": "Open quest",

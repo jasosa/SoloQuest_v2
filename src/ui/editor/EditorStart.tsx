@@ -172,7 +172,9 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   <span className="fr-qnum">
                     {t('editor.EditorStart.quest', 'Quest {number}', { number: r.number })}
                   </span>
-                  <span className="fr-qtitle">{r.title}</span>
+                  <span className="fr-qtitle" id={`qt-${r.id}`}>
+                    {r.title}
+                  </span>
                 </button>
                 <span className="fr-qnote">
                   {r.draft
@@ -180,6 +182,16 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                     : t('editor.EditorStart.saved', 'Saved')}{' '}
                   · {new Date(r.updatedAt).toLocaleDateString()}
                 </span>
+                {confirm !== r.id && (
+                  <button
+                    className="btn alt fr-rowbtn"
+                    data-testid="open-quest"
+                    aria-describedby={`qt-${r.id}`}
+                    onClick={() => void open(r.id)}
+                  >
+                    {t('editor.EditorStart.openButton', 'Open')}
+                  </button>
+                )}
                 {confirm === r.id ? (
                   <>
                     <span>{t('editor.EditorStart.deleteIt', 'Delete it?')}</span>
