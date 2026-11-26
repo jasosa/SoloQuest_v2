@@ -122,7 +122,7 @@ export function validateQuestIssues(
   const absorbed = new Set<string>();
   {
     let cur = board;
-    for (const m of quest.areaOverrides) {
+    for (const [index, m] of quest.areaOverrides.entries()) {
       const [a, b] = m.merge;
       const ref: IssueRef = { kind: 'area', area: b };
       const where = `areaOverrides ${a} + ${b}`;
@@ -130,6 +130,9 @@ export function validateQuestIssues(
       else if (!rooms.has(a) || !rooms.has(b)) err(`${where}: unknown room`, ref);
       else if (absorbed.has(a) || absorbed.has(b))
         err(`${where}: a room that was merged into another cannot be merged again`, ref);
+      else if (quest.areaOverrides.slice(0, index).some((o) => o.merge[0] === b))
+        // [proposal] a room with rooms merged into it cannot join another room (two level chain)
+        err(`${where}: ${b} has rooms merged into it. Split them first.`, ref);
       else {
         // the two rooms must touch, or the merged room would be in two pieces
         const touch = cellsOf(cur, b).some(([x, y]) =>

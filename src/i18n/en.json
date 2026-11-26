@@ -477,6 +477,8 @@
   "editor.mergePick.partOf": "{room} is part of {main}. Split it first.",
   "editor.merges.cannotMerge": "Cannot merge: ",
   "editor.merges.doorOnTheWall": "Cannot merge: door {id} is on the wall between them. Remove it first.",
+  "editor.merges.doorOnTheWallShort": "door {id} is on the wall between them. Remove it first.",
+  "editor.merges.cannotMergeRoom": "Cannot merge {room}: ",
   "editor.merges.roomIsNotMerged": "Room {b} is not merged.",
   "editor.meta.aCharacterNeedsAName": "A character needs a name.",
   "editor.meta.aCharacterWithIdAlreadyExists": "A character with id {id} already exists.",

@@ -4,7 +4,8 @@ import { testMapsQuest } from '../quest/testMaps';
 import { swapTo } from './maps';
 import { describe, expect, it } from 'vitest';
 import { emptyQuest, addDoor, type EditResult } from './ops';
-import { addAreaMerge, removeAreaMerge } from './merges';
+import { newIssues } from './result';
+import { addAreaMerge, addAreaMerges, removeAreaMerge } from './merges';
 import type { Quest } from '../quest/schema';
 
 const blank = () => emptyQuest({ id: 'u', number: 1, title: 'T' });
@@ -117,5 +118,90 @@ describe('addDoor on merged rooms [proposal]', () => {
       i.message.includes('merged into one'),
     );
     expect(bad).toEqual([]);
+  });
+});
+
+/*
+ * Board excerpt (x 1..8, y 10..13). One letter per room:
+ *
+ *   x:   1 2 3 4 5 6 7 8
+ *   y10  a a a a b b c c      a = R12, b = R13, c = R14
+ *   y11  a a a a b b c c
+ *   y12  a a a a b b c c
+ *   y13  a a a a d d d d      d = R17
+ *
+ * R12 | R13 | R14 are in a row. R12 and R14 do not touch. R16 is far away.
+ */
+describe('addAreaMerges: many rooms in one action [proposal]', () => {
+  const joined = (q: Quest) => q.areaOverrides.map((m) => m.merge.join('>'));
+  it('three rooms in a row: the first stays, both others join', () => {
+    const q = ok(addAreaMerges(blank(), 'R12', ['R13', 'R14']));
+    expect(joined(q)).toEqual(['R12>R13', 'R12>R14']);
+  });
+  it('a star: two rooms that touch only the main room', () => {
+    const q = ok(addAreaMerges(blank(), 'R13', ['R12', 'R14']));
+    expect(joined(q)).toEqual(['R13>R12', 'R13>R14']);
+  });
+  it('a chain: a room that touches only another joining room, in any order', () => {
+    const inOrder = ok(addAreaMerges(blank(), 'R12', ['R13', 'R14']));
+    const reversed = ok(addAreaMerges(blank(), 'R12', ['R14', 'R13']));
+    expect(joined(reversed)).toEqual(['R12>R13', 'R12>R14']);
+    expect(reversed.areaOverrides).toEqual(inOrder.areaOverrides);
+  });
+  it('reports one issues diff for the whole action', () => {
+    const r = addAreaMerges(blank(), 'R12', ['R13', 'R14']);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.warnings).toEqual(newIssues(blank(), r.quest));
+  });
+  it('refuses all when one room is apart: nothing is merged, the quest is unchanged', () => {
+    const q = blank();
+    const r = addAreaMerges(q, 'R12', ['R13', 'R16', 'R14']);
+    expect(error(r)).toBe('Cannot merge R16: the rooms do not touch');
+    expect(q.areaOverrides).toEqual([]);
+  });
+  it('names the first room that cannot be placed', () => {
+    expect(error(addAreaMerges(blank(), 'R12', ['R13', 'R99', 'R16']))).toBe(
+      'Cannot merge R99: unknown room',
+    );
+    expect(error(addAreaMerges(blank(), 'R12', ['R12']))).toBe(
+      'Cannot merge R12: a room cannot merge with itself',
+    );
+  });
+  it('refuses all when a door is on the wall of one pair', () => {
+    // door R13 | R14 (x6|x7, y11): R14 would be inside one room with R13
+    const q = ok(addDoor(blank(), [6, 11], [7, 11]));
+    expect(error(addAreaMerges(q, 'R12', ['R13', 'R14']))).toBe(
+      'Cannot merge R14: door d1 is on the wall between them. Remove it first.',
+    );
+    // the same door is fine when R14 is left out
+    expect(joined(ok(addAreaMerges(q, 'R12', ['R13'])))).toEqual(['R12>R13']);
+  });
+  it('refuses a room that is merged into another already', () => {
+    const m = ok(addAreaMerge(blank(), 'R13', 'R14'));
+    expect(error(addAreaMerges(m, 'R12', ['R14']))).toBe(
+      'Cannot merge R14: a room that was merged into another cannot be merged again',
+    );
+  });
+  it('[proposal] a room that has rooms merged into it cannot join another room', () => {
+    const m = ok(addAreaMerge(blank(), 'R13', 'R14'));
+    const sentence = 'R13 has rooms merged into it. Split them first.';
+    expect(error(addAreaMerges(m, 'R12', ['R13']))).toBe(sentence);
+    expect(error(addAreaMerge(m, 'R12', 'R13'))).toBe(sentence);
+    expect(error(addAreaMerges(m, 'R12', ['R17', 'R13']))).toBe(sentence);
+    // as the main room it is fine
+    expect(joined(ok(addAreaMerges(m, 'R13', ['R12'])))).toEqual(['R13>R14', 'R13>R12']);
+  });
+  it('[proposal] the validator reports a file where a room with merged rooms joins another', () => {
+    const q = { ...blank(), areaOverrides: [{ merge: ['R13', 'R14'] }, { merge: ['R12', 'R13'] }] };
+    const errors = validateQuestIssues(q as Quest, board).filter((i) => i.severity === 'error');
+    expect(errors.map((i) => i.message)).toContain(
+      'areaOverrides R12 + R13: R13 has rooms merged into it. Split them first.',
+    );
+  });
+  it('a merge on one map of a double quest does not touch the other map', () => {
+    const one = testMapsQuest();
+    const mergedOne = ok(addAreaMerges(one, 'R12', ['R13', 'R14']));
+    expect(joined(mergedOne)).toEqual(['R12>R13', 'R12>R14']);
+    expect(swapTo(mergedOne, 'two').areaOverrides).toEqual([]);
   });
 });
