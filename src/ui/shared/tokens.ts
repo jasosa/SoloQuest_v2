@@ -8,6 +8,7 @@ export const color = {
   ink: '#6E1F2A',
   text: '#2B1D17',
   sel: '#D9C49A',
+  off: '#B9AE98',
   cellLine: '#CDBBA6',
   white: '#FFFFFF',
   pit: '#3B2A25',

@@ -229,6 +229,8 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-rooms')).toBeDisabled();
     await expect(merges.getByTestId('merge-rooms')).toHaveText('Merge R14 into R13');
     await expect(page.locator('.toast')).toHaveCount(0);
+    // the door that stops the merge is ringed on the board
+    await expect(page.locator('[data-merge-door="d1"]')).toHaveCount(1);
     // after the door is gone, the same pair merges
     await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
     await clickAt(page, 6, 11, 0.97, 0.5);
@@ -240,6 +242,15 @@ test.describe('editor: double quests', () => {
     await expect(merges.getByTestId('merge-error')).toHaveCount(0);
     await merges.getByTestId('merge-rooms').click();
     await expect(merges.getByTestId('merge-row')).toContainText('R14 is part of R13');
+    // one outline: the wall that was between the rooms is a dashed line, and R14 has no id of its own
+    await expect(page.locator('[data-merged-wall]')).toHaveCount(3);
+    await expect(board(page).locator('text', { hasText: /^R14$/ })).toHaveCount(0);
+    await expect(board(page).locator('text', { hasText: /^R13$/ })).toHaveCount(1);
+    // a picked row rings the merged room
+    await merges.getByTestId('merge-row').locator('.mg-pick').click();
+    await expect(page.locator('[data-merge-door]')).toHaveCount(0);
+    await page.locator('.ed-tools').getByRole('button', { name: 'Select', exact: true }).click();
+    await expect(page.locator('[data-merged-wall]')).toHaveCount(3);
   });
 
   test('rules: door teleport, and a large monster', async ({ page }) => {

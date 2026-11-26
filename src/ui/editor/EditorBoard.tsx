@@ -41,7 +41,7 @@ import { color } from '../shared/tokens';
 import type { EditorStore, EditSelection } from './editorStore';
 import { ZOOM_STRIP, ZoomLayer } from '../play/ZoomLayer';
 import { addAction } from './addAction';
-import { outlineSegments, roomAtCell } from './mergePick';
+import { doorOnMergeWall, mainOf, outlineSegments, roomAtCell } from './mergePick';
 import { useTheme } from '../theme/activeTheme';
 import { boxOfMonster, pictureTypeOf } from '../../engine/data/enemies';
 import { boxTokenFill } from '../shared/boxColor';
@@ -192,8 +192,18 @@ export function EditorBoard({
   store: EditorStore;
   reference?: ReferenceApi;
 }) {
-  const { quest, tool, opts, selection, pendingBlock, pendingTunnel, picking, flash, mergePick } =
-    useStore(store);
+  const {
+    quest,
+    tool,
+    opts,
+    selection,
+    pendingBlock,
+    pendingTunnel,
+    picking,
+    flash,
+    mergePick,
+    mergeRow,
+  } = useStore(store);
   const theme = useTheme();
   const level = useMemo(() => buildLevel(quest), [quest]);
   const board = level.board;
@@ -655,8 +665,84 @@ export function EditorBoard({
       }
     }
 
+  // The wall a merge took away stays visible as a dashed line, so Split and doors can be read
+  const mergedWalls: ReactNode[] = [];
+  if (quest.areaOverrides.length > 0)
+    for (let y = 0; y < BOARD_H; y++)
+      for (let x = 0; x < BOARD_W; x++)
+        for (const [dx, dy] of [
+          [1, 0],
+          [0, 1],
+        ] as const) {
+          const a: Cell = [x, y];
+          const b: Cell = [x + dx, y + dy];
+          if (
+            !isWallBetween(boardData, a, b) ||
+            isWallBetween(board, a, b) ||
+            rockSet.has(cellKey(a[0], a[1])) ||
+            rockSet.has(cellKey(b[0], b[1]))
+          )
+            continue;
+          mergedWalls.push(
+            <line
+              key={`mw${x},${y},${dx}`}
+              data-merged-wall=""
+              x1={(dx === 1 ? x + 1 : x) * U}
+              y1={(dy === 1 ? y + 1 : y) * U}
+              x2={(x + 1) * U}
+              y2={(y + 1) * U}
+              stroke={color.off}
+              strokeWidth={2.4}
+              strokeDasharray="6 5"
+              pointerEvents="none"
+            />,
+          );
+        }
+
   // Merge rooms: the room that stays and the room that joins it, in the selection colour with a caption
   const mergeArt: ReactNode[] = [];
+  if (tool === 'merge') {
+    // a picked list row rings its merged room
+    const main = mergeRow ? mainOf(quest, mergeRow) : undefined;
+    if (main)
+      outlineSegments(BOARD_W, BOARD_H, (x, y) => areaAt(board, x, y) === main).forEach(
+        ([x1, y1, x2, y2], i) =>
+          mergeArt.push(
+            <line
+              key={`mr${i}`}
+              x1={x1 * U}
+              y1={y1 * U}
+              x2={x2 * U}
+              y2={y2 * U}
+              stroke={color.sel}
+              strokeWidth={10}
+              strokeLinecap="square"
+              pointerEvents="none"
+            />,
+          ),
+      );
+    // the door that stops the merge is ringed
+    const stop = doorOnMergeWall(quest, mergePick);
+    if (stop) {
+      const vertical = stop.a[1] === stop.b[1];
+      const x = Math.max(stop.a[0], stop.b[0]);
+      const y = Math.max(stop.a[1], stop.b[1]);
+      mergeArt.push(
+        <line
+          key="mdoor"
+          data-merge-door={stop.id}
+          x1={x * U}
+          y1={y * U}
+          x2={vertical ? x * U : (x + 1) * U}
+          y2={vertical ? (y + 1) * U : y * U}
+          stroke={color.sel}
+          strokeWidth={14}
+          strokeLinecap="round"
+          pointerEvents="none"
+        />,
+      );
+    }
+  }
   const mergeOutline: ReactNode[] = [];
   if (tool === 'merge')
     for (const [room, role] of [
@@ -1441,6 +1527,7 @@ export function EditorBoard({
             {zoneArt}
             {tileArt}
             {walls}
+            {mergedWalls}
             {mergeOutline}
             {blockArt}
             {things}
