@@ -405,6 +405,11 @@ test.describe('editor: inspector', () => {
     // another tool: the card is named after it and the old selection is gone
     await tool(page, 'Rock').click();
     await expect(insp(page).locator('h2').first()).toHaveText('Rock');
+    // the options of the tool are in the right card, not in the Tools card
+    await expect(insp(page).getByRole('button', { name: 'Whole room' })).toBeVisible();
+    await expect(page.locator('.ed-tools').getByRole('button', { name: 'Whole room' })).toHaveCount(
+      0,
+    );
     await expect(page.getByTestId('selection-id')).toHaveCount(0);
     await expect(page.getByTestId('inspector-selection')).toHaveCount(0);
     // even the tool that is already on clears a pick
