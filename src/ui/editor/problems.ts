@@ -76,6 +76,16 @@ export function refLabel(ref: IssueRef | undefined): string {
   }
 }
 
+/** The title of a row of the panel: the kind and the id ("Door d2"; a block, "Block 3, 4"). */
+export function refTitle(ref: IssueRef | undefined): string {
+  const kind = refLabel(ref);
+  if (!ref) return kind;
+  if (ref.kind === 'block' && ref.cell) return `${kind} ${ref.cell[0]}, ${ref.cell[1]}`;
+  if (ref.kind === 'tile' && ref.id !== undefined) return `${kind} ${Number(ref.id) + 1}`;
+  if (ref.kind === 'area' && ref.area) return `${kind} ${ref.area}`;
+  return ref.id ? `${kind} ${ref.id}` : kind;
+}
+
 /** The first square of the thing a ref names, when the quest tells us where it is. */
 function cellOfRef(quest: Quest, ref: IssueRef): Cell | undefined {
   if (ref.cell) return ref.cell;

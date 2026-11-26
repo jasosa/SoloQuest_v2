@@ -6,7 +6,7 @@
 import { useStore } from 'zustand';
 import type { Issue } from '../../engine/quest/validate';
 import type { EditorStore } from './editorStore';
-import { refLabel, sortIssues } from './problems';
+import { refTitle, sortIssues } from './problems';
 import { t } from '../../i18n/t';
 
 export function ProblemsPanel({ store, issues }: { store: EditorStore; issues: readonly Issue[] }) {
@@ -35,16 +35,21 @@ export function ProblemsPanel({ store, issues }: { store: EditorStore; issues: r
           {sorted.map((i, n) => (
             <li key={`${n}:${i.message}`} className={i.severity}>
               <button
+                className="pr-row"
                 data-testid="problem-row"
+                data-severity={i.severity}
+                aria-label={`${
+                  i.severity === 'error'
+                    ? t('editor.ProblemsPanel.problem', 'Problem')
+                    : t('editor.ProblemsPanel.warning', 'Warning')
+                }: ${refTitle(i.ref)}. ${i.message}`}
                 onClick={() => store.getState().jump(i.ref, i.message)}
               >
-                <b>
-                  {i.severity === 'error'
-                    ? t('editor.ProblemsPanel.problem', 'Problem')
-                    : t('editor.ProblemsPanel.warning', 'Warning')}
-                </b>
-                <span className="ed-issue-kind">{refLabel(i.ref)}</span>
-                <span className="ed-issue-text">{i.message}</span>
+                <span className="pr-bar" />
+                <span className="pr-text">
+                  <b>{refTitle(i.ref)}</b>
+                  <i>{i.message}</i>
+                </span>
               </button>
             </li>
           ))}

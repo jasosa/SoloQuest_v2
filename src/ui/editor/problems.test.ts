@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { board } from '../../engine/board/board';
 import { addMonster, emptyQuest, validateQuestIssues } from '../../engine/editor';
 import type { Issue } from '../../engine/quest/validate';
-import { countLabel, jumpFor, refLabel, sortIssues } from './problems';
+import { countLabel, jumpFor, refLabel, refTitle, sortIssues } from './problems';
 
 const base = emptyQuest({ id: 'user-test', number: 1, title: 'Test' });
 const withMonster = (() => {
@@ -12,6 +12,18 @@ const withMonster = (() => {
 })();
 
 const issue = (severity: Issue['severity'], message: string): Issue => ({ severity, message });
+
+describe('problem row titles', () => {
+  it('name the kind and the id', () => {
+    expect(refTitle({ kind: 'door', id: 'd2' })).toBe('Door d2');
+    expect(refTitle({ kind: 'furniture', id: 'f1' })).toBe('Furniture f1');
+    expect(refTitle({ kind: 'block', cell: [3, 4] })).toBe('Block 3, 4');
+    expect(refTitle({ kind: 'tile', id: '0' })).toBe('Tile 1');
+    expect(refTitle({ kind: 'area', area: 'R13' })).toBe('Area R13');
+    expect(refTitle({ kind: 'quest' })).toBe('Quest');
+    expect(refTitle(undefined)).toBe('Quest');
+  });
+});
 
 describe('problems panel helpers', () => {
   it('lists errors first and keeps the order inside each group', () => {

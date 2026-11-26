@@ -1234,7 +1234,11 @@ test.describe('editor: problems panel and playtest', () => {
     expect(n).toBeGreaterThan(1);
     await expect(page.locator('.ed-issues')).toHaveText(/^\d+ (problems?|warnings?)$/);
     // errors first
-    const kinds = await rows.locator('b').allTextContents();
+    // the bar says which: data-severity is "error" or "warning"; the title is the kind and the id
+    const kinds = await rows.evaluateAll((els) =>
+      els.map((e) => (e.getAttribute('data-severity') === 'error' ? 'Problem' : 'Warning')),
+    );
+    expect(await rows.locator('b').first().textContent()).toMatch(/^[A-Z][a-z]+( \S+)*$/);
     const errorRows = kinds.filter((k) => k === 'Problem').length;
     await expect(page.locator('.ed-issues')).toHaveText(
       errorRows > 0

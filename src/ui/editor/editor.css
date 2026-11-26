@@ -184,9 +184,6 @@
   color: var(--ink);
   margin-right: 4px;
 }
-.ed-issues-list li.warning b {
-  color: var(--muted);
-}
 
 /* editor start screen */
 .es-list {
@@ -495,22 +492,46 @@
 }
 
 /* problems panel */
-.ed-issues-list button {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 8px;
-  align-items: baseline;
+/* A problem as a row (concept: .row): a bar (ink for a problem, muted for a warning), the kind and id, the sentence. */
+.ed-issues-list li {
+  margin-bottom: 8px;
 }
-.ed-issues-list button:active {
+.ed-issues-list button.pr-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 10px 0 0;
+  border: 2px solid var(--text);
+  background: var(--paper-3);
+  text-align: left;
+}
+.ed-issues-list button.pr-row:active {
   background: var(--paper-2);
 }
-.ed-issue-kind {
-  font-size: 12.5px;
-  font-style: italic;
-  color: var(--muted);
+.pr-bar {
+  flex: none;
+  width: 14px;
+  background: var(--ink);
 }
-.ed-issue-text {
-  grid-column: 1 / -1;
+li.warning .pr-bar {
+  background: var(--muted);
+}
+.pr-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 0;
+}
+.ed-issues-list .pr-text b {
+  margin: 0;
+  font: 700 15px/1.2 'Bonum';
+  color: var(--text);
+}
+.pr-text i {
+  font-size: 13px;
+  color: var(--muted);
 }
 .play header .chip {
   margin: 0 4px;
