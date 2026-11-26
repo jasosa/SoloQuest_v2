@@ -16,6 +16,7 @@ import { setEditorTextures, useEditorTextures } from '../theme/editorTextures';
 import { CLASSIC_THEME } from '../theme/theme';
 import type { DoorTool, EditorStore, Tool } from './editorStore';
 import { MergesPanel } from './MapsPanel';
+import { TilePalette } from './TilePalette';
 import { t } from '../../i18n/t';
 
 const DOOR_TOOLS: readonly { kind: DoorTool; label: string }[] = [
@@ -40,19 +41,6 @@ const TRAP_KINDS = [
   { kind: 'slipperyIce', label: t('editor.EditorScreen.slipperyIce', 'Slippery ice') },
   { kind: 'chest', label: 'Chest' },
 ] as const;
-
-/** The tools whose options are drawn in the right card so far. The others are still in the left card. */
-export const RIGHT_TOOLS: readonly Tool[] = [
-  'rock',
-  'blocks',
-  'furniture',
-  'zones',
-  'markers',
-  'start',
-  'doors',
-  'traps',
-  'monsters',
-];
 
 const Chip = ({ label, on, onClick }: { label: string; on: boolean; onClick(): void }) => (
   <button className="chip" aria-pressed={on} onClick={onClick}>
@@ -347,28 +335,19 @@ function OptionsOf({ store, tool }: { store: EditorStore; tool: Tool }) {
       return <MergeOptions store={store} />;
     case 'start':
       return <StartOptions />;
+    case 'tiles':
+      return <TilePalette store={store} />;
     default:
-      return null; // Select has its element, Tiles its palette
+      return null;
   }
 }
 
-/** The options of the picked tool, in the right card (only the tools that moved so far). */
+/** The options of the picked tool, in the right card. Select has its element, not options. */
 export function RightToolOptions({ store }: P) {
   const { tool } = useStore(store);
-  if (!RIGHT_TOOLS.includes(tool)) return null;
+  if (tool === 'select') return null;
   return (
     <div className="ed-options" data-testid="tool-options">
-      <OptionsOf store={store} tool={tool} />
-    </div>
-  );
-}
-
-/** The options of the tools that are still in the left card. */
-export function LeftToolOptions({ store }: P) {
-  const { tool } = useStore(store);
-  if (RIGHT_TOOLS.includes(tool)) return null;
-  return (
-    <div className="ed-options">
       <OptionsOf store={store} tool={tool} />
     </div>
   );

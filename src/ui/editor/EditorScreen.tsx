@@ -13,8 +13,7 @@ import type { LibraryStore } from '../../persist/library';
 import { ActionsTab, QuestTab } from './QuestTabs';
 import { MonstersTab } from './MonstersTab';
 import { MapChips } from './MapsPanel';
-import { TilePalette } from './TilePalette';
-import { LeftToolOptions, RightToolOptions, ViewOptions } from './ToolOptions';
+import { RightToolOptions, ViewOptions } from './ToolOptions';
 import { countLabel } from './problems';
 import { AbilityDialog } from './AbilityDialog';
 import { ActionDialog } from './ActionDialog';
@@ -248,7 +247,6 @@ export function EditorScreen({
                 </button>
               ))}
             </div>
-            <LeftToolOptions store={store} />
             <ViewOptions store={store} />
             <ReferencePanel api={ref} say={s.say} />
           </nav>
@@ -284,7 +282,6 @@ export function EditorScreen({
           >
             <h2 className="fr-hd">{TOOLS.find((x) => x.tool === tool)?.label}</h2>
             <RightToolOptions store={store} />
-            {tool === 'tiles' && <TilePalette store={store} />}
             <Inspector store={store} issues={issues} saveErrors={saveErrors} />
           </aside>
         </div>

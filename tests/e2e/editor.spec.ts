@@ -412,6 +412,15 @@ test.describe('editor: inspector', () => {
     );
     await expect(page.getByTestId('selection-id')).toHaveCount(0);
     await expect(page.getByTestId('inspector-selection')).toHaveCount(0);
+    // every tool has its options in the same place: Tiles and Merge rooms too
+    await tool(page, 'Tiles').click();
+    await expect(insp(page).locator('h2').first()).toHaveText('Tiles');
+    await expect(insp(page).getByTestId('tile-palette')).toBeVisible();
+    await expect(page.locator('.ed-tools').getByTestId('tile-palette')).toHaveCount(0);
+    await tool(page, 'Merge rooms').click();
+    await expect(insp(page).locator('h2').first()).toHaveText('Merge rooms');
+    await expect(insp(page).getByTestId('map-merges')).toBeVisible();
+    await expect(page.locator('.ed-tools').getByTestId('map-merges')).toHaveCount(0);
     // even the tool that is already on clears a pick
     await tool(page, 'Select').click();
     await clickAt(page, 3, 17, 0.5, 0.97);
