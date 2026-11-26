@@ -353,7 +353,7 @@ All the texts of the application can be translated or modified with a tool, for 
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
 - [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"
 - [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked
-- [ ] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
+- [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [ ] Editor start screen: an Open button on each quest of the list of quests
 - [ ] Editor, Map tab, Monsters tool: Frozen Horror monsters show as Custom monster in the right card; use a concept like the Library (kinds and item cards), restricted to the right card. Needs a concept board in `design/ui-concept/` first
 - [ ] Texture packs: Frozen Horror preview, entrance doors

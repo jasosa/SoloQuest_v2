@@ -1,6 +1,6 @@
 /**
  * Start a new action on a subject (decision 68): the first trigger that fits, the element filled
- * in, a placeholder text. The new action opens in the form as a draft: it joins the quest when
+ * in and no effect. The new action opens in the form as a draft: it joins the quest when
  * the author saves it, and "Cancel" leaves no trace. Shared by the Actions tab, the inspector of
  * an element and the quest fields.
  */
@@ -25,7 +25,7 @@ export function addAction(store: EditorStore, subject: Subject, letter?: string)
       trigger: r.value.trigger,
       ...(r.value.target ? { target: r.value.target } : {}),
       ...(letter ? { letter } : {}),
-      effects: [{ type: 'showText', text: 'Write the text here.' }],
+      effects: [], // a new action starts with no effect; the author adds what it does
     }),
   );
   if (!made.ok) {

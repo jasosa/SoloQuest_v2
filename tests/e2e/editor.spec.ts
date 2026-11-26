@@ -582,6 +582,13 @@ test.describe('editor: actions (decision 68)', () => {
     // a draft: the letter still has no action in the quest until "Save action"
     await expect(actionsTab(page).getByTestId('missing-count')).toHaveText('1');
 
+    // a new action starts with no effect; the author adds the message
+    await expect(page.getByTestId('effect-row')).toHaveCount(0);
+    await page
+      .getByTestId('action-card')
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('showText');
     const message = page
       .getByTestId('action-card')
       .locator('[data-effect="showText"]')
@@ -816,6 +823,7 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     const quest = page.getByTestId('actions-list');
     await expect(quest).toContainText('No action yet.');
     await quest.getByRole('button', { name: 'Add action' }).click();
+    await expect(page.getByTestId('effect-row')).toHaveCount(0); // no default message
     await expect(page.getByTestId('action-card').getByLabel('Applies to')).toHaveValue('quest');
     await expect(page.getByTestId('action-card').getByLabel('When')).toHaveValue('questStart');
     await expect(page.getByTestId('action-card').getByLabel('When').locator('option')).toHaveText([
@@ -825,6 +833,11 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
       'All of some monsters are slain',
       'A button in the Quest sheet',
     ]);
+    await page
+      .getByTestId('action-card')
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('showText');
     const message = page
       .getByTestId('action-card')
       .locator('[data-effect="showText"]')
@@ -836,6 +849,23 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     await expect(page.getByTestId('note-list')).toContainText(/quest starts/i);
   });
 
+  test('a new action has no effect; saving it with none is accepted and is not a problem', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Actions' }).click();
+    await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
+    await expect(page.getByTestId('effect-row')).toHaveCount(0);
+    await btn(page, 'Save action').click();
+    await expect(page.locator('.toast')).toHaveCount(0);
+    await expect(page.getByTestId('note-list')).toContainText('Quest starts');
+    // the Problems list does not name the action
+    await page.getByRole('tab', { name: 'Map' }).click();
+    await page.locator('.ed-issues').click();
+    await expect(page.getByTestId('problems-panel')).not.toContainText('n1');
+    await expect(page.getByTestId('problems-panel')).not.toContainText('Note');
+  });
+
   test('the quest ends is a trigger of the quest', async ({ page }) => {
     await newQuest(page);
     await page.getByRole('tab', { name: 'Actions' }).click();
@@ -845,6 +875,11 @@ test.describe('editor: actions of an element and of the quest (decision 68)', ()
     ).toContainText(['The quest ends']);
     await page.getByTestId('action-card').getByLabel('When').selectOption('questEnds');
     await expect(page.getByTestId('action-card').getByLabel('When')).toHaveValue('questEnds');
+    await page
+      .getByTestId('action-card')
+      .getByLabel('Add an effect')
+      .last()
+      .selectOption('showText');
     const message = page
       .getByTestId('action-card')
       .locator('[data-effect="showText"]')
