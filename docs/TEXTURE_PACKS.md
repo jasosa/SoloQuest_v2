@@ -164,7 +164,7 @@ and the doors closed, open, secret and in a vertical wall. Above it:
   square up to 68 px wide) and a board picture that is not the shape of the board (26 x 19 squares).
 - **Not in this pack** lists the slots the pack leaves empty (the built-in drawing is used there).
 
-An expansion pack (one with a `box`, like Frozen Horror) is previewed with its own slots instead of the core sample: the enemy tokens, the iron entry and wooden exit doors, the ice tunnels it has, and every tile picture at its footprint. Its "Not in this pack" line lists only enemies of the box, the two edge doors, tunnel designs and tiles it lacks; core slots are never listed. Enemies, edge doors and tunnels can be adjusted like any picture; tile pictures cannot yet.
+An expansion pack (one with a `box`, like Frozen Horror) is previewed with its own slots instead of the core sample: the enemy tokens, the iron entry and wooden exit doors, the ice tunnels it has, and every tile picture at its footprint. Its "Not in this pack" line lists only enemies of the box, the two edge doors, tunnel designs and tiles it lacks; core slots are never listed. Enemies, edge doors, tunnels and tile pictures can be adjusted like any picture. A tile picture is named `tile.<key>.<w>x<h>` (its `cells`, for example `tile.iceVault.2x3`; `tile.<key>` when the tile has one picture), and Adjust writes `scale` and `offset` on that picture entry. The Check warns when an enemy token, an edge door, a tunnel or a tile picture is much smaller than it is shown (a tile picture is shown its width in `cells` times 34 px; the same rule as every other picture).
 
 ### Adjusting from the app
 

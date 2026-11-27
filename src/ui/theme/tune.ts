@@ -1,6 +1,6 @@
 import { FURNITURE_TYPES, MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
 import type { PackManifest } from './pack';
-import { OFFSET_MAX, SCALE_MAX, SCALE_MIN } from './theme';
+import { OFFSET_MAX, SCALE_MAX, SCALE_MIN, TILE_KEYS } from './theme';
 
 /**
  * Editing the knobs of a pack from the app (scale and offset of a picture). Pure functions on the
@@ -9,10 +9,10 @@ import { OFFSET_MAX, SCALE_MAX, SCALE_MIN } from './theme';
  */
 
 export type SlotGroup =
-  'monster' | 'furniture' | 'door' | 'block' | 'trap' | 'enemy' | 'edgeDoor' | 'tunnel';
+  'monster' | 'furniture' | 'door' | 'block' | 'trap' | 'enemy' | 'edgeDoor' | 'tunnel' | 'tile';
 
 export interface SlotRef {
-  /** `group.key`. */
+  /** `group.key`; a tile picture is `tile.<key>.<w>x<h>` (`tile.<key>` when the tile has one picture). */
   readonly id: string;
   readonly group: SlotGroup;
   readonly key: string;
@@ -35,6 +35,7 @@ export const GROUP_NAMES: Readonly<Record<SlotGroup, string>> = {
   enemy: 'Enemies',
   edgeDoor: 'Entry and exit doors',
   tunnel: 'Ice tunnels',
+  tile: 'Tiles',
 };
 
 const NAMES: Readonly<Record<string, string>> = {
@@ -67,8 +68,40 @@ export function adjustableSlots(m: PackManifest): SlotRef[] {
   for (const k of ['ironEntry', 'woodenExit'] as const)
     if (m.edgeDoor?.[k]) add('edgeDoor', k, nice(k));
   for (const k of Object.keys(m.tunnel ?? {})) add('tunnel', k, `Tunnel ${k}`);
+  for (const k of TILE_KEYS) {
+    const entries = tileList(m.tile?.[k]);
+    for (const e of entries) {
+      const id = tileSlotId(k, entries.length, e.cells);
+      const size = `${e.cells[0]}x${e.cells[1]}`;
+      out.push({
+        id,
+        group: 'tile',
+        key: k,
+        label: entries.length > 1 ? `${nice(k)} ${size}` : nice(k),
+      });
+    }
+  }
   return out;
 }
+
+type TileEntry = {
+  file: string;
+  cells: [number, number];
+  scale?: number;
+  offset?: [number, number];
+};
+const tileList = (v: unknown): TileEntry[] =>
+  v === undefined ? [] : Array.isArray(v) ? (v as TileEntry[]) : [v as TileEntry];
+
+/** The id of a tile picture: with its size when the tile has several pictures. */
+export const tileSlotId = (key: string, count: number, cells: readonly [number, number]): string =>
+  count > 1 ? `tile.${key}.${cells[0]}x${cells[1]}` : `tile.${key}`;
+
+/** The picture of a tile id in a manifest list (a tile id without a size is the only picture). */
+const tileIndex = (list: TileEntry[], id: string): number => {
+  const size = id.split('.')[2];
+  return size === undefined ? 0 : list.findIndex((e) => `${e.cells[0]}x${e.cells[1]}` === size);
+};
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
@@ -76,6 +109,11 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 /** The tune of a slot as it is now (the defaults for a slot that has none). */
 export function tuneOfSlot(m: PackManifest, id: string): SlotTune {
   const [group, key] = id.split('.') as [SlotGroup, string];
+  if (group === 'tile') {
+    const list = tileList(m.tile?.[key as keyof NonNullable<PackManifest['tile']>]);
+    const e = list[tileIndex(list, id)];
+    return e ? { scale: e.scale ?? 1, offset: e.offset ?? [0, 0] } : NO_TUNE;
+  }
   const slot = (m[group] as Record<string, unknown> | undefined)?.[key];
   if (!slot || typeof slot !== 'object') return NO_TUNE;
   const s = slot as { scale?: number; offset?: [number, number] };
@@ -102,7 +140,19 @@ export function withTune(m: PackManifest, id: string, tune: SlotTune): PackManif
     ...(offset[0] !== 0 || offset[1] !== 0 ? { offset } : {}),
   };
   let next: unknown;
-  if (group === 'furniture') {
+  if (group === 'tile') {
+    const list = tileList(slot);
+    const at = tileIndex(list, id);
+    if (at < 0) return m;
+    const withExtra = list.map((e, i) => {
+      if (i !== at) return e;
+      const rest: Record<string, unknown> = { ...e };
+      delete rest.scale;
+      delete rest.offset;
+      return { ...rest, ...extra };
+    });
+    next = Array.isArray(slot) ? withExtra : withExtra[0];
+  } else if (group === 'furniture') {
     // furniture keeps its other fields (cells, corner); only scale and offset change
     const rest: Record<string, unknown> = { ...(slot as Record<string, unknown>) };
     delete rest.scale;

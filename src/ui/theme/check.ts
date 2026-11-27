@@ -1,6 +1,6 @@
 import { FURNITURE_TYPES, MONSTER_TYPES, TRAP_KINDS } from '../../engine/quest/schema';
-import type { PackManifest } from './pack';
-import { TOKEN_SIZE } from './theme';
+import { tileEntries, type PackManifest } from './pack';
+import { TILE_KEYS, TOKEN_SIZE } from './theme';
 
 /**
  * Checks of a texture pack for its author (the pack preview): pictures that are much smaller than they
@@ -111,6 +111,19 @@ export function checkPack(
     const slot = m.trap?.[k];
     if (!slot) missing.push(`trap ${k}`);
     else soft(`trap ${k}`, slot, SQUARE);
+  }
+
+  // Expansion slots: an enemy token is shown like a monster token, an edge door and a tunnel in one square
+  for (const [id, slot] of Object.entries(m.enemy ?? {})) soft(`enemy ${id}`, slot, TOKEN_SIZE);
+  for (const k of ['ironEntry', 'woodenExit'] as const) {
+    const slot = m.edgeDoor?.[k];
+    if (slot) soft(`edge door ${k}`, slot, SQUARE);
+  }
+  for (const [k, slot] of Object.entries(m.tunnel ?? {})) soft(`tunnel design ${k}`, slot, SQUARE);
+  for (const k of TILE_KEYS) {
+    const v = m.tile?.[k];
+    for (const e of v ? tileEntries(v) : [])
+      soft(`tile ${k} ${e.cells[0]}x${e.cells[1]}`, e, Math.max(e.cells[0], e.cells[1]) * SQUARE);
   }
   return { warnings, missing };
 }

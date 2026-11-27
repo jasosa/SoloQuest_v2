@@ -73,4 +73,43 @@ describe('adjusting the expansion slots', () => {
     expect(t.tune?.enemy?.['yeti']).toEqual({ scale: 1.2, offset: [0, 0.1] });
     expect(tuneOfSlot(manifest, 'enemy.frozenHorror').scale).toBe(1.5);
   });
+
+  it('offers every tile picture, named with its size when the tile has several', () => {
+    const slots = adjustableSlots(manifest).filter((s) => s.group === 'tile');
+    const ids = slots.map((s) => s.id);
+    expect(ids).toContain('tile.iceVault.2x3');
+    expect(ids).toContain('tile.iceVault.3x4');
+    expect(ids).toContain('tile.scepterRoom');
+    expect(ids).not.toContain('tile.iceVault');
+    expect(slots.find((s) => s.id === 'tile.iceVault.2x3')?.label).toBe('Ice vault 2x3');
+    expect(slots.find((s) => s.id === 'tile.scepterRoom')?.label).toBe('Scepter room');
+    expect(slots).toHaveLength(18);
+  });
+
+  it('adjusts one picture of a tile and leaves the other, matched by its cells', () => {
+    const next = withTune(manifest, 'tile.iceVault.3x4', { scale: 1.1, offset: [0.05, 0] });
+    expect(tuneOfSlot(next, 'tile.iceVault.3x4')).toEqual({ scale: 1.1, offset: [0.05, 0] });
+    expect(tuneOfSlot(next, 'tile.iceVault.2x3')).toEqual({ scale: 1, offset: [0, 0] });
+    const list = next.tile?.iceVault as { cells: number[]; scale?: number }[];
+    expect(list.map((e) => e.cells)).toEqual([
+      [2, 3],
+      [3, 4],
+    ]);
+    expect(list[1]?.scale).toBe(1.1);
+    expect(list[0]?.scale).toBeUndefined();
+    const t = themeFromPack({ manifest: next, files: {} }, (f) => `u/${f}`);
+    expect(t.tile?.iceVault?.[1]?.scale).toBe(1.1);
+    // a tile with one picture, and reset back to the plain entry
+    const one = withTune(manifest, 'tile.scepterRoom', { scale: 0.9, offset: [0, 0] });
+    expect(tuneOfSlot(one, 'tile.scepterRoom').scale).toBe(0.9);
+    expect(Array.isArray(one.tile?.scepterRoom)).toBe(false);
+    const back = withTune(one, 'tile.scepterRoom', { scale: 1, offset: [0, 0] });
+    expect(back.tile?.scepterRoom).toEqual(manifest.tile?.scepterRoom);
+  });
+
+  it('gives every tile picture a box in the sample under its slot id', () => {
+    const l = expansionLayout(theme);
+    expect(l.boxes['tile.iceVault.2x3']).toMatchObject({ w: 2, h: 3 });
+    expect(l.boxes['tile.scepterRoom']).toMatchObject({ w: 4, h: 4 });
+  });
 });
