@@ -1276,7 +1276,7 @@ export function PlayBoard({
   // The eye glyph on squares where "Look from here" can show more.
   // A square with a marker of its own shows the ring only: "Look from here" is in its note.
   const ringCells = new Set(squareMarkers(level, state).map((m) => cellKey(m.cell[0], m.cell[1])));
-  // Only crossings get the eye, and the squares beside an occupied crossing, so the board stays calm.
+  // Only crossings and corners get the eye, and the squares beside an occupied one, so the board stays calm.
   const occupiedCells = new Set<string>([
     ...monsterAt.keys(),
     ...trapAt.keys(),

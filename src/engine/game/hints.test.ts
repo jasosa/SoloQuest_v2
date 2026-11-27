@@ -4,6 +4,7 @@ import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
 import { isCorner, isCrossing, isEyeSpot, lookEyeCells, lookHintCells } from './hints';
 import { replay } from './reducer';
+import { monsterSquares } from './view';
 
 const level = buildLevel(testQuest());
 const open = (door: string): GameEvent => ({ type: 'OPEN_DOOR', door });
@@ -173,8 +174,39 @@ describe('eye glyphs (owner): crossroads and corners, and beside an occupied one
     expect(mute.length).toBeGreaterThan(0);
     for (const c of lookable) expect(eyeKeys).toContain(c.join(','));
     for (const c of mute) expect(eyeKeys).not.toContain(c.join(','));
-    // a straight square never carries an eye
+    // every square that carries an eye is a crossing or a corner
     for (const k of eyeKeys)
       expect(isEyeSpot(level, k.split(',').map(Number) as [number, number])).toBe(true);
+  });
+
+  it('an occupied corner that can look gives the eye to its seen, lookable neighbors', () => {
+    const s1 = run(open('d1'));
+    const can1 = keys(lookHintCells(level, s1));
+    expect(isCorner(level, [0, 18])).toBe(true);
+    expect(can1).toContain('0,18');
+    const eyes = keys(lookEyeCells(level, s1, new Set(['0,18'])));
+    expect(eyes).not.toContain('0,18');
+    expect(eyes).toContain('1,18'); // straight, lookable, beside the corner
+    for (const k of eyes) expect(can1).toContain(k);
+  });
+
+  it('the eye returns on a square once its monster is slain, and goes again on undo', () => {
+    const quest = testQuest();
+    const lv = buildLevel({
+      ...quest,
+      monsters: quest.monsters.map((m) => (m.id === 'm1' ? { ...m, cell: [0, 18] as const } : m)),
+    });
+    const kill: GameEvent = { type: 'MONSTER_KILL', monster: 'm1' };
+    const alive = replay(lv, 1, [open('d1')]);
+    expect(alive.seenMonsters.has('m1')).toBe(true);
+    const held = monsterSquares(lv, alive);
+    expect(held.get('0,18')).toBe('m1');
+    expect(keys(lookEyeCells(lv, alive, new Set(held.keys())))).not.toContain('0,18');
+    const slain = replay(lv, 1, [open('d1'), kill]);
+    const freed = monsterSquares(lv, slain);
+    expect(freed.has('0,18')).toBe(false);
+    expect(keys(lookEyeCells(lv, slain, new Set(freed.keys())))).toContain('0,18');
+    // undo drops the kill: replay without it
+    expect(monsterSquares(lv, replay(lv, 1, [open('d1')])).get('0,18')).toBe('m1');
   });
 });
