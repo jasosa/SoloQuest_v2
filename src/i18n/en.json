@@ -1248,6 +1248,7 @@
   "play.PlayScreen.revealWhatIsHere2": "Reveal what is here?",
   "play.PlayScreen.rewards": "Rewards: {rewards}",
   "play.PlayScreen.room": "Room",
+  "play.PlayScreen.rulesHint": "Rules hint",
   "play.PlayScreen.searchForSecretDoors": "Search for secret doors",
   "play.PlayScreen.searchForTreasure": "Search for treasure",
   "play.PlayScreen.searchThisRoom": "Search this room",

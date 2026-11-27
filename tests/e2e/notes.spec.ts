@@ -318,6 +318,8 @@ test.describe('notes engine on the dev fixture', () => {
     const goblin = page.locator('.roster li', { hasText: 'Marsh Goblin' });
     await expect(goblin).toContainText('M1');
     await expect(goblin.locator('[data-coin-image]')).toHaveCount(1);
+    // the code sits in an ink bar, like the tag on the map token
+    await expect(goblin.locator('.coin .tag')).toHaveText('M1');
     // the orc has no picture: its coin and token show the letter icon
     const orc = page.locator('.roster li', { hasText: 'Orc' }).first();
     await expect(orc.locator('[data-coin-image]')).toHaveCount(0);

@@ -111,6 +111,8 @@ test.describe('terrain and rule hints', () => {
     await page.goto('/?quest=0&team=dwarf&nosave=1&seed=1');
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByTestId('free-move')).toContainText('counting each red die as 4');
+    await expect(page.getByTestId('free-move')).toContainText('Rules hint');
+    await page.screenshot({ path: 'test-results/rules-hint.png' });
   });
 });
 

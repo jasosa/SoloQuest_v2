@@ -654,6 +654,17 @@ header .goalline b {
     0 0 2px var(--ink),
     0 0 3px var(--ink);
 }
+/* the tag on a picture is the same ink bar as on the map token */
+.roster .coin.pic .tag {
+  min-width: 22px;
+  padding: 1px 3px;
+  background: var(--ink);
+  border: 1px solid var(--token-text);
+  color: var(--token-text);
+  text-align: center;
+  text-shadow: none;
+  line-height: 1.1;
+}
 /* a texture pack token is a whole token (its frame included): show all of it, no green behind */
 .roster .coin.pic.whole {
   background-size: contain;
