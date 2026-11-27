@@ -71,6 +71,7 @@ test.describe('colour bars follow the box', () => {
     expect(await bar(items.locator('.qcard', { hasText: /^Orc/ }))).toBe(CORE);
     await items.getByRole('button', { name: 'New enemy', exact: true }).click();
     await page.getByTestId('dz-card').getByLabel('Name', { exact: true }).fill('Slimey');
+    await page.getByTestId('dz-save').click();
     expect(await bar(items.locator('.qcard', { hasText: 'Slimey' }))).toBe(MUTED);
     await page.screenshot({ path: 'test-results/bars-library.png' });
   });

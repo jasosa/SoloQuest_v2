@@ -229,8 +229,12 @@ export function objectiveConditionsHold(
   return when.every((c) => !('firstTime' in c) && conditionHolds(level, d, c, none));
 }
 
+/** The note blocks a treasure search: it has the `blockSearch` effect at the top level. */
+export const hasBlockSearchEffect = (n: Note): boolean =>
+  n.effects.some((e) => e.type === 'blockSearch');
+
 /**
- * Notes with `blocksSearch` that apply to a treasure search of `area` right now (trigger matches,
+ * Notes with a `blockSearch` effect that apply to a treasure search of `area` right now (trigger matches,
  * conditions hold). The caller shows only these and stops the search.
  */
 export function blockingSearchNotes(
@@ -242,7 +246,7 @@ export function blockingSearchNotes(
   const t: TriggerEvent = { type: 'treasureSearch', area, first };
   return level.quest.notes.filter(
     (n) =>
-      n.blocksSearch === true &&
+      hasBlockSearchEffect(n) &&
       matches(n, t, d) &&
       isAvailable(n, d) &&
       conditionsHold(level, d, n),
@@ -363,10 +367,8 @@ function runNoteEffects(
   takesTreasure: boolean,
 ): void {
   const { texts, title } = textsOf(effects);
-  if (
-    texts.length > 0 ||
-    (!fromChoice && (note.letter !== undefined || takesTreasure || note.blocksSearch === true))
-  ) {
+  const blocks = !fromChoice && effects.some((e) => e.type === 'blockSearch');
+  if (texts.length > 0 || (!fromChoice && (note.letter !== undefined || takesTreasure)) || blocks) {
     ctx.prompts.push({
       kind: 'note',
       noteId: note.id,
@@ -375,7 +377,7 @@ function runNoteEffects(
       ...(title !== undefined ? { title } : {}),
       texts,
       consumesTreasure: takesTreasure || (!fromChoice && note.consumesTreasure === true),
-      ...(!fromChoice && note.blocksSearch === true ? { blocksSearch: true as const } : {}),
+      ...(blocks ? { blocksSearch: true as const } : {}),
     });
   }
   for (const e of effects) runEffect(ctx, note, e);
@@ -402,7 +404,8 @@ function runEffect(ctx: Ctx, note: Note, e: Effect): void {
   switch (e.type) {
     case 'showText':
     case 'giveItem':
-      return; // told in the note prompt
+    case 'blockSearch':
+      return; // told in the note prompt, or acted on by the search itself
     case 'revealArea': {
       if (e.area === 'C' || d.revealedRooms.has(e.area)) return;
       const { cells } = revealRoom(level, d, e.area);

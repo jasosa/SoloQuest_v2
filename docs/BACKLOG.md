@@ -351,17 +351,31 @@ All the texts of the application can be translated or modified with a tool, for 
   - [x] M7 (engine-dev): `addAreaMerges(q, main, joins)` merges many rooms in one action, all or nothing (decision 107); `addAreaMerge` and `addAreaMerges` refuse a joiner that has rooms merged into it; the validator errors on such a file. Files: `src/engine/editor/merges.ts`, `src/engine/quest/validate.ts`, `merges.test.ts`. [proposal]
   - [x] M8 (ui-dev): the tool takes more than two rooms (first Stays, every further one Joins, one button, one undo step) and calls `addAreaMerges`; the error names the room that blocks it. Needs a DESIGN.md update first.
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
-- [ ] Play screen polish (owner list), by point:
+- [x] Play screen polish (owner list), by point:
   - [x] Look eyes on corridor corners (decision 113). The eye on a square with a living monster stays as decision 84 (the owner has not asked to change it).
   - [x] Squares where a monster was slain work again: the eye and the square note are back (decision 113).
   - [x] "Rules hint" title on the hint panel (small caps label over the free-movement hint, `e2e frozen.spec.ts`)
   - [x] Monster tags on the map equal the list tags: same code and fill already came from one source (`monsterCodes`, `boxTokenFill`); the list coin with a picture now carries the code in the same ink bar as the map token (`notes.spec.ts`)
   - [x] Drop texts like "You apply this at the table": removed from the notes of quests fh00 and fh04, "The players apply all of this by hand" from q10, "Reminder for the players:" from q11; the game effect is unchanged
-- [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked
+- [x] Editor polish (owner list)
+  - [x] Frozen Horror monsters are not listed as custom (Map Monsters tool: `monsterKinds.test.ts`; the Monsters tab "Add a monster" dropdown now groups them under their box, `groupByExpansion`)
+  - [x] "Searching here is not possible": now an effect `blockSearch` in the Then list, no separate toggle (decision 111; engine, schema, migration of `blocksSearch`, quests 2 and 6, validator, tests: `search.test.ts`, `notes.test.ts`, `quest.test.ts`, `editor/notes.test.ts`)
+    - [x] engine-dev: effect, migration, quests, docs; minimal editor entry (the effect is in the Add an effect list, the toggle is gone)
+    - [x] ui-dev: check the effect in the Then list (label, order, hide it unless the trigger is Search for treasure, warn when it is in an answer of Ask the players); remove the unused `searchingHereIsNot` toggle text; e2e for adding it to an action
+  - [x] Popups with an explicit Save button: the ability and spell popups use Save and Cancel (`AbilityDialog.tsx`, `SpellDialog.tsx`; the action and monster cards already did)
+  - [x] Draft and approved quests (decision 110)
+    - [x] engine-dev: `status` and `copyOf` on the quest, `src/engine/editor/status.ts` (`approveQuest`, `withdrawQuest`, `makeCopy`, `playableUserQuests`, `replaceOriginal`), summary with `status`, import makes a draft, export drops the status, migration (no status = approved), tests; the quest list (`SelectScreen`) shows approved quests only
+    - [x] ui-dev: status on each row of the editor start list next to "Unsaved draft" / "Saved" (done: "Not approved" / "Approved", see DESIGN.md), an Approve button (calls `approveQuest`, then `store.save`; show its error) and a Withdraw button in the editor
+    - [x] ui-dev: Edit it now and Make a copy use `makeCopy` + `store.save` and no longer call `setOverride`; a "Replace the original" button on an approved copy (`replaceOriginal`, then `setOverride(slot, id)`) and "Use original" (`clearOverride`) next to it
+    - [x] ui-dev: a saved game of a quest that is a draft again shows as an orphan (SelectScreen `orphanSaves`): decide the wording
+    - [x] ui-dev: e2e that use a user quest from the play list (`editor.spec.ts`, `editorMaps.spec.ts`, `modal.spec.ts`, `boxBars.spec.ts`, `theme.spec.ts`, `frozenArt.spec.ts`) now need Approve first
+    - [x] ui-dev: explicit Save on the Library item card (owner, 2026-11-27)
+  - [x] The right card clears when another element category is picked (tool change already did, T1; the Library box chips now do too)
 - [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [x] Editor start screen: an Open button on each quest of the list of quests
 - [x] Editor, Map tab, Monsters tool: Frozen Horror monsters show as Custom monster in the right card; use a concept like the Library (kinds and item cards), restricted to the right card. Needs a concept board in `design/ui-concept/` first
 - [x] Colour bars follow the box colour of My collection on every row of a quest or an item (Play a quest grid and Campaign detail, editor start list, Library kinds and cards, Actions and Monsters tab rows, Map Monsters kinds); what the player made is neutral (`--muted`). One lookup in `src/ui/boxBars.ts`. Open: a copy of a core quest has no `pack`, so it shows neutral
 - [ ] Monster tokens and chips on the map and roster follow the box colour chosen in My collection (today `boxTokenFill` in `src/ui/shared/boxColor.ts` is fixed: green for the base game, ice for Frozen Horror). Not urgent (owner, 2026-11-26)
 - [x] Editor, Map tab, Monsters tool: build `design/ui-concept/editor-map-monsters-concept.html` (list of kinds, one kind opened with a back button, bars in the box colour, "Placing" row, My library always listed with the hint). Replaces the "Custom monsters" group
-- [x] Texture packs: Frozen Horror preview (an expansion pack is previewed with its own enemies, edge doors, tunnels and tiles; "Not in this pack" lists only its own missing slots; Adjust covers enemies, edge doors and tunnels). Not built: Adjust for tile pictures
+- [x] Texture packs: Frozen Horror preview (an expansion pack is previewed with its own enemies, edge doors, tunnels and tiles; "Not in this pack" lists only its own missing slots; Adjust covers enemies, edge doors and tunnels)
+- [ ] Texture packs: Adjust for tile pictures, ids `tile.<key>.<w>x<h>` (decision 109); size warnings for enemy, edge door and tunnel pictures in the preview check

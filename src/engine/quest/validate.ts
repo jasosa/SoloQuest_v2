@@ -754,7 +754,16 @@ export function validateQuestIssues(
         if (!npcIds.has(e.npc)) err(`${where}: unknown npc ${e.npc}`, noteRef);
         break;
       case 'promptChoice':
-        e.options.forEach((o) => o.effects.forEach((x) => checkEffect(where, x)));
+        e.options.forEach((o) =>
+          o.effects.forEach((x) => {
+            if (x.type === 'blockSearch')
+              err(
+                `${where}: blockSearch must be a direct effect of the action, not an answer`,
+                noteRef,
+              );
+            checkEffect(where, x);
+          }),
+        );
         break;
       default:
         break;
@@ -824,10 +833,10 @@ export function validateQuestIssues(
     }
     if (n.consumesTreasure && t.type !== 'treasureSearch')
       err(`${where}: consumesTreasure only makes sense for a treasureSearch trigger`, noteRef);
-    if (n.blocksSearch && t.type !== 'treasureSearch')
-      err(`${where}: blocksSearch only makes sense for a treasureSearch trigger`, noteRef);
-    if (n.blocksSearch && n.consumesTreasure)
-      err(`${where}: blocksSearch and consumesTreasure cannot both be set`, noteRef);
+    if (n.effects.some((e) => e.type === 'blockSearch') && t.type !== 'treasureSearch')
+      err(`${where}: blockSearch only makes sense for a treasureSearch trigger`, noteRef);
+    if (n.effects.some((e) => e.type === 'blockSearch') && n.consumesTreasure)
+      err(`${where}: blockSearch and consumesTreasure cannot both be set`, noteRef);
     if (n.target) {
       const tg = n.target;
       const known =

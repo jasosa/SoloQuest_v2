@@ -264,7 +264,7 @@ describe('SEARCH_TREASURE: notes', () => {
   });
 });
 
-describe('SEARCH_TREASURE: blocksSearch', () => {
+describe('SEARCH_TREASURE: the blockSearch effect', () => {
   const lv = buildLevel(
     testQuest({
       notes: [
@@ -272,8 +272,7 @@ describe('SEARCH_TREASURE: blocksSearch', () => {
           id: 'no-search',
           letter: 'A',
           trigger: { type: 'treasureSearch', area: 'R17' },
-          effects: [{ type: 'showText', text: 'Cannot search here.' }],
-          blocksSearch: true,
+          effects: [{ type: 'showText', text: 'Cannot search here.' }, { type: 'blockSearch' }],
         },
         {
           id: 'also-r17',

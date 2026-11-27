@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, monsterCard, pickMonster } from './helpers';
+import { approveOpenQuest, dismissStart, monsterCard, pickMonster } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(300);
@@ -318,11 +318,11 @@ test.describe('editor: storage and files', () => {
     await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Edit it now').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
-  test('an edit of a bundled quest that is not saved yet is what the quest list plays', async ({
+  test('an edit of a bundled quest plays only once it is saved, approved and replaces the original', async ({
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
@@ -334,6 +334,18 @@ test.describe('editor: storage and files', () => {
     await title.fill('The Trial, edited');
     await title.blur();
     await expect(page.locator('header.page-head h1')).toHaveText('The Trial, edited');
+    // not saved, not approved: the original plays
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-single').click();
+    await page.getByTestId('pack-core').click();
+    await expect(page.locator('.qcard .qtitle').first()).toHaveText('The Trial');
+    // approved and replacing the original: the copy plays
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-editor').click();
+    await page.getByRole('button', { name: 'Open The Trial' }).click();
+    await approveOpenQuest(page);
+    await page.getByTestId('replace-original').click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
@@ -350,6 +362,8 @@ test.describe('editor: storage and files', () => {
     const title = page.getByTestId('quest-general').getByLabel('Title');
     await title.fill('Trial by Ice, edited');
     await title.blur();
+    await approveOpenQuest(page);
+    await page.getByTestId('replace-original').click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
@@ -366,7 +380,7 @@ test.describe('editor: storage and files', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -1016,14 +1030,14 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     // the monster is a draft: no saved monster uses the ability yet
     await expect(page.getByTestId('ability-used')).toContainText('No monster uses it yet.');
     await shot(page, 'editor-ability-popup');
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(section.locator('[data-ability="ab1"]')).toContainText('Bog skin');
     await expect(section.locator('[data-ability="ab1"]')).toContainText('Mud spells fail.');
     // after "Save monster" the popup lists the monster
     await page.getByRole('button', { name: 'Save monster' }).click();
     await section.getByRole('button', { name: 'Edit the ability…' }).click();
     await expect(page.getByTestId('ability-used')).toContainText('m1');
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
 
     // an ability is taken off with its row button
     await section.getByRole('button', { name: 'Remove Fireproof' }).click();
@@ -1063,14 +1077,16 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await expect(page.locator('[data-tag="any"]')).toHaveCount(0);
     // the last situation cannot go without a question of the author's own
     await spellDlg(page).getByRole('button', { name: 'Remove heroAdjacent' }).click();
+    await spellDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.locator('.toast')).toContainText('needs a situation or a question');
+    await expect(spellDlg(page)).toBeVisible();
     await spellDlg(page)
       .getByLabel('Or one question of your own (replaces the situations)')
       .fill('Is it raining?');
     await spellDlg(page).getByLabel('Or one question of your own (replaces the situations)').blur();
     await spellDlg(page).getByLabel('Offer it only when').selectOption('escapePoint');
     await shot(page, 'editor-spell-popup');
-    await spellDlg(page).getByRole('button', { name: 'Close' }).click();
+    await spellDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(section.locator('[data-spell="sp1"]')).toContainText('Is it raining?');
     await expect(section.locator('[data-spell="sp1"]').getByLabel('Mud cast limit')).toHaveValue(
       '1',
@@ -1082,13 +1098,27 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await expect(special).toHaveAttribute('aria-checked', 'true');
   });
 
+  test('the ability popup changes nothing until Save; Cancel drops the edits', async ({ page }) => {
+    await selectedMonster(page);
+    const section = page.getByTestId('monster-abilities');
+    await section.getByRole('button', { name: 'New ability…' }).click();
+    await abilityDlg(page).getByLabel('Name').fill('Dropped');
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
+    await expect(abilityDlg(page)).toHaveCount(0);
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('New ability');
+    await section.getByRole('button', { name: 'Edit the ability…' }).click();
+    await abilityDlg(page).getByLabel('Name').fill('Kept');
+    await abilityDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('Kept');
+  });
+
   test('the quest fields list its own abilities and spells; deleting one warns', async ({
     page,
   }) => {
     await selectedMonster(page);
     const section = page.getByTestId('monster-abilities');
     await section.getByRole('button', { name: 'New ability…' }).click();
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('button', { name: 'Save monster' }).click(); // the monster lists the ability
     await page.getByRole('tab', { name: 'Quest' }).click(); // the quest fields are in the Quest tab
     const own = page.getByTestId('abilities-section');
@@ -1343,7 +1373,7 @@ test.describe('editor: problems panel and playtest', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.getByTestId('playtest')).toBeEnabled();
     await page.getByTestId('playtest').click();
     await dismissStart(page);
@@ -1371,7 +1401,7 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
 
     await btn(page, 'Back to editor').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 });
@@ -1506,35 +1536,72 @@ test.describe('editor: endings and blocked search', () => {
     await expect(page.getByTestId('ending-row')).toHaveCount(1);
   });
 
-  test('the "Searching here is not possible" toggle excludes "No treasure card is drawn"', async ({
+  test('the "Searching here is not possible" effect excludes "No treasure card is drawn"', async ({
     page,
   }) => {
     await newQuest(page);
     await page.getByRole('tab', { name: 'Actions', exact: true }).click();
     await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
-    // only a treasure search trigger offers the toggle
+    // it is an effect now: no toggle
     await expect(btn(page, 'Searching here is not possible')).toHaveCount(0);
     await page.getByLabel('Applies to').selectOption('area:R20');
     await page.getByLabel('When').selectOption('treasureSearch');
-    const block = btn(page, 'Searching here is not possible');
+    const row = page.locator('[data-testid="effect-row"][data-effect="blockSearch"]');
     const card = btn(page, 'No treasure card is drawn');
-    await expect(block).toHaveAttribute('aria-pressed', 'false');
+    await expect(row).toHaveCount(0);
     await card.click();
     await expect(card).toHaveAttribute('aria-pressed', 'true');
-    await block.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
-    await expect(card).toHaveAttribute('aria-pressed', 'false');
-    expect((await block.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.getByLabel('Add an effect').selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
     await card.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'false');
-    await block.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
+    await card.click();
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await expect(row).toHaveCount(0);
+    await page.getByLabel('Add an effect').selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
     // the draft is saved as it stands, and the saved action opens with the same choice
     await btn(page, 'Save action').click();
     await page.getByRole('tab', { name: 'Actions', exact: true }).click();
     await page.getByTestId('note-list').getByRole('button').first().click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
-    await expect(card).toHaveAttribute('aria-pressed', 'false');
+    await expect(row).toHaveCount(1);
+  });
+
+  test('"Searching here is not possible" is offered for a treasure search only, and warns where it cannot work', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Actions', exact: true }).click();
+    await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
+    const add = page.getByLabel('Add an effect');
+    const option = add.locator('option[value="blockSearch"]');
+    const row = page.locator('[data-testid="effect-row"][data-effect="blockSearch"]');
+    const warning = page.getByTestId('effect-warning');
+    // another trigger: not in the list
+    await page.getByLabel('Applies to').selectOption('area:R20');
+    await page.getByLabel('When').selectOption('areaEntered');
+    await expect(option).toHaveCount(0);
+    // a treasure search: offered, and the row looks like the other effects
+    await page.getByLabel('When').selectOption('treasureSearch');
+    await expect(option).toHaveCount(1);
+    await add.selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toHaveCount(0);
+    await expect(row.locator('.ed-row-head span')).toHaveText('Searching here is not possible');
+    await expect(row.getByRole('button', { name: /^Remove effect/ })).toBeVisible();
+    await shot(page, 'editor-effect-block-search');
+    // with "No treasure card is drawn" the validator refuses it: the row says so
+    await btn(page, 'No treasure card is drawn').click();
+    await add.selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toContainText('cannot go with "No treasure card is drawn"');
+    await shot(page, 'editor-effect-block-search-warning');
+    await btn(page, 'No treasure card is drawn').click();
+    await expect(warning).toHaveCount(0);
+    // the trigger changes under it: the row stays and says it needs a treasure search
+    await page.getByLabel('When').selectOption('areaEntered');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toContainText('Search for treasure');
+    await shot(page, 'editor-effect-block-search-trigger');
   });
 });
 
@@ -1982,5 +2049,5 @@ test('the editor lists the Frozen Horror quests that share a number with a core 
   await page.getByRole('button', { name: 'Edit it now' }).click();
   await expect(board(page)).toBeVisible();
   await page.getByRole('tab', { name: 'Quest', exact: true }).click();
-  await expect(page.getByLabel('Title')).toHaveValue('The Rescue');
+  await expect(page.getByLabel('Title')).toHaveValue('The Rescue (copy)');
 });

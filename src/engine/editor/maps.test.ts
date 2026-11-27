@@ -228,6 +228,6 @@ describe('the bundled double quest in the editor model', () => {
   it('round trips through export and import unchanged', () => {
     const back = importQuest(exportQuest(q));
     expect(back.ok).toBe(true);
-    if (back.ok) expect(back.quest).toEqual(q);
+    if (back.ok) expect(back.quest).toEqual({ ...q, status: 'draft' });
   });
 });

@@ -93,3 +93,10 @@ export async function pickMonster(
   await row.click();
   await monsterCard(page, name).click();
 }
+
+/** In the editor: approve the open quest from the Approval card (Quest tab). Saves it. */
+export async function approveOpenQuest(page: Page): Promise<void> {
+  await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+  await page.getByTestId('approve').click();
+  await page.getByTestId('withdraw').waitFor();
+}

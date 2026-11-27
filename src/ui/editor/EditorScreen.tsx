@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { ReferenceStore } from '../../persist/reference';
 import { useStore } from 'zustand';
 import { board } from '../../engine/board/board';
-import { lettersMissingNotes, validateQuestIssues } from '../../engine/editor';
+import { isApproved, lettersMissingNotes, validateQuestIssues } from '../../engine/editor';
 import { useFitMode } from '../FitToScreen';
 import { EditorBoard } from './EditorBoard';
 import type { Quest } from '../../engine/quest/schema';
@@ -167,6 +167,11 @@ export function EditorScreen({
               {dirty
                 ? t('editor.EditorScreen.unsavedChanges', 'Unsaved changes')
                 : t('editor.EditorScreen.saved', 'Saved')}
+            </span>
+            <span className="ed-approval" data-testid="quest-status">
+              {isApproved(quest)
+                ? t('editor.ApprovalCard.approved', 'Approved')
+                : t('editor.ApprovalCard.notApproved', 'Not approved')}
             </span>
             {!s.stored && (
               <span className="ed-status ed-nostore" role="alert">

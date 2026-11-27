@@ -39,9 +39,13 @@ One JSON file per quest. Validated by the Zod schema in `src/engine/quest/schema
   "endText": "",                              // optional closing note, shown on the end screen after every ending
   "rules": { },                               // quest-wide overrides, see below
   "npcs": [ ],                                // e.g. Sir Ragnar
-  "endings": [ { "id": "ragnar-died", "label": "Sir Ragnar died", "text": "optional end screen text" } ]  // optional
+  "endings": [ { "id": "ragnar-died", "label": "Sir Ragnar died", "text": "optional end screen text" } ],  // optional
+  "status": "draft",                          // optional, editor only (decision 110): "draft" | "approved"; missing = approved
+  "copyOf": "q03-lair-of-the-orc-warlord"     // optional, editor only: the bundled quest this is a copy of
 }
 ```
+
+`status` and `copyOf` (decision 110) are set by the editor only. `draft` keeps the quest out of the lists of quests to play until it is approved; a missing status is approved (bundled quests, quests saved before the status existed). `copyOf` is the id of the bundled quest a copy comes from; the copy replaces it only by the explicit Replace the original action. Neither is written by `exportQuest`, and `importQuest` (editor import) makes every quest a draft without `copyOf`.
 
 ### False doors
 
@@ -90,18 +94,17 @@ Monster behavior fields (all editable in the Monsters tab): `state` (`active`, `
     },
   ],
   "consumesTreasure": true, // no treasure card is drawn when this fires
-  // or: "blocksSearch": true   (treasureSearch only, not together with consumesTreasure)
   // "keepMark": true   (square and zone notes: the mark stays on the map after the note fired)
 }
 ```
 
-`blocksSearch`: searching here is not possible. The note is shown, no treasure card is drawn, no chest trap springs, and the search is NOT recorded: the hero keeps the action and may search elsewhere. Only the blocking notes fire for that search (other notes of the trigger wait). A search with `consumesTreasure` is different: it is used up.
+Searching here is not possible (decision 111): give the note the effect `{ "type": "blockSearch" }` (a direct effect of a `treasureSearch` note, not in an answer, not together with `consumesTreasure`). The note is shown, no treasure card is drawn, no chest trap springs, and the search is NOT recorded: the hero keeps the action and may search elsewhere. Only the blocking notes fire for that search (other notes of the trigger wait). A search with `consumesTreasure` is different: it is used up.
 
 ### Endings (optional)
 
 `endings` lists extra ways to end the quest, for example when an NPC dies. Each has a unique `id`, a short paraphrased `label` and an optional `text`. The End the Quest list offers them next to "Left by the stairs" and "All heroes fell". Picking one sends `END_QUEST` with `outcome: "ending"` and `ending: <id>`. The end screen shows the label and text, counts as not won, and shows no reward. Nothing in notes refers to endings.
 
-Migration: `endings` and `blocksSearch` are optional, so old files stay valid and `schemaVersion` stays `1`.
+Migration: `endings` is optional, so old files stay valid and `schemaVersion` stays `1`. The old `blocksSearch: true` flag of a note (decision 65) is read as the `blockSearch` effect (added last) and dropped on load, in bundled files and in quests saved on the device.
 
 A **throne** may stand on a secret door's square (it hides the door until a treasure search, quest 5): the validator allows that one case. Any other furniture on a door square is an error.
 
@@ -164,6 +167,7 @@ An objective `done` may be `{ "when": [conditions] }`: done when all hold, check
 | `giveItem`                 | `text` (shown only, not tracked)                                                                                                                                                             |
 | `setFlag` / `addCounter`   | `flag`, `value` / `counter`, `by`                                                                                                                                                            |
 | `completeObjective`        | `objective`                                                                                                                                                                                  |
+| `blockSearch`              | none (treasureSearch note only: searching here is not possible, see Notes; decision 111)      
 | `spawnNpc`                 | `npc`                                                                                                                                                                                        |
 | `promptChoice`             | `text`, `options: [{ label, effects }]`                                                                                                                                                      |
 

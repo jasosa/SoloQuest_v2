@@ -27,7 +27,7 @@ describe('a multi-map quest in the editor files', () => {
     const back = importQuest(checked.text);
     expect(back.ok).toBe(true);
     if (!back.ok) return;
-    expect(back.quest).toEqual(quest);
+    expect(back.quest).toEqual({ ...quest, status: 'draft' });
     expect(exportQuest(back.quest)).toBe(checked.text);
   });
 

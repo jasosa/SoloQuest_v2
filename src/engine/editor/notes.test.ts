@@ -156,21 +156,21 @@ describe('updateNote', () => {
   });
 });
 
-describe('blocksSearch', () => {
+describe('the blockSearch effect', () => {
   const withNote = () => deepFreeze(good(addNote(testQuest(), { letter: 'A', at: [2, 2] })));
-  it('is set and cleared, and addNote accepts it', () => {
+  it('is added and removed like any effect, and addNote accepts it', () => {
     const trigger = { type: 'treasureSearch', area: 'R17' } as const;
-    const q = good(updateNote(withNote(), 'n-A', { trigger, blocksSearch: true }));
-    expect(q.notes[1]).toMatchObject({ blocksSearch: true });
-    const r = updateNote(q, 'n-A', { blocksSearch: null });
-    expect(r.ok && 'blocksSearch' in r.quest.notes[1]!).toBe(false);
-    const added = good(addNote(testQuest(), { trigger, blocksSearch: true }));
-    expect(added.notes.at(-1)).toMatchObject({ blocksSearch: true });
+    const q = good(updateNote(withNote(), 'n-A', { trigger, effects: [{ type: 'blockSearch' }] }));
+    expect(q.notes[1]?.effects).toEqual([{ type: 'blockSearch' }]);
+    const r = updateNote(q, 'n-A', { effects: [] });
+    expect(r.ok && r.quest.notes[1]?.effects).toEqual([]);
+    const added = good(addNote(testQuest(), { trigger, effects: [{ type: 'blockSearch' }] }));
+    expect(added.notes.at(-1)?.effects).toEqual([{ type: 'blockSearch' }]);
   });
   it('warns when the trigger is not a treasure search', () => {
-    const r = updateNote(withNote(), 'n-A', { blocksSearch: true });
+    const r = updateNote(withNote(), 'n-A', { effects: [{ type: 'blockSearch' }] });
     expect(r.ok && r.warnings.map((w) => w.message)).toEqual([
-      expect.stringMatching(/blocksSearch only/),
+      expect.stringMatching(/blockSearch only/),
     ]);
   });
 });

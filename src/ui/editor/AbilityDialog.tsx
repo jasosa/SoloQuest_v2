@@ -3,6 +3,7 @@ import { useModal } from '../shared/useModal';
 import { useStore } from 'zustand';
 import { removeAbility, updateAbility } from '../../engine/editor';
 import { useLibrary } from '../designer/LibraryContext';
+import type { AbilityDefData } from '../../engine/quest/schema';
 import type { EditorStore } from './editorStore';
 import { t } from '../../i18n/t';
 
@@ -14,19 +15,32 @@ const KINDS = [
 
 /**
  * The ability popup (decision 70): name, kind and text of one ability of the quest, in the same
- * dialog shell as the action popup. Edits are saved as the author leaves a field.
+ * dialog shell as the action popup. Edits stay in the popup until "Save"; "Cancel" drops them.
  */
 export function AbilityDialog({ store }: { store: EditorStore }) {
   const { quest, abilityId } = useStore(store);
+  const a = abilityId ? quest.abilityDefs.find((x) => x.id === abilityId) : undefined;
+  return a ? <AbilityForm key={a.id} store={store} a={a} /> : null;
+}
+
+function AbilityForm({ store, a }: { store: EditorStore; a: AbilityDefData }) {
+  const { quest } = useStore(store);
   const st = store.getState();
   const box = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const [saved, setSaved] = useState('');
-  const a = abilityId ? quest.abilityDefs.find((x) => x.id === abilityId) : undefined;
+  const [name, setName] = useState(a.name);
+  const [kind, setKind] = useState<'ability' | 'weakness' | 'immunity'>(a.kind ?? 'ability');
+  const [text, setText] = useState(a.text);
+  const dirty = name !== a.name || kind !== (a.kind ?? 'ability') || text !== a.text;
 
-  useModal(box, { active: Boolean(a), onEscape: () => st.setAbilityId(null), focus: 'title' });
+  useModal(box, { active: true, onEscape: () => st.setAbilityId(null), focus: 'title' });
 
-  if (!a) return null;
+  const save = () => {
+    if (!dirty) return st.setAbilityId(null);
+    if (st.apply((q) => updateAbility(q, a.id, { name: name.trim(), text: text.trim(), kind })))
+      st.setAbilityId(null);
+  };
   const used = quest.monsters.filter((m) => (m.abilities ?? []).includes(a.id));
 
   return (
@@ -40,35 +54,24 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
       >
         <div className="ed-dialog-hd">
           <h2>{t('editor.AbilityDialog.ability', 'Ability')}</h2>
+          <button className="btn" onClick={save}>
+            {t('editor.AbilityDialog.save', 'Save')}
+          </button>
           <button className="btn alt" onClick={() => st.setAbilityId(null)}>
-            {t('editor.AbilityDialog.close', 'Close')}
+            {t('editor.AbilityDialog.cancel', 'Cancel')}
           </button>
         </div>
         <div className="ed-dialog-body">
           <label className="ed-field">
             {t('editor.AbilityDialog.name', 'Name')}
-            <input
-              key={`${a.id}:n:${a.name}`}
-              defaultValue={a.name}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === a.name) return;
-                if (!st.apply((q) => updateAbility(q, a.id, { name: v }))) e.target.value = a.name;
-              }}
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <label className="ed-field">
             {t('editor.AbilityDialog.kind', 'Kind')}
             <select
               className="es-select"
-              value={a.kind ?? 'ability'}
-              onChange={(e) =>
-                st.apply((q) =>
-                  updateAbility(q, a.id, {
-                    kind: e.target.value as 'ability' | 'weakness' | 'immunity',
-                  }),
-                )
-              }
+              value={kind}
+              onChange={(e) => setKind(e.target.value as 'ability' | 'weakness' | 'immunity')}
             >
               {KINDS.map((k) => (
                 <option key={k.value} value={k.value}>
@@ -79,16 +82,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
           </label>
           <label className="ed-field">
             {t('editor.AbilityDialog.whatItDoes', 'What it does')}
-            <textarea
-              key={`${a.id}:t:${a.text}`}
-              defaultValue={a.text}
-              rows={3}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === a.text) return;
-                if (!st.apply((q) => updateAbility(q, a.id, { text: v }))) e.target.value = a.text;
-              }}
-            />
+            <textarea value={text} rows={3} onChange={(e) => setText(e.target.value)} />
           </label>
           <p className="ed-note">
             {t(
@@ -108,7 +102,7 @@ export function AbilityDialog({ store }: { store: EditorStore }) {
             data-testid="save-in-library"
             onClick={() =>
               void lib
-                .save('ability', a)
+                .save('ability', { ...a, name: name.trim(), text: text.trim(), kind })
                 .then((m) =>
                   setSaved(
                     m || t('editor.AbilityDialog.savedInTheLibrary', 'Saved in the library.'),

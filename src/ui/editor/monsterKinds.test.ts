@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EnemyDef } from '../../engine/quest/schema';
-import { enemyStats, kindOfPick, monsterKinds } from './monsterKinds';
+import { enemyStats, groupByExpansion, kindOfPick, monsterKinds } from './monsterKinds';
 
 const enemy = (id: string, name: string, extra: Record<string, unknown> = {}): EnemyDef =>
   ({ id, name, base: 'goblin', ...extra }) as unknown as EnemyDef;
@@ -89,5 +89,20 @@ describe('the kind of a pick', () => {
     expect(kindOfPick(kinds, { enemy: yeti, fromLibrary: true })?.kind.label).toBe('Frozen Horror');
     expect(kindOfPick(kinds, null)).toBeUndefined();
     expect(kindOfPick(kinds, { enemy: enemy('nope', 'Nope'), fromLibrary: true })).toBeUndefined();
+  });
+});
+
+describe('groupByExpansion', () => {
+  it('an expansion enemy gets its box group, only enemies with no box are custom', () => {
+    const yeti = enemy('yeti', 'Yeti', { expansion: 'Frozen Horror' });
+    const mine = enemy('mine', 'Marsh Skeleton');
+    const groups = groupByExpansion([mine, yeti], box);
+    expect(groups.map((g) => g.expansion)).toEqual(['Frozen Horror', undefined]);
+    expect(groups[0]?.enemies).toEqual([yeti]);
+    expect(groups[1]?.enemies).toEqual([mine]);
+  });
+
+  it('no group is made for an empty list', () => {
+    expect(groupByExpansion([], box)).toEqual([]);
   });
 });

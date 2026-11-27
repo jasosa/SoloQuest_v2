@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import {
   emptyQuest,
-  exportQuest,
   importQuest,
+  isApproved,
+  makeCopy,
   newUserQuestId,
   type Issue,
 } from '../../engine/editor';
 import type { Quest } from '../../engine/quest/schema';
+import { questHasOngoingGame, type SaveStore } from '../../persist/saves';
 import type { UserQuestStore, UserQuestSummary } from '../../persist/userQuests';
-import { setOverride } from '../../persist/questOverrides';
 import { useFitMode } from '../FitToScreen';
 import { Dialog, Fld } from '../shared/Frame';
 import { PageHeader } from '../select/parts';
@@ -20,7 +21,9 @@ import { t } from '../../i18n/t';
 export interface EditorStartProps {
   store: UserQuestStore;
   /** `clean` is the saved quest when the opened quest is a draft with unsaved changes. */
-  onOpen(quest: Quest, clean: Quest): void;
+  onOpen(quest: Quest, clean: Quest, notice?: string): void;
+  /** Saved games, to know that a quest has a game in progress (opening it makes a copy). */
+  saves?: SaveStore;
   onBack(): void;
   /** Open the Designer (the library of abilities, spells, enemies, heroes, companions). */
   onDesigner?(): void;
@@ -30,6 +33,9 @@ interface Row extends UserQuestSummary {
   draft: boolean;
 }
 
+/** The time to store a quest with. */
+const stamp = () => Date.now();
+
 /** What the person is told when this device refuses to store a quest. */
 const storeErrorText = () =>
   t(
@@ -37,7 +43,7 @@ const storeErrorText = () =>
     'This device could not store it (the browser storage is full or blocked). Export the quest to a file to keep it, or free some space and try again.',
   );
 
-export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartProps) {
+export function EditorStart({ store, saves, onOpen, onBack, onDesigner }: EditorStartProps) {
   const bars = useBarContext();
   useFitMode('width');
   const [rows, setRows] = useState<Row[]>([]);
@@ -66,11 +72,50 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
     void refresh();
   }, [refresh]);
 
+  /** A copy of a quest as a new quest of your own, not approved. `show` lists it in the Imported box. */
+  const saveCopy = async (source: Quest, show = true): Promise<Quest | undefined> => {
+    const copy = makeCopy(
+      source,
+      rows.map((x) => x.id),
+      rows.map((x) => x.title),
+    );
+    try {
+      await store.save(copy, stamp());
+    } catch {
+      setProblems([]);
+      setNotes([]);
+      setImported(null);
+      setStoreError(storeErrorText());
+      return undefined;
+    }
+    setStoreError(null);
+    setProblems([]);
+    setNotes([]);
+    if (show) setImported(copy);
+    await refresh();
+    return copy;
+  };
+
   const open = async (id: string) => {
     const draft = await store.loadDraft(id);
     const saved = await store.load(id);
     const quest = draft?.quest ?? saved;
-    if (quest) onOpen(quest, saved ?? quest);
+    if (!quest) return;
+    // A quest with a game in progress is not edited in place: its copy is (decision 112).
+    if (saves && (await questHasOngoingGame(saves, id))) {
+      const copy = await saveCopy(quest, false);
+      if (!copy) return;
+      onOpen(
+        copy,
+        copy,
+        t(
+          'editor.EditorStart.gameInProgress',
+          'This quest has a game in progress. You edit a copy.',
+        ),
+      );
+      return;
+    }
+    onOpen(quest, saved ?? quest);
   };
 
   const create = async () => {
@@ -183,6 +228,11 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   </span>
                 </button>
                 <span className="fr-qnote">
+                  <b data-testid="row-status">
+                    {isApproved(r)
+                      ? t('editor.ApprovalCard.approved', 'Approved')
+                      : t('editor.ApprovalCard.notApproved', 'Not approved')}
+                  </b>
                   {r.draft
                     ? t('editor.EditorStart.unsavedDraft', 'Unsaved draft')
                     : t('editor.EditorStart.saved', 'Saved')}{' '}
@@ -387,7 +437,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                   const q = found?.source ?? found?.level?.quest;
                   if (q) {
                     setPopup(null);
-                    void take(exportQuest(q));
+                    void saveCopy(q);
                   }
                 }}
               >
@@ -399,11 +449,9 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
                 onClick={() => {
                   const entry = bundled.find((b) => String(b.slot) === copyOf);
                   const q = entry?.source ?? entry?.level?.quest;
-                  if (!q || !entry) return;
+                  if (!q) return;
                   setPopup(null);
-                  void take(exportQuest(q)).then((made) => {
-                    // The quest list plays this copy from now on (Use original resets it).
-                    if (made) setOverride(entry.slot, made.id);
+                  void saveCopy(q).then((made) => {
                     if (made) onOpen(made, made);
                   });
                 }}
@@ -413,7 +461,7 @@ export function EditorStart({ store, onOpen, onBack, onDesigner }: EditorStartPr
               <p className="fr-help">
                 {t(
                   'editor.EditorStart.aBundledQuestIs',
-                  'A bundled quest is edited as your own copy. Edit it now makes the quest list play your copy. The original stays as it is.',
+                  'A bundled quest is edited as your own copy. The copy is not approved, so Play a quest keeps the original. Approve the copy, then choose Replace the original, to play it instead.',
                 )}
               </p>
             </>

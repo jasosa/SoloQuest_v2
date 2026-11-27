@@ -17,6 +17,7 @@ import {
 import type { LibraryContent } from '../../engine/editor/library';
 import type { BoardTileType, RoomTileType } from '../../engine/data/roomTiles';
 import { foreignIdsOf, swapTo } from '../../engine/editor/maps';
+import { approveQuest, questStatus, withdrawQuest } from '../../engine/editor/status';
 import { ok, withForeignIds } from '../../engine/editor/result';
 import { firstMapId, questMaps } from '../../engine/quest/maps';
 import type { EnemyDef, FurnitureDef, Quest } from '../../engine/quest/schema';
@@ -278,6 +279,12 @@ export interface EditorState {
   dismissWarnings(): void;
   /** Validate, then save. False when errors stop it (they are in `saveErrors`). */
   save(): Promise<boolean>;
+  /**
+   * Approve (saves the whole working copy, refused with the engine sentence when it has errors) or
+   * withdraw (writes the saved quest as not approved, with no validation). The status is not an
+   * undo step: it is the same in every step of the history. Resolves to the error text, or null.
+   */
+  setStatus(next: 'approved' | 'draft'): Promise<string | null>;
   /** Resolves when every pending draft write has finished. */
   flush(): Promise<void>;
 }
@@ -311,6 +318,12 @@ const openNote = (q: Quest, id: string | null) => {
   const n = id ? q.notes.find((x) => x.id === id) : undefined;
   return { noteId: n ? n.id : null, noteDraft: n ? draftOf(n) : null };
 };
+
+/** A quest of the history with the status of the quest on show (the status is not an undo step). */
+const keepStatus = (q: Quest | undefined, shown: Quest): Quest | undefined =>
+  q === undefined || questStatus(q) === questStatus(shown)
+    ? q
+    : { ...q, status: questStatus(shown) };
 
 export function createEditorStore(init: EditorInit): EditorStore {
   const now = init.now ?? (() => Date.now());
@@ -450,7 +463,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       undo() {
         get().dropMonster();
         const { past, future, canon, mapId } = get();
-        const prev = past[past.length - 1];
+        const prev = keepStatus(past[past.length - 1], canon);
         if (!prev) return;
         set({
           ...orient(prev, mapId),
@@ -475,7 +488,7 @@ export function createEditorStore(init: EditorInit): EditorStore {
       redo() {
         get().dropMonster();
         const { past, future, canon, mapId } = get();
-        const next = future[0];
+        const next = keepStatus(future[0], canon);
         if (!next) return;
         set({
           ...orient(next, mapId),
@@ -771,6 +784,55 @@ export function createEditorStore(init: EditorInit): EditorStore {
         }
         set({ clean: quest, saveErrors: null, toast: toastOf('Saved.') });
         return true;
+      },
+
+      async setStatus(next) {
+        await queue;
+        const { canon, clean, past, future, quest } = get();
+        const wasClean = canon === clean;
+        let saved: Quest;
+        if (next === 'approved') {
+          const r = approveQuest(canon);
+          if (!r.ok) return r.error;
+          saved = r.quest;
+        } else {
+          // the stored quest is written as it is; only its status changes
+          let stored: Quest | undefined;
+          try {
+            stored = await init.store.load(canon.id);
+          } catch {
+            stored = undefined;
+          }
+          saved = withdrawQuest(stored ?? clean);
+        }
+        try {
+          await init.store.save(saved, now());
+          if (next === 'approved' && get().canon === canon) await init.store.removeDraft(canon.id);
+        } catch (e) {
+          return (e as Error).message;
+        }
+        // the working copy takes the status after the write; shared objects stay shared
+        const memo = new Map<Quest, Quest>();
+        const as = (q: Quest): Quest => {
+          let m = memo.get(q);
+          if (!m) {
+            m = questStatus(q) === next ? q : { ...q, status: next };
+            memo.set(q, m);
+          }
+          return m;
+        };
+        const nextCanon = as(canon);
+        const nextClean = next === 'approved' ? nextCanon : wasClean ? nextCanon : as(clean);
+        set({
+          canon: nextCanon,
+          clean: nextClean,
+          quest: as(quest),
+          past: past.map(as),
+          future: future.map(as),
+        });
+        // a working copy with unsaved edits keeps its draft, now with the new status
+        if (!(next === 'approved' || wasClean)) persist(nextCanon);
+        return null;
       },
 
       flush: () => queue,

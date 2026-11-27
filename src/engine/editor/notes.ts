@@ -62,8 +62,6 @@ export interface NewNote {
   when?: Condition[];
   effects?: Effect[];
   consumesTreasure?: boolean;
-  /** Treasure search only: show the note, draw no card, and do not use up the search. */
-  blocksSearch?: boolean;
   /** Multi-map quests: the map the note is about. Default: the map on show for a map note. */
   map?: string;
   id?: string;
@@ -127,7 +125,6 @@ export function addNote(q: Quest, input: NewNote = {}): EditResult {
     when: input.when && input.when.length ? input.when : undefined,
     effects: input.effects ?? [],
     consumesTreasure: input.consumesTreasure ? true : undefined,
-    blocksSearch: input.blocksSearch ? true : undefined,
   });
   const quest = { ...q, notes: [...q.notes, note] };
   return ok(quest, newIssues(q, quest));
@@ -145,7 +142,6 @@ export interface NotePatch {
   consumesTreasure?: boolean | null;
   /** Square and zone notes: the mark stays on the map after the note fired. */
   keepMark?: boolean | null;
-  blocksSearch?: boolean | null;
   /** Multi-map quests: the map the note is about. `null` makes it a quest-wide note. */
   map?: string | null;
 }
@@ -192,7 +188,6 @@ export function updateNote(q: Quest, id: string, patch: NotePatch): EditResult {
   if (patch.consumesTreasure !== undefined)
     set('consumesTreasure', patch.consumesTreasure ? true : null);
   if (patch.keepMark !== undefined) set('keepMark', patch.keepMark ? true : null);
-  if (patch.blocksSearch !== undefined) set('blocksSearch', patch.blocksSearch ? true : null);
   const quest = { ...q, notes: q.notes.map((x) => (x.id === id ? (next as Note) : x)) };
   return ok(quest, newIssues(q, quest));
 }

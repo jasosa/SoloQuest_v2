@@ -2,6 +2,7 @@ import { useStore } from 'zustand';
 import { renameQuest, setStartArea, setSummary } from '../../engine/editor';
 import { board, roomIds } from '../../engine/board/board';
 import { Col, DetailCard, Fld, Frame, Panel, Split } from '../shared/Frame';
+import { ApprovalCard } from './ApprovalCard';
 import { ActionsPanel } from './ActionsPanel';
 import type { EditorStore } from './editorStore';
 import { ActionCard } from './ActionCard';
@@ -88,6 +89,7 @@ export function QuestTab({ store }: { store: EditorStore }) {
             />
           </Fld>
         </Panel>
+        <ApprovalCard store={store} />
         <Panel
           title={t('editor.QuestTabs.charactersBringInHelpers', 'Characters (bring-in helpers)')}
         >

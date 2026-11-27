@@ -86,12 +86,12 @@ describe('import', () => {
     const r = importQuest(exportQuest(q01));
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.quest).toEqual(q01);
+      expect(r.quest).toEqual({ ...q01, status: 'draft' }); // an import is a draft
       expect(r.warnings).toEqual([]);
     }
     const withText: Quest = { ...q01, intro: { ...q01.intro, userText: 'x' } };
     const again = importQuest(exportQuest(withText));
-    expect(again.ok && again.quest).toEqual(q01);
+    expect(again.ok && again.quest).toEqual({ ...q01, status: 'draft' });
   });
   it('drops userText found in a file and says so', () => {
     const data = JSON.parse(exportQuest(q01));

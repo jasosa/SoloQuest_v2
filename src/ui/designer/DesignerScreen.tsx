@@ -230,6 +230,22 @@ function blank(kind: LibraryKind, id: string): Data {
   }
 }
 
+/** The same item data, whatever the order of the keys. */
+const sameData = (a: Data, b: Data): boolean => {
+  const norm = (v: unknown): unknown =>
+    Array.isArray(v)
+      ? v.map(norm)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(
+            Object.entries(v)
+              .filter(([, x]) => x !== undefined)
+              .sort(([x], [y]) => x.localeCompare(y))
+              .map(([k, x]) => [k, norm(x)]),
+          )
+        : v;
+  return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+};
+
 const str = (d: Data, k: string) => (typeof d[k] === 'string' ? (d[k] as string) : '');
 const list = (d: Data, k: string) => (Array.isArray(d[k]) ? (d[k] as string[]) : []);
 
@@ -706,6 +722,8 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState<Data | null>(null);
   const [message, setMessage] = useState('');
+  /** Why the card did not let go of an item with unsaved edits (shown in the Save bar). */
+  const [held, setHeld] = useState<string | null>(null);
   const [popup, setPopup] = useState<{ kind: 'ability' | 'spell'; draft: Data } | null>(null);
   const [usage, setUsage] = useState<readonly UsageRow[]>([]);
   const [questList, setQuestList] = useState<readonly { title: string; quest: Quest }[]>([]);
@@ -776,7 +794,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   }, [quests, selected, usageKind]);
 
   // The selected enemy as the quests would copy it, and how many quests hold a different copy.
-  const parsedEnemy = kind === 'enemy' && data ? EnemyDefSchema.safeParse(data) : undefined;
+  const parsedEnemy = kind === 'enemy' && sel ? EnemyDefSchema.safeParse(sel.data) : undefined;
   const enemyDef = parsedEnemy?.success ? parsedEnemy.data : undefined;
   const outdated = enemyDef
     ? questList.filter((q) => enemyDiffersFromLibrary(q.quest, enemyDef)).length
@@ -784,6 +802,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
 
   const pick = (id: string | null) => {
     setSelected(id);
+    setHeld(null);
     setMessage('');
     setUsage([]);
     setAbPick('');
@@ -793,20 +812,55 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
   };
   const switchKind = (k: LibraryKind) => {
     setKind(k);
+    setHeld(null);
     setSelected(null);
     setDraft(null);
     setMessage('');
     setUsage([]);
   };
 
-  /** Change the selected "Mine" item: kept in the draft and saved at once when it is valid. */
+  /** Change the selected item: kept in the draft until "Save"; "Cancel" drops it. */
   const change = (next: Data) => {
     setDraft(next);
-    if (!selected || locked || !checkedItem(kind, next)) return;
-    void store
-      .save(kind, next, stamp())
-      .then(refresh)
-      .catch((e: Error) => setMessage(e.message));
+    setHeld(null);
+  };
+  /** The draft differs from the saved item (never for a read only Core item). */
+  const dirty = !locked && sel !== undefined && draft !== null && !sameData(draft, sel.data);
+  /** Leave the open item only when nothing would be lost. */
+  const guard = (go: () => void) => {
+    if (!dirty) return go();
+    setHeld(
+      t(
+        'designer.DesignerScreen.unsavedChanges',
+        'This item has unsaved changes. Save or Cancel first.',
+      ),
+    );
+  };
+  const saveCard = async () => {
+    if (!dirty || !draft) return;
+    if (!checkedItem(kind, draft)) {
+      setMessage(
+        t(
+          'designer.DesignerScreen.notValidYet',
+          'This item cannot be saved yet. Check the name and the fields.',
+        ),
+      );
+      return;
+    }
+    try {
+      await store.save(kind, draft, stamp());
+    } catch (e) {
+      setMessage((e as Error).message);
+      return;
+    }
+    await refresh();
+    setMessage('');
+    setHeld(null);
+  };
+  const cancelCard = () => {
+    if (sel) setDraft(structuredClone(sel.data));
+    setMessage('');
+    setHeld(null);
   };
   const make = async (d: Data) => {
     await store.save(kind, d, stamp());
@@ -1460,7 +1514,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 className="box-pick"
                 style={{ '--box': NEUTRAL_BAR } as CSSProperties}
                 aria-pressed={k === kind}
-                onClick={() => switchKind(k)}
+                onClick={() => guard(() => switchKind(k))}
               >
                 {LIBRARY_KIND_NAMES[k]} <span className="box-count">{count(k)}</span>
               </button>
@@ -1579,10 +1633,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 className="chip"
                 aria-pressed={scope === 'core'}
                 data-testid="dz-scope-core"
-                onClick={() => {
-                  setScope('core');
-                  if (sel && !sel.core) pick(null);
-                }}
+                onClick={() =>
+                  guard(() => {
+                    setScope('core');
+                    if (sel && !sel.core) pick(null);
+                  })
+                }
               >
                 {t('designer.DesignerScreen.core', 'Core {count}', { count: cores.length })}
               </button>
@@ -1590,10 +1646,12 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                 className="chip"
                 aria-pressed={scope === 'mine'}
                 data-testid="dz-scope-mine"
-                onClick={() => {
-                  setScope('mine');
-                  if (sel?.core) pick(null);
-                }}
+                onClick={() =>
+                  guard(() => {
+                    setScope('mine');
+                    if (sel?.core) pick(null);
+                  })
+                }
               >
                 {t('designer.DesignerScreen.myLibrary', 'My library {count}', {
                   count: mine.length,
@@ -1613,7 +1671,13 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     className="chip"
                     aria-pressed={activeBox === b}
                     data-testid={`dz-box-${b}`}
-                    onClick={() => setBox(b)}
+                    onClick={() =>
+                      guard(() => {
+                        // another box is another list: the card of the item that was open goes
+                        if (b !== activeBox) pick(null);
+                        setBox(b);
+                      })
+                    }
                   >
                     {b === 'all'
                       ? t('designer.DesignerScreen.allBoxes', 'All boxes')
@@ -1641,7 +1705,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                       } as CSSProperties
                     }
                     aria-pressed={r.id === selected}
-                    onClick={() => pick(r.id)}
+                    onClick={() => r.id !== selected && guard(() => pick(r.id))}
                   >
                     <span className="qtitle">
                       {r.image && <img src={r.image} alt="" className="fr-thumb" />}
@@ -1656,7 +1720,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     </span>
                   </button>
                 ))}
-              <button className="qcard lib-new" onClick={create}>
+              <button className="qcard lib-new" onClick={() => guard(create)}>
                 <span className="qtitle">
                   {t('designer.DesignerScreen.new', 'New {v1}', { v1: ONE[kind] })}
                 </span>
@@ -1674,6 +1738,31 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
           <section className="detail lib-detail">
             {data && sel ? (
               <>
+                {!locked && (
+                  <div className="lib-save" data-testid="dz-savebar">
+                    <button
+                      className="btn"
+                      data-testid="dz-save"
+                      disabled={!dirty}
+                      onClick={() => void saveCard()}
+                    >
+                      {t('designer.DesignerScreen.save', 'Save')}
+                    </button>
+                    <button
+                      className="btn alt"
+                      data-testid="dz-cancel"
+                      disabled={!dirty}
+                      onClick={cancelCard}
+                    >
+                      {t('designer.DesignerScreen.cancel', 'Cancel')}
+                    </button>
+                    {dirty && (
+                      <span className="fr-help" role="status" data-testid="dz-unsaved">
+                        {held ?? t('designer.DesignerScreen.unsavedShort', 'Unsaved changes')}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {locked && kind !== 'hero' && (
                   <Panel
                     title={t('designer.DesignerScreen.coreItem', 'Core item')}
@@ -1821,7 +1910,7 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                   </Panel>
                 )}
                 <div className="lib-actions">
-                  <button className="btn alt" onClick={copy}>
+                  <button className="btn alt" onClick={() => guard(copy)}>
                     {t('designer.DesignerScreen.copy', 'Copy')}
                   </button>
                   {!locked && (!isCore || sel.edited) && (

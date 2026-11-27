@@ -16,7 +16,13 @@ const make = (page: Page, one: string) =>
   items(page)
     .getByRole('button', { name: `New ${one}`, exact: true })
     .click();
-const name = (page: Page, v: string) => card(page).getByLabel('Name', { exact: true }).fill(v);
+/** The Library card keeps edits as a draft until Save. */
+const save = (page: Page) => page.getByTestId('dz-save').click();
+/** Fill the name and save it. */
+const name = async (page: Page, v: string) => {
+  await card(page).getByLabel('Name', { exact: true }).fill(v);
+  await save(page);
+};
 const ownerMode = (page: Page) => page.getByRole('switch', { name: /Owner mode/ });
 
 test.describe('Library layers (decision 76)', () => {
@@ -60,6 +66,7 @@ test.describe('Library layers (decision 76)', () => {
     await expect(items(page).getByRole('button', { name: /^Orc copy/ })).toBeVisible();
     await expect(page.getByTestId('dz-readonly')).toHaveCount(0);
     await page.getByLabel('att', { exact: true }).fill('9');
+    await save(page);
     await expect(page.getByLabel('att', { exact: true })).toHaveValue('9');
     // the Core orc is as it was
     await page.getByTestId('dz-scope-core').click();
@@ -78,6 +85,7 @@ test.describe('Library layers (decision 76)', () => {
     await name(page, 'Frosty');
     await page.getByLabel('Origin', { exact: true }).selectOption('official');
     await page.getByLabel('Expansion', { exact: true }).fill('Test pack');
+    await save(page);
     const toggle = page.getByRole('switch', { name: /Test pack in the add menus/ });
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
@@ -190,4 +198,13 @@ test('the Core list shows the box of each item and can be filtered by box', asyn
   await boxes.getByRole('button', { name: 'Base game' }).click();
   await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('Base game');
   await expect(items(page).getByRole('button', { name: /^Yeti/ })).toHaveCount(0);
+});
+
+test('picking another box clears the card of the item that was open', async ({ page }) => {
+  await open(page);
+  await kind(page, /^Enemies/);
+  await items(page).getByRole('button', { name: /^Orc/ }).click();
+  await expect(card(page)).toBeVisible();
+  await page.getByTestId('dz-boxes').getByRole('button', { name: 'Frozen Horror' }).click();
+  await expect(card(page)).toHaveCount(0);
 });

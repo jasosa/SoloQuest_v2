@@ -133,3 +133,33 @@ export function kindOfPick(
     }
   return undefined;
 }
+
+/** One group of the "Add a monster" dropdown. */
+export interface EnemyGroup<E> {
+  /** The box name, or `undefined` for enemies that belong to no box. */
+  readonly expansion: string | undefined;
+  readonly enemies: readonly E[];
+}
+
+/**
+ * Splits enemies into one group for each box they come from, then the ones with no box.
+ * An expansion enemy is never listed as a custom one. Box groups keep the order of first appearance.
+ */
+export function groupByExpansion<E>(
+  enemies: readonly E[],
+  expansionOf: (e: E) => string | undefined,
+): EnemyGroup<E>[] {
+  const boxes = new Map<string, E[]>();
+  const own: E[] = [];
+  for (const e of enemies) {
+    const box = expansionOf(e);
+    if (box === undefined) own.push(e);
+    else boxes.set(box, [...(boxes.get(box) ?? []), e]);
+  }
+  const groups: EnemyGroup<E>[] = [...boxes].map(([expansion, list]) => ({
+    expansion,
+    enemies: list,
+  }));
+  if (own.length > 0) groups.push({ expansion: undefined, enemies: own });
+  return groups;
+}

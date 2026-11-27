@@ -1128,28 +1128,49 @@ describe('validateQuest: notes engine checks', () => {
     for (const part of ['not both', 'n or every', 'consumesTreasure only', 'not a room'])
       expect(has(ps, part)).toBe(true);
   });
-  it('blocksSearch needs a treasureSearch trigger and excludes consumesTreasure', () => {
+  it('blockSearch needs a treasureSearch trigger and excludes consumesTreasure', () => {
     const ps = problems({
       notes: [
         keepFixture,
-        note({ id: 'a', blocksSearch: true }),
+        note({ id: 'a', effects: [{ type: 'blockSearch' }] }),
         note({
           id: 'b',
           trigger: { type: 'treasureSearch', area: 'R17' },
-          blocksSearch: true,
+          effects: [{ type: 'blockSearch' }],
           consumesTreasure: true,
         }),
       ],
     });
-    expect(has(ps, 'note a: blocksSearch only')).toBe(true);
-    expect(has(ps, 'note b: blocksSearch and consumesTreasure')).toBe(true);
+    expect(has(ps, 'note a: blockSearch only')).toBe(true);
+    expect(has(ps, 'note b: blockSearch and consumesTreasure')).toBe(true);
     const fine = problems({
       notes: [
         keepFixture,
-        note({ id: 'c', trigger: { type: 'treasureSearch', area: 'R17' }, blocksSearch: true }),
+        note({
+          id: 'c',
+          trigger: { type: 'treasureSearch', area: 'R17' },
+          effects: [{ type: 'blockSearch' }],
+        }),
       ],
     });
     expect(fine).toEqual([]);
+    const inAnswer = problems({
+      notes: [
+        keepFixture,
+        note({
+          id: 'd',
+          trigger: { type: 'treasureSearch', area: 'R17' },
+          effects: [
+            {
+              type: 'promptChoice',
+              text: 'Q',
+              options: [{ label: 'A', effects: [{ type: 'blockSearch' }] }],
+            },
+          ],
+        }),
+      ],
+    });
+    expect(has(inAnswer, 'note d: blockSearch must be a direct effect')).toBe(true);
   });
   it('ending ids must be unique', () => {
     const ps = problems({

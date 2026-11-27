@@ -259,7 +259,10 @@ describe('quest 2: the alarm', () => {
     });
     expect(s.prompts.map((p) => p.kind)).not.toContain('drawCard');
     expect(s.state.treasureSearched['R13']).toBeUndefined();
-    expect(note('A')?.blocksSearch).toBeUndefined();
+    expect(quest.notes.find((n) => n.id === 'n-cell')?.effects).toContainEqual({
+      type: 'blockSearch',
+    });
+    expect(note('A')?.effects.some((e) => e.type === 'blockSearch')).toBe(false);
     expect(quest.notes.find((n) => n.id === 'n-cell')?.consumesTreasure).toBeUndefined();
   });
 

@@ -465,9 +465,11 @@
         {
           "type": "showText",
           "text": "Heroes cannot search for treasure in the cell."
+        },
+        {
+          "type": "blockSearch"
         }
-      ],
-      "blocksSearch": true
+      ]
     }
   ],
   "wandering": {

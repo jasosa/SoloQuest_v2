@@ -26,7 +26,13 @@ const make = (page: Page, one: string) =>
   items(page)
     .getByRole('button', { name: `New ${one}`, exact: true })
     .click();
-const name = (page: Page, v: string) => card(page).getByLabel('Name', { exact: true }).fill(v);
+/** The Library card keeps edits as a draft until Save. */
+const save = (page: Page) => page.getByTestId('dz-save').click();
+/** Fill the name and save it. */
+const name = async (page: Page, v: string) => {
+  await card(page).getByLabel('Name', { exact: true }).fill(v);
+  await save(page);
+};
 
 test.describe('designer: the library', () => {
   test('core items are listed and can be changed, and reset; Copy makes one of your own', async ({
@@ -41,6 +47,7 @@ test.describe('designer: the library', () => {
     await shot(page, 'designer-core-enemy');
     // change a core enemy: it is marked as changed, and can be reset
     await page.getByLabel('att', { exact: true }).fill('5');
+    await save(page);
     await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('changed');
     await expect(page.getByLabel('Source')).toContainText('Core (changed)');
     await page.getByRole('button', { name: 'Reset to core' }).click();
@@ -58,12 +65,56 @@ test.describe('designer: the library', () => {
     await expect(lib(page).getByRole('button', { name: /^Enemies 17 core · 1/ })).toBeVisible();
   });
 
+  test('the card keeps edits as a draft until Save; Cancel drops them; nothing is lost by moving away', async ({
+    page,
+  }) => {
+    await open(page);
+    await kind(page, /^Enemies/);
+    await make(page, 'enemy');
+    await name(page, 'Slime');
+    const saveBtn = page.getByTestId('dz-save');
+    const cancelBtn = page.getByTestId('dz-cancel');
+    await expect(saveBtn).toBeDisabled();
+    await expect(cancelBtn).toBeDisabled();
+    // an edit is a draft: the list still shows the saved name
+    await card(page).getByLabel('Name', { exact: true }).fill('Slimy');
+    await expect(saveBtn).toBeEnabled();
+    await expect(cancelBtn).toBeEnabled();
+    await expect(items(page).getByRole('button', { name: /^Slime/ })).toBeVisible();
+    await expect(items(page).getByRole('button', { name: /^Slimy/ })).toHaveCount(0);
+    for (const b of [saveBtn, cancelBtn])
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await shot(page, 'designer-card-unsaved');
+    // Cancel puts the saved item back
+    await cancelBtn.click();
+    await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Slime');
+    await expect(saveBtn).toBeDisabled();
+    // moving away with unsaved edits is refused and says why; the edit stays
+    await card(page).getByLabel('Name', { exact: true }).fill('Slimy');
+    await kind(page, /^Abilities/);
+    await expect(page.getByTestId('dz-unsaved')).toContainText('unsaved changes');
+    await expect(card(page).getByLabel('Name', { exact: true })).toHaveValue('Slimy');
+    await shot(page, 'designer-card-unsaved-message');
+    await page.getByTestId('dz-scope-core').click();
+    await expect(page.getByTestId('dz-scope-mine')).toHaveAttribute('aria-pressed', 'true');
+    // Save writes it, and then moving on is free
+    await saveBtn.click();
+    await expect(items(page).getByRole('button', { name: /^Slimy/ })).toBeVisible();
+    await expect(page.getByTestId('dz-unsaved')).toHaveCount(0);
+    await kind(page, /^Abilities/);
+    await expect(lib(page).getByRole('button', { name: /^Abilities/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
   test('make an ability, a spell and an enemy that uses them', async ({ page }) => {
     await open(page);
     await kind(page, /^Abilities/);
     await make(page, 'ability');
     await name(page, 'Bog skin');
     await card(page).getByLabel('What it does').fill('Mud spells fail on it.');
+    await save(page);
     await expect(items(page).getByRole('button', { name: 'Bog skin' })).toBeVisible();
 
     await kind(page, /^Spells/);
@@ -77,6 +128,7 @@ test.describe('designer: the library', () => {
     await card(page).getByLabel('Starts from').selectOption('orc');
     await page.getByLabel('Letter (1 or 2)').fill('M');
     await page.getByLabel('att', { exact: true }).fill('4');
+    await save(page);
     await page.getByLabel('Add an ability').selectOption({ label: 'Bog skin' });
     await page.getByRole('button', { name: 'Add the ability' }).click();
     await expect(
@@ -87,6 +139,7 @@ test.describe('designer: the library', () => {
     await expect(
       page.getByTestId('dz-spells').getByText('Mud', { exact: true }).first(),
     ).toBeVisible();
+    await save(page);
     await expect(items(page).getByRole('button', { name: 'Marsh Orc' })).toBeVisible();
     await expect(lib(page).getByRole('button', { name: /^Enemies 17 core · 1/ })).toBeVisible();
     await shot(page, 'designer-enemy');
@@ -117,6 +170,10 @@ test.describe('designer: the library', () => {
     await dlg.getByLabel('What it does').fill('Moves twice as far.');
     await dlg.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByTestId('dz-abilities').getByText('Quick feet')).toBeVisible();
+    // the ability is in the library; the enemy keeps it as a draft until Save
+    await kind(page, /^Abilities/);
+    await expect(page.getByTestId('dz-unsaved')).toContainText('unsaved changes');
+    await save(page);
     await kind(page, /^Abilities/);
     await expect(items(page).getByRole('button', { name: 'Quick feet' })).toBeVisible();
   });
@@ -133,6 +190,7 @@ test.describe('designer: the library', () => {
     await expect(items(page).getByRole('button', { name: 'Knight' }).locator('img')).toBeVisible();
     await page.getByRole('button', { name: 'Remove picture' }).click();
     await expect(page.getByTestId('dz-pic')).toHaveCount(0);
+    await save(page);
     await kind(page, /^Companions/);
     await make(page, 'companion');
     await expect(card(page).getByLabel('defend')).toHaveValue('2');
@@ -171,11 +229,13 @@ test.describe('designer: the library', () => {
     await make(page, 'ability');
     await name(page, 'Bog skin');
     await card(page).getByLabel('What it does').fill('Mud spells fail on it.');
+    await save(page);
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Marsh Skeleton');
     await card(page).getByLabel('Starts from').selectOption('skeleton');
     await page.getByLabel('Letter (1 or 2)').fill('M');
+    await save(page);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
     await page.getByRole('button', { name: /^New quest/ }).click();
@@ -217,10 +277,12 @@ test.describe('designer: the library', () => {
     await make(page, 'ability');
     await name(page, 'Bog skin');
     await card(page).getByLabel('What it does').fill('Mud spells fail on it.');
+    await save(page);
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Marsh Skeleton');
     await card(page).getByLabel('Starts from').selectOption('skeleton');
+    await save(page);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
@@ -236,8 +298,7 @@ test.describe('designer: the library', () => {
       await abilities.getByRole('button', { name: 'Add', exact: true }).click();
       await abilities.getByRole('button', { name: 'New ability…' }).click();
       await abilityDlg.getByLabel('Name').fill('Quick feet');
-      await abilityDlg.getByLabel('Name').blur();
-      await abilityDlg.getByRole('button', { name: 'Close' }).click();
+      await abilityDlg.getByRole('button', { name: 'Save', exact: true }).click();
       await expect(abilities.locator('[data-ability]')).toHaveCount(2);
     };
     const quest = async () => {
@@ -305,6 +366,7 @@ test.describe('designer: the library', () => {
     await card(page).getByLabel('Starts from').selectOption('skeleton');
     await page.getByLabel('att', { exact: true }).fill('4');
     await page.getByLabel('Letter (1 or 2)').fill('M');
+    await save(page);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Marsh');
@@ -366,6 +428,7 @@ test.describe('designer: the library', () => {
       .getByTestId('dz-file')
       .setInputFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG });
     await expect(page.getByTestId('dz-pic')).toBeVisible();
+    await save(page);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
 
     await page.getByRole('button', { name: /^New quest/ }).click();
@@ -391,7 +454,7 @@ test.describe('designer: the library', () => {
     await kind(page, /^Enemies/);
     await make(page, 'enemy');
     await name(page, 'Slime');
-    await page.getByLabel('att', { exact: true }).fill('2');
+    await page.getByLabel('att', { exact: true }).fill('2'); // the default: nothing to save
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: /^New quest/ }).click();
     await page.getByLabel('Title').first().fill('Slime quest');
@@ -407,6 +470,7 @@ test.describe('designer: the library', () => {
     await page.getByTestId('dz-scope-mine').click();
     await items(page).getByRole('button', { name: 'Slime' }).click();
     await page.getByLabel('att', { exact: true }).fill('5');
+    await save(page);
     await expect(page.getByTestId('dz-outdated')).toContainText('1 quest has an older copy');
     await page.getByTestId('dz-update-all').click();
     await expect(page.getByText('Updated in 1 quest.')).toBeVisible();
@@ -457,6 +521,7 @@ test.describe('designer: the library', () => {
     await expect(items(page).getByRole('button', { name: /^Slime/ })).toContainText('fan-made');
     // the owner can call an item of the library official
     await page.getByLabel('Origin', { exact: true }).selectOption('official');
+    await save(page);
     await expect(items(page).getByRole('button', { name: /^Slime/ })).toContainText('official');
 
     // without owner mode Core is read only and nothing can be called official
@@ -491,7 +556,7 @@ test.describe('designer: the library', () => {
     await page.getByTestId('dz-delete-core').click();
     // the warning names the bundled quests that use it
     await expect(page.getByTestId('dz-delete-bundled')).toContainText('Quest');
-    await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
     await expect(items(page).getByRole('button', { name: /^Made of stone/ })).toBeVisible();
 
     await items(page)

@@ -66,7 +66,11 @@ export function questFileName(quest: Quest): string {
 export function stripLocal(quest: Quest): Quest {
   const { userText: _userText, ...intro } = quest.intro;
   void _userText;
-  return { ...quest, intro };
+  // the approval and the link to a bundled quest stay on this device
+  const { status: _status, copyOf: _copyOf, ...rest } = quest;
+  void _status;
+  void _copyOf;
+  return { ...rest, intro };
 }
 
 /** Pretty JSON with a fixed top-level key order, cell pairs on one line, no `userText`. */
@@ -184,5 +188,9 @@ export function importQuest(text: string, options?: ImportOptions): ImportResult
       });
     }
   }
+  // A quest that comes in from a file is a draft until it is approved (decision 110).
+  const { copyOf: _copyOf, ...rest } = quest;
+  void _copyOf;
+  quest = { ...rest, status: 'draft' };
   return idRewritten ? { ok: true, quest, warnings, idRewritten } : { ok: true, quest, warnings };
 }

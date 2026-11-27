@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dismissStart, newGame, openQuest, questCard } from './helpers';
+import { approveOpenQuest, dismissStart, newGame, openQuest, questCard } from './helpers';
 
 test.describe('the start flow (Campaign.pptx): six screens', () => {
   test('screens, with their screenshots', async ({ page }) => {
@@ -127,6 +127,13 @@ test.describe('the start flow (Campaign.pptx): six screens', () => {
     await page.getByLabel('Title').first().fill('The Cellar');
     await page.getByRole('button', { name: 'Create the quest', exact: true }).click();
     await expect(page.locator('header.page-head h1')).toHaveText('The Cellar');
+    // a quest needs an objective before it can be approved
+    await page.getByRole('tab', { name: 'Quest', exact: true }).click();
+    await page.getByRole('button', { name: 'Add an objective', exact: true }).click();
+    const confirm = page.getByLabel('Confirm button (optional)');
+    await confirm.fill('The heroes left');
+    await confirm.blur();
+    await approveOpenQuest(page);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
