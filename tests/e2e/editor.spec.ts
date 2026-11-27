@@ -318,7 +318,7 @@ test.describe('editor: storage and files', () => {
     await page.getByRole('button', { name: /^Open quest/ }).click();
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Edit it now').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -380,7 +380,7 @@ test.describe('editor: storage and files', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
@@ -1373,7 +1373,7 @@ test.describe('editor: problems panel and playtest', () => {
     await page.getByLabel('Bundled quest').selectOption('1');
     await btn(page, 'Make a copy').click();
     await btn(page, 'Open it').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.getByTestId('playtest')).toBeEnabled();
     await page.getByTestId('playtest').click();
     await dismissStart(page);
@@ -1401,7 +1401,7 @@ test.describe('editor: problems panel and playtest', () => {
     await expect(page.locator('[data-zargon-view]')).toHaveCount(0);
 
     await btn(page, 'Back to editor').click();
-    await expect(page.locator('header.page-head h1')).toHaveText('The Trial');
+    await expect(page.locator('header.page-head h1')).toHaveText('The Trial (copy)');
     await expect(page.locator('#editor-board')).toBeVisible();
   });
 });
@@ -2049,5 +2049,5 @@ test('the editor lists the Frozen Horror quests that share a number with a core 
   await page.getByRole('button', { name: 'Edit it now' }).click();
   await expect(board(page)).toBeVisible();
   await page.getByRole('tab', { name: 'Quest', exact: true }).click();
-  await expect(page.getByLabel('Title')).toHaveValue('The Rescue');
+  await expect(page.getByLabel('Title')).toHaveValue('The Rescue (copy)');
 });

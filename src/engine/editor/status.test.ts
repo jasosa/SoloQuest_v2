@@ -61,14 +61,27 @@ describe('copy of a bundled quest', () => {
   };
 
   it('is a draft with a new user id, linked to the original, without personal text', () => {
-    const c = makeCopy(original, ['user-lair']);
-    expect(c.id).toBe('user-lair-2');
+    const c = makeCopy(original, ['user-lair-copy']);
+    expect(c.id).toBe('user-lair-copy-2');
     expect(c.status).toBe('draft');
     expect(c.copyOf).toBe('q03-lair');
     expect(c.intro.userText).toBeUndefined();
     expect(c.notes).toEqual(original.notes);
     expect(c.notes).not.toBe(original.notes);
     expect(original.id).toBe('q03-lair');
+  });
+
+  it('adds a (copy) suffix, numbered when the title is taken', () => {
+    expect(makeCopy(original, []).title).toBe('Lair (copy)');
+    expect(makeCopy(original, [], ['Lair (copy)']).title).toBe('Lair (copy 2)');
+    expect(makeCopy(original, [], ['Lair (copy)', 'Lair (copy 2)']).title).toBe('Lair (copy 3)');
+  });
+
+  it('a copy of a copy is numbered, not stacked', () => {
+    const first = makeCopy(original, [], []);
+    expect(makeCopy(first, [first.id], [first.title]).title).toBe('Lair (copy 2)');
+    const second = makeCopy(first, [first.id], [first.title]);
+    expect(makeCopy(second, [], [first.title, second.title]).title).toBe('Lair (copy 3)');
   });
 
   it('a copy of a copy still points at the bundled original', () => {

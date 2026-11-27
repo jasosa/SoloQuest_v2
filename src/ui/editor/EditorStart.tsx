@@ -77,6 +77,7 @@ export function EditorStart({ store, saves, onOpen, onBack, onDesigner }: Editor
     const copy = makeCopy(
       source,
       rows.map((x) => x.id),
+      rows.map((x) => x.title),
     );
     try {
       await store.save(copy, stamp());

@@ -55,9 +55,15 @@ export function withdrawQuest(q: Quest): Quest {
 /**
  * A copy of a quest for editing (a bundled quest, or one of yours): a new user id, a draft, and the
  * link (`copyOf`) to the bundled quest it comes from. The copy never replaces the original
- * by itself.
+ * by itself. The title gets a " (copy)" suffix, numbered ("(copy 2)") when that title is taken
+ * (decision 112): `takenTitles` are the titles of the saved quests.
  */
-export function makeCopy(original: Quest, takenIds: Iterable<string>): Quest {
+export function makeCopy(
+  original: Quest,
+  takenIds: Iterable<string>,
+  takenTitles: Iterable<string> = [],
+): Quest {
+  const title = copyTitle(original.title, takenTitles);
   const { userText: _userText, ...intro } = original.intro;
   void _userText;
   const { copyOf, ...rest } = original;
@@ -65,10 +71,21 @@ export function makeCopy(original: Quest, takenIds: Iterable<string>): Quest {
   return {
     ...structuredClone(rest),
     intro,
-    id: newUserQuestId(original.title, takenIds),
+    title,
+    id: newUserQuestId(title, takenIds),
     status: 'draft',
     ...(of !== undefined ? { copyOf: of } : {}),
   };
+}
+
+/** "Title" gives "Title (copy)"; a taken title gives "Title (copy 2)", "(copy 3)"... */
+export function copyTitle(title: string, takenTitles: Iterable<string> = []): string {
+  const base = title.replace(/ \(copy(?: \d+)?\)$/, '');
+  const taken = new Set([title, ...takenTitles]);
+  let name = tr('editor.status.copyTitle', '{title} (copy)', { title: base });
+  for (let n = 2; taken.has(name); n++)
+    name = tr('editor.status.copyTitleN', '{title} (copy {n})', { title: base, n });
+  return name;
 }
 
 /** What the lists of quests to play need to know about a saved quest of this device. */

@@ -1038,6 +1038,8 @@
   "editor.SpellDialog.whenItIsCast": "When it is cast",
   "editor.SpellDialog.whenTheMonsterMay": "When the monster may cast it",
   "editor.status.approveFirst": "Approve the quest first.",
+  "editor.status.copyTitle": "{title} (copy)",
+  "editor.status.copyTitleN": "{title} (copy {n})",
   "editor.status.fixTheseFirst": "The quest cannot be approved yet. Fix this first: {problems}",
   "editor.status.notACopy": "This quest is not a copy of a bundled quest.",
   "editor.status.originalMissing": "The original quest is not in this app.",
