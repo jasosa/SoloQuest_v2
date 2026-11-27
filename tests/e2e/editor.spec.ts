@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { dismissStart, monsterCard, pickMonster } from './helpers';
+import { approveOpenQuest, dismissStart, monsterCard, pickMonster } from './helpers';
 
 const shot = async (page: Page, name: string) => {
   await page.waitForTimeout(300);
@@ -322,7 +322,7 @@ test.describe('editor: storage and files', () => {
     await expect(page.locator('[data-monster]')).toHaveCount(24);
   });
 
-  test('an edit of a bundled quest that is not saved yet is what the quest list plays', async ({
+  test('an edit of a bundled quest plays only once it is saved, approved and replaces the original', async ({
     page,
   }) => {
     await page.goto('/?editor=1&nosave=1');
@@ -334,6 +334,18 @@ test.describe('editor: storage and files', () => {
     await title.fill('The Trial, edited');
     await title.blur();
     await expect(page.locator('header.page-head h1')).toHaveText('The Trial, edited');
+    // not saved, not approved: the original plays
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-single').click();
+    await page.getByTestId('pack-core').click();
+    await expect(page.locator('.qcard .qtitle').first()).toHaveText('The Trial');
+    // approved and replacing the original: the copy plays
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByTestId('home-editor').click();
+    await page.getByRole('button', { name: 'Open The Trial' }).click();
+    await approveOpenQuest(page);
+    await page.getByTestId('replace-original').click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
@@ -350,6 +362,8 @@ test.describe('editor: storage and files', () => {
     const title = page.getByTestId('quest-general').getByLabel('Title');
     await title.fill('Trial by Ice, edited');
     await title.blur();
+    await approveOpenQuest(page);
+    await page.getByTestId('replace-original').click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByTestId('home-single').click();
