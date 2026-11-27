@@ -11,6 +11,11 @@ const SLOT_H = 280;
 export interface MarginNoteProps {
   /** The tapped object, in map coordinates (px from the top left of the map area). */
   anchor: { x: number; y: number };
+  /**
+   * Instead of the map: hang under a coin of the team strip. `x` is the middle of the coin, in px from the
+   * left of its positioned parent (the coin's slot); the note drops below the parent.
+   */
+  below?: { x: number };
   kind: string;
   title: string;
   onClose(): void;
@@ -22,7 +27,7 @@ export interface MarginNoteProps {
  * object, in the lower half above it, so the explored area near the heroes stays visible.
  * Closes with the x button or Esc (a tap outside is handled by the screen).
  */
-export function MarginNote({ anchor, kind, title, onClose, children }: MarginNoteProps) {
+export function MarginNote({ anchor, below, kind, title, onClose, children }: MarginNoteProps) {
   // not modal: it only takes part in the Escape stack, so Esc closes the top dialog first
   const ref = useRef<HTMLDivElement>(null);
   useModal(ref, { onEscape: onClose, trap: false, focus: 'none', restore: false });
@@ -37,7 +42,12 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
   let origin: { ox: string; oy: string };
   // a tall note never goes past the map: it takes the room there is and scrolls inside
   let maxHeight: number;
-  if (above) {
+  if (below) {
+    // hangs from the parent (a coin of the team strip), the note's left edge is 20 px left of the middle of the coin
+    style = { left: below.x - 20, top: '100%', marginTop: 4 };
+    maxHeight = 420;
+    origin = { ox: '20px', oy: '0' };
+  } else if (above) {
     const left = Math.max(28, Math.min(x - 60, MAP_W - NOTE_W - 4));
     style = { left, bottom: MAP_H - y + 24 };
     maxHeight = Math.max(160, y - 24 - 8);
@@ -56,7 +66,7 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
   }
 
   return (
-    <div className={`note-slot ${above ? 'above' : 'beside'}`} style={style}>
+    <div className={`note-slot ${below ? 'below' : above ? 'above' : 'beside'}`} style={style}>
       <div
         className="callout"
         ref={ref}
@@ -66,7 +76,7 @@ export function MarginNote({ anchor, kind, title, onClose, children }: MarginNot
         style={
           {
             '--ox': origin.ox,
-            '--oy': above ? origin.oy : '50%',
+            '--oy': above || below ? origin.oy : '50%',
             maxHeight,
             overflowY: 'auto',
           } as React.CSSProperties

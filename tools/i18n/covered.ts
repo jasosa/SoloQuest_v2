@@ -38,6 +38,7 @@ export const COVERED: readonly string[] = [
   'src/ui/play/PlayScreen.tsx',
   'src/ui/play/QuestSheet.tsx',
   'src/ui/play/sidebar.tsx',
+  'src/ui/play/TeamStrip.tsx',
   'src/ui/play/ZargonDialog.tsx',
   'src/ui/play/ZoomLayer.tsx',
   'src/ui/select/SelectScreen.tsx',

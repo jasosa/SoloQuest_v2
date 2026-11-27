@@ -6,37 +6,46 @@
 <meta name="viewport" content="width=1194, initial-scale=1">
 <link rel="stylesheet" href="play.css">
 <link rel="stylesheet" href="team.css">
+<link rel="stylesheet" href="team-card.css">
+<link rel="stylesheet" href="team-strip.css">
+<script src="layout.js"></script>
 </head>
 <body>
-<div class="app">
+<div class="app play">
   <header>
-    <span class="qn">Quest 1</span>
-    <h1>The Trial</h1>
+    <button class="back-btn" aria-label="Back to the quests"><svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><path d="M11 2 3 11l8 9" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></button>
+    <div class="titleblock">
+      <h1>The Trial</h1>
+      <div class="subline"><span class="qn">Quest 1</span><span class="goalline"><b class="gcount">Goal 0 of 1 done</b><span class="gtext">Find and destroy Verag ›</span></span></div>
+    </div>
     <span class="turn">Turn <b id="turn">3</b></span>
-    <button class="link" id="undo" data-act="undo">Undo</button>
+    <button class="chip hdr" id="undo" data-act="undo">Undo</button>
+    <button class="chip hdr" id="qinfo">Quest info</button>
+    <button class="chip hdr">Options</button>
   </header>
 
   <div class="map">
     <svg id="board" role="img" aria-label="Dungeon map"></svg>
     <div class="callout" id="callout" hidden></div>
+    <div class="zoomctl"><button class="chip" disabled aria-label="Zoom out">&minus;</button><button class="chip" disabled>100%</button><button class="chip" aria-label="Zoom in">+</button></div>
   </div>
 
   <aside>
-    <section class="goal">
-      <div class="lbl">Your goal</div>
-      <p>Find and destroy Verag, the gargoyle hiding in the catacombs.</p>
-    </section>
-    <p class="zinfo">No traps and no secret doors in this quest.</p>
-    <section>
-      <div class="lbl">Monsters in play</div>
-      <ul class="roster" id="roster"></ul>
-    </section>
-    <section>
-      <div class="lbl">Quest notes</div>
-      <ul class="journal" id="journal"></ul>
-    </section>
-    <p class="wander">Wandering monster: <b>Orc</b></p>
-    <button class="zargon-btn" id="zbtn" data-act="zargon">Zargon's turn<small></small></button>
+    <div class="aside-scroll">
+      <section id="heroes">
+        <div class="lbl">Heroes</div>
+        <div class="hero-chips" id="herochips"></div>
+      </section>
+      <section class="monsters">
+        <div class="lbl">Monsters in play</div>
+        <ul class="roster" id="roster"></ul>
+      </section>
+    </div>
+    <div class="aside-foot">
+      <p class="wander">Wandering monster: <b>Orc</b></p>
+      <button class="btn alt" id="addmon">Add a monster</button>
+      <button class="zargon-btn" id="zbtn" data-act="zargon">Zargon's turn<small></small></button>
+    </div>
   </aside>
 
   <section class="zpage" id="zpage" aria-label="Zargon's turn">
@@ -57,5 +66,8 @@
 <script src="quest1.js"></script>
 <script src="play.js"></script>
 <script src="team.js"></script>
+<script src="team-card.js"></script>
+<script src="team-tabs.js"></script>
+<script src="team-strip.js"></script>
 </body>
 </html>

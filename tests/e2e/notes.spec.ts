@@ -404,13 +404,20 @@ test.describe('notes engine on the dev fixture', () => {
     await expect(page.getByTestId('quest-chip')).toHaveClass(/dot/); // something to press
     await openQuestSheet(page);
     await expect(page.getByText('Quest actions')).toBeVisible();
-    await expect(page.locator('.npcs')).toHaveCount(0);
+    const companion = page.locator('.team-strip .team-btn').filter({ hasText: 'ST' });
+    await expect(companion).toHaveCount(0);
     await btn(page, 'Call for help').click();
     await expect(page.getByRole('dialog')).toContainText('A knight steps out');
     await btn(page, 'Continue').click();
-    await expect(page.locator('.npcs')).toContainText('Sir Test');
-    await expect(page.locator('.npcs')).toContainText('Defend dice 2');
-    await expect(page.locator('.npcs')).toContainText('Body 3'); // the players write it down
+    // the knight is a companion: a coin in the strip, its numbers in the note under it, no buttons
+    await expect(companion).toHaveAccessibleName(/^ST, Sir Test, companion/);
+    await companion.click();
+    const card = page.getByRole('dialog', { name: 'Sir Test' });
+    await expect(card).toContainText('Defend dice 2');
+    await expect(card).toContainText('Body 3'); // the players write it down
+    await expect(card.getByRole('button', { name: 'Yes, fell' })).toHaveCount(0);
+    await companion.click();
+    await expect(card).toHaveCount(0);
     await expect(btn(page, 'Call for help')).toHaveCount(0); // each button works once
     await shot(page, 'notes-npc');
 

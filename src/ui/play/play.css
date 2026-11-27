@@ -200,24 +200,6 @@ aside {
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
-.npcs {
-  list-style: none;
-}
-.npcs li {
-  border-bottom: 1px solid var(--paper-2);
-  padding: 4px 0 8px;
-}
-.npcs .nm {
-  font-size: 16px;
-}
-.npcs .st {
-  font-size: 15px;
-  color: var(--ink-2, var(--muted));
-}
-.npcs p {
-  font-size: 14.5px;
-  color: var(--muted);
-}
 .journal {
   list-style: none;
   font-size: 14.5px;
@@ -323,16 +305,79 @@ aside {
   margin-top: 0;
 }
 
-/* ---------- heroes block ---------- */
-.hero-chips {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+/* ---------- team strip above the board (DESIGN.md, "Team strip"): 44 px, x 28 to the board's right edge ---------- */
+.team-strip {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  z-index: 6; /* its margin note hangs over the map */
+  display: flex;
+  align-items: center;
+  height: 58px;
+  padding-left: 22px; /* the first coin (30 px in a 44 px target) starts at x 28, as the board does */
 }
-.chip.fallen {
+.team-strip .hair {
+  width: 1px;
+  height: 28px;
+  margin: 0 8px;
+  background: var(--rock-line);
+}
+.team-slot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+.team-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+.team-btn.sel {
+  background: radial-gradient(circle, var(--sel) 0 21px, transparent 22px);
+}
+.team-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+.team-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.team-coin {
+  width: 30px;
+  height: 30px;
+}
+.coin.hero {
+  background: var(--ink);
+  color: var(--token-text);
+}
+.coin.helper {
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+}
+.coin.npc {
+  background: var(--paper-3);
+  border: 2px dashed var(--ink);
+  color: var(--ink);
+}
+.coin.long {
+  font-size: 11px;
+  letter-spacing: -0.02em;
+}
+/* a fallen coin keeps its place: grey, the letters struck */
+.team-coin.off {
+  border: 0;
+  color: var(--text);
   text-decoration: line-through;
-  border-color: var(--off);
-  color: var(--muted);
+  text-decoration-thickness: 2px;
+}
+.callout .nums {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
 }
 
 .roster .bp .tickdone {
@@ -756,9 +801,19 @@ header .goalline b {
    wider than the board needs (the tablet) this is the same as before: the map takes what is left. */
 .app.play {
   /* the board's width when its height sets the size: 916 x 686 is the board with its padding, and 56 px under it is the zoom strip */
-  --board-w: calc((var(--app-h, 834px) - 64px - 56px) * 916 / 686);
+  /* 64 px title band, 58 px team strip row, 56 px zoom strip: what is left is 656 px, the board with its padding */
+  --board-w: calc((var(--app-h, 834px) - 64px - 58px - 56px) * 916 / 656);
   grid-template-columns: min(var(--board-w), calc(100% - 274px)) minmax(274px, 420px);
+  grid-template-rows: 64px 58px 1fr;
   justify-content: center;
+}
+.app.play .map {
+  grid-column: 1;
+  grid-row: 3;
+}
+.app.play aside {
+  grid-column: 2;
+  grid-row: 2 / 4;
 }
 .zoomctl {
   position: absolute;
@@ -843,7 +898,7 @@ header .goalline b {
   margin-left: 0;
 }
 
-/* Right column, top to bottom: heroes (always shown), monsters (take all the room left and scroll),
+/* Right column, top to bottom: monsters (take all the room left and scroll),
    then the footer with the actions: wandering monster line, Add a monster, Zargon's turn. */
 .aside-scroll {
   flex: 1 1 auto;
@@ -940,4 +995,12 @@ header .goalline b {
   border: 2px solid var(--ink);
   background: none;
   color: var(--ink);
+}
+
+/* the board's border stays in place when the map is zoomed in: the map is clipped to it */
+.zoomframe {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px solid var(--ink);
 }

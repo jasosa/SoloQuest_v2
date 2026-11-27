@@ -187,7 +187,10 @@ test.describe('the end flow (decision 97)', () => {
 
   test('all heroes fallen: the card leads into the same sheet', async ({ page }) => {
     await gotoQuest(page, '/?quest=1&team=dwarf&nosave=1&seed=1&open=d1');
-    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await page
+      .locator('.team-strip')
+      .getByRole('button', { name: /^D, Dwarf/ })
+      .click();
     await btn(page, 'Yes, fell').click();
     await dlg(page).getByRole('button', { name: 'End quest' }).click();
     await expect(dlg(page)).toContainText('Goal and ending');

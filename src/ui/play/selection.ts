@@ -20,7 +20,10 @@ export type Selection =
   | { readonly kind: 'tunnel'; readonly id: string; readonly end: 'a' | 'b' }
   | { readonly kind: 'square'; readonly at: readonly [number, number] }
   | { readonly kind: 'zone'; readonly id: string; readonly at?: readonly [number, number] }
-  | { readonly kind: 'hero'; readonly hero: string };
+  /** A coin of the team strip: a hero, mercenary or ally (asks "fell?"). */
+  | { readonly kind: 'hero'; readonly hero: string }
+  /** A companion of the team strip: its numbers and text. */
+  | { readonly kind: 'npc'; readonly id: string };
 
 /** Parse the `?select=` screenshot parameter: `door:d3`, `cell:12,18`, `monster:m1`, `room:R20`, `trap:t1`. */
 export function parseSelection(value: string | null): Selection | null {

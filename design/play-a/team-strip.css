@@ -1,0 +1,54 @@
+/* Team alternatives E (strip above the board), H (coin stack with popover), I (Someone fell button).
+   DESIGN.md, "Alternative E", "Alternative H", "Alternative I". Uses the coin and card look of team-card.css. */
+html[data-team="E"] #heroes, html[data-team="H"] #heroes, html[data-team="I"] #heroes { display: none; }
+
+/* ---------- E: strip, 44 px high, x 28 to 912, y 70 to 114 ---------- */
+.tstrip { position: absolute; z-index: 4; left: 22px; top: 70px; width: 898px; height: 44px; display: flex; align-items: center; }
+.tstrip .tg { display: flex; }
+.tstrip .hair { width: 1px; height: 28px; background: var(--rock-line); margin: 0 8px; }
+.tchip { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; }
+.tchip.sel { background: radial-gradient(circle, var(--sel) 0 21px, transparent 22px); }
+.tchip:active:not(:disabled) { transform: translate(1px, 1px); }
+.tchip:disabled { color: inherit; }
+.tstrip .tcoin { width: 32px; height: 32px; }
+
+/* ---------- H: stack, bottom left, next to the zoom buttons ---------- */
+.tstack { position: absolute; z-index: 4; left: 168px; top: 780px; height: 44px; display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0 4px; }
+.tstack .lbl { margin: 0; }
+.tstack .coins { display: flex; align-items: center; }
+.tstack .tcoin { width: 32px; height: 32px; box-shadow: 0 0 0 2px var(--paper); }
+.tstack .tcoin + .tcoin { margin-left: -4px; }
+.tstack .fc { font-size: 14px; color: var(--muted); white-space: nowrap; }
+.tstack[aria-expanded="true"] { background: linear-gradient(90deg, var(--sel), transparent); }
+.tstack:active { transform: translate(1px, 1px); }
+
+.tpop { position: absolute; z-index: 6; padding: 10px 12px 12px; background: var(--paper-3); border: 1.5px solid var(--rock-line); box-shadow: 4px 4px 0 var(--sel); animation: pop .2s var(--ease-ink) both; }
+.tpop .lbl { margin-bottom: 4px; }
+.tpop .sub { font: 700 12px "Bonum", serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 8px 0 0; }
+.tpop .sub:first-of-type { margin-top: 0; }
+.tpop.H { left: 168px; bottom: 62px; width: 504px; transform-origin: 0 100%; }
+.tpop.H .cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; align-items: start; }
+.tpop .tlist li { border-bottom: 1px solid var(--paper-2); }
+.tpop .trow { min-height: 46px; }
+
+/* ---------- I: button in the footer, card to the left of the column ---------- */
+#sfell.open { background: var(--ink); color: #F4ECDD; }
+.tpop.I { width: 392px; transform-origin: 100% 100%; }
+.tpop.I .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-bottom: 4px; }
+.tcell2 { display: grid; grid-template-columns: 32px 1fr; gap: 8px; align-items: center; min-height: 46px; padding: 0 4px; background: none; border: 0; border-bottom: 1px solid var(--paper-2); text-align: left; font-size: 15px; line-height: 1.1; }
+.tcell2:active:not(:disabled) { transform: translate(1px, 1px); }
+.tcell2.fallen .nm { text-decoration: line-through; color: var(--muted); }
+.tcell2:disabled { color: inherit; }
+.tpop.I .ask h3 { font: 700 18px/1.2 "Bonum"; color: var(--ink); margin: 6px 0 4px; }
+.tpop.I .ask .kind { font: 700 12px "Bonum"; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.tpop.I .ask p { font-size: 14.5px; color: var(--muted); margin-bottom: 10px; }
+.tpop.I .ask .nums { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.tpop.I .ask .head { display: flex; align-items: center; gap: 10px; }
+.tpop.I .close { position: absolute; right: 4px; top: 2px; width: 44px; height: 44px; border: 0; background: none; font-size: 22px; color: var(--muted); }
+
+/* tie list on Zargon's page (I) */
+.tie { margin: 0 28px 10px; padding: 8px 12px 10px; background: var(--paper); border: 1.5px solid var(--rock-line); }
+.tie .lbl { margin-bottom: 6px; }
+.tie .coins { display: flex; flex-wrap: wrap; gap: 8px; }
+.tie .tcoin { width: 32px; height: 32px; }
+.tie p { font-size: 13.5px; color: var(--muted); margin-top: 6px; }

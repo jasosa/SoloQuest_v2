@@ -10,7 +10,7 @@
 - No hero Body Point tracking. Monster targets use only hero class and monster type.
 - No gold, equipment or artifact tracking between quests.
 
-**Layout.** Title band (quest, turn, undo) · board 26 x 19 at 34 px a square · right column: goal, heroes, companions, monsters in play, wandering monster, Zargon's turn button. Notes read, objectives with their buttons and the log live in the Quest sheet (decision 67, see below).
+**Layout.** Title band (quest, turn, undo) · team strip (58 px row, 44 px coin buttons, coins of the heroes, mercenaries, allies and companions, see "Team strip") · board 26 x 19 at 34 px a square · right column: monsters in play, wandering monster, Add a monster, Zargon's turn button. Notes read, objectives with their buttons and the log live in the Quest sheet (decision 67, see below).
 
 **Interactions** (one tap on the map, then a margin note next to the object):
 
@@ -51,7 +51,7 @@ Same shell as the play screen (title band, 920 px left area, right column). Left
 - **Letters**: a note that was read leaves its letter (ink square, light letter) on the map at its square; tap to read again. The right column "Quest notes" lists the same notes (letter or a bullet, first sentence). Notes that were never read leave no trace.
 - **Waiting notes**: a seen square with a `squareEntered` note shows a neutral dashed ring with a dot (tap: "Did a hero step here?" Yes / No). A revealed room with an `areaEntered` note shows a small arrow glyph at its top left, and its margin note gets "A hero enters". `manual` notes (buttons for things the app cannot see) are replaced by the element buttons and the Quest sheet (decision 67, see below).
 - **Goal**: the right column lists the objectives with a tick box; when all are done: "Goal done. Bring the heroes back to the stairs." the goal line in the title band opens the end sheet (see "End flow" below), then the end card ("Quest complete" or "Quest over, goal not reached", objectives, rewards as text, "Back to the quests", "Undo the ending"). After the end the board is read-only (the card covers it); undo still works.
-- **Companions**: an NPC is a row (name, then "Defend n · Body n" so the players can write the numbers down) above the monsters. The app does not track the Body Points.
+- **Companions**: a quest person who is not on the team is a dashed coin in the team strip. A tap opens a note with its numbers ("Defend dice n · Body n", so the players can write them down) and its quest text, no buttons. The app does not track the Body Points. A person who is also an ally of the team (the wolf of Frozen Horror) is one entry: an ally coin, with its numbers in the "fell?" note. See "Team strip".
 - **Statues**: a dormant monster is drawn as a small statue figure (line art, ink on white), not in the roster, not tappable. When a note wakes it, it stamps in like any monster. A monster placed by a note shows its token on the named square, a margin note "Put X here" and a pulsing ring on the square. Roster lines: "Stone: n turns", "Placed by a quest note".
 
 ## Zargon's turn: one monster at a time (decision 34)
@@ -60,7 +60,7 @@ The page of the prototype is gone: no list, no grouping, no "Who can it reach?" 
 
 ## Heroes block (decision 32)
 
-Right column, above the monsters: one square chip per hero of the team. A tap asks "<Hero> fell?" (margin note, "Yes, fell" or "No"). A fallen hero is struck through and cannot be tapped; undo takes it back. Nothing else about heroes is shown. When the last hero falls a card says "All heroes have fallen" with "End quest".
+Since the team strip (decision 115) the Heroes block is gone from the right column. The heroes, mercenaries and allies are coins in the strip above the board (see "Team strip"). A tap on a coin asks "<Name> fell?" in a margin note under the coin ("Yes, fell" or "No"). A fallen coin is grey with struck letters, keeps its place and cannot be tapped; undo takes it back. Nothing else about heroes is shown. When the last hero falls a card says "All heroes have fallen" with "End quest".
 
 ## Fit to the screen
 
@@ -176,7 +176,7 @@ Goal: the board stays the center, the side column stops growing, and every messa
 
 **Title band.** Quest, turn, then a second line with the **current goal**: the first objective that is not done, in one line ("Goal: Find the Talisman of Lore"). Buttons on the right, all 44 px tall `btn alt` chips: Undo, **Quest info**, Settings. The goal line is a button that opens the end sheet; there is no End quest chip (see "End flow"). A small ink dot on the goal line means a confirm button is available now (an objective with `confirm` whose `confirmWhen` holds); the dot on Quest info means a loose Quest action is available.
 
-**Side column (right), after the change.** Heroes, Companions, Monsters in play (alive only), the wandering monster line, the Zargon's turn button. No objectives list, no journal, no Quest actions block. Less scrolling: the list of monsters is the only part that can grow.
+**Side column (right), after the change.** Monsters in play (alive only), the wandering monster line, Add a monster, the Zargon's turn button. Heroes and Companions moved to the team strip (decision 115). No objectives list, no journal, no Quest actions block. Less scrolling: the list of monsters is the only part that can grow.
 
 **Quest sheet.** Opens from the Quest chip. A panel that slides in from the right over the side column and the right 150 px of the board (420 px wide, paper-3 fill, 2 px ink outline on its left edge, offset shadow like `.note`). The rest of the board stays visible and untinted (no dim veil); tapping the board, Esc or "Close" closes it. Focus moves to the heading; Tab stays inside while it is open. Slide-in 220 ms with the ink ease; instant with reduced motion. Content, top to bottom, scrolling inside the panel only:
 
@@ -248,7 +248,7 @@ A monster the quest marks special has a second ink ring around its token and a s
 
 **Title band.** The quest title is on top (26 px, one line). Under it, small: the quest number and the goal (one line, ellipsis when long; the full text is the tooltip and is on the Quest info sheet). On the right: Turn, Undo, Quest Info, Settings, Quests (and "Finish the quest" when the goal is done). Nothing in the band wraps: a long title such as "Barak Tor: Barrow of the Witch Lord" must not break the buttons at 1194 px.
 
-**Right column, top to bottom.** Heroes (a compact row, always shown) · Monsters in play (a paper-3 panel that takes all the height that is left and scrolls inside) · a footer set apart by a hairline: the wandering monster line (quiet, 14.5 px muted), Add a monster (outlined), and Zargon's turn (the one filled button, 68 px tall). The panels are not collapsible: what the players check each turn (who fell, which monsters are out) stays in sight.
+**Right column, top to bottom.** Monsters in play (a paper-3 panel that takes all the height that is left and scrolls inside) · a footer set apart by a hairline: the wandering monster line (quiet, 14.5 px muted), Add a monster (outlined), and Zargon's turn (the one filled button, 68 px tall). The panels are not collapsible: what the players check each turn (which monsters are out) stays in sight; who fell is in the team strip above the board.
 
 ## One set of rules for all screens
 
@@ -575,3 +575,171 @@ Nothing new in look: the existing tag text, `.mg-err` error and `.btn` buttons.
 - **Saved game of a quest that is not approved.** It shows as a saved game with no quest to play (the hint line with "Delete the save"), worded: "The saved game of {quest} waits: the quest is not approved. Approve it in the editor to continue, or delete the save." Nothing is deleted without a tap.
 - **A quest with a game in progress.** Opening it from the start list does not edit it in place: a copy is made (Not approved, title with the suffix "(copy)", numbered "(copy 2)" when taken) and opened, and a toast says "This quest has a game in progress. You edit a copy." The original and its saved game stay as they are.
 - **Searching here is not possible (Then list, decision 111).** The row looks like any other effect (a bar, the name, Remove, one italic line). It is offered in Add an effect only when When is "Search for treasure", and never inside an answer of Ask the players. Where it cannot work (When is another trigger, "No treasure card is drawn" is on, or it sits in an answer) the row keeps showing and a `.mg-err` line under it says why in one sentence; the validator reports the same as an error.
+
+## Team strip (decision 115, built; owner chose alternative E, 2026-11-27)
+
+The owner chose **Alternative E**, a team strip above the board (described below with the other proposals). A, B, C, D, H and I are not built; they stay in this file as the record of what was compared.
+
+**What is built.** `src/ui/play/TeamStrip.tsx`, codes in `teamCodes.ts`, matching of quest people in `teamView.ts`, styles at the end of the team strip block in `play.css`.
+- **Strip.** A 58 px row (the 44 px coin buttons are centered in it, so the coins sit midway between the title band line and the board's red border), directly under the title band, in the left grid column (the width of the board), left aligned. Heroes, a 1 px `--rock-line` hairline (28 px high), mercenaries and allies in team order, a hairline, then companions. A group that is empty has no hairline. No label, no names. Each coin is 30 px in a 44 x 44 px button (the touch target). Heroes: `--ink` fill, `--token-text` letters. Mercenary and ally: `--paper-3` fill, 2 px `--ink` ring, ink letters. Companion: the same with a dashed ring. Fallen: `--off` fill, `--text` letters struck through (2 px), no ring, the button is disabled, the coin keeps its place. The open coin has the `--sel` disc behind it.
+- **Codes.** `teamCodes`: core hero first letter (B D E W); one word, the first two letters (Sw, Sc, Sn, Cr, Ha, Ba for the alternate Barbarian); two words or more, the initials of the first two (SR, OG); a repeated type adds its number (Sw, Sw2, Sw3, the number in the name); two different names with the same code, the later one takes one more letter (Sc, Sco; OG, OGu); three characters at most. The accessible name starts with the visible code: "Sw2, Swordsman 2, tap if it fell", "D, Dwarf, fell", "SR, Sir Ragnar, companion, tap for its numbers".
+- **Tap.** A margin note hangs under the coin (200 ms pop, `MarginNote` with `below`; left edge 20 px left of the middle of the coin). Hero, mercenary, ally: small label (Hero, Mercenary, Ally), "<Name> fell?", the numbers line for an ally the quest gives numbers for, then **Yes, fell** and **No** side by side (a `.row`). Companion: label "Companion", name, numbers, quest text, no buttons. A second tap on the coin, Esc, the x, a tap on another coin (it takes the note) or a tap on the map closes it. The note is placed from the coin, not from a fixed point.
+- **Board.** Grid rows of the play screen: 64 px title band, 58 px strip row, then the map. The board keeps **884 x 646, 34 px a square** at 1194 x 834: it moves down 28 px (top y 96 to 124, bottom y 742 to 770). The padding above the board is 0 px and below 6 px (it was 18 and 18); the zoom strip (56 px) is unchanged and the zoom buttons clear the board. A quest with an edge door in its north or south wall gets 26 px of room for the arrow on that side, which makes the squares about 3% smaller on that quest only. When the map is zoomed above 100%, the red board frame stays fixed at its fitted size, the map is clipped inside it and panning is clamped so the board always covers the frame.
+- **Right column.** The Heroes block and the Companions block are gone. The Monsters card starts at the top of the column and has about 100 px more height.
+- **Not in this build.** No names under the coins. No pictures on the coins (the Library pictures of heroes are not used here yet). The tie list coin row of alternative I is not built. Companions are not in tie lists. More than about 19 entries do not fit the strip.
+
+## Team card: three alternatives (proposals; E was chosen, see above; owner request 2026-11-27)
+
+Request: the heroes, mercenaries, allies and companions look like the monsters (a coin with letters) and sit on the LEFT side of the play screen. The first concept (a 64 px rail of round coins) was rejected. These three differ in structure, not in detail.
+
+**Prototype.** `index.html?state=room&team=A` (also `B`, `C`; without `team` it draws the app as it is today). Extra values: `tap=ask` (a hero asks "fell?"), `ask2` (a mercenary, with the Elf fallen), `fell`, `ally` (the wolf), `companion`, and `drawer=1` (B open). With `state=plain` no map note is open. Screenshots are in `shots/team/`: `A-*.png`, `B-*.png`, `C-*.png`; the app today is in `app-today-core.png` and `app-today-frozen.png`; `proto-base-room.png` is the prototype without a concept.
+
+**The prototype play state now follows the app** (it showed an older layout). The title band has the back button, the goal line, Turn, Undo, Quest info and Options. The right column has Heroes (two-column chips, as today), the Monsters card (paper-3, 1.5 px `--rock-line`, label, rows with a 30 px coin) and the footer (wandering line, Add a monster, Zargon's turn). Zoom buttons are at the bottom left. Goal, quest notes and the log are in the title band and the Quest sheet, not in the column. The prototype's Zargon page is still the older list page; the app shows one monster at a time (decision 34). It was not redrawn here.
+
+**Shared by all three.**
+- **Coin.** The monster coin (`.coin`, Bonum 700, 30 px, letters 12 px, 11 px for three characters; 34 px in the drawer of B). Hero: `--ink` fill, light letters. Mercenary and ally: `--paper-3` fill, 2 px `--ink` ring, ink letters. Companion: the same with a **dashed** ring (dashed rings already mean "waiting" on the map). Green and blue stay for monsters. A picture, when the Library has one, fills the coin with the code as the small ink bar, as on a monster picture.
+- **Codes.** B D E W for core heroes. **Ba** for the alternate Barbarian (first letter plus "a"). Two letters for a one-word mercenary or ally (Sw, Sc, Sn). Initials for two words (OG Old Gareth, SR Sir Ragnar). The number of a duplicate is added (Sw, Sw2, Sw3). A clash takes one more letter (Sc, Sch). Three characters at most. The accessible name starts with the visible code: "Sw2, Swordsman 2, tap if it fell".
+- **Order.** Heroes, then mercenaries and allies in team order, then companions.
+- **Fallen.** The coin turns `--off` with `--text` letters struck through (2 px). The name is struck and muted. The entry cannot be tapped again and keeps its place. Undo brings it back (the prototype does this). When the last hero falls, the "All heroes have fallen" card appears as today.
+- **Tap.** Hero, mercenary and ally: "Dwarf fell?" with **Yes, fell** and **No** (HERO_DIED; the question and the two buttons only). An ally the quest gives numbers for (the wolf) shows them in that question. A companion (a quest person who is not on the team, like Sir Ragnar) has **no buttons**: its numbers ("Defend dice 2 · Body 4", only what the quest gives) and its quest text, nothing else. The app does not track its Body Points. A second tap closes it.
+- **Right column.** The Heroes block goes in all three, so the Monsters card gets about 100 px more height (about two more monster rows before it scrolls). The wandering line, Add a monster and Zargon's turn do not change.
+- **No new color, font or control.** Card, label, rows, coin, margin note and `.btn` already exist. New pieces: the dashed companion ring and, in B, the drawer tab.
+
+### Alternative A: a Team card in a left column, always visible
+
+- **Structure.** A 172 px card (x 28 to 200, from the top of the board) in the same look as the Monsters card. Label "Team", three small group labels (Heroes, Mercenaries and allies, Companions), one row per entry: coin, name. The board moves right and gets smaller.
+- **Board cost.** 884 px wide becomes **702 px** (27 px a square, 34 before): 21% less each way, about 37% less area. Under the board there is 130 px of empty space. This is the highest price of the three. Zoom still works; the zoom buttons move to the board's left edge.
+- **What moves.** The Heroes block leaves the right column. Nothing else.
+- **Tap flow.** The row opens **in place**: the rows below move down and a small question appears with Yes, fell and No side by side (for a companion, its text). No margin note. With all 9 entries and one open the card ends at y 780, so about 10 entries is the limit before the card scrolls.
+- **Companions.** Their row carries the numbers as a second line ("Defend 2 · Body 4"), so the players can write them down without a tap.
+- **Fallen.** Row struck, second line "Fell".
+- **For.** Always visible; the nearest to "a card like the monsters". **Against.** It takes the board's space.
+
+### Alternative B: a drawer from the left edge
+
+- **Structure.** A 312 px page that slides in from the left (340 ms, the Zargon page mirrored, same page look: `--paper-3`, 2 px ink edge, soft offset). Closed, only a bookmark tab shows at the left edge (46 px wide, 132 px high: "Team" and the count). The page lists every entry with its coin, name and a kind line ("Hero", "Mercenary", "Ally", "Companion"), in bigger rows (56 px). A tap on the tab or on the board closes it.
+- **Board cost.** **858 px wide** (33 px a square, -3%). The board moves 22 px right to clear the tab. Open, the drawer covers the left 312 px of the board.
+- **What moves.** The Heroes block leaves the right column. Nothing else.
+- **Tap flow.** Open the drawer, tap a row: a **margin note** pops to the right of the drawer, level with the row (the same note as on the board). Yes, fell closes the note and marks the row; the drawer stays open until the board is tapped.
+- **Companions.** The note shows the numbers and the quest text, no buttons.
+- **Fallen.** Struck row, the kind line says "Fell". The closed tab does not show it.
+- **For.** The board keeps nearly its size, and a fall is rare, so an on-demand list is enough. **Against.** Nothing about the team is visible until the tab is tapped; one more tap for a fall.
+
+### Alternative C: a card under the board, left aligned
+
+- **Structure.** A 722 px wide, 108 px high card under the board, at the left. Label "Team" at its left, then the entries as a grid of 5 columns and 2 rows (cell 44 px high: coin, name, up to two lines). The kind is told by the coin only; the kind line is in the tap note. The zoom buttons move to the right end of the same band.
+- **Board cost.** **832 px wide** (32 px a square, -6%), 608 px high. The empty space under the board today is used.
+- **What moves.** The Heroes block leaves the right column; the zoom buttons go to the lower right.
+- **Tap flow.** A margin note pops **above the card**, at the cell's left. Up to 10 entries fit; more would need a third row (a 152 px card, 1 px smaller squares).
+- **Companions.** Dashed coin; the note shows numbers and text.
+- **Fallen.** Struck coin and name.
+- **For.** Always visible, nearly full board. **Against.** It is at the **bottom**, not on the left side (it starts at the left edge; I moved it because the left column costs 21% of the board, see A). The note covers part of the board's lower rooms, where the heroes usually stand.
+
+### Recommendation
+
+**B**, if the owner accepts that the team is on demand: it is on the left, it uses the monster card look, and it costs 3% of the board. **A** if the team must always be on screen: it is the closest to the request, but the board falls to 702 px, which I would not ship for a game played by looking at the board. **C** is the compromise on cost, but it is not on the left.
+
+### Open questions
+
+1. Must the team always be visible, or is a drawer enough? (A or B.)
+2. Is a board of 702 px (A) acceptable, against 858 px (B) and 832 px (C)?
+3. The wolf of Frozen Horror is both an ally of the team and a quest companion with numbers. Here it is one entry (an ally with its numbers in the question). Is one entry right, or should it also be listed under companions?
+4. Pictures: the Library has pictures for heroes and companions; a mercenary or ally of a pack has none, so letters are the fallback. Add pack slots later?
+5. Should the closed tab of B show that someone fell?
+6. The zoom buttons move in A (to the board) and C (to the right). Acceptable?
+
+### Alternative D: left tabs (proposal, not decided; owner idea 2026-11-27)
+
+Idea: one panel at the left with three tabs, Team, Enemies, Quest info. The board is not made smaller. Prototype: `index.html?state=room&team=T` (also `tab=team|monsters|quest`, `tap=ask|ask2|ally|companion`, `dot=quest`). Shots: `shots/team/T-*.png`.
+
+**Where it lives.** The whole right column moves to the left, the board moves to the right. The column is 222 px of content (x 28 to 250), the board starts at x 278 and ends at the title band's right edge (1166). The board keeps **884 px, 34 px a square, the same as today**: the right column already costs that width, so swapping the sides costs nothing. Zoom buttons go under the board's left edge. Zargon's page and margin notes work as today (the page still slides from the right over the board).
+
+**Tabs.** Folder tabs, as in the editor ("Tabs are not chips"): the open tab has the panel colour (`--paper-3`) and joins the panel; the closed ones are `--paper-2`; 46 px high. The panel is `--paper-3` with a 2 px ink outline. Roles `tablist`, `tab`, `tabpanel`; arrow keys move between tabs. Labels: **Team**, **Monsters**, **Quest info**. The owner wrote "Enemies"; the app says "monsters" everywhere else (Add a monster, Zargon's turn), so the prototype uses Monsters. At 222 px the three labels fit on one line at 14.5 px with the count.
+
+**What each tab holds.**
+- **Team.** The rows of alternative A: label, groups Heroes, Mercenaries and allies, Companions, one 44 px row per entry with the coin and name. Tap flow as in B and C: a margin note pops to the right of the panel level with the row ("Dwarf fell?", Yes, fell / No). The companion shows its numbers and text, no buttons. Fallen: struck coin and name, second line "Fell". Undo takes it back. Nine entries fit without scrolling.
+- **Monsters.** The Monsters in play card as today (rows with coin, name, stats, Body), taking all the height; pinned at its bottom, under a hairline: the wandering monster line, the rules hint when it shows, and **Add a monster**. Its list is about 130 px higher than today (about 1.5 more rows), because the Heroes block is gone.
+- **Quest info.** What the Quest sheet shows today, in the panel and in a different order, play parts first: Goal (tick boxes), Quest actions (its buttons, "No quest action yet." when none), Notes read (44 px rows, a tap reads the note again), What happened, About this quest, At the start. It scrolls inside the panel. The Quest sheet and the title band's Quest info button go away; the goal line in the title band opens this tab.
+
+**Always visible, under the panel, whatever the tab:** **Zargon's turn**, the one filled button (68 px, "n monsters to act"). It does not hide in a tab: it is the main action of the screen.
+
+**Default tab and memory.** Monsters is the default (most taps in a game, and it holds Add a monster). The open tab is remembered while the quest is on screen (UI state only, not saved with the game). Automatic switches, only when the player needs the other tab for what they just did: Zargon's turn opens **Monsters** (the card marks the monster's row); a tap on a monster token on the board selects it in **Monsters**. Nothing else switches by itself; a door that shows monsters does not pull the player out of Team or Quest info.
+
+**Badges.** Monsters: an ink-outlined count (as the editor's Notes count) of the monsters in play, stamped (320 ms) when it changes. Quest info: the 9 px ink dot (as today on the Quest info button) when a quest action button is waiting. Team: none. A fall is rare and the player just marked it; the struck row is enough.
+
+**Fallen state.** Same as the shared rules above. The "All heroes have fallen" card works as today.
+
+**Against A, B and C.**
+- Board: 884 px (A 702, B 858, C 832). Only D keeps the full board.
+- It is the only one that is on the left and still gives the Monsters card more height, and it also takes Quest info out of the title band and the sheet.
+- Heroes and monsters are never on screen together. A fall costs one more tap (open Team, tap the hero, Yes, fell). In A the team is always visible, in B it is one tap away too.
+- Zargon's turn does not need the Monsters tab to run, but the card marks the row, so the tab opens by itself.
+- The Quest sheet's 420 px text sits in 222 px: more lines, more scrolling; long goals take three lines. Quest actions with a long hint become tall.
+- The "tap a monster, see its row" link works only when the Monsters tab is open; it opens by itself.
+- New code: a tab strip component and a panel. No new colour, font or control style.
+
+**Recommendation.** D beats A, B and C if the owner accepts that heroes and monsters are not seen together. It is the only one that keeps the board at full size, is on the left, and does not hide anything the player checks every turn (monsters, Zargon's turn). B is the better answer only if the team must be reachable while the monsters are in view.
+
+**Open questions for the owner.**
+1. Monsters or Enemies as the tab name?
+2. Is "Team and Monsters never in view together" acceptable? (A fall is one more tap.)
+3. Should the Quest sheet stay as a wide sheet (opened from the tab or the goal line) for long quest text, or is the 222 px panel enough?
+4. Should Zargon's turn open the Monsters tab by itself, or stay on the tab the player is on?
+5. Should the Team tab show how many fell?
+
+**Prototype limits.** The Undo button of the title band is disabled when no event happened, so a fall from a URL (`tap=fell`) cannot be undone with it; a fall made by taps can. The Notes read rows do not open the note. The Zargon page is still the older list page (see above).
+
+### Alternatives E, H and I: chips that stay on the screen (E decided and built, H and I not built; owner request 2026-11-27)
+
+Three more ways to show the team as coins. They reuse the shared rules above: the coin, the codes, the fallen state (grey coin, struck letters, keeps its place, Undo restores it), the companion rule (a quest person who is not on the team has no fell flow, only its numbers and text) and the wolf as one entry. Same sample team as A to D. In all three the Heroes block leaves the right column. Prototype: `index.html?state=room&team=E|H|I`; extra values `tap=ask|ask2|fell|ally|companion`, `open=1` (H popover, I card), `zargon=1` (I: Zargon's page with the tie list coins). Code: `team-strip.js`, `team-strip.css`; sizes in `layout.js`. Shots: `shots/team/E-*.png`, `H-*.png`, `I-*.png` (E: room, ask, ask2, fell, ally, companion; H: room, open, ask, ask2, fell, ally, companion; I: room, open, ask, ask2, fell, ally, companion, zargon).
+
+#### Alternative E: a team strip above the board (decided)
+
+- **Layout.** A row of coins, 44 px high, x 28 to 912, y 70 to 114, under the title band and above the map. Heroes at the left, then mercenaries and allies, a 1 px `--rock-line` hairline (28 px high), then companions. No panel, no label. Each coin (32 px) sits in a 44 x 44 button. 9 entries use 475 px of the 884; about 19 fit before the row would need a second line.
+- **Board cost.** The board keeps **884 x 646 (34 px a square)**. It moves **28 px down** (top y 96 becomes 124, bottom 742 becomes 770); the zoom buttons (y 780 to 824) still clear it. The strip itself is 44 px (5.7% of the 770 px play area), plus 16 px of gap, of which 32 px were already empty above the board. If the owner wants the old top margin back, the board shrinks to 32 px a square (-6%).
+- **Tap flow.** Tap a coin: a margin note pops **under the coin** (200 ms), "Dwarf fell?" with **Yes, fell** and **No**. Two taps to record a fall. A tap outside closes the note.
+- **Fallen.** The coin turns grey with struck letters, stays in place, cannot be tapped. Visible at once, even when nobody asks.
+- **Companions.** Dashed coin after the hairline; the note shows numbers and quest text, no buttons. The wolf: an ally coin; its note shows the numbers above the question.
+- **Weaknesses.** Coins only show codes, so a name needs a tap (same for H). The note covers the top rows of the board while it is open. The strip is at the top, not in a left column (it is left aligned). More than about 19 entries do not fit.
+
+#### Alternative H: a coin stack with a popover
+
+- **Layout.** At the bottom left, next to the zoom buttons: the label "Team" and a stack of the 9 coins (32 px, each overlapping the one before by 4 px, a 2 px paper ring between them), x 168 to about 500, y 780 to 824 (a 44 px button). When someone fell, "1 fell" shows after the stack. A tap opens the card; a second tap on the stack, or a tap anywhere outside, closes it.
+- **Card.** The monsters card look (`--paper-3`, 1.5 px `--rock-line`, label) with the margin note shadow, 504 px wide, two columns: Heroes and Companions at the left, Mercenaries and allies at the right. One 46 px row per entry: coin, name, and a kind line for the non-heroes (Mercenary, Ally) or the numbers for a companion. A tap on a row opens the question **in the row** (as in A): Yes, fell / No. It grows from the stack's corner (200 ms).
+- **Board cost.** Closed: **none**. The stack sits in the band under the board (board bottom y 742, stack y 780), where the zoom buttons already are. Open: the card covers x 168 to 672 and y 363 to 772 at most (about 30% of the board's area, the lower left, where start rooms are). It is on screen only while the players use it. Yes, fell keeps the card open so a second fall can be recorded; the player closes it with the stack or a tap outside.
+- **Taps for a fall.** Three: stack, row, Yes, fell.
+- **Fallen.** The coin in the stack turns grey, so a fall shows at a glance, and "n fell" counts them. In the card the row is struck with the kind line "Fell".
+- **Companions.** Dashed coin in the stack; its row shows the numbers, a tap shows the quest text, no buttons.
+- **Weaknesses.** The overlap cuts the right edge of a coin, so codes of three characters (Sw2) are tight and which coin is which is hard to read without opening it. The card hides the lower left of the map while open: a hero standing there cannot be seen during the fall. The "tap outside closes" also eats the first tap on a map square.
+
+#### Alternative I: no standing chips, a "Someone fell" button
+
+- **Layout.** A third button in the right column footer, **Someone fell** (`.btn.alt`, 44 px high), between Add a monster and Zargon's turn. It turns filled while its card is open. The card appears to its left, over the board's lower right (x 544 to 936, bottom level with the button), 392 px wide: the label "Who fell?", the three groups, one 46 px cell per entry (coin and name, two cells a row).
+- **Tap flow.** Someone fell, a coin, then the card turns into the question (coin, kind, "Dwarf fell?", Yes, fell / No). **No** goes back to the coins; Yes, fell closes the card. Three taps. A companion shows its numbers and text with no buttons; the x goes back to the coins.
+- **Board cost.** **None**, at rest and open the board is the app's today (884 x 646). The Monsters card gains about 46 px of height (the Heroes block's 100 px minus the new 54 px button).
+- **Tie list.** In Zargon's turn a coin row shows who is in play: the heroes, mercenaries and allies, grey when fallen, with the line "Grey coins fell. They are left out of every tie list." Read only, no taps. Companions are not in it (they are not targets the app tracks). The monster rows on the page still use the older prototype lists, so Elf shows in the tie text; the real page would drop a fallen hero (decision 34).
+- **Fallen.** The coin is grey and struck in the card (not tappable) and in the tie list. Nothing shows on the play screen itself.
+- **Weaknesses.** Nothing about the team is on the screen at rest; the player must remember to press the button. The card covers the lower right of the board while open. Undo is the only way to see the change at once.
+
+#### Comparison of all seven
+
+| | Always visible | Board (width, squares) | Taps for a fall | On the left |
+|---|---|---|---|---|
+| A card in a left column | yes | 702 px, 27 px | 2 (row, Yes) | yes |
+| B drawer | tab only | 858 px, 33 px | 3 (tab, row, Yes) | yes |
+| C card under the board | yes | 832 px, 32 px | 2 (cell, Yes) | no (bottom, left aligned) |
+| D left tabs | no (Team tab) | 884 px, 34 px | 3, or 2 when Team is open | yes |
+| E strip above the board | yes | 884 px, 34 px, moves down 28 px | 2 (coin, Yes) | left aligned, at the top |
+| H coin stack and popover | stack, fallen visible | 884 px, 34 px; card covers about 30% while open | 3 (stack, row, Yes) | bottom left |
+| I Someone fell button | button only | 884 px, 34 px | 3 (button, coin, Yes) | no (right column) |
+
+**Recommendation.** **E.** It is the only one that shows the whole team and who fell all the time, keeps the board at 884 px, needs two taps and has no panel to open. Its price is 28 px of vertical shift, which the space under the board absorbs. If the owner wants the team strictly in a left column, D is the full-size option, with the cost of a hidden team. H is the second choice when the strip is not wanted: it costs nothing at rest and shows a fall, but its card hides a third of the map. I is the weakest for the request (not visible, not on the left); its tie list coin row is worth taking into any of the others.
+
+**Open questions.**
+1. Is a strip that is left aligned at the top enough for "on the left", or must it be a column (A, D)?
+2. Is the 28 px shift of the board acceptable, or should the squares shrink to 32 px to keep its place?
+3. Should the strip carry names under the coins (a taller strip, about 64 px) so a new player does not need a tap to read B D E Ba?
+4. The tie list coin row in Zargon's turn: take it into the app whichever alternative wins?
+5. Companions in the tie list: left out here because the app does not track them. Right?
+
+**Answers taken for E (the owner did not answer; change them on request).** 1: a strip left aligned at the top is enough. 2: the 28 px shift is fine and the squares stay at 34 px. 3: no names under the coins. 4: the tie list coin row is not part of the team strip task. 5: companions are not in tie lists.

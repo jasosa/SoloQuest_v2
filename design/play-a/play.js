@@ -3,8 +3,9 @@
 (function () {
   const { W, H, area } = window.BOARD;
   const Q = window.QUEST, M = window.MONSTERS, HEROES = window.HEROES;
-  const S = 34;                    // cell size in px
-  const MAPX = 28, MAPY = 18;      // board offset inside .map
+  const L = window.PLAY_LAYOUT || {};   // team concepts change the board size and place (layout.js)
+  const S = L.S || 34;                  // cell size in px
+  const MAPX = L.mapx == null ? 28 : L.mapx, MAPY = L.mapy == null ? 32 : L.mapy;      // board offset inside .map
   const k = (x, y) => x + ',' + y;
 
   /* ======================= engine ======================= */
@@ -367,12 +368,12 @@
   function place(px, py) {
     // px,py: anchor in map coords. Upper half: note sits beside the anchor. Lower half: note sits above it,
     // so the explored area next to the heroes stays visible.
-    const cw = 252, mapW = 920, mapH = 770;
+    const cw = 252, mapW = 920, mapH = 770, minLeft = MAPX;
     callout.style.visibility = 'hidden'; callout.hidden = false;
     const ch = callout.offsetHeight;
     let left, top, ox, oy;
     if (py > mapH * 0.5) {
-      left = Math.max(28, Math.min(px - 60, mapW - cw - 4)); top = Math.max(8, py - ch - 24);
+      left = Math.max(minLeft, Math.min(px - 60, mapW - cw - 4)); top = Math.max(8, py - ch - 24);
       ox = (px - left) + 'px'; oy = '100%';
     } else {
       left = px + 26; ox = '0';
@@ -462,7 +463,8 @@
       li.innerHTML = `<button data-act="selmon" data-id="${m.id}"><span class="coin">${m.code}</span><span><span class="nm">${t.name}</span><br><span class="st">${m.wandering ? `Wandering · next to the ${m.wanderAt}` : `Move ${t.move} · Att ${t.att} · Def ${t.def}`}</span></span><span class="bp">${m.body}/${t.body}</span></button>`;
       r.appendChild(li);
     }
-    document.getElementById('journal').innerHTML = st.journal.length ? st.journal.map(j => `<li><button class="jl" data-act="reread" data-room="${j.room}"><b>${j.letter}</b>${j.short}</button></li>`).join('') : '<li><i>No quest note read yet.</i></li>';
+    const hc = document.getElementById('herochips');
+    if (hc) hc.innerHTML = HEROES.map(h => `<button class="chip" data-hit>${h}</button>`).join('');
     const zb = document.getElementById('zbtn');
     zb.querySelector('small').textContent = alive.length ? `${alive.length} monster${alive.length > 1 ? 's' : ''} to act` : 'no monster in sight';
   }
@@ -521,7 +523,7 @@
     const host = document.getElementById('toasthost');
     host.innerHTML = toast ? `<div class="toast">${toast}<button data-act="undo">Undo</button></div>` : '';
   }
-  function render() { drawBoard(); renderCallout(); renderAside(); renderZargon(); renderNote(); renderToast(); }
+  function render() { drawBoard(); renderCallout(); renderAside(); renderZargon(); renderNote(); renderToast(); document.dispatchEvent(new CustomEvent('play-render', { detail: { st, sel, zOpen } })); }
 
   /* ======================= events ======================= */
   let toastTimer;

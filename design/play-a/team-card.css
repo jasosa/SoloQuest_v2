@@ -1,0 +1,121 @@
+/* Team card concepts A, B and C (DESIGN.md, "Team card: three alternatives"). Tokens come from play.css.
+   Only the monster card look (paper-3, 1.5 px rock-line, label, rows with a coin) and the existing coin. */
+
+/* the heroes block of the right column moves into the concept */
+html[data-team="A"] #heroes, html[data-team="B"] #heroes, html[data-team="C"] #heroes { display: none; }
+
+/* ---------- the coin: same shape and type as the monster coin ---------- */
+.coin.hero { background: var(--ink); color: #F2EBDD; }
+.coin.helper { background: var(--paper-3); border: 2px solid var(--ink); color: var(--ink); }
+.coin.npc { background: var(--paper-3); border: 2px dashed var(--ink); color: var(--ink); }
+.coin.long { font-size: 11px; letter-spacing: -.02em; }
+.coin.off { background: var(--off); border: 0; color: var(--text); text-decoration: line-through; text-decoration-thickness: 2px; }
+.tcoin { width: 30px; height: 30px; flex: none; }
+
+/* ---------- the card ---------- */
+.tcard { position: absolute; z-index: 4; padding: 10px 12px; background: var(--paper-3); border: 1.5px solid var(--rock-line); }
+.tcard .lbl { margin-bottom: 4px; }
+.tcard .sub { font: 700 12px "Bonum", serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 8px 0 0; }
+.tlist { list-style: none; }
+.tlist li { border-bottom: 1px solid var(--paper-2); }
+.trow { width: 100%; min-height: 46px; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 5px 0; background: none; border: 0; text-align: left; }
+.trow .nm { font-size: 16px; line-height: 1.15; display: block; }
+.trow .st { font-size: 13.5px; color: var(--muted); display: block; }
+.trow:active:not(:disabled) { transform: translate(1px, 1px); }
+.trow.sel, .tcell.sel { background: linear-gradient(90deg, var(--sel), transparent); }
+.trow.fallen .nm { text-decoration: line-through; color: var(--muted); }
+.trow:disabled { color: inherit; }
+
+/* inline question (A) */
+.tinline { padding: 2px 0 10px; }
+.tinline h3 { font: 700 17px/1.2 "Bonum"; color: var(--ink); margin-bottom: 2px; }
+.tinline p { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+.tinline .btn { margin-top: 0; }
+.tinline .btn + .btn { margin-top: 0; }
+.tinline .brow { display: flex; gap: 6px; }
+.tinline .brow .btn { min-height: 44px; padding: 6px 4px; font-size: 15px; }
+
+/* ---------- A: left column, full height, the board is smaller ---------- */
+.tcard.A { left: 28px; top: 96px; width: 172px; }
+html[data-team="A"] .zoomctl { left: 214px; }
+
+/* ---------- B: pull-out drawer from the left edge ---------- */
+.tdrawer { position: absolute; z-index: 9; left: 0; top: 64px; bottom: 0; width: 312px; background: var(--paper-3); border-right: 2px solid var(--ink); box-shadow: 10px 0 0 rgba(110, 31, 42, .08); padding: 22px 20px 16px 28px; transform: translateX(-100%); transition: transform .34s var(--ease-ink); }
+.tdrawer.open { transform: none; }
+.tdrawer:not(.open) { box-shadow: none; }
+.tdrawer .lbl { font-size: 15px; }
+.tdrawer .trow { min-height: 56px; grid-template-columns: 34px 1fr; }
+.tdrawer .tcoin { width: 34px; height: 34px; font-size: 13px; }
+.tdrawer .tcoin.long { font-size: 12px; }
+.tdrawer .trow .nm { font-size: 17px; }
+.tdrawer li.gap { margin-top: 10px; }
+.ttab { position: absolute; left: 100%; top: 36px; width: 46px; min-height: 132px; padding: 8px 0; background: var(--paper-3); border: 2px solid var(--ink); border-left: 0; box-shadow: 4px 4px 0 var(--sel); display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; color: var(--ink); }
+.ttab span.w { writing-mode: vertical-rl; transform: rotate(180deg); font: 700 15px "Bonum"; letter-spacing: .08em; text-transform: uppercase; }
+.ttab b { font: 700 15px "Bonum"; }
+.ttab .pip { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.ttab:active { transform: translate(1px, 1px); }
+
+/* ---------- C: card under the board, left aligned ---------- */
+.tcard.C { left: 28px; top: 718px; width: 722px; height: 108px; display: grid; grid-template-columns: 52px 1fr; column-gap: 8px; padding: 8px 10px; }
+.tcard.C .lbl { margin: 2px 0 0; writing-mode: horizontal-tb; }
+.tcard.C .lbl small { display: block; font: 400 13px "Pagella"; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.tgrid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 44px 44px; gap: 0 6px; }
+.tcell { display: grid; grid-template-columns: 30px 1fr; gap: 7px; align-items: center; padding: 0 4px; min-height: 44px; background: none; border: 0; text-align: left; font-size: 14px; line-height: 1.1; }
+.tcell .nm { display: block; overflow: hidden; }
+.tcell.fallen .nm { text-decoration: line-through; color: var(--muted); }
+.tcell:active:not(:disabled) { transform: translate(1px, 1px); }
+html[data-team="C"] .zoomctl { left: auto; right: 12px; bottom: 14px; }
+
+/* the margin note (B and C): the existing .callout, placed by team-card.js */
+.callout.tnote { z-index: 12; }
+.callout.tnote .nums { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+
+/* ======================================================================
+   D: left tabs (?team=T). Tabs Team, Monsters, Quest info over one panel, at the left; the board moves to the right.
+   Folder tabs as in the editor: the open tab has the page colour and joins the panel; the others are paper-2.
+   ====================================================================== */
+html[data-team="T"] .app { grid-template-columns: 250px 1fr; }
+html[data-team="T"] aside { grid-column: 1; grid-row: 2; padding: 32px 0 22px 28px; gap: 12px; }
+html[data-team="T"] .map { grid-column: 2; grid-row: 2; }
+html[data-team="T"] #qinfo { display: none; }
+html[data-team="T"] .zoomctl { left: 28px; }
+.tabwrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.tabs { display: flex; gap: 3px; position: relative; z-index: 2; margin-bottom: -2px; }
+.ptab { position: relative; flex: 1 1 auto; min-height: 46px; padding: 0 6px; display: flex; align-items: center; justify-content: center; gap: 5px; border: 2px solid var(--off); border-bottom-color: var(--ink); background: var(--paper-2); color: var(--text); font: 700 14.5px "Bonum"; white-space: nowrap; }
+.ptab[aria-selected="true"] { background: var(--paper-3); border-color: var(--ink); border-bottom-color: var(--paper-3); color: var(--ink); }
+.ptab:active:not([aria-selected="true"]) { transform: translate(1px, 1px); }
+.ptab .cnt { font: 700 12px "Bonum"; min-width: 20px; height: 20px; padding: 0 4px; display: grid; place-items: center; border: 1.5px solid var(--ink); color: var(--ink); background: none; }
+.ptab .cnt:empty { display: none; }
+.ptab .cnt.stamp { animation: stamp .32s var(--ease-ink) both; }
+.ptab.dot::after { content: ""; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.tpanel { flex: 1 1 auto; min-height: 0; position: relative; background: var(--paper-3); border: 2px solid var(--ink); display: flex; flex-direction: column; }
+.pane { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 12px 12px; }
+.pane[hidden] { display: none; }
+.pane .sub { font: 700 12px "Bonum", serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 8px 0 0; }
+.pane .sub:first-child { margin-top: 2px; }
+#pane-monsters { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+#pane-monsters[hidden] { display: none; }
+#pane-monsters .pane-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 4px 12px 0; }
+#pane-monsters section.monsters { padding: 0; border: 0; background: none; }
+#pane-monsters .monsters .lbl { display: none; }
+#pane-monsters .roster { max-height: none; overflow: visible; margin: 0; padding: 0; }
+#pane-monsters .roster li button { grid-template-columns: 30px 1fr auto; }
+#pane-monsters .roster .coin { width: 30px; height: 30px; }
+.pane-foot { flex: none; padding: 10px 12px 12px; border-top: 1px solid var(--rock-line); display: flex; flex-direction: column; gap: 8px; }
+.pane-foot .btn { margin: 0; }
+html[data-team="T"] .aside-foot.solo { border-top: 0; padding-top: 0; }
+/* Team pane rows: a little shorter than the card of A so 9 entries fit without scrolling */
+#pane-team .trow { min-height: 44px; padding: 3px 0; }
+/* Quest info pane */
+#pane-quest .lbl { margin: 14px 0 4px; }
+#pane-quest .lbl:first-child { margin-top: 2px; }
+#pane-quest p { font-size: 14.5px; color: var(--muted); margin-bottom: 2px; }
+#pane-quest .empty { font-style: italic; }
+#pane-quest .goals { list-style: none; }
+#pane-quest .goals li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; font-size: 15.5px; }
+#pane-quest .goals .tick { width: 18px; height: 18px; margin-top: 3px; border: 2px solid var(--ink); }
+#pane-quest .journal .jl { display: block; width: 100%; min-height: 44px; font-size: 14.5px; color: var(--muted); }
+#pane-quest .log { list-style: none; font-size: 14.5px; color: var(--muted); }
+#pane-quest .log li { padding: 3px 0; }
+#pane-quest .log i { color: var(--ink); font-style: normal; font-family: "Bonum"; margin-right: 6px; }
+html[data-team="T"] #heroes { display: none; }

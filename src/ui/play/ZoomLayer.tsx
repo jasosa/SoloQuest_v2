@@ -13,13 +13,58 @@ import { t } from '../../i18n/t';
 export interface Content {
   readonly w: number;
   readonly h: number;
+  /**
+   * The space of the layer around the board proper (its padding and the room for door arrows). When
+   * it is given, the board proper is a fixed frame: zoomed in, the map is clipped inside the frame at its
+   * fitted size and can only pan inside it.
+   */
+  readonly inset?: {
+    readonly l: number;
+    readonly t: number;
+    readonly r: number;
+    readonly b: number;
+  };
 }
-/** The play board: 26 x 19 squares of 34 px with a 2 px margin, and the map padding (18 px above and below). */
-export const PLAY_BOARD: Content = { w: 28 + 26 * 34 + 4, h: 18 + 19 * 34 + 4 + 18 };
-/** Room right of the board for the arrow of a door in its east wall (three quarters of a square). */
+/**
+ * Space of the play board above and below its drawing. The team strip row (58 px: the 30 px coins are
+ * centered between the title band line and the board's border) sits above the map, so the board keeps
+ * its 34 px squares in 726 - 14 - 56 = 656 px: 0 + 650 + 6.
+ */
+export const PLAY_PAD_TOP = 0;
+export const PLAY_PAD_BOTTOM = 6;
+/** The play board: 26 x 19 squares of 34 px with a 2 px margin, and the map padding above and below. */
+export const PLAY_BOARD: Content = {
+  w: 28 + 26 * 34 + 4,
+  h: PLAY_PAD_TOP + 19 * 34 + 4 + PLAY_PAD_BOTTOM,
+};
+/** Room outside the board for the arrow of a door in its outer wall (three quarters of a square). */
 export const EDGE_DOOR_MARGIN = 26;
-/** The play board with that room on its east side. */
-export const PLAY_BOARD_EAST: Content = { w: PLAY_BOARD.w + EDGE_DOOR_MARGIN, h: PLAY_BOARD.h };
+
+/** The sides of the board that have a door in the outer wall (a west door has room in the left padding). */
+export interface EdgeSides {
+  readonly n: boolean;
+  readonly e: boolean;
+  readonly s: boolean;
+}
+/** The size and padding of the play board; a side with an edge door gets room for its arrow. */
+export function playBoardFrame(sides: EdgeSides): {
+  content: Content;
+  padding: string;
+  top: number;
+} {
+  const top = sides.n ? EDGE_DOOR_MARGIN : PLAY_PAD_TOP;
+  const bottom = sides.s ? EDGE_DOOR_MARGIN : PLAY_PAD_BOTTOM;
+  const right = sides.e ? EDGE_DOOR_MARGIN : 0;
+  return {
+    content: {
+      w: PLAY_BOARD.w + right,
+      h: top + 19 * 34 + 4 + bottom,
+      inset: { l: 28, t: top, r: right, b: bottom },
+    },
+    padding: `${top}px ${right}px ${bottom}px 28px`,
+    top,
+  };
+}
 /** How far the board can be zoomed in from its fitted size. */
 /** The strip under the play board for the zoom chips: 44 px chips and a margin. */
 export const ZOOM_STRIP = 56;
@@ -40,6 +85,18 @@ interface Area {
 /** The scale at which the whole board fits the map area (the 100% of the zoom chips). */
 const baseOf = ({ w, h }: Area, c: Content): number => Math.max(0.3, Math.min(w / c.w, h / c.h));
 
+/** The frame: where the board proper lies on the map area when the board is fitted. */
+const frameOf = (a: Area, c: Content): { x: number; y: number; w: number; h: number } => {
+  const e = baseOf(a, c);
+  const { l = 0, t = 0, r = 0, b = 0 } = c.inset ?? {};
+  return {
+    x: (a.w - e * c.w) / 2 + l * e,
+    y: (a.h - e * c.h) / 2 + t * e,
+    w: (c.w - l - r) * e,
+    h: (c.h - t - b) * e,
+  };
+};
+
 const fitView = (a: Area, c: Content): View => {
   const e = baseOf(a, c);
   return { e, x: (a.w - e * c.w) / 2, y: (a.h - e * c.h) / 2 };
@@ -49,6 +106,18 @@ const fitView = (a: Area, c: Content): View => {
 const clampView = (v: View, a: Area, c: Content): View => {
   const b = baseOf(a, c);
   const e = Math.min(b * ZOOM_MAX, Math.max(b, v.e));
+  if (c.inset) {
+    // the board proper always covers the frame
+    const f = frameOf(a, c);
+    const { l, t, r, b: bt } = c.inset;
+    const lim = (pos: number, f0: number, fs: number, lo: number, hi: number) =>
+      Math.min(f0 - lo * e, Math.max(f0 + fs - hi * e, pos));
+    return {
+      e,
+      x: lim(v.x, f.x, f.w, l, c.w - r),
+      y: lim(v.y, f.y, f.h, t, c.h - bt),
+    };
+  }
   const cw = e * c.w;
   const ch = e * c.h;
   return {
@@ -89,7 +158,7 @@ export function ZoomLayer({
   notes,
   content = PLAY_BOARD,
   className = 'map zoombox',
-  padding = '18px 0 18px 28px',
+  padding = `${PLAY_PAD_TOP}px 0 ${PLAY_PAD_BOTTOM}px 28px`,
   onePointerPan = true,
   wheelPan = false,
   strip = 0,
@@ -333,6 +402,9 @@ export function ZoomLayer({
   };
 
   const pct = Math.round((view.e / base) * 100);
+  // zoomed in, the map is clipped to the frame, and the frame's border is drawn here, fixed
+  const frame = content.inset ? frameOf(area, content) : undefined;
+  const framed = frame !== undefined && view.e > base * 1.001;
   const boxStyle = fitHeight
     ? { height: Math.round((area.w * content.h) / content.w) + strip, flex: 'none' as const }
     : undefined;
@@ -360,7 +432,20 @@ export function ZoomLayer({
           }
         }}
       >
-        <div className="zoomclip" ref={clip} style={strip ? { bottom: strip } : undefined}>
+        <div
+          className="zoomclip"
+          ref={clip}
+          style={{
+            ...(strip ? { bottom: strip } : {}),
+            ...(framed
+              ? {
+                  clipPath: `inset(${frame.y}px ${area.w - frame.x - frame.w}px ${
+                    area.h - frame.y - frame.h
+                  }px ${frame.x}px)`,
+                }
+              : {}),
+          }}
+        >
           <div
             className="zoomlayer"
             ref={layer}
@@ -373,6 +458,19 @@ export function ZoomLayer({
             {children}
           </div>
         </div>
+        {framed && (
+          <div
+            className="zoomframe"
+            aria-hidden="true"
+            style={{
+              left: frame.x + 0.5 * base,
+              top: frame.y + 0.5 * base,
+              width: frame.w - base,
+              height: frame.h - base,
+              borderWidth: 3 * base,
+            }}
+          />
+        )}
         {notes}
         <div
           className="zoomctl"
