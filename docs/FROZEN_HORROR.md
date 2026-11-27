@@ -30,8 +30,8 @@ Ignored (players handle it): potions and alchemist shop, Mind Points and shock, 
 ## 2. Pack layer (#36 to #40, #61)
 
 - Base game = pack `core`. Frozen Horror depends on it (uses core monsters and core Dread spells).
-- Manifest: quests and campaign order (Q0 prelude first); quest team rules as warnings (solo Barbarian only, solo any hero); monsters; mercenary types; animal ally types (wolf); terrain kinds; room tiles; trap kinds; spells with situation tags; rule texts (paraphrased) that notes can reference (e.g. ice ledge rule used by Q4 E, Q6 G, Q8 F).
-- Setup: pack → campaign or one-shot → quest → team as a free list (heroes incl. alternate Barbarian, mercenaries, animal allies with an owner hero). The quest's team rule shows as a warning, never a block (#38).
+- Manifest: quests and campaign order (Q0 prelude first); quest team rules as warnings (solo Barbarian only, solo any hero); monsters; mercenary types (Crossbowman, Halberdier, Swordsman, Scout; several of one type allowed); the wolf Snowdasher is an animal ally of this pack; the team picker offers every pack's entries on any quest, with the box named (#114); terrain kinds; room tiles; trap kinds; spells with situation tags; rule texts (paraphrased) that notes can reference (e.g. ice ledge rule used by Q4 E, Q6 G, Q8 F).
+- Setup: pack → campaign or one-shot → quest → team as a free list (heroes incl. alternate Barbarian, mercenaries, animal allies; none belongs to a hero). The quest's team rule shows as a warning, never a block (#38).
 - Campaign keeps: finished quests, carried flags, team, campaign-setting draws. One-shot: Scepter counts as destroyed.
 - Campaign setting "Raiment of the Frozen Champion" (off by default, #61): 4 artifacts hidden with the strongest monster of 4 quests drawn at campaign start (kill notes). When on, the Gremlin and Yeti cards show the matching artifact warnings.
 - Wandering monsters: list of `{ type, count }` (#40).

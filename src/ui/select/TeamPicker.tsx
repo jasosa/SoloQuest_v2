@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import { HEROES, HERO_NAMES } from '../../engine/data/heroes';
 import {
+  addPreset,
+  grantedAlly,
   heroMember,
-  labelOf,
   newMemberId,
+  offeredPresets,
+  presetCount,
+  removeLastPreset,
   teamWarnings,
-  withValidOwners,
+  type OfferedPreset,
   type TeamMember,
   type TeamRule,
 } from '../../engine/data/team';
 import type { PackManifest } from '../../engine/pack/schema';
+import { NoteCard } from '../shared/NoteCard';
 import { t } from '../../i18n/t';
+
+type Kind = 'mercenary' | 'ally';
 
 /** One row of the hero list (concept): a square tick, the name, the box it comes from. */
 function HeroRow({
@@ -37,9 +44,20 @@ function HeroRow({
   );
 }
 
+/** A row of the team list: a type or a custom entry, with how many there are. */
+interface TeamRow {
+  readonly key: string;
+  readonly name: string;
+  readonly count: number;
+  readonly kind: Kind;
+  /** A custom entry has its own id; a preset entry is taken out by type. */
+  readonly custom?: TeamMember;
+}
+
 /**
- * The three groups of the New game popup (decision 38): heroes, mercenaries, animal allies. The
- * value is the free team list. Warnings never stop the game.
+ * The team of the start page (decision 38, 114): the heroes, then two buttons, "Add an ally" and
+ * "Add a mercenary", and the list of what was added. The value is the free team list. Warnings never
+ * stop the game. Entries belong to no hero.
  */
 export function TeamPicker({
   value,
@@ -49,98 +67,144 @@ export function TeamPicker({
 }: {
   value: readonly TeamMember[];
   onChange(next: TeamMember[]): void;
-  /** The pack of the quest and the packs it needs: their heroes and allies are offered. */
+  /** Every installed pack: all its heroes, mercenaries and allies are offered on any quest. */
   packs: readonly PackManifest[];
   rule: TeamRule | undefined;
 }) {
-  const [adding, setAdding] = useState<'mercenary' | 'ally' | null>(null);
+  const [adding, setAdding] = useState<Kind | null>(null);
+  const [typing, setTyping] = useState(false);
   const [name, setName] = useState('');
-  const [owner, setOwner] = useState<string | undefined>();
 
-  const heroes = value.filter((m) => m.kind === 'hero');
-  const mercs = value.filter((m) => m.kind === 'mercenary');
-  const allies = value.filter((m) => m.kind === 'ally');
-  const packHeroes = packs.flatMap((p) => p.team.heroes.map((h) => ({ ...h, box: p.name })));
-  const packAllies = packs.flatMap((p) => p.team.allies);
-  const packMercs = packs.flatMap((p) => p.team.mercenaries);
-  const grants = rule?.grantsAlly;
+  const offered = offeredPresets(packs);
+  const packHeroes = offered.filter((o) => o.kind === 'hero');
+  const presets = (kind: Kind) => offered.filter((o) => o.kind === kind);
+  const granted = grantedAlly(packs, rule?.grantsAlly);
 
-  const set = (next: TeamMember[]) => onChange(withValidOwners(next));
   const toggleHero = (m: TeamMember) =>
-    set(value.some((x) => x.id === m.id) ? value.filter((x) => x.id !== m.id) : [...value, m]);
-  const ownerId = owner && heroes.some((h) => h.id === owner) ? owner : heroes[0]?.id;
-  const addEntry = (kind: 'mercenary' | 'ally', label: string) => {
-    const n = label.trim();
-    if (!n) return;
-    set([...value, { id: newMemberId(value, kind, n), name: n, kind, owner: ownerId }]);
+    onChange(value.some((x) => x.id === m.id) ? value.filter((x) => x.id !== m.id) : [...value, m]);
+  const addCustom = () => {
+    const n = name.trim();
+    if (!n || !adding) return;
+    onChange([...value, { id: newMemberId(value, adding, n), name: n, kind: adding }]);
+    setName('');
+    setTyping(false);
+  };
+  const close = () => {
     setAdding(null);
+    setTyping(false);
     setName('');
   };
-  const presetOn = (kind: 'mercenary' | 'ally', presetName: string) =>
-    value.find((m) => m.kind === kind && m.name === presetName);
-  const togglePreset = (kind: 'mercenary' | 'ally', presetName: string) => {
-    const on = presetOn(kind, presetName);
-    if (on) set(value.filter((m) => m.id !== on.id));
-    else addEntry(kind, presetName);
-  };
+
+  /** The rows of the team list, in the order the entries were added; same types are merged. */
+  const rows: TeamRow[] = [];
+  for (const m of value) {
+    if (m.kind === 'hero') continue;
+    const kind: Kind = m.kind;
+    const preset = presets(kind).find((p) => presetCount([m], kind, p.name) > 0);
+    if (!preset) {
+      rows.push({ key: m.id, name: m.name, count: 1, kind, custom: m });
+      continue;
+    }
+    const key = `${kind}:${preset.name}`;
+    const row = rows.find((r) => r.key === key);
+    if (row) rows[rows.indexOf(row)] = { ...row, count: row.count + 1 };
+    else rows.push({ key, name: preset.name, count: 1, kind });
+  }
+  const takeOut = (row: TeamRow) =>
+    onChange(
+      row.custom
+        ? value.filter((x) => x.id !== row.custom!.id)
+        : removeLastPreset(value, row.kind, row.name),
+    );
   const warnings = teamWarnings(value, rule);
 
-  const form = (kind: 'mercenary' | 'ally') => (
-    <form
-      className="team-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        addEntry(kind, name);
-      }}
-    >
-      <label>
-        <span className="lbl">
-          {kind === 'mercenary'
-            ? t('select.mercenaryName', 'Mercenary name')
-            : t('select.animalName', 'Animal name')}
+  const pickRow = (kind: Kind, p: OfferedPreset) => {
+    const n = presetCount(value, kind, p.name);
+    const mark =
+      kind === 'ally' && granted?.id === p.id ? t('select.fromTheQuest', ' (from the quest)') : '';
+    return (
+      <div className={n > 0 ? 'pick-row on' : 'pick-row'} key={`${kind}:${p.id}`}>
+        <span className="hero-name">
+          {p.name}
+          {mark}
         </span>
-        <input
-          autoFocus
-          value={name}
-          maxLength={40}
-          data-testid="team-name"
-          onChange={(e) => setName(e.target.value)}
-        />
-      </label>
-      <div className="lbl">{t('select.belongsTo', 'Belongs to')}</div>
-      <div className="pick-heroes" role="group" aria-label={t('select.owner', 'Owner')}>
-        {heroes.length === 0 && (
-          <p className="hint">{t('select.pickAHeroFirst', 'Pick a hero first.')}</p>
-        )}
-        {heroes.map((h) => (
+        <span className="box">{p.box}</span>
+        <span className="stepper">
           <button
-            type="button"
-            key={h.id}
             className="chip"
-            aria-pressed={ownerId === h.id}
-            onClick={() => setOwner(h.id)}
+            disabled={n === 0}
+            aria-label={t('select.takeOutOne', 'Take out one {name}', { name: p.name })}
+            onClick={() => onChange(removeLastPreset(value, kind, p.name))}
           >
-            {h.name}
+            -
           </button>
-        ))}
+          <b aria-label={t('select.countOf', '{name}: {count}', { name: p.name, count: n })}>{n}</b>
+          <button
+            className="chip"
+            aria-label={t('select.addOne', 'Add one {name}', { name: p.name })}
+            onClick={() => onChange(addPreset(value, kind, p.name))}
+          >
+            +
+          </button>
+        </span>
       </div>
-      <div className="team-form-btns">
-        <button type="submit" className="btn" disabled={!name.trim() || !ownerId}>
-          {t('select.add', 'Add')}
-        </button>
-        <button
-          type="button"
-          className="btn alt"
-          onClick={() => {
-            setAdding(null);
-            setName('');
-          }}
-        >
-          {t('select.cancel', 'Cancel')}
-        </button>
-      </div>
-    </form>
-  );
+    );
+  };
+
+  const dialog = (kind: Kind) => {
+    const title =
+      kind === 'mercenary'
+        ? t('select.addAMercenary', 'Add a mercenary')
+        : t('select.addAnAlly', 'Add an ally');
+    return (
+      <NoteCard kind={t('select.team', 'Team')} title={title} onClose={close} className="pick-note">
+        <p className="hint">
+          {kind === 'mercenary'
+            ? t('select.mercenariesOfEveryBox', 'Mercenaries of every box. Tap + to add one.')
+            : t('select.alliesOfEveryBox', 'Allies of every box. Tap + to add one.')}
+        </p>
+        <div className="lbl">
+          {kind === 'mercenary'
+            ? t('select.mercenaries', 'Mercenaries')
+            : t('select.allies', 'Allies')}
+        </div>
+        <div className="pick-list">{presets(kind).map((p) => pickRow(kind, p))}</div>
+        {typing ? (
+          <form
+            className="custom"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addCustom();
+            }}
+          >
+            <input
+              autoFocus
+              value={name}
+              maxLength={40}
+              data-testid="team-name"
+              placeholder={t('select.name', 'Name')}
+              aria-label={t('select.name', 'Name')}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button type="submit" className="btn" disabled={!name.trim()}>
+              {t('select.add', 'Add')}
+            </button>
+          </form>
+        ) : (
+          <button className="chip add" onClick={() => setTyping(true)}>
+            {kind === 'mercenary'
+              ? t('select.anotherMercenary', 'Another mercenary: type a name')
+              : t('select.anotherAlly', 'Another ally: type a name')}
+          </button>
+        )}
+        <div className="foot">
+          <button className="btn" onClick={close}>
+            {t('select.done', 'Done')}
+          </button>
+        </div>
+      </NoteCard>
+    );
+  };
 
   return (
     <>
@@ -168,88 +232,47 @@ export function TeamPicker({
         })}
       </div>
 
-      <div className="lbl">{t('select.mercenaries', 'Mercenaries')}</div>
-      <div className="pick-heroes" role="group" aria-label={t('select.mercenaries', 'Mercenaries')}>
-        {packMercs.map((p) => (
-          <button
-            key={p.id}
-            className="chip"
-            aria-pressed={presetOn('mercenary', p.name) !== undefined}
-            disabled={heroes.length === 0}
-            onClick={() => togglePreset('mercenary', p.name)}
-          >
-            {p.name}
-          </button>
-        ))}
-        {mercs
-          .filter((m) => !packMercs.some((p) => p.name === m.name))
-          .map((m) => (
-            <button
-              key={m.id}
-              className="chip"
-              aria-pressed
-              aria-label={`${labelOf(value, m.id)}, tap to take it out`}
-              onClick={() => set(value.filter((x) => x.id !== m.id))}
-            >
-              {labelOf(value, m.id)}
-            </button>
-          ))}
-        <button
-          className="chip add"
-          disabled={heroes.length === 0}
-          onClick={() => setAdding(adding === 'mercenary' ? null : 'mercenary')}
-        >
+      <div className="lbl">{t('select.team', 'Team')}</div>
+      <div className="team-btns">
+        <button className="btn alt" onClick={() => setAdding('ally')}>
+          {t('select.addAnAlly', 'Add an ally')}
+        </button>
+        <button className="btn alt" onClick={() => setAdding('mercenary')}>
           {t('select.addAMercenary', 'Add a mercenary')}
         </button>
       </div>
-      {adding === 'mercenary' && form('mercenary')}
-
-      <div className="lbl">{t('select.animalAllies', 'Animal allies')}</div>
-      <div
-        className="pick-heroes"
-        role="group"
-        aria-label={t('select.animalAllies', 'Animal allies')}
-      >
-        {packAllies.map((p) => (
-          <button
-            key={p.id}
-            className="chip"
-            aria-pressed={presetOn('ally', p.name) !== undefined}
-            disabled={heroes.length === 0}
-            onClick={() => togglePreset('ally', p.name)}
-          >
-            {presetOn('ally', p.name) ? labelOf(value, presetOn('ally', p.name)!.id) : p.name}
-            {grants === p.id ? t('select.fromTheQuest', ' (from the quest)') : ''}
-          </button>
-        ))}
-        {allies
-          .filter((m) => !packAllies.some((p) => p.name === m.name))
-          .map((m) => (
-            <button
-              key={m.id}
-              className="chip"
-              aria-pressed
-              aria-label={`${labelOf(value, m.id)}, tap to take it out`}
-              onClick={() => set(value.filter((x) => x.id !== m.id))}
-            >
-              {labelOf(value, m.id)}
-            </button>
+      {rows.length === 0 ? (
+        <p className="hint">{t('select.noMercenaryOrAlly', 'No mercenary or ally yet.')}</p>
+      ) : (
+        <ul className="team-list" aria-label={t('select.team', 'Team')}>
+          {rows.map((r) => (
+            <li className="team-row" key={r.key}>
+              <span className="nm">
+                {r.name}
+                {r.count > 1 && <i>{` x${r.count}`}</i>}
+              </span>
+              <button
+                className="chip"
+                aria-label={
+                  r.count > 1
+                    ? t('select.takeOutOne', 'Take out one {name}', { name: r.name })
+                    : t('select.removeEntry', 'Remove {name}', { name: r.name })
+                }
+                onClick={() => takeOut(r)}
+              >
+                {r.count > 1 ? '-' : 'x'}
+              </button>
+            </li>
           ))}
-        <button
-          className="chip add"
-          disabled={heroes.length === 0}
-          onClick={() => setAdding(adding === 'ally' ? null : 'ally')}
-        >
-          {t('select.addAnAnimalAlly', 'Add an animal ally')}
-        </button>
-      </div>
-      {adding === 'ally' && form('ally')}
+        </ul>
+      )}
 
       {warnings.map((w) => (
         <p key={w} className="team-warn" role="note">
           {w}
         </p>
       ))}
+      {adding && dialog(adding)}
     </>
   );
 }

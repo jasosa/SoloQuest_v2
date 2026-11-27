@@ -24,13 +24,13 @@
         "as": "barbarian"
       }
     ],
-    "mercenaries": [],
-    "allies": [
-      {
-        "id": "snowdasher",
-        "name": "Snowdasher"
-      }
-    ]
+    "mercenaries": [
+      { "id": "crossbowman", "name": "Crossbowman" },
+      { "id": "halberdier", "name": "Halberdier" },
+      { "id": "swordsman", "name": "Swordsman" },
+      { "id": "scout", "name": "Scout" }
+    ],
+    "allies": [{ "id": "snowdasher", "name": "Snowdasher" }]
   },
   "campaignSettings": [
     {

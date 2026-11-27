@@ -13,6 +13,8 @@ export interface NoteCardProps {
   light?: boolean;
   /** Focus the title instead of the first button, so a screen reader reads the card first. */
   focusTitle?: boolean;
+  /** One more class on the card, for a wider one. */
+  className?: string;
   children: ReactNode;
 }
 
@@ -27,6 +29,7 @@ export function NoteCard({
   onClose,
   light,
   focusTitle,
+  className,
   children,
 }: NoteCardProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +37,13 @@ export function NoteCard({
 
   return (
     <div className={light ? 'veil light' : 'veil'} data-keep>
-      <div className="note" role="dialog" aria-modal="true" aria-label={title} ref={ref}>
+      <div
+        className={className ? `note ${className}` : 'note'}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        ref={ref}
+      >
         <div className="hd">
           {letter !== undefined && <span className="letter">{letter}</span>}
           <div>

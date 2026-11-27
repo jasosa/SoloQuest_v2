@@ -185,8 +185,8 @@ describe('the free team list (decision 38)', () => {
     for (const o of orders) {
       expect([...o.tie].sort()).toEqual(team.map((m) => (typeof m === 'string' ? m : m.id)).sort());
       expect(o.tieNames).toHaveLength(o.tie.length);
-      expect(o.tieNames[o.tie.indexOf('merc:scout')]).toBe('Scout (Dwarf)');
-      expect(o.tieNames[o.tie.indexOf('ally:wolf')]).toBe('Wolf (Elf)');
+      expect(o.tieNames[o.tie.indexOf('merc:scout')]).toBe('Scout');
+      expect(o.tieNames[o.tie.indexOf('ally:wolf')]).toBe('Wolf');
     }
     const after = replay(l, SEED, [open('d1'), open('d2'), died('merc:scout')]);
     for (const o of ordersFor(l, after, team)) expect(o.tie).not.toContain('merc:scout');

@@ -1,17 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { dismissStart, openQuest, questCard } from './helpers';
 
-test.describe('the team on the heroes page (decision 38)', () => {
-  test('quest 0: warnings never block, a mercenary and the wolf join, and any entry can fall', async ({
+test.describe('the team on the heroes page (decisions 38, 114)', () => {
+  test('quest 0: warnings never block, the wolf and a custom mercenary join, and any entry can fall', async ({
     page,
   }) => {
     await page.goto('/?nosave=1');
     await openQuest(page, 0, 'frozen-horror');
     const start = page.getByRole('button', { name: 'Start quest' });
 
-    // the pack's alternate Barbarian is offered; the mercenary and ally buttons need a hero first
+    // every hero of every box is a row with its box; two buttons, nothing listed yet
     await expect(page.getByRole('button', { name: 'Barbarian (alternate)' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Add a mercenary' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Add an ally' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add a mercenary' })).toBeVisible();
+    await expect(page.getByText('No mercenary or ally yet.')).toBeVisible();
+    // no owner choice anywhere
+    await expect(page.getByText('Belongs to')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Elf', exact: true }).click();
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
@@ -21,16 +25,27 @@ test.describe('the team on the heroes page (decision 38)', () => {
     await page.getByRole('button', { name: 'Dwarf', exact: true }).click();
     await expect(page.getByText('This quest is for one hero.')).toHaveCount(0);
 
-    // the wolf of the quest, and a mercenary of any name
-    await page.getByRole('button', { name: /^Snowdasher/ }).click();
-    await expect(page.getByRole('button', { name: /^Snowdasher \(Elf\)/ })).toBeVisible();
+    // the wolf of the quest, then a mercenary of any name; the dialog stays open after each pick
+    await page.getByRole('button', { name: 'Add an ally' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Add an ally' });
+    await expect(dialog.getByText('Snowdasher (from the quest)')).toBeVisible();
+    await dialog.getByRole('button', { name: 'Add one Snowdasher' }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Done' }).click();
+    await expect(dialog).toHaveCount(0);
+    const list = page.getByRole('list', { name: 'Team' });
+    await expect(list.locator('.nm')).toHaveText(['Snowdasher']);
+
     await page.getByRole('button', { name: 'Add a mercenary' }).click();
-    await page.getByTestId('team-name').fill('Scout');
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
-    await expect(page.getByRole('button', { name: /Scout \(Elf\)/ })).toBeVisible();
+    const merc = page.getByRole('dialog', { name: 'Add a mercenary' });
+    await merc.getByRole('button', { name: 'Another mercenary: type a name' }).click();
+    await page.getByTestId('team-name').fill('Old Gareth');
+    await merc.getByRole('button', { name: 'Add', exact: true }).click();
+    await merc.getByRole('button', { name: 'Done' }).click();
+    await expect(list.locator('.nm')).toHaveText(['Snowdasher', 'Old Gareth']);
     await expect(page.getByText('Mercenaries do not play in a solo quest.')).toBeVisible();
     await expect(start).toBeEnabled();
-    await page.screenshot({ path: 'test-results/team-popup.png' });
+    await page.screenshot({ path: 'test-results/team-picked.png' });
     await start.click();
     // the quest opens with two notes (the story, then the wolf joining)
     await dismissStart(page);
@@ -40,10 +55,71 @@ test.describe('the team on the heroes page (decision 38)', () => {
     // in play: one chip per entry, a tap asks "fell?"
     const chips = page.locator('.hero-chips .chip');
     await expect(chips).toHaveCount(3);
-    await chips.filter({ hasText: 'Scout (Elf)' }).click();
+    await chips.filter({ hasText: 'Old Gareth' }).click();
     await page.getByRole('button', { name: 'Yes, fell' }).click();
-    await expect(chips.filter({ hasText: 'Scout (Elf)' })).toBeDisabled();
+    await expect(chips.filter({ hasText: 'Old Gareth' })).toBeDisabled();
     await expect(chips.filter({ hasText: 'Elf' }).first()).toBeEnabled();
+  });
+
+  test('a Core quest offers Snowdasher and Swordsman x2 from Frozen Horror, one taken out', async ({
+    page,
+  }) => {
+    await page.goto('/?nosave=1');
+    await openQuest(page, 1);
+    await page.screenshot({ path: 'test-results/team-closed.png' });
+    await page.getByRole('button', { name: 'Elf', exact: true }).click();
+
+    await page.getByRole('button', { name: 'Add an ally' }).click();
+    const ally = page.getByRole('dialog', { name: 'Add an ally' });
+    const row = ally.locator('.pick-row').filter({ hasText: 'Snowdasher' });
+    await expect(row).toContainText('Frozen Horror');
+    await expect(row.getByRole('button', { name: 'Take out one Snowdasher' })).toBeDisabled();
+    await row.getByRole('button', { name: 'Add one Snowdasher' }).click();
+    await expect(row.locator('b')).toHaveText('1');
+    await page.waitForTimeout(400); // the dialog has risen
+    await page.screenshot({ path: 'test-results/team-ally-dialog.png' });
+    await ally.getByRole('button', { name: 'Done' }).click();
+
+    await page.getByRole('button', { name: 'Add a mercenary' }).click();
+    const merc = page.getByRole('dialog', { name: 'Add a mercenary' });
+    for (const name of ['Crossbowman', 'Halberdier', 'Scout', 'Swordsman']) {
+      await expect(merc.locator('.pick-row').filter({ hasText: name })).toContainText(
+        'Frozen Horror',
+      );
+    }
+    const sword = merc.locator('.pick-row').filter({ hasText: 'Swordsman' });
+    await sword.getByRole('button', { name: 'Add one Swordsman' }).click();
+    await sword.getByRole('button', { name: 'Add one Swordsman' }).click();
+    await expect(sword.locator('b')).toHaveText('2');
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'test-results/team-merc-dialog.png' });
+    await merc.getByRole('button', { name: 'Done' }).click();
+
+    const list = page.getByRole('list', { name: 'Team' });
+    await expect(list.locator('.nm')).toHaveText(['Snowdasher', 'Swordsman x2']);
+    await page.screenshot({ path: 'test-results/team-counts-core.png' });
+    // "-" takes one out; at one the button is "x" and removes the entry
+    await list.getByRole('button', { name: 'Take out one Swordsman' }).click();
+    await expect(list.locator('.nm')).toHaveText(['Snowdasher', 'Swordsman']);
+    await list.getByRole('button', { name: 'Remove Swordsman' }).click();
+    await expect(list.locator('.nm')).toHaveText(['Snowdasher']);
+  });
+
+  test('the alternate Barbarian is a hero of a Core quest, with its box beside it', async ({
+    page,
+  }) => {
+    await page.goto('/?nosave=1');
+    await openQuest(page, 1);
+    const alt = page.getByRole('button', { name: 'Barbarian (alternate)' });
+    const wrap = page.locator('.hero-wrap').filter({ has: alt });
+    await expect(wrap).toContainText('Frozen Horror');
+    await alt.click();
+    await expect(alt).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Start quest' })).toBeEnabled();
+    // the box label sits inside the row, to the right of the name
+    const name = await alt.locator('.hero-name').boundingBox();
+    const box = await wrap.locator('.hero-box').boundingBox();
+    expect(name!.x + name!.width).toBeLessThanOrEqual(box!.x);
   });
 });
 
