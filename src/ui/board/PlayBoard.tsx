@@ -11,6 +11,7 @@ import {
   roomLabelAreas,
   mapLetters,
   monstersInPlay,
+  monsterSquares,
   squareMarkers,
   zoneLabels,
   trapsInView,
@@ -214,13 +215,7 @@ export function PlayBoard({
   for (const t of traps) if (t.onMap && !t.block) trapAt.set(keyOf(t.cell), t.id);
 
   const monsters = useMemo(() => monstersInPlay(level, state), [level, state]);
-  const monsterAt = new Map<string, string>();
-  for (const m of monsters) if (m.cell && !m.dead) monsterAt.set(keyOf(m.cell), m.id);
-  for (const m of level.quest.monsters)
-    if (state.seenMonsters.has(m.id)) {
-      const c = state.placedMonsterCells[m.id] ?? m.cell;
-      if (c) monsterAt.set(keyOf(c), m.id);
-    }
+  const monsterAt = monsterSquares(level, state);
 
   // Everything that belongs to the board floor, split into "old" and "fresh" (inside the ink mask).
   const layers = { old: [] as ReactNode[], neu: [] as ReactNode[] };

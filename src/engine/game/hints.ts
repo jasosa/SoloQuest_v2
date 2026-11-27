@@ -63,10 +63,22 @@ export function isCrossing(level: Level, [x, y]: Cell): boolean {
   return SIDES.filter(([dx, dy]) => areaAt(level.board, x + dx, y + dy) === 'C').length >= 3;
 }
 
+/** A corner: a corridor square with exactly two corridor neighbors, at a right angle (decision 113). */
+export function isCorner(level: Level, [x, y]: Cell): boolean {
+  const n = SIDES.filter(([dx, dy]) => areaAt(level.board, x + dx, y + dy) === 'C');
+  if (n.length !== 2) return false;
+  return n[0]![0] + n[1]![0] !== 0 || n[0]![1] + n[1]![1] !== 0;
+}
+
+/** A square that may carry the eye: a crossroads or a corner. */
+export function isEyeSpot(level: Level, c: Cell): boolean {
+  return isCrossing(level, c) || isCorner(level, c);
+}
+
 /**
- * The squares that carry the eye glyph (owner): the crossroads where looking can show more, and,
- * when a crossroads square is occupied (a figure, a trap, a marker, a block...), the corridor squares
- * right beside it instead. `occupied` is every square with something on it. Looking stays possible
+ * The squares that carry the eye glyph (owner): the crossroads and corners where looking can show
+ * more, and, when such a square is occupied (a figure, a trap, a marker, a block...), the corridor
+ * squares right beside it instead. `occupied` is every square with something on it. Looking stays possible
  * from any square of `lookHintCells`, from its note; the glyph is only the quiet hint.
  */
 export function lookEyeCells(
@@ -89,12 +101,12 @@ export function lookEyeCells(
       out.push(c);
     }
   };
-  for (const c of can) if (isCrossing(level, c)) add(c);
-  // an occupied crossroads from which looking is possible: its neighbors take the eye, if they can look too
+  for (const c of can) if (isEyeSpot(level, c)) add(c);
+  // an occupied eye spot from which looking is possible: its neighbors take the eye, if they can look too
   for (const k of state.seenCells) {
     if (!occupied.has(k) || !canKeys.has(k)) continue;
     const x = parseKey(k);
-    if (areaAt(level.board, x[0], x[1]) !== 'C' || !isCrossing(level, x)) continue;
+    if (areaAt(level.board, x[0], x[1]) !== 'C' || !isEyeSpot(level, x)) continue;
     for (const [dx, dy] of SIDES) {
       const n: Cell = [x[0] + dx, x[1] + dy];
       if (areaAt(level.board, n[0], n[1]) === 'C' && state.seenCells.has(cellKey(n[0], n[1])))
