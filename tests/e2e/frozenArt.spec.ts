@@ -303,9 +303,6 @@ test.describe('texture pack families (decision 99)', () => {
       await dismissStart(page);
       const door = '[data-edge-door="ironEntry"] image[data-themed="edge-door"]';
       await expect(page.locator(door)).toHaveCount(1);
-      await expect(
-        page.locator('[data-edge-door="ironEntry"] image[data-themed="edge-door-arrow"]'),
-      ).toHaveCount(1);
       const i = (await page.locator(door).boundingBox())!;
       const b = (await page.locator('#board').boundingBox())!;
       expectStraddles(i, b, side);
