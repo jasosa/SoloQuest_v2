@@ -80,7 +80,7 @@ test.describe('texture pack families (decision 99)', () => {
     const dlg = await openTextures(page);
     const row = dlg.locator(FH);
     await expect(row.getByText('Frozen Horror', { exact: true })).toBeVisible();
-    await expect(row).toContainText('For frozen-horror');
+    await expect(row).toContainText('Frozen Horror pack');
     await expect(row).toContainText('Official');
     await expect(row).toContainText('Included with the app');
     await expect(row).toContainText(/\d(\.\d)? MB/);
@@ -231,6 +231,37 @@ test.describe('texture pack families (decision 99)', () => {
     expect(statSync(await file.path()).size).toBeGreaterThan(1_000_000);
   });
 
+  test('pack cards: a short kicker, the name on one line, the details under it, buttons in their own row', async ({
+    page,
+  }) => {
+    const dlg = await openTextures(page);
+    await importFile(
+      dlg,
+      packFile({
+        id: 'core-ah-2021',
+        name: 'core-ah-2021',
+        family: 'ah-2021',
+        author: "The owner's own pictures, not for sharing",
+      }),
+    );
+    await applyIt(dlg, '[data-pack="core-ah-2021"]');
+    await applyIt(dlg, FH);
+    const core = dlg.locator('[data-pack="core-ah-2021"]');
+    await expect(core.locator('.fr-qnum')).toHaveText('Core pack');
+    await expect(core.locator('.pk-meta')).toContainText('Fan-made · Family ah-2021 · The owner');
+    await expect(dlg.locator(`${FH} .fr-qnum`)).toHaveText('Frozen Horror pack');
+    await expect(dlg.locator(`${FH} .pk-meta`)).toContainText('Included with the app');
+    // the name is on one line, and the buttons are under the text, not beside it
+    const title = await core.locator('.fr-qtitle').boundingBox();
+    const actions = await core.locator('.pk-actions').boundingBox();
+    expect(title!.height).toBeLessThan(30);
+    expect(actions!.y).toBeGreaterThanOrEqual(title!.y + title!.height);
+    await dlg.screenshot({ path: 'test-results/textures-dialog-cards.png' });
+    await page.setViewportSize({ width: 700, height: 834 });
+    await expect(core.locator('.fr-qtitle')).toBeVisible();
+    await dlg.screenshot({ path: 'test-results/textures-dialog-cards-narrow.png' });
+  });
+
   test('Preview of the Frozen Horror pack shows its own slots and lists only what is missing', async ({
     page,
   }) => {
@@ -258,6 +289,52 @@ test.describe('texture pack families (decision 99)', () => {
     await expect(prev.getByLabel('Picture to adjust')).toHaveValue('enemy.yeti');
     await prev.getByRole('button', { name: 'Size: more' }).click();
     await expect(prev.getByText('Unsaved changes')).toBeVisible();
+  });
+
+  test('Preview: tile pictures are in the Adjust list, a tap on a tile picks its row', async ({
+    page,
+  }) => {
+    const dlg = await openTextures(page);
+    await dlg.getByTestId('preview-fz-ah-2021').click();
+    const prev = page.getByRole('dialog', { name: 'Preview: Frozen Horror' });
+    const sample = prev.getByTestId('pack-sample');
+    const list = prev.getByLabel('Picture to adjust');
+    await expect(list.locator('optgroup[label="Tiles"] option')).toHaveCount(18);
+    await expect(list.locator('option[value="tile.iceVault.2x3"]')).toHaveText('Ice vault 2x3');
+    await expect(list.locator('option[value="tile.scepterRoom"]')).toHaveText('Scepter room');
+    await sample.locator('[data-slot="tile.iceVault.3x4"]').click();
+    await expect(list).toHaveValue('tile.iceVault.3x4');
+    await prev.getByRole('button', { name: 'Size: more' }).click();
+    await expect(prev.getByText('Unsaved changes')).toBeVisible();
+    await prev.screenshot({ path: 'test-results/pack-adjust-tiles.png' });
+  });
+
+  test('Preview check warns about small enemy, edge door and tunnel pictures', async ({ page }) => {
+    const dlg = await openTextures(page);
+    await importFile(dlg, CORE);
+    await importFile(
+      dlg,
+      packFile({
+        id: 'tiny-fh',
+        name: 'Tiny Frozen Horror',
+        box: 'frozen-horror',
+        extends: 'core-ah-2021',
+        family: 'ah-2021',
+        enemy: { yeti: 'floor.png' },
+        edgeDoor: { ironEntry: 'floor.png' },
+        tunnel: { '1': 'floor.png' },
+        tile: { scepterRoom: { file: 'floor.png', cells: [4, 4] } },
+      }),
+    );
+    await dlg.getByTestId('preview-tiny-fh').click();
+    const prev = page.getByRole('dialog', { name: 'Preview: Tiny Frozen Horror' });
+    const warnings = prev.locator('.pv-warnings li');
+    await expect(warnings).toHaveCount(4);
+    await expect(warnings.nth(0)).toContainText('enemy yeti: 1 x 1 px');
+    await expect(warnings.nth(1)).toContainText('edge door ironEntry: 1 x 1 px');
+    await expect(warnings.nth(2)).toContainText('tunnel design 1: 1 x 1 px');
+    await expect(warnings.nth(3)).toContainText('tile scepterRoom 4x4: 1 x 1 px');
+    await prev.screenshot({ path: 'test-results/pack-check-warnings.png' });
   });
 
   test('editor: tokens, tiles and doors are pictures once both are used, and Textures off draws the built-in look', async ({

@@ -32,6 +32,13 @@ function download(name: string, bytes: Uint8Array): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** A box id as a name: `frozen-horror` is "Frozen Horror". */
+const boxName = (id: string) =>
+  id
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
 const size = (n: number) =>
   n < 1024 * 1024
     ? `${Math.max(1, Math.round(n / 1024))} KB`
@@ -141,71 +148,79 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
         <div className="fr-open-static">
           <span className="fr-qnum">
             {p.box
-              ? t('theme.TexturesDialog.for', 'For {box}', { box: p.box })
-              : t('theme.TexturesDialog.forTheCoreGame', 'Core pack')}{' '}
-            ·{' '}
-            {p.origin === 'official'
-              ? t('theme.TexturesDialog.official', 'Official')
-              : t('theme.TexturesDialog.fanMade', 'Fan-made')}
-            {p.family
-              ? ` · ${t('theme.TexturesDialog.family', 'Family {family}', { family: p.family })}`
-              : ''}
-            {p.author ? ` · ${p.author}` : ''} · {size(p.bytes)}
-            {p.included
-              ? ` · ${t('theme.TexturesDialog.includedWithTheApp', 'Included with the app')}`
-              : ''}
+              ? t('theme.TexturesDialog.boxPack', '{box} pack', { box: boxName(p.box) })
+              : t('theme.TexturesDialog.forTheCoreGame', 'Core pack')}
           </span>
           <span className="fr-qtitle">{p.name}</span>
+          <span className="pk-meta">
+            {[
+              p.origin === 'official'
+                ? t('theme.TexturesDialog.official', 'Official')
+                : t('theme.TexturesDialog.fanMade', 'Fan-made'),
+              p.family
+                ? t('theme.TexturesDialog.family', 'Family {family}', { family: p.family })
+                : '',
+              p.author ?? '',
+              size(p.bytes),
+              p.included
+                ? t('theme.TexturesDialog.includedWithTheApp', 'Included with the app')
+                : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
           {needs && !inUse(p.id) && (
             <span className="fr-qnote" data-testid={`needs-${p.id}`}>
               {needs}
             </span>
           )}
         </div>
-        {inUse(p.id) ? (
-          <>
-            <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
-            <button className="chip" onClick={() => void stop(p.id)}>
-              {t('theme.TexturesDialog.stopUsingIt', 'Stop using it')}
+        <div className="pk-actions">
+          {inUse(p.id) ? (
+            <>
+              <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
+              <button className="chip" onClick={() => void stop(p.id)}>
+                {t('theme.TexturesDialog.stopUsingIt', 'Stop using it')}
+              </button>
+            </>
+          ) : (
+            <button className="chip" disabled={needs !== null} onClick={() => void use(p.id)}>
+              {t('theme.TexturesDialog.use', 'Use')}
             </button>
-          </>
-        ) : (
-          <button className="chip" disabled={needs !== null} onClick={() => void use(p.id)}>
-            {t('theme.TexturesDialog.use', 'Use')}
-          </button>
-        )}
-        <button
-          className="chip"
-          data-testid={`preview-${p.id}`}
-          onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
-        >
-          {t('theme.TexturesDialog.preview', 'Preview')}
-        </button>
-        <button
-          className="chip"
-          onClick={async () => {
-            const pack = await store.load(p.id);
-            if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
-          }}
-        >
-          {t('theme.TexturesDialog.export', 'Export')}
-        </button>
-        {p.included ? null : deleting === p.id ? (
+          )}
           <button
-            className="chip main"
+            className="chip"
+            data-testid={`preview-${p.id}`}
+            onClick={async () => setPreviewing((await store.load(p.id)) ?? null)}
+          >
+            {t('theme.TexturesDialog.preview', 'Preview')}
+          </button>
+          <button
+            className="chip"
             onClick={async () => {
-              report(await removePack(store, p.id));
-              setDeleting(null);
-              await refresh();
+              const pack = await store.load(p.id);
+              if (pack) download(`${p.id}${PACK_EXTENSION}`, writePack(pack));
             }}
           >
-            {t('theme.TexturesDialog.reallyDelete', 'Really delete')}
+            {t('theme.TexturesDialog.export', 'Export')}
           </button>
-        ) : (
-          <button className="chip" onClick={() => setDeleting(p.id)}>
-            {t('theme.TexturesDialog.delete', 'Delete')}
-          </button>
-        )}
+          {p.included ? null : deleting === p.id ? (
+            <button
+              className="chip main"
+              onClick={async () => {
+                report(await removePack(store, p.id));
+                setDeleting(null);
+                await refresh();
+              }}
+            >
+              {t('theme.TexturesDialog.reallyDelete', 'Really delete')}
+            </button>
+          ) : (
+            <button className="chip" onClick={() => setDeleting(p.id)}>
+              {t('theme.TexturesDialog.delete', 'Delete')}
+            </button>
+          )}
+        </div>
       </li>
     );
   };
@@ -252,19 +267,21 @@ export function TexturesDialog({ store, onClose }: { store: ThemeStore; onClose(
           {selectionLine(selection, packs) ??
             t('theme.TexturesDialog.builtInLook', 'Built-in look: no pack in use.')}
         </p>
-        <ul className="fr-recent" data-testid="pack-list">
+        <ul className="fr-recent pk-list" data-testid="pack-list">
           <li>
             <div className="fr-open-static">
               <span className="fr-qnum">{t('theme.TexturesDialog.builtIn', 'Built in')}</span>
               <span className="fr-qtitle">{t('theme.TexturesDialog.classic', 'Classic')}</span>
             </div>
-            {selection.core === null ? (
-              <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
-            ) : (
-              <button className="chip" onClick={() => void stop(selection.core ?? '')}>
-                {t('theme.TexturesDialog.useClassic', 'Use Classic')}
-              </button>
-            )}
+            <div className="pk-actions">
+              {selection.core === null ? (
+                <span className="fr-qnote">{t('theme.TexturesDialog.inUse', 'In use')}</span>
+              ) : (
+                <button className="chip" onClick={() => void stop(selection.core ?? '')}>
+                  {t('theme.TexturesDialog.useClassic', 'Use Classic')}
+                </button>
+              )}
+            </div>
           </li>
           {families.map(({ pack, sub }) => packRow(pack, sub))}
         </ul>

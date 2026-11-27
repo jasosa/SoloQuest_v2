@@ -171,9 +171,9 @@ function ExpansionSample({
   onSelect(id: string): void;
   view?: string | null;
 }) {
-  const tag = (id: string, node: ReactNode) => (
+  const tag = (id: string, node: ReactNode, key = id) => (
     <g
-      key={id}
+      key={key}
       data-slot={id}
       className={selected === id ? 'pv-sel' : undefined}
       style={{ cursor: 'pointer' }}
@@ -191,7 +191,7 @@ function ExpansionSample({
     if (it.kind !== 'tile') continue;
     const cells: [number, number][] = [];
     for (let y = 0; y < it.h; y++) for (let x = 0; x < it.w; x++) cells.push([it.x + x, it.y + y]);
-    nodes.push(<g key={`tile-${it.id}-${it.x}-${it.y}`}>{tilePiece(theme, it.key, cells, U)}</g>);
+    nodes.push(tag(it.slot, tilePiece(theme, it.key, cells, U), `tile-${it.id}-${it.x}-${it.y}`));
   }
   for (const it of layout.items) {
     if (it.kind === 'enemy') {
@@ -822,7 +822,7 @@ export function PackPreview({
             {layout
               ? t(
                   'theme.PackPreview.squaresAre34PxExpansion',
-                  'Squares are 34 px; the real board shows them up to twice as big. Rows: enemy tokens and the block, then the entry and exit doors on a wall line and the ice tunnels, then the tiles at their size. Tap an enemy, door or tunnel to adjust it.',
+                  'Squares are 34 px; the real board shows them up to twice as big. Rows: enemy tokens and the block, then the entry and exit doors on a wall line and the ice tunnels, then the tiles at their size. Tap an enemy, door, tunnel or tile to adjust it.',
                 )
               : t(
                   'theme.PackPreview.squaresAre34Px',

@@ -1,6 +1,7 @@
 import frozenHorror from '../../content/library/frozen-horror.json';
 import type { PackManifest } from './pack';
 import { EDGE_DOOR_SLOTS, TILE_KEYS, TUNNEL_DESIGNS, type Theme, type TileKey } from './theme';
+import { tileSlotId } from './tune';
 
 /**
  * The preview of an expansion pack (decision 99): it shows the slots of the pack itself (enemies, entry
@@ -41,7 +42,16 @@ export type Placed =
   | { kind: 'block'; id: string; x: number; y: number }
   | { kind: 'edgeDoor'; id: string; x: number; y: number }
   | { kind: 'tunnel'; id: string; x: number; y: number }
-  | { kind: 'tile'; id: string; key: TileKey; x: number; y: number; w: number; h: number };
+  | {
+      kind: 'tile';
+      id: string;
+      slot: string;
+      key: TileKey;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
 
 export interface ExpansionLayout {
   readonly cols: number;
@@ -95,14 +105,17 @@ export function expansionLayout(theme: Theme): ExpansionLayout {
   let cy = 4;
   let shelf = 0;
   for (const key of TILE_KEYS) {
-    for (const p of theme.tile?.[key] ?? []) {
+    const pictures = theme.tile?.[key] ?? [];
+    for (const p of pictures) {
       const [w, h] = p.cells;
       if (cx > 0 && cx + w > EXPANSION_COLS) {
         cx = 0;
         cy += shelf + 1;
         shelf = 0;
       }
-      items.push({ kind: 'tile', id: `${key}-${w}x${h}`, key, x: cx, y: cy, w, h });
+      const slot = tileSlotId(key, pictures.length, p.cells);
+      items.push({ kind: 'tile', id: `${key}-${w}x${h}`, slot, key, x: cx, y: cy, w, h });
+      boxes[slot] = { x: cx, y: cy, w, h };
       cx += w + 1;
       shelf = Math.max(shelf, h);
     }

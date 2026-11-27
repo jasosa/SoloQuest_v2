@@ -542,6 +542,36 @@
 .fr-recent li > .chip {
   min-width: 72px;
 }
+/* The Textures dialog: the text has the full card width, the buttons sit in their own row under it */
+.fr-recent.pk-list li {
+  flex-wrap: wrap;
+}
+.fr-recent.pk-list li > .fr-open-static {
+  flex: 1 1 100%;
+}
+.fr-recent.pk-list .pk-meta {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.fr-recent.pk-list .pk-actions {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+.fr-recent.pk-list .pk-actions > .fr-qnote {
+  margin-right: auto;
+}
+.fr-recent.pk-list .pk-actions > .chip {
+  min-width: 72px;
+  padding-left: 14px;
+  padding-right: 14px;
+  white-space: nowrap;
+}
 .fr-cards {
   display: grid;
   gap: 14px;

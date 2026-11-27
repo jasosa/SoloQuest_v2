@@ -4,6 +4,57 @@ import type { PackManifest } from './pack';
 
 const base: PackManifest = { format: 'sqtextures', version: 1, id: 'p', name: 'P', origin: 'fan' };
 
+describe('checkPack, expansion slots', () => {
+  it('warns about a small enemy, edge door and tunnel picture, and not about big ones', () => {
+    const m: PackManifest = {
+      ...base,
+      enemy: { yeti: 'y.png', iceGremlin: 'g.png' },
+      edgeDoor: { ironEntry: 'i.png' },
+      tunnel: { '1': 't.png' },
+    };
+    const small = checkPack(m, {
+      'y.png': { w: 40, h: 40 },
+      'g.png': { w: 200, h: 200 },
+      'i.png': { w: 50, h: 50 },
+      't.png': { w: 50, h: 50 },
+    });
+    const text = small.warnings.join(' ');
+    expect(small.warnings).toHaveLength(3);
+    expect(text).toMatch(/enemy yeti: 40 x 40 px, shown about 32 px wide/);
+    expect(text).toMatch(/edge door ironEntry: 50 x 50 px/);
+    expect(text).toMatch(/tunnel design 1: 50 x 50 px/);
+    expect(text).not.toMatch(/iceGremlin/);
+  });
+
+  it('warns about a small tile picture by its own cells size', () => {
+    const m: PackManifest = {
+      ...base,
+      tile: {
+        iceVault: [
+          { file: 'a.png', cells: [2, 3] },
+          { file: 'b.png', cells: [3, 4] },
+        ],
+        scepterRoom: { file: 's.png', cells: [4, 4] },
+      },
+    };
+    // 2x3 is shown 102 px wide: 204 px needed, 153 is just enough; 3x4 needs 272 (204 is just enough)
+    const ok = checkPack(m, {
+      'a.png': { w: 153, h: 100 },
+      'b.png': { w: 204, h: 150 },
+      's.png': { w: 272, h: 272 },
+    });
+    expect(ok.warnings).toEqual([]);
+    const bad = checkPack(m, {
+      'a.png': { w: 100, h: 100 },
+      'b.png': { w: 600, h: 800 },
+      's.png': { w: 100, h: 100 },
+    });
+    expect(bad.warnings).toHaveLength(2);
+    expect(bad.warnings[0]).toMatch(/^tile iceVault 2x3: 100 x 100 px, shown about 102 px wide/);
+    expect(bad.warnings[1]).toMatch(/^tile scepterRoom 4x4: 100 x 100 px/);
+  });
+});
+
 describe('checkPack', () => {
   it('lists every slot an empty pack leaves out', () => {
     const r = checkPack(base, {});
