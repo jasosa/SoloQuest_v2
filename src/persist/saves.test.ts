@@ -198,13 +198,8 @@ describe('the pack in a save (decision 36)', () => {
 });
 
 describe('the free team list in a save (decision 38)', () => {
-  const scout: TeamMember = { id: 'merc:scout', name: 'Scout', kind: 'mercenary', owner: 'dwarf' };
-  const wolf: TeamMember = {
-    id: 'ally:snowdasher',
-    name: 'Snowdasher',
-    kind: 'ally',
-    owner: 'elf',
-  };
+  const scout: TeamMember = { id: 'merc:scout', name: 'Scout', kind: 'mercenary' };
+  const wolf: TeamMember = { id: 'ally:snowdasher', name: 'Snowdasher', kind: 'ally' };
 
   it('an older save with a plain hero list still loads, and it is written the same way', async () => {
     const store = new MemorySaveStore();
@@ -223,7 +218,21 @@ describe('the free team list in a save (decision 38)', () => {
     expect((await store.load(level.quest.id))?.team).toEqual(['dwarf', 'wizard']);
   });
 
-  it('keeps mercenaries and allies with their owner, and a death of any entry replays', async () => {
+  it('loads an older save whose mercenary has an owner, without the owner', async () => {
+    const store = new MemorySaveStore();
+    await store.save({
+      questId: level.quest.id,
+      version: 1,
+      seed: SEED,
+      team: ['dwarf', { ...scout, owner: 'dwarf' }],
+      events: [],
+      updatedAt: 1,
+    });
+    const r = await resume(store, level);
+    expect(r.ok && r.team).toEqual([heroMember('dwarf'), scout]);
+  });
+
+  it('keeps mercenaries and allies, and a death of any entry replays', async () => {
     const store = new MemorySaveStore();
     const team = [heroMember('dwarf'), heroMember('elf'), scout, wolf];
     const events: GameEvent[] = [{ type: 'HERO_DIED', hero: 'ally:snowdasher' }];

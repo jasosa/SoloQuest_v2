@@ -31,12 +31,19 @@ describe('the installed packs', () => {
     // only the expansion has quests: still one pack
     expect(packTabs(packs, (id) => id.startsWith('fh'))).toEqual([]);
   });
-  it('Frozen Horror offers the alternate Barbarian and the wolf in the New game popup', () => {
+  it('Frozen Horror offers the alternate Barbarian and four mercenaries, the wolf Snowdasher is a Frozen Horror ally', () => {
     const team = packs.byId.get('frozen-horror')!.manifest.team;
     expect(team.heroes).toEqual([
       { id: 'alternate-barbarian', name: 'Barbarian (alternate)', as: 'barbarian' },
     ]);
-    expect(team.allies.map((a) => a.id)).toEqual(['snowdasher']);
+    expect(team.mercenaries.map((a) => a.id)).toEqual([
+      'crossbowman',
+      'halberdier',
+      'swordsman',
+      'scout',
+    ]);
+    expect(team.allies).toEqual([{ id: 'snowdasher', name: 'Snowdasher' }]);
+    expect(packs.byId.get(CORE_PACK)!.manifest.team.allies).toEqual([]);
     expect(packs.byId.get(CORE_PACK)!.manifest.team.heroes).toEqual([]);
   });
   it('the quests carry their team rule: the prelude is solo with the wolf, quest 1 is the Barbarian alone', () => {

@@ -1,0 +1,45 @@
+/* New game: team picker concept (DESIGN.md, "Team: two buttons and a list"). Tokens come from play.css. */
+.ng { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 340px; gap: 28px; padding: 18px 28px 22px; min-height: 0; }
+.ng .col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.ng .lbl { margin: 6px 0 0; }
+.ng h2 { font: 700 22px/1.15 "Bonum"; color: var(--ink); }
+.ng .story { font-style: italic; color: var(--muted); font-size: 15px; }
+.ng .grow { margin-top: auto; }
+.hint { font-size: 14px; font-style: italic; color: var(--muted); }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hero-row { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 0 14px; border: 2px solid var(--off); background: none; color: var(--text); text-align: left; }
+.hero-row .hero-tick { flex: none; width: 26px; height: 26px; border: 2px solid var(--ink); background: var(--paper-3); }
+.hero-row .hero-name { flex: 1; font: 700 19px/1.1 "Bonum"; }
+.hero-row[aria-pressed="true"] { background: var(--sel); border-color: var(--ink); }
+.hero-row[aria-pressed="true"] .hero-tick { background: var(--ink); box-shadow: inset 0 0 0 4px var(--sel); }
+.hero-row .hero-box { flex: none; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.hero-row[aria-pressed="true"] .hero-box { color: var(--ink); }
+.team-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.team-btns .btn { margin: 0; min-height: 48px; }
+.team-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.team-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 4px 0 14px; border: 2px solid var(--ink); background: var(--paper-3); }
+.team-row .nm { font: 700 18px/1.1 "Bonum"; color: var(--text); }
+.team-row .nm i { font: 700 15px "Bonum"; font-style: normal; color: var(--ink); margin-left: 6px; }
+.team-row .own { flex: 1; font-size: 14px; color: var(--muted); }
+.team-row .chip, .stepper .chip { flex: none; width: 44px; padding: 0; font-size: 20px; }
+.team-empty { font-size: 14px; font-style: italic; color: var(--muted); }
+.note.pick { width: 640px; max-height: 760px; overflow: auto; }
+.note.pick p.hint { margin-bottom: 10px; }
+.note.pick .lbl { margin: 8px 0 6px; }
+.note.pick .chips { grid-template-columns: repeat(4, 1fr); margin-bottom: 6px; }
+.pick-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.pick-row { display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 0 6px 0 14px; border: 2px solid var(--off); background: none; }
+.pick-row.on { background: var(--sel); border-color: var(--ink); }
+.pick-row .hero-name { flex: 1; font: 700 19px/1.1 "Bonum"; }
+.pick-row .box { font-size: 14px; color: var(--muted); }
+.pick-row.on .box { color: var(--ink); }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper b { min-width: 28px; text-align: center; font: 700 18px "Bonum"; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pick-row .chip { background: var(--paper-3); }
+.pick-row .chip:disabled { background: none; }
+.chip.add { width: 100%; border-style: dashed; margin-top: 8px; }
+.custom { display: flex; gap: 8px; margin-top: 8px; }
+.custom input { flex: 1; min-height: 44px; border: 2px solid var(--ink); background: var(--paper-3); color: var(--text); padding: 8px 10px; font: 16px/1.3 "Pagella", Georgia, serif; border-radius: 0; }
+.custom .btn { width: 120px; margin: 0; }
+.note.pick .foot { margin-top: 16px; }
+.stepper .chip:disabled { text-decoration: none; }

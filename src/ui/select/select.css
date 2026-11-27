@@ -187,15 +187,6 @@ header.page-head {
 .app.select .side .summary {
   margin: 6px 0 14px;
 }
-.app.select .pick-heroes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 4px 0 6px;
-}
-.app.select .pick-heroes .chip {
-  min-height: 48px;
-}
 .app.select .tex-name {
   font-weight: 700;
   font-style: normal;
@@ -235,22 +226,120 @@ header.page-head {
 }
 
 /* The team groups of the New game popup (decision 38). */
-.app.select .pick-heroes .chip.add {
-  border-style: dashed;
+.app.select .team-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
-.app.select .team-form {
-  margin: 4px 0 8px;
-  padding: 10px 12px;
-  border: 1.5px solid var(--ink);
+.app.select .team-btns .btn {
+  margin: 0;
+  min-height: 48px;
+}
+.app.select .team-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.app.select .team-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 4px 0 14px;
+  border: 2px solid var(--ink);
   background: var(--paper-3);
 }
-.app.select .team-form input {
-  display: block;
+.app.select .team-row .nm {
+  flex: 1;
+  font: 700 18px/1.1 'Bonum';
+  color: var(--text);
+}
+.app.select .team-row .nm i {
+  font: 700 15px 'Bonum';
+  font-style: normal;
+  color: var(--ink);
+}
+.app.select .team-row .chip,
+.app.select .pick-row .chip {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 20px;
+}
+
+/* The ally and mercenary dialog (DESIGN.md, "Team: two buttons and a list"). */
+.note.pick-note {
+  width: 640px;
+}
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 0 6px 0 14px;
+  border: 2px solid var(--off);
+  background: none;
+}
+.pick-row.on {
+  background: var(--sel);
+  border-color: var(--ink);
+}
+.pick-row .hero-name {
+  flex: 1;
+  font: 700 19px/1.1 'Bonum';
+}
+.pick-row .box {
+  font-size: 14px;
+  color: var(--muted);
+}
+.pick-row.on .box {
+  color: var(--ink);
+}
+.pick-row .stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pick-row .stepper b {
+  min-width: 28px;
+  text-align: center;
+  font: 700 18px 'Bonum';
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.pick-row .chip {
+  background: var(--paper-3);
+}
+.pick-row .chip:disabled {
+  background: none;
+  text-decoration: none;
+}
+.note .chip.add {
   width: 100%;
   min-height: 44px;
-  margin: 4px 0 8px;
+  margin-top: 8px;
+  border-style: dashed;
+}
+.note .custom {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.note .custom input {
+  flex: 1;
+  min-height: 44px;
   border: 2px solid var(--ink);
-  background: var(--white);
+  background: var(--paper-3);
   color: var(--text);
   padding: 8px 10px;
   font:
@@ -259,10 +348,12 @@ header.page-head {
     serif;
   border-radius: 0;
 }
-.app.select .team-form-btns {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
+.note .custom .btn {
+  width: 120px;
+  margin: 0;
+}
+.note .foot {
+  margin-top: 16px;
 }
 .app.select .team-warn {
   margin: 6px 0 0;
@@ -364,12 +455,7 @@ header.page-head {
 /* The heroes page: the team groups on the left in four columns, the quest on the right. */
 .app.select .start-team {
   padding: 20px 16px 24px 28px;
-}
-.app.select .start-team .pick-heroes {
-  grid-template-columns: repeat(2, 1fr);
-}
-.app.select .start-team .team-form {
-  max-width: 520px;
+  overflow-y: auto;
 }
 .app.select .side .actions {
   margin-top: 4px;
@@ -603,6 +689,9 @@ header.page-head {
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 .hero-row {
   width: 100%;
@@ -610,7 +699,7 @@ header.page-head {
   align-items: center;
   gap: 14px;
   min-height: 54px;
-  padding: 0 14px;
+  padding: 0 120px 0 14px;
   border: 2px solid var(--off);
   background: none;
   color: var(--text);
@@ -626,10 +715,6 @@ header.page-head {
 .hero-row .hero-name {
   flex: 1;
   font: 700 19px/1.1 'Bonum';
-}
-.hero-row .hero-box {
-  font-size: 14px;
-  color: var(--muted);
 }
 .hero-row[aria-pressed='true'] {
   background: var(--sel);

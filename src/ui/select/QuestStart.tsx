@@ -3,7 +3,6 @@ import { labelOf, normalizeTeam, type TeamInput, type TeamMember } from '../../e
 import { newCampaign, startFlagsFor, type Campaign } from '../../engine/pack/campaign';
 import { MemoryCampaignStore, type CampaignStore } from '../../persist/campaigns';
 import { resume, type Resumed, type SaveStore } from '../../persist/saves';
-import { CORE_PACK } from '../../engine/pack/registry';
 import { packLabel, packs } from '../packs';
 import { SAVED_GAME_FAILED } from '../store/openSaved';
 import { SettingsRows } from '../shared/QuestSettingsCard';
@@ -43,11 +42,9 @@ export function QuestStart({
 }) {
   const { level } = playable;
   const quest = level.quest;
-  const questPack = playable.pack ?? CORE_PACK;
   const manifest = playable.pack ? packs.byId.get(playable.pack)?.manifest : undefined;
-  const teamPacks = [...(packs.byId.get(questPack)?.requires ?? []), questPack]
-    .map((id) => packs.byId.get(id)?.manifest)
-    .filter((m) => m !== undefined);
+  // Every installed pack is offered on any quest (decision 114).
+  const teamPacks = packs.packs.map((p) => p.manifest);
 
   const saved = mode === 'campaign' ? (campaign as Campaign | undefined) : undefined;
   const fallen = saved?.fallen ?? [];

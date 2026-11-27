@@ -21,7 +21,7 @@ The base game is the pack `core`. Every expansion is a pack that depends on it. 
 ```
 
 - `quests` are quest ids (the `id` of the files in `src/content/quests/`), in **campaign order**. A pack may hold extra quests that the book does not number (Frozen Horror Q0, the online prelude): a quest `number` may be 0.
-- `team` lists what the New game popup offers for the pack (decision 38): `heroes` (`{ id, name, as }`, `as` is the core hero it plays as), `mercenaries` and `allies` (`{ id, name }`). A mercenary or an animal of any name can also be typed in.
+- `team` lists what the New game popup offers for the pack (decision 38): `heroes` (`{ id, name, as }`, `as` is the core hero it plays as), `mercenaries` and `allies` (`{ id, name }`). A mercenary or an animal of any name can also be typed in. Every hero, mercenary and ally of every installed pack is offered on any quest, whatever the quest's box; the picker labels the box (decision 114). Snowdasher and the four mercenaries are in the Frozen Horror pack. A quest's `grantsAlly` is looked up in all installed packs. Several of one type are allowed ("Swordsman", "Swordsman 2"). They belong to no hero.
 - `campaignSettings` are the choices made when a campaign starts (decision 61); they are off unless `default` says so.
 - Monsters, spells, heroes, mercenaries and the like are **not** in the manifest. They are Core library items tagged with the pack's name as their `expansion` (decision 76, `LIBRARY_LAYERS.md`), so the Library, the expansion switches and the editor already treat them as part of the pack.
 
