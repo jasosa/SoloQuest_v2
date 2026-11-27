@@ -1565,6 +1565,44 @@ test.describe('editor: endings and blocked search', () => {
     await page.getByTestId('note-list').getByRole('button').first().click();
     await expect(row).toHaveCount(1);
   });
+
+  test('"Searching here is not possible" is offered for a treasure search only, and warns where it cannot work', async ({
+    page,
+  }) => {
+    await newQuest(page);
+    await page.getByRole('tab', { name: 'Actions', exact: true }).click();
+    await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
+    const add = page.getByLabel('Add an effect');
+    const option = add.locator('option[value="blockSearch"]');
+    const row = page.locator('[data-testid="effect-row"][data-effect="blockSearch"]');
+    const warning = page.getByTestId('effect-warning');
+    // another trigger: not in the list
+    await page.getByLabel('Applies to').selectOption('area:R20');
+    await page.getByLabel('When').selectOption('areaEntered');
+    await expect(option).toHaveCount(0);
+    // a treasure search: offered, and the row looks like the other effects
+    await page.getByLabel('When').selectOption('treasureSearch');
+    await expect(option).toHaveCount(1);
+    await add.selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toHaveCount(0);
+    await expect(row.locator('.ed-row-head span')).toHaveText('Searching here is not possible');
+    await expect(row.getByRole('button', { name: /^Remove effect/ })).toBeVisible();
+    await shot(page, 'editor-effect-block-search');
+    // with "No treasure card is drawn" the validator refuses it: the row says so
+    await btn(page, 'No treasure card is drawn').click();
+    await add.selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toContainText('cannot go with "No treasure card is drawn"');
+    await shot(page, 'editor-effect-block-search-warning');
+    await btn(page, 'No treasure card is drawn').click();
+    await expect(warning).toHaveCount(0);
+    // the trigger changes under it: the row stays and says it needs a treasure search
+    await page.getByLabel('When').selectOption('areaEntered');
+    await expect(row).toHaveCount(1);
+    await expect(warning).toContainText('Search for treasure');
+    await shot(page, 'editor-effect-block-search-trigger');
+  });
 });
 
 test.describe('editor: Frozen Horror features', () => {

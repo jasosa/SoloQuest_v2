@@ -406,6 +406,7 @@ export function ActionForm({
           store={store}
           quest={quest}
           effects={note.effects}
+          search={blockSearchRule(note)}
           onChange={(e) => patch({ effects: e })}
         />
       </section>
@@ -919,15 +920,44 @@ function ConditionFields({
 
 // ---- effects
 
+/** Where "Searching here is not possible" may be offered, and what is wrong with it where it is. */
+interface SearchRule {
+  /** The effect is offered in the Add an effect list. */
+  readonly allowed: boolean;
+  /** A plain sentence shown under the effect when it cannot work here (the validator refuses it). */
+  readonly warning: string | null;
+}
+
+/** The rule for a direct effect of an action: only a treasure search, and not with "No treasure card is drawn". */
+function blockSearchRule(note: Note): SearchRule {
+  const search = note.trigger.type === 'treasureSearch';
+  return {
+    allowed: search,
+    warning: !search
+      ? t(
+          'editor.NotesPanel.searchNeedsTreasureSearch',
+          'This only works when the action happens on "Search for treasure". Change When, or remove it.',
+        )
+      : note.consumesTreasure
+        ? t(
+            'editor.NotesPanel.searchNotWithNoCard',
+            'This cannot go with "No treasure card is drawn". Remove one of them.',
+          )
+        : null,
+  };
+}
+
 function EffectList({
   store,
   quest,
   effects,
+  search,
   onChange,
 }: {
   store: EditorStore;
   quest: Quest;
   effects: readonly Effect[];
+  search: SearchRule;
   onChange(e: Effect[]): void;
 }) {
   return (
@@ -957,6 +987,12 @@ function EffectList({
             effect={e}
             onChange={(n) => onChange(replaceAt(effects, i, n))}
           />
+          {e.type === 'blockSearch' && search.warning && (
+            <div className="mg-err" role="status" data-testid="effect-warning">
+              <span />
+              <div>{search.warning}</div>
+            </div>
+          )}
         </div>
       ))}
       <label className="ed-field">
@@ -972,7 +1008,7 @@ function EffectList({
           }}
         >
           <option value="">{t('editor.NotesPanel.addAnEffect', 'Add an effect')}</option>
-          {EFFECT_TYPES.map((x) => (
+          {EFFECT_TYPES.filter((x) => x.type !== 'blockSearch' || search.allowed).map((x) => (
             <option key={x.type} value={x.type}>
               {x.label}
             </option>
@@ -1300,6 +1336,13 @@ function EffectFields({
                 store={store}
                 quest={quest}
                 effects={o.effects}
+                search={{
+                  allowed: false,
+                  warning: t(
+                    'editor.NotesPanel.searchNotInAnswer',
+                    'This effect only works as a direct effect of the action, not inside an answer. Remove it here.',
+                  ),
+                }}
                 onChange={(effects) =>
                   onChange({ ...e, options: replaceAt(e.options, i, { ...o, effects }) })
                 }

@@ -356,7 +356,7 @@ All the texts of the application can be translated or modified with a tool, for 
   - [x] Frozen Horror monsters are not listed as custom (Map Monsters tool: `monsterKinds.test.ts`; the Monsters tab "Add a monster" dropdown now groups them under their box, `groupByExpansion`)
   - [x] "Searching here is not possible": now an effect `blockSearch` in the Then list, no separate toggle (decision 111; engine, schema, migration of `blocksSearch`, quests 2 and 6, validator, tests: `search.test.ts`, `notes.test.ts`, `quest.test.ts`, `editor/notes.test.ts`)
     - [x] engine-dev: effect, migration, quests, docs; minimal editor entry (the effect is in the Add an effect list, the toggle is gone)
-    - [ ] ui-dev: check the effect in the Then list (label, order, hide it unless the trigger is Search for treasure, warn when it is in an answer of Ask the players); remove the unused `searchingHereIsNot` toggle text; e2e for adding it to an action
+    - [x] ui-dev: check the effect in the Then list (label, order, hide it unless the trigger is Search for treasure, warn when it is in an answer of Ask the players); remove the unused `searchingHereIsNot` toggle text; e2e for adding it to an action
   - [x] Popups with an explicit Save button: the ability and spell popups use Save and Cancel (`AbilityDialog.tsx`, `SpellDialog.tsx`; the action and monster cards already did)
   - [ ] Draft and approved quests (decision 110)
     - [x] engine-dev: `status` and `copyOf` on the quest, `src/engine/editor/status.ts` (`approveQuest`, `withdrawQuest`, `makeCopy`, `playableUserQuests`, `replaceOriginal`), summary with `status`, import makes a draft, export drops the status, migration (no status = approved), tests; the quest list (`SelectScreen`) shows approved quests only
