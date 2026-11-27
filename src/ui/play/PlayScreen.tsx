@@ -56,8 +56,8 @@ import { abilityLine, monsterTip } from './monsterTip';
 import { useFitMode } from '../FitToScreen';
 import { QuestSheet } from './QuestSheet';
 import { EndAsk, EndSheet, type EndChoice } from './EndSheet';
-import { EDGE_DOOR_MARGIN, PLAY_BOARD_EAST, ZOOM_STRIP, ZoomLayer } from './ZoomLayer';
-import { Helpers, Heroes } from './sidebar';
+import { ZOOM_STRIP, ZoomLayer, playBoardFrame } from './ZoomLayer';
+import { TeamStrip, companionKey } from './TeamStrip';
 import {
   ChestBody,
   headingOf,
@@ -88,12 +88,6 @@ import { packs } from '../packs';
 import { t } from '../../i18n/t';
 
 const MAP_PAD_X = 28;
-const MAP_PAD_Y = 18;
-/** The svg viewBox starts at -2, so every board point is shifted by 2 px. */
-const toMap = (bx: number, by: number) => ({
-  x: MAP_PAD_X + 2 + bx * CELL,
-  y: MAP_PAD_Y + 2 + by * CELL,
-});
 
 type Anchor = { x: number; y: number };
 type Step =
@@ -160,6 +154,17 @@ export function PlayScreen({
   } = useStore(store);
   const { dispatch, undo, dismissToast } = store.getState();
   const { quest } = level;
+  // a side of the board with a door in its outer wall gets room for the arrow
+  const frame = playBoardFrame({
+    n: quest.edgeDoors.some((e) => e.side === 'n'),
+    e: quest.edgeDoors.some((e) => e.side === 'e'),
+    s: quest.edgeDoors.some((e) => e.side === 's'),
+  });
+  /** The svg viewBox starts at -2, so every board point is shifted by 2 px. */
+  const toMap = (bx: number, by: number) => ({
+    x: MAP_PAD_X + 2 + bx * CELL,
+    y: frame.top + 2 + by * CELL,
+  });
   // a pack made for one box dresses only the quests of that box
   const questBox = boxOfQuest(quest);
   useLayoutEffect(() => {
@@ -741,25 +746,6 @@ export function PlayScreen({
         </MarginNote>
       );
     }
-  } else if (sel?.kind === 'hero') {
-    note = (
-      <MarginNote
-        anchor={{ x: 880, y: 420 }}
-        kind={t('play.PlayScreen.heroes', 'Heroes')}
-        title={`${nameOf(sel.hero)} fell?`}
-        onClose={closeNote}
-      >
-        <p>
-          {t('play.PlayScreen.onlyTheFactIs', 'Only the fact is kept. It leaves every tie list.')}
-        </p>
-        <button className="btn" onClick={() => act({ type: 'HERO_DIED', hero: sel.hero })}>
-          {t('play.PlayScreen.yesFell', 'Yes, fell')}
-        </button>
-        <button className="btn alt" onClick={closeNote}>
-          {t('play.PlayScreen.no', 'No')}
-        </button>
-      </MarginNote>
-    );
   } else if (sel?.kind === 'zone') {
     const label = zoneLabels(level, state).find((z) => z.zone === sel.id);
     if (label) {
@@ -1202,15 +1188,28 @@ export function PlayScreen({
         )}
       </header>
 
+      <TeamStrip
+        team={team}
+        dead={state.deadHeroes}
+        people={quest.npcs}
+        inPlay={npcs}
+        open={sel?.kind === 'hero' ? sel.hero : sel?.kind === 'npc' ? companionKey(sel.id) : null}
+        onOpen={(key) =>
+          choose(
+            key.startsWith('npc:')
+              ? { kind: 'npc', id: key.slice(4) }
+              : { kind: 'hero', hero: key },
+          )
+        }
+        onFell={(hero) => act({ type: 'HERO_DIED', hero })}
+        onClose={closeNote}
+      />
+
       <ZoomLayer
         strip={ZOOM_STRIP}
-        // a door in the east wall has its arrow outside the board: room for it on that side only
-        {...(quest.edgeDoors.some((e) => e.side === 'e')
-          ? {
-              content: PLAY_BOARD_EAST,
-              padding: `18px ${EDGE_DOOR_MARGIN}px 18px 28px`,
-            }
-          : {})}
+        // the board's size and padding, with room for the arrow of an edge door
+        content={frame.content}
+        padding={frame.padding}
         notes={
           <>
             {sheet?.t === 'place' && sheet.p.cell ? (
@@ -1256,13 +1255,7 @@ export function PlayScreen({
       </ZoomLayer>
 
       <aside>
-        <Heroes
-          team={team}
-          dead={state.deadHeroes}
-          onTap={(hero) => choose({ kind: 'hero', hero })}
-        />
         <div className="aside-scroll">
-          <Helpers npcs={npcs} />
           <section className="monsters">
             <div className="lbl">{t('play.PlayScreen.monstersInPlay', 'Monsters in play')}</div>
             <ul className="roster">

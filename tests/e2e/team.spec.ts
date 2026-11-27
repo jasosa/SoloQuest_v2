@@ -52,13 +52,14 @@ test.describe('the team on the heroes page (decisions 38, 114)', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.locator('.veil')).toHaveCount(0);
 
-    // in play: one chip per entry, a tap asks "fell?"
-    const chips = page.locator('.hero-chips .chip');
-    await expect(chips).toHaveCount(3);
-    await chips.filter({ hasText: 'Old Gareth' }).click();
+    // in play: one coin per entry in the strip above the board, a tap asks "fell?"
+    const coins = page.locator('.team-strip .team-btn');
+    await expect(coins).toHaveCount(3);
+    await expect(coins).toHaveText(['E', 'Sn', 'OG']);
+    await coins.filter({ hasText: 'OG' }).click();
     await page.getByRole('button', { name: 'Yes, fell' }).click();
-    await expect(chips.filter({ hasText: 'Old Gareth' })).toBeDisabled();
-    await expect(chips.filter({ hasText: 'Elf' }).first()).toBeEnabled();
+    await expect(coins.filter({ hasText: 'OG' })).toBeDisabled();
+    await expect(coins.filter({ hasText: 'E' }).first()).toBeEnabled();
   });
 
   test('a Core quest offers Snowdasher and Swordsman x2 from Frozen Horror, one taken out', async ({

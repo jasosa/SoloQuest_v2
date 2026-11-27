@@ -44,7 +44,7 @@ header .turn b { color: var(--text); font-variant-numeric: tabular-nums; display
 .link:active:not(:disabled) { color: var(--ink-2); }
 
 /* ---------- map ---------- */
-.map { position: relative; padding: 18px 0 0 28px; }
+.map { position: relative; padding: var(--mapy, 32px) 0 0 var(--mapx, 28px); }
 #board { display: block; touch-action: manipulation; }
 #board .hit { fill: transparent; cursor: pointer; }
 .tok { transform-box: fill-box; transform-origin: center; }
@@ -164,3 +164,31 @@ aside { padding: 18px 28px 22px 24px; display: flex; flex-direction: column; gap
 .journal .jl { background: none; border: 0; text-align: left; font: inherit; color: inherit; padding: 4px 0; min-height: 32px; }
 .journal .jl:active { color: var(--ink); }
 .order .rulehint { font-size: 15.5px; margin-top: 6px; }
+
+/* ---------- play screen as in the app (src/ui/play/play.css): title band, heroes, monsters card, footer ---------- */
+.app.play header { gap: 12px; align-items: center; padding-top: 8px; padding-bottom: 5px; }
+.app.play header .titleblock { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.app.play header h1 { font-size: 26px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app.play header .subline { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.app.play header .qn { flex: none; font-size: 13px; white-space: nowrap; }
+.app.play header .goalline { flex: 1 1 auto; min-width: 0; font-size: 15px; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app.play header .goalline .gcount { font-style: normal; font-weight: 700; color: var(--ink); margin-right: 6px; font-size: 13px; }
+.app.play header .goalline .gtext { text-decoration: underline dashed var(--ink-2); text-underline-offset: 4px; }
+.app.play header .turn, .app.play header .chip { flex: none; white-space: nowrap; }
+.app.play header .turn { margin-left: 0; }
+.app.play header .back-btn { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 2px solid var(--ink); background: none; color: var(--ink); }
+.chip.hdr { min-height: 44px; padding: 0 14px; border-width: 2px; }
+.chip.hdr + .chip.hdr { margin-left: -6px; }
+.app.play aside { padding-top: 26px; }
+.aside-scroll { flex: 1 1 auto; display: flex; flex-direction: column; gap: 16px; overflow: auto; min-height: 0; margin-right: -8px; padding-right: 8px; }
+.hero-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aside-scroll > section.monsters { flex: 1 1 auto; padding: 10px 12px; background: var(--paper-3); border: 1.5px solid var(--rock-line); }
+.aside-scroll .roster { max-height: none; overflow: visible; margin: 0; padding: 0; }
+.aside-scroll .roster li button { grid-template-columns: 30px 1fr auto; }
+.aside-scroll .roster .coin { width: 30px; height: 30px; }
+.aside-foot { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--rock-line); }
+.aside-foot .btn { margin: 0; }
+.zargon-btn { margin-top: 0; min-height: 68px; font-size: 21px; }
+.zoomctl { position: absolute; left: 12px; bottom: 10px; z-index: 3; display: flex; gap: 6px; }
+.zoomctl .chip { min-width: 44px; min-height: 44px; border-width: 2px; }
+.zpage { top: 64px; }

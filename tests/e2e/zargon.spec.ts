@@ -203,8 +203,8 @@ test.describe('heroes who fell (decision 32)', () => {
     page,
   }) => {
     await quest1(page, 'd1,d2');
-    const chip = page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ });
-    await expect(page.locator('.hero-chips .chip')).toHaveCount(3);
+    const chip = page.locator('.team-strip').getByRole('button', { name: /^D, Dwarf/ });
+    await expect(page.locator('.team-strip .team-btn')).toHaveCount(3);
     await chip.click();
     await expect(dlg(page)).toContainText('Dwarf fell?');
     await shot(page, 'heroes-confirm');
@@ -226,7 +226,10 @@ test.describe('heroes who fell (decision 32)', () => {
 
   test('a dead hero cannot search for treasure', async ({ page }) => {
     await quest1(page, 'd1');
-    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await page
+      .locator('.team-strip')
+      .getByRole('button', { name: /^D, Dwarf/ })
+      .click();
     await btn(page, 'Yes, fell').click();
     await page.locator('[data-room-cell="2,17"]').click();
     await btn(page, 'Search for treasure').click();
@@ -236,8 +239,8 @@ test.describe('heroes who fell (decision 32)', () => {
 
   test('when the last hero falls: "All heroes have fallen" with End quest', async ({ page }) => {
     await quest1(page, 'd1,d2', 'dwarf,elf');
-    for (const name of [/Dwarf/, /Elf/]) {
-      await page.locator('.hero-chips').getByRole('button', { name }).click();
+    for (const name of [/^D, Dwarf/, /^E, Elf/]) {
+      await page.locator('.team-strip').getByRole('button', { name }).click();
       await btn(page, 'Yes, fell').click();
     }
     const card = page.getByRole('dialog', { name: 'All heroes have fallen' });
@@ -256,7 +259,10 @@ test.describe('heroes who fell (decision 32)', () => {
   }) => {
     await quest1(page, 'd1,d2', 'dwarf');
     const fallen = page.getByRole('dialog', { name: 'All heroes have fallen' });
-    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await page
+      .locator('.team-strip')
+      .getByRole('button', { name: /^D, Dwarf/ })
+      .click();
     await btn(page, 'Yes, fell').click();
     await expect(fallen).toBeVisible();
     await btn(page, 'Back to the map').click();
@@ -273,14 +279,20 @@ test.describe('heroes who fell (decision 32)', () => {
     await page.getByRole('button', { name: 'Undo', exact: true }).first().click(); // takes the door back
     await page.getByRole('button', { name: 'Undo', exact: true }).first().click(); // takes the fall back
     await expect(fallen).toHaveCount(0);
-    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await page
+      .locator('.team-strip')
+      .getByRole('button', { name: /^D, Dwarf/ })
+      .click();
     await btn(page, 'Yes, fell').click();
     await expect(fallen).toBeVisible();
   });
 
   test("Zargon's turn with every hero fallen offers End quest", async ({ page }) => {
     await quest1(page, 'd1,d2', 'dwarf');
-    await page.locator('.hero-chips').getByRole('button', { name: /Dwarf/ }).click();
+    await page
+      .locator('.team-strip')
+      .getByRole('button', { name: /^D, Dwarf/ })
+      .click();
     await btn(page, 'Yes, fell').click();
     await btn(page, 'Back to the map').click();
     await zbutton(page).click();
