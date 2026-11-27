@@ -191,3 +191,12 @@ test('the Core list shows the box of each item and can be filtered by box', asyn
   await expect(items(page).getByRole('button', { name: /^Orc/ })).toContainText('Base game');
   await expect(items(page).getByRole('button', { name: /^Yeti/ })).toHaveCount(0);
 });
+
+test('picking another box clears the card of the item that was open', async ({ page }) => {
+  await open(page);
+  await kind(page, /^Enemies/);
+  await items(page).getByRole('button', { name: /^Orc/ }).click();
+  await expect(card(page)).toBeVisible();
+  await page.getByTestId('dz-boxes').getByRole('button', { name: 'Frozen Horror' }).click();
+  await expect(card(page)).toHaveCount(0);
+});

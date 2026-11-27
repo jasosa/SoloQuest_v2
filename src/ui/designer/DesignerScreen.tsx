@@ -1613,7 +1613,11 @@ export function DesignerBody({ store, quests, updateQuests }: DesignerBodyProps)
                     className="chip"
                     aria-pressed={activeBox === b}
                     data-testid={`dz-box-${b}`}
-                    onClick={() => setBox(b)}
+                    onClick={() => {
+                      // another box is another list: the card of the item that was open goes
+                      if (b !== activeBox) pick(null);
+                      setBox(b);
+                    }}
                   >
                     {b === 'all'
                       ? t('designer.DesignerScreen.allBoxes', 'All boxes')

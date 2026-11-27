@@ -352,11 +352,17 @@ All the texts of the application can be translated or modified with a tool, for 
   - [x] M8 (ui-dev): the tool takes more than two rooms (first Stays, every further one Joins, one button, one undo step) and calls `addAreaMerges`; the error names the room that blocks it. Needs a DESIGN.md update first.
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
 - [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"
-- [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked
+- [ ] Editor polish (owner list)
+  - [x] Frozen Horror monsters are not listed as custom (Map Monsters tool: `monsterKinds.test.ts`; the Monsters tab "Add a monster" dropdown now groups them under their box, `groupByExpansion`)
+  - [x] "Searching here is not possible": already built as `blocksSearch` on a treasure search action (decision 65; `NotesPanel.tsx` toggle, `search.test.ts`, `notes.test.ts`)
+  - [x] Popups with an explicit Save button: the ability and spell popups use Save and Cancel (`AbilityDialog.tsx`, `SpellDialog.tsx`; the action and monster cards already did)
+  - [ ] Approved quests leave draft: not modelled in code (only "Unsaved draft" and "Saved" in the start list); waiting for the owner to say what "approved" means
+  - [x] The right card clears when another element category is picked (tool change already did, T1; the Library box chips now do too)
 - [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [x] Editor start screen: an Open button on each quest of the list of quests
 - [x] Editor, Map tab, Monsters tool: Frozen Horror monsters show as Custom monster in the right card; use a concept like the Library (kinds and item cards), restricted to the right card. Needs a concept board in `design/ui-concept/` first
 - [x] Colour bars follow the box colour of My collection on every row of a quest or an item (Play a quest grid and Campaign detail, editor start list, Library kinds and cards, Actions and Monsters tab rows, Map Monsters kinds); what the player made is neutral (`--muted`). One lookup in `src/ui/boxBars.ts`. Open: a copy of a core quest has no `pack`, so it shows neutral
 - [ ] Monster tokens and chips on the map and roster follow the box colour chosen in My collection (today `boxTokenFill` in `src/ui/shared/boxColor.ts` is fixed: green for the base game, ice for Frozen Horror). Not urgent (owner, 2026-11-26)
 - [x] Editor, Map tab, Monsters tool: build `design/ui-concept/editor-map-monsters-concept.html` (list of kinds, one kind opened with a back button, bars in the box colour, "Placing" row, My library always listed with the hint). Replaces the "Custom monsters" group
-- [x] Texture packs: Frozen Horror preview (an expansion pack is previewed with its own enemies, edge doors, tunnels and tiles; "Not in this pack" lists only its own missing slots; Adjust covers enemies, edge doors and tunnels). Not built: Adjust for tile pictures
+- [x] Texture packs: Frozen Horror preview (an expansion pack is previewed with its own enemies, edge doors, tunnels and tiles; "Not in this pack" lists only its own missing slots; Adjust covers enemies, edge doors and tunnels)
+- [ ] Texture packs: Adjust for tile pictures, ids `tile.<key>.<w>x<h>` (decision 109); size warnings for enemy, edge door and tunnel pictures in the preview check
