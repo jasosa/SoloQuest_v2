@@ -4,32 +4,78 @@ import { useStore } from 'zustand';
 import { removeSpell, updateSpell } from '../../engine/editor';
 import { SPELL_TAG_IDS, spellTagQuestion, type SpellTiming } from '../../engine/data/spells';
 import { useLibrary } from '../designer/LibraryContext';
+import type { SpellDefData } from '../../engine/quest/schema';
 import type { EditorStore } from './editorStore';
 import { t } from '../../i18n/t';
 
 /**
  * The spell popup (decision 70): name, own text, the situations that decide when a monster may
  * cast it (each shows its question), or one question of the author's own, a warning and the
- * escape-point rule. Situations are added from a dropdown, never chips.
+ * escape-point rule. Situations are added from a dropdown, never chips. Edits stay in the popup
+ * until "Save"; "Cancel" drops them.
  */
 export function SpellDialog({ store }: { store: EditorStore }) {
   const { quest, spellId } = useStore(store);
+  const sp = spellId ? quest.spellDefs.find((x) => x.id === spellId) : undefined;
+  return sp ? <SpellForm key={sp.id} store={store} sp={sp} /> : null;
+}
+
+function SpellForm({ store, sp }: { store: EditorStore; sp: SpellDefData }) {
+  const { quest } = useStore(store);
   const st = store.getState();
   const box = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const [saved, setSaved] = useState('');
   const [newId, setNewId] = useState('');
   const [newQuestion, setNewQuestion] = useState('');
-  const sp = spellId ? quest.spellDefs.find((x) => x.id === spellId) : undefined;
+  const [name, setName] = useState(sp.name);
+  const [text, setText] = useState(sp.text ?? '');
+  const [tags, setTags] = useState<string[]>([...sp.tags]);
+  const [own, setOwn] = useState<{ id: string; question: string }[]>([...(sp.situations ?? [])]);
+  const [question, setQuestion] = useState(sp.question ?? '');
+  const [warning, setWarning] = useState(sp.warning ?? '');
+  const [offerWhen, setOfferWhen] = useState<'always' | 'escapePoint'>(sp.offerWhen ?? 'always');
+  const [timing, setTiming] = useState<SpellTiming>(sp.timing ?? 'either');
+  // the spell as the popup shows it now: the fields typed so far
+  const patch = {
+    name: name.trim(),
+    text: text.trim() === '' ? null : text.trim(),
+    tags,
+    situations: own,
+    question: question.trim() === '' ? null : question.trim(),
+    warning: warning.trim() === '' ? null : warning.trim(),
+    offerWhen,
+    timing,
+  };
+  const cur: SpellDefData = {
+    id: sp.id,
+    name: patch.name,
+    tags,
+    situations: own,
+    ...(patch.text ? { text: patch.text } : {}),
+    ...(patch.question ? { question: patch.question } : {}),
+    ...(patch.warning ? { warning: patch.warning } : {}),
+    ...(offerWhen === 'escapePoint' ? { offerWhen } : {}),
+    ...(timing !== 'either' ? { timing } : {}),
+  };
+  const dirty =
+    name !== sp.name ||
+    text !== (sp.text ?? '') ||
+    JSON.stringify(tags) !== JSON.stringify(sp.tags) ||
+    JSON.stringify(own) !== JSON.stringify(sp.situations ?? []) ||
+    question !== (sp.question ?? '') ||
+    warning !== (sp.warning ?? '') ||
+    offerWhen !== (sp.offerWhen ?? 'always') ||
+    timing !== (sp.timing ?? 'either');
 
-  useModal(box, { active: Boolean(sp), onEscape: () => st.setSpellId(null), focus: 'title' });
+  useModal(box, { active: true, onEscape: () => st.setSpellId(null), focus: 'title' });
 
-  if (!sp) return null;
-  const tags = [...sp.tags];
-  const own = sp.situations ?? [];
+  const save = () => {
+    if (!dirty) return st.setSpellId(null);
+    if (st.apply((q) => updateSpell(q, sp.id, patch))) st.setSpellId(null);
+  };
   const free = [...SPELL_TAG_IDS, ...own.map((x) => x.id)].filter((t) => !tags.includes(t));
   const used = quest.monsters.filter((m) => (m.spells ?? []).includes(sp.id));
-  const setTags = (next: string[]) => st.apply((q) => updateSpell(q, sp.id, { tags: next }));
 
   return (
     <div className="ed-veil">
@@ -42,35 +88,21 @@ export function SpellDialog({ store }: { store: EditorStore }) {
       >
         <div className="ed-dialog-hd">
           <h2>{t('editor.SpellDialog.spell', 'Spell')}</h2>
+          <button className="btn" onClick={save}>
+            {t('editor.SpellDialog.save', 'Save')}
+          </button>
           <button className="btn alt" onClick={() => st.setSpellId(null)}>
-            {t('editor.SpellDialog.close', 'Close')}
+            {t('editor.SpellDialog.cancel', 'Cancel')}
           </button>
         </div>
         <div className="ed-dialog-body">
           <label className="ed-field">
             {t('editor.SpellDialog.name', 'Name')}
-            <input
-              key={`${sp.id}:n:${sp.name}`}
-              defaultValue={sp.name}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === sp.name) return;
-                if (!st.apply((q) => updateSpell(q, sp.id, { name: v }))) e.target.value = sp.name;
-              }}
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <label className="ed-field">
             {t('editor.SpellDialog.whatItDoesYour', 'What it does (your own words, optional)')}
-            <textarea
-              key={`${sp.id}:t:${sp.text ?? ''}`}
-              defaultValue={sp.text ?? ''}
-              rows={2}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === (sp.text ?? '')) return;
-                st.apply((q) => updateSpell(q, sp.id, { text: v === '' ? null : v }));
-              }}
-            />
+            <textarea value={text} rows={2} onChange={(e) => setText(e.target.value)} />
           </label>
 
           <div className="lbl">
@@ -80,7 +112,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             {tags.map((tv) => (
               <li key={tv} data-tag={tv}>
                 <b>{tv}</b>
-                <p className="ed-q">{spellTagQuestion(sp, tv)}</p>
+                <p className="ed-q">{spellTagQuestion(cur, tv)}</p>
                 <button
                   className="chip"
                   aria-label={t('editor.SpellDialog.remove2', 'Remove {tv}', { tv })}
@@ -104,7 +136,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
               <option value="">{t('editor.SpellDialog.addASituation2', 'Add a situation…')}</option>
               {free.map((t) => (
                 <option key={t} value={t}>
-                  {t} · {spellTagQuestion(sp, t)}
+                  {t} · {spellTagQuestion(cur, t)}
                 </option>
               ))}
             </select>
@@ -122,33 +154,22 @@ export function SpellDialog({ store }: { store: EditorStore }) {
                 <b>{x.id}</b>
                 <input
                   aria-label={t('editor.SpellDialog.questionOf', 'Question of {id}', { id: x.id })}
-                  key={`${sp.id}:s:${x.id}:${x.question}`}
-                  defaultValue={x.question}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v === x.question) return;
-                    if (
-                      !st.apply((q) =>
-                        updateSpell(q, sp.id, {
-                          situations: own.map((y) =>
-                            y.id === x.id ? { id: x.id, question: v } : y,
-                          ),
-                        }),
-                      )
+                  value={x.question}
+                  onChange={(e) =>
+                    setOwn(
+                      own.map((y) => (y.id === x.id ? { id: x.id, question: e.target.value } : y)),
                     )
-                      e.target.value = x.question;
-                  }}
+                  }
                 />
                 <button
                   className="chip"
                   aria-label={t('editor.SpellDialog.removeSituation', 'Remove situation {id}', {
                     id: x.id,
                   })}
-                  onClick={() =>
-                    st.apply((q) =>
-                      updateSpell(q, sp.id, { situations: own.filter((y) => y.id !== x.id) }),
-                    )
-                  }
+                  onClick={() => {
+                    setOwn(own.filter((y) => y.id !== x.id));
+                    setTags(tags.filter((g) => g !== x.id));
+                  }}
                 >
                   {t('editor.SpellDialog.remove', 'Remove')}
                 </button>
@@ -176,17 +197,10 @@ export function SpellDialog({ store }: { store: EditorStore }) {
               disabled={newId.trim() === '' || newQuestion.trim() === ''}
               onClick={() => {
                 const id = newId.trim();
-                if (
-                  st.apply((q) =>
-                    updateSpell(q, sp.id, {
-                      situations: [...own, { id, question: newQuestion }],
-                      tags: [...tags, id],
-                    }),
-                  )
-                ) {
-                  setNewId('');
-                  setNewQuestion('');
-                }
+                setOwn([...own, { id, question: newQuestion.trim() }]);
+                setTags([...tags, id]);
+                setNewId('');
+                setNewQuestion('');
               }}
             >
               {t('editor.SpellDialog.addSituation', 'Add situation')}
@@ -198,26 +212,14 @@ export function SpellDialog({ store }: { store: EditorStore }) {
               'editor.SpellDialog.orOneQuestionOf',
               'Or one question of your own (replaces the situations)',
             )}
-            <input
-              key={`${sp.id}:q:${sp.question ?? ''}`}
-              defaultValue={sp.question ?? ''}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === (sp.question ?? '')) return;
-                st.apply((q) => updateSpell(q, sp.id, { question: v === '' ? null : v }));
-              }}
-            />
+            <input value={question} onChange={(e) => setQuestion(e.target.value)} />
           </label>
           <label className="ed-field">
             {t('editor.SpellDialog.offerItOnlyWhen', 'Offer it only when')}
             <select
               className="es-select"
-              value={sp.offerWhen ?? 'always'}
-              onChange={(e) =>
-                st.apply((q) =>
-                  updateSpell(q, sp.id, { offerWhen: e.target.value as 'always' | 'escapePoint' }),
-                )
-              }
+              value={offerWhen}
+              onChange={(e) => setOfferWhen(e.target.value as 'always' | 'escapePoint')}
             >
               <option value="always">{t('editor.SpellDialog.always', 'Always')}</option>
               <option value="escapePoint">
@@ -230,10 +232,8 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             <select
               className="es-select"
               aria-label={t('editor.SpellDialog.whenItIsCast', 'When it is cast')}
-              value={sp.timing ?? 'either'}
-              onChange={(e) =>
-                st.apply((q) => updateSpell(q, sp.id, { timing: e.target.value as SpellTiming }))
-              }
+              value={timing}
+              onChange={(e) => setTiming(e.target.value as SpellTiming)}
             >
               <option value="either">
                 {t('editor.SpellDialog.itMayMoveFirst', 'It may move first, then cast')}
@@ -251,15 +251,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
           </label>
           <label className="ed-field">
             {t('editor.SpellDialog.warningForThePlayers', 'Warning for the players (optional)')}
-            <input
-              key={`${sp.id}:w:${sp.warning ?? ''}`}
-              defaultValue={sp.warning ?? ''}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v === (sp.warning ?? '')) return;
-                st.apply((q) => updateSpell(q, sp.id, { warning: v === '' ? null : v }));
-              }}
-            />
+            <input value={warning} onChange={(e) => setWarning(e.target.value)} />
           </label>
           <p className="ed-note" data-testid="spell-used">
             {used.length === 0
@@ -273,7 +265,7 @@ export function SpellDialog({ store }: { store: EditorStore }) {
             data-testid="save-in-library"
             onClick={() =>
               void lib
-                .save('spell', sp)
+                .save('spell', cur)
                 .then((m) =>
                   setSaved(m || t('editor.SpellDialog.savedInTheLibrary', 'Saved in the library.')),
                 )

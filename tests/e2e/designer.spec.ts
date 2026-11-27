@@ -236,8 +236,7 @@ test.describe('designer: the library', () => {
       await abilities.getByRole('button', { name: 'Add', exact: true }).click();
       await abilities.getByRole('button', { name: 'New ability…' }).click();
       await abilityDlg.getByLabel('Name').fill('Quick feet');
-      await abilityDlg.getByLabel('Name').blur();
-      await abilityDlg.getByRole('button', { name: 'Close' }).click();
+      await abilityDlg.getByRole('button', { name: 'Save', exact: true }).click();
       await expect(abilities.locator('[data-ability]')).toHaveCount(2);
     };
     const quest = async () => {

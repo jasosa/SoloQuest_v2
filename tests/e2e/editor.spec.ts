@@ -1016,14 +1016,14 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     // the monster is a draft: no saved monster uses the ability yet
     await expect(page.getByTestId('ability-used')).toContainText('No monster uses it yet.');
     await shot(page, 'editor-ability-popup');
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(section.locator('[data-ability="ab1"]')).toContainText('Bog skin');
     await expect(section.locator('[data-ability="ab1"]')).toContainText('Mud spells fail.');
     // after "Save monster" the popup lists the monster
     await page.getByRole('button', { name: 'Save monster' }).click();
     await section.getByRole('button', { name: 'Edit the ability…' }).click();
     await expect(page.getByTestId('ability-used')).toContainText('m1');
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
 
     // an ability is taken off with its row button
     await section.getByRole('button', { name: 'Remove Fireproof' }).click();
@@ -1063,14 +1063,16 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await expect(page.locator('[data-tag="any"]')).toHaveCount(0);
     // the last situation cannot go without a question of the author's own
     await spellDlg(page).getByRole('button', { name: 'Remove heroAdjacent' }).click();
+    await spellDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.locator('.toast')).toContainText('needs a situation or a question');
+    await expect(spellDlg(page)).toBeVisible();
     await spellDlg(page)
       .getByLabel('Or one question of your own (replaces the situations)')
       .fill('Is it raining?');
     await spellDlg(page).getByLabel('Or one question of your own (replaces the situations)').blur();
     await spellDlg(page).getByLabel('Offer it only when').selectOption('escapePoint');
     await shot(page, 'editor-spell-popup');
-    await spellDlg(page).getByRole('button', { name: 'Close' }).click();
+    await spellDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
     await expect(section.locator('[data-spell="sp1"]')).toContainText('Is it raining?');
     await expect(section.locator('[data-spell="sp1"]').getByLabel('Mud cast limit')).toHaveValue(
       '1',
@@ -1082,13 +1084,27 @@ test.describe('editor: abilities and spells of a monster (decisions 69 and 70)',
     await expect(special).toHaveAttribute('aria-checked', 'true');
   });
 
+  test('the ability popup changes nothing until Save; Cancel drops the edits', async ({ page }) => {
+    await selectedMonster(page);
+    const section = page.getByTestId('monster-abilities');
+    await section.getByRole('button', { name: 'New ability…' }).click();
+    await abilityDlg(page).getByLabel('Name').fill('Dropped');
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
+    await expect(abilityDlg(page)).toHaveCount(0);
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('New ability');
+    await section.getByRole('button', { name: 'Edit the ability…' }).click();
+    await abilityDlg(page).getByLabel('Name').fill('Kept');
+    await abilityDlg(page).getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(section.locator('[data-ability="ab1"]')).toContainText('Kept');
+  });
+
   test('the quest fields list its own abilities and spells; deleting one warns', async ({
     page,
   }) => {
     await selectedMonster(page);
     const section = page.getByTestId('monster-abilities');
     await section.getByRole('button', { name: 'New ability…' }).click();
-    await abilityDlg(page).getByRole('button', { name: 'Close' }).click();
+    await abilityDlg(page).getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('button', { name: 'Save monster' }).click(); // the monster lists the ability
     await page.getByRole('tab', { name: 'Quest' }).click(); // the quest fields are in the Quest tab
     const own = page.getByTestId('abilities-section');
