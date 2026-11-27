@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDoor, addMonster, emptyQuest, setRockCell } from '../../engine/editor';
+import { addDoor, addMonster, addObjective, emptyQuest, setRockCell } from '../../engine/editor';
 import { MemoryUserQuestStore } from '../../persist/userQuests';
 import { createEditorStore } from './editorStore';
 
@@ -181,5 +181,62 @@ describe('editor store', () => {
     s.getState().jump({ kind: 'objective', id: 'o1' });
     expect(s.getState().tab).toBe('Quest');
     expect(s.getState().selection).toBeNull();
+  });
+
+  describe('approval status (decision 110)', () => {
+    const ready = async (mem = new MemoryUserQuestStore()) => {
+      const s = make(mem);
+      s.getState().applyQuest((q) => addObjective(q, { text: 'Find the key.', confirm: 'Found' }));
+      return { s, mem };
+    };
+    const stored = async (mem: MemoryUserQuestStore) => (await mem.load('user-test'))?.status;
+
+    it('approve saves the quest; undo and redo keep the status that is stored', async () => {
+      const { s, mem } = await ready();
+      expect(await s.getState().setStatus('approved')).toBeNull();
+      expect(await stored(mem)).toBe('approved');
+      expect(s.getState().canon).toBe(s.getState().clean);
+      s.getState().apply((q) => setRockCell(q, [10, 2], true));
+      s.getState().undo();
+      s.getState().undo();
+      expect(s.getState().canon.status).toBe('approved');
+      s.getState().redo();
+      s.getState().redo();
+      expect(s.getState().canon.status).toBe('approved');
+      expect(s.getState().quest.status).toBe('approved');
+      expect(await stored(mem)).toBe('approved');
+    });
+
+    it('withdraw saves the quest as not approved; undo keeps it so', async () => {
+      const { s, mem } = await ready();
+      await s.getState().setStatus('approved');
+      expect(await s.getState().setStatus('draft')).toBeNull();
+      expect(await stored(mem)).toBe('draft');
+      expect(s.getState().canon).toBe(s.getState().clean);
+      s.getState().undo();
+      expect(s.getState().canon.status).toBe('draft');
+      expect(await stored(mem)).toBe('draft');
+    });
+
+    it('approve is refused with the engine sentence while the quest has errors', async () => {
+      const s = make();
+      const text = await s.getState().setStatus('approved');
+      expect(text).toContain('cannot be approved yet');
+      expect(s.getState().canon.status).not.toBe('approved');
+    });
+
+    it('withdraw works on an approved quest that was broken later, and keeps the unsaved edit', async () => {
+      const { s, mem } = await ready();
+      await s.getState().setStatus('approved');
+      // an edit that leaves the quest with an error (no objective)
+      s.getState().applyQuest((q) => ({ ok: true, quest: { ...q, objectives: [] }, warnings: [] }));
+      expect(await s.getState().save()).toBe(false);
+      expect(await s.getState().setStatus('draft')).toBeNull();
+      expect(await stored(mem)).toBe('draft');
+      // the saved content is the earlier one; the broken edit is still an unsaved change
+      expect((await mem.load('user-test'))?.objectives).toHaveLength(1);
+      expect(s.getState().canon.status).toBe('draft');
+      expect(s.getState().canon).not.toBe(s.getState().clean);
+    });
   });
 });

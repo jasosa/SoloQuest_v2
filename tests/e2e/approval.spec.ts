@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { approveOpenQuest, dismissStart, newGame } from './helpers';
 
@@ -170,5 +171,118 @@ test.describe('approved and not approved quests', () => {
     // the game is still there
     await back(page).click();
     await expect(page.getByTestId('home-continue')).toBeEnabled();
+  });
+
+  test('undo and redo never change the status; it stays what is stored', async ({ page }) => {
+    await newReadyQuest(page, 'The Cellar');
+    await approveOpenQuest(page);
+    const title = page.getByTestId('quest-general').getByLabel('Title');
+    await title.fill('The Cellar, two');
+    await title.blur();
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await expect(title).toHaveValue('The Cellar');
+    await expect(page.getByTestId('quest-status')).toHaveText('Approved');
+    await page.getByRole('button', { name: 'Redo', exact: true }).click();
+    await expect(page.getByTestId('quest-status')).toHaveText('Approved');
+    // withdraw, then undo the title: still not approved, and not in Play a quest
+    await page.getByTestId('withdraw').click();
+    await expect(page.getByTestId('approve')).toBeVisible();
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await expect(page.getByTestId('quest-status')).toHaveText('Not approved');
+    await expect(page.getByTestId('approve')).toBeVisible();
+    await toPlayList(page);
+    await expect(page.getByTestId('pack-mine')).toHaveCount(0);
+  });
+
+  test('Withdraw works on an approved quest that has errors now', async ({ page }) => {
+    await newReadyQuest(page, 'The Cellar');
+    await approveOpenQuest(page);
+    await page.getByRole('button', { name: 'Remove objective o1' }).click();
+    await page.getByTestId('withdraw').click();
+    await expect(page.getByTestId('approve')).toBeVisible();
+    await expect(page.getByTestId('approval-error')).toHaveCount(0);
+    await toPlayList(page);
+    await expect(page.getByTestId('pack-mine')).toHaveCount(0);
+  });
+
+  test('a withdrawn copy of a bundled quest does not say it replaces the original', async ({
+    page,
+  }) => {
+    await page.goto('/?editor=1&nosave=1');
+    await page.getByRole('button', { name: /^Open quest/ }).click();
+    await page.getByLabel('Bundled quest').selectOption('1');
+    await page.getByRole('button', { name: 'Edit it now', exact: true }).click();
+    await approveOpenQuest(page);
+    await page.getByTestId('replace-original').click();
+    await expect(page.getByTestId('replace-status')).toContainText('replaces Quest 1');
+    await page.getByTestId('withdraw').click();
+    await expect(page.getByTestId('replace-status')).toContainText(
+      'Play a quest shows the original',
+    );
+    await expect(page.getByTestId('replace-status')).not.toContainText('replaces');
+    await expect(page.getByTestId('use-original')).toHaveCount(0);
+    await expect(page.getByTestId('replace-original')).toHaveCount(0);
+  });
+
+  test('Searching here is not possible in an answer shows a warning, and is not offered there', async ({
+    page,
+  }) => {
+    const quest = JSON.parse(readFileSync('src/content/quests/q01-the-trial.json', 'utf8'));
+    quest.notes.push({
+      id: 'n-ask',
+      trigger: { type: 'questStart' },
+      effects: [
+        {
+          type: 'promptChoice',
+          text: 'Search here?',
+          options: [{ label: 'Yes', effects: [{ type: 'blockSearch' }] }],
+        },
+      ],
+    });
+    // The import refuses this, so it is put straight into the quest store, as an old save would be.
+    quest.id = 'user-ask';
+    quest.title = 'Ask';
+    await page.goto('/?editor=1');
+    await expect(page.getByRole('heading', { name: 'Quest editor' })).toBeVisible();
+    await page.evaluate(
+      (q) =>
+        new Promise<void>((resolve, reject) => {
+          const open = indexedDB.open('soloquest-user-quests');
+          open.onerror = () => reject(open.error);
+          open.onsuccess = () => {
+            const db = open.result;
+            const tx = db.transaction('userQuests', 'readwrite');
+            tx.objectStore('userQuests').put({
+              id: q.id,
+              title: q.title,
+              number: q.number,
+              updatedAt: Date.now(),
+              quest: q,
+            });
+            tx.oncomplete = () => {
+              db.close();
+              resolve();
+            };
+            tx.onerror = () => reject(tx.error);
+          };
+        }),
+      quest,
+    );
+    await page.reload();
+    await page.getByRole('button', { name: 'Open Ask' }).click();
+    await page.getByRole('tab', { name: 'Actions', exact: true }).click();
+    // the action with the question is one of the rows
+    const rows = page.getByTestId('note-list').getByRole('button');
+    for (let i = 0; i < (await rows.count()); i++) {
+      await rows.nth(i).click();
+      if ((await page.locator('[data-effect="promptChoice"]').count()) > 0) break;
+    }
+    const row = page.locator('[data-testid="effect-row"][data-effect="blockSearch"]');
+    await expect(row).toHaveCount(1);
+    await expect(row.getByTestId('effect-warning')).toContainText('not inside an answer');
+    // the Add an effect list inside the answer does not offer it
+    const inAnswer = page.getByTestId('action-card').getByLabel('Add an effect').last();
+    await expect(inAnswer.locator('option[value="blockSearch"]')).toHaveCount(0);
+    await shot(page, 'approval-block-search-in-answer');
   });
 });

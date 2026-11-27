@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { useStore } from 'zustand';
-import {
-  approveQuest,
-  isApproved,
-  replaceOriginal,
-  replacedSlot,
-  withdrawQuest,
-} from '../../engine/editor';
+import { isApproved, replaceOriginal, replacedSlot } from '../../engine/editor';
 import { clearOverride, getOverrides, setOverride } from '../../persist/questOverrides';
 import { questEntries } from '../quests';
 import { Panel } from '../shared/Frame';
@@ -39,25 +33,13 @@ export function ApprovalCard({ store }: { store: EditorStore }) {
   const error = refusal && refusal.quest === canon ? refusal.text : null;
 
   const original = originalOf(canon.copyOf);
-  const slot = replacedSlot(getOverrides(), canon);
+  // only an approved copy replaces its original; a withdrawn one is not played
+  const slot = approved ? replacedSlot(getOverrides(), canon) : undefined;
 
   const change = async (next: 'approve' | 'withdraw') => {
-    if (next === 'approve') {
-      const r = approveQuest(canon);
-      if (!r.ok) {
-        setRefusal({ quest: canon, text: r.error });
-        return;
-      }
-      store.getState().applyQuest(() => r);
-    } else {
-      store.getState().applyQuest((q) => ({ ok: true, quest: withdrawQuest(q), warnings: [] }));
-    }
-    // The change counts only once it is saved. A quest with errors cannot be saved.
-    const saved = await store.getState().save();
-    if (!saved) {
-      const text = store.getState().saveErrors?.join(' ') ?? '';
-      setRefusal({ quest: store.getState().canon, text });
-    }
+    const text = await store.getState().setStatus(next === 'approve' ? 'approved' : 'draft');
+    if (text) setRefusal({ quest: store.getState().canon, text });
+    else setRefusal(null);
   };
 
   const replace = () => {
@@ -106,11 +88,11 @@ export function ApprovalCard({ store }: { store: EditorStore }) {
         {approved
           ? t(
               'editor.ApprovalCard.withdrawTakesItOut',
-              'Withdraw takes it out of Play a quest. A saved game of it waits until you approve it again.',
+              'Withdraw saves the quest as not approved and takes it out of Play a quest. A saved game of it waits until you approve it again.',
             )
           : t(
               'editor.ApprovalCard.approvingSavesTheQuest',
-              'Approving saves the quest and adds it to Play a quest.',
+              'Approve saves the quest as it is and adds it to Play a quest.',
             )}
       </p>
       {error && (
