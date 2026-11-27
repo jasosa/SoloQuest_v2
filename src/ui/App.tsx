@@ -418,7 +418,12 @@ function Game({ params }: { params: URLSearchParams }) {
         store={userStore}
         onDesigner={() => setDesigner(true)}
         onBack={() => setEditor(null)}
-        onOpen={(quest, clean) => setEditor(createEditorStore({ quest, clean, store: userStore }))}
+        saves={saves}
+        onOpen={(quest, clean, notice) => {
+          const made = createEditorStore({ quest, clean, store: userStore });
+          if (notice) made.getState().say(notice);
+          setEditor(made);
+        }}
       />
     );
   if (editor)

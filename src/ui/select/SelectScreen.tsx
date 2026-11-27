@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
-import { playableUserQuests } from '../../engine/editor/status';
+import { isApproved, playableUserQuests } from '../../engine/editor/status';
 import { nextCampaignSlot, nextQuest, skipQuest } from '../../engine/pack/campaign';
 import { labelOf, normalizeTeam, type TeamInput } from '../../engine/data/team';
 import { CampaignsPage, type SavedCampaign } from './CampaignsPage';
@@ -114,19 +114,15 @@ export function SelectScreen({
   const [edited, setEdited] = useState<ReadonlyMap<number, Level>>(new Map());
   // The quests made on this device (the editor), played as they were last saved.
   const [mine, setMine] = useState<readonly Level[]>([]);
+  // The quests of this device that are not approved: title by id, for the saved games that wait.
+  const [waiting, setWaiting] = useState<ReadonlyMap<string, string>>(new Map());
   useEffect(() => {
     if (!userStore) return;
     let live = true;
-    /** The newest version: the editor autosaves a draft and Save removes it. */
+    /** What plays is the saved, approved version only: an unsaved edit (the autosave) never plays (decision 112). */
     const newest = async (id: string): Promise<Level | undefined> => {
-      try {
-        const draft = await userStore.loadDraft(id);
-        if (draft) return buildLevel(inActiveLanguage(draft.quest));
-      } catch {
-        /* a draft that cannot be built is ignored: the saved copy is played */
-      }
       const quest = await userStore.load(id);
-      return quest ? buildLevel(quest) : undefined;
+      return quest ? buildLevel(inActiveLanguage(quest)) : undefined;
     };
     void (async () => {
       const map = new Map<number, Level>();
@@ -134,10 +130,10 @@ export function SelectScreen({
       try {
         // Only approved quests are offered (decision 110); a draft is not listed, and a draft copy
         // does not replace its original.
-        const { replacing, own: ownIds } = playableUserQuests(
-          await userStore.list(),
-          getOverrides(),
-        );
+        const stored = await userStore.list();
+        if (live)
+          setWaiting(new Map(stored.filter((r) => !isApproved(r)).map((r) => [r.id, r.title])));
+        const { replacing, own: ownIds } = playableUserQuests(stored, getOverrides());
         for (const [n, id] of Object.entries(replacing)) {
           try {
             const level = await newest(id);
@@ -213,6 +209,7 @@ export function SelectScreen({
         saves,
         (id) => playables.some((p) => p.level.quest.id === id || p.key === id),
         (p) => packs.byId.has(p),
+        (id) => waiting.get(id),
       );
       let newest: LastGame | null = null;
       for (const g of all) {
@@ -248,7 +245,7 @@ export function SelectScreen({
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saves, playables, tick]);
+  }, [saves, playables, tick, waiting]);
 
   const go = onRoute;
 

@@ -10,7 +10,9 @@ import {
   autosave,
   DexieSaveStore,
   MemorySaveStore,
+  hasOngoingGame,
   orphanSaves,
+  questHasOngoingGame,
   resume,
   type SaveStore,
 } from './saves';
@@ -167,6 +169,31 @@ describe('the pack in a save (decision 36)', () => {
     expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('"lost-pack"');
     expect(found.find((o) => o.questId === 'xx01-gone')?.message).toContain('not installed');
     expect(found.find((o) => o.questId === 'q-gone')?.message).toContain('no quest on this device');
+  });
+
+  it('knows whether a quest has an ongoing game', async () => {
+    const store = new MemorySaveStore();
+    await autosave(store, 'user-a', SEED, TEAM, [], 1);
+    expect(hasOngoingGame(await store.list(), 'user-a')).toBe(true);
+    expect(hasOngoingGame(await store.list(), 'user-b')).toBe(false);
+    expect(hasOngoingGame([], 'user-a')).toBe(false);
+    expect(await questHasOngoingGame(store, 'user-a')).toBe(true);
+    expect(await questHasOngoingGame(store, 'user-b')).toBe(false);
+  });
+
+  it('says a saved game waits when its quest is on the device but not approved', async () => {
+    const store = new MemorySaveStore();
+    await autosave(store, 'user-mine', SEED, TEAM, [], 1);
+    const found = await orphanSaves(
+      store,
+      () => false,
+      () => true,
+      (id) => (id === 'user-mine' ? 'My Quest' : undefined),
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]?.message).toBe(
+      'The saved game of "My Quest" waits: the quest is not approved. Approve it in the editor to continue, or delete the save.',
+    );
   });
 });
 

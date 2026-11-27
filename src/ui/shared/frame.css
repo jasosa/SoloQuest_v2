@@ -64,10 +64,15 @@
   gap: 10px;
   align-items: center;
 }
-.page-head .ed-status {
+.page-head .ed-status,
+.page-head .ed-approval {
   font-size: 18px;
   font-style: italic;
   color: var(--muted);
+}
+.page-head .ed-approval::before {
+  content: '\00b7';
+  margin: 0 8px;
 }
 .page-head .ed-nostore {
   margin-left: 12px;
@@ -523,6 +528,11 @@
   font-size: 13px;
   font-style: italic;
   color: var(--muted);
+}
+.fr-recent li > .fr-qnote b {
+  display: block;
+  font-style: normal;
+  color: var(--ink);
 }
 .fr-recent li > .chip,
 .fr-recent li > .fr-qnote {

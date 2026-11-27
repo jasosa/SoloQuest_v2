@@ -360,9 +360,9 @@ All the texts of the application can be translated or modified with a tool, for 
   - [x] Popups with an explicit Save button: the ability and spell popups use Save and Cancel (`AbilityDialog.tsx`, `SpellDialog.tsx`; the action and monster cards already did)
   - [ ] Draft and approved quests (decision 110)
     - [x] engine-dev: `status` and `copyOf` on the quest, `src/engine/editor/status.ts` (`approveQuest`, `withdrawQuest`, `makeCopy`, `playableUserQuests`, `replaceOriginal`), summary with `status`, import makes a draft, export drops the status, migration (no status = approved), tests; the quest list (`SelectScreen`) shows approved quests only
-    - [ ] ui-dev: status on each row of the editor start list next to "Unsaved draft" / "Saved" (proposal: "Draft" / "Approved"), an Approve button (calls `approveQuest`, then `store.save`; show its error) and a Withdraw button in the editor
-    - [ ] ui-dev: Edit it now and Make a copy use `makeCopy` + `store.save` and no longer call `setOverride`; a "Replace the original" button on an approved copy (`replaceOriginal`, then `setOverride(slot, id)`) and "Use original" (`clearOverride`) next to it
-    - [ ] ui-dev: a saved game of a quest that is a draft again shows as an orphan (SelectScreen `orphanSaves`): decide the wording
+    - [x] ui-dev: status on each row of the editor start list next to "Unsaved draft" / "Saved" (done: "Not approved" / "Approved", see DESIGN.md), an Approve button (calls `approveQuest`, then `store.save`; show its error) and a Withdraw button in the editor
+    - [x] ui-dev: Edit it now and Make a copy use `makeCopy` + `store.save` and no longer call `setOverride`; a "Replace the original" button on an approved copy (`replaceOriginal`, then `setOverride(slot, id)`) and "Use original" (`clearOverride`) next to it
+    - [x] ui-dev: a saved game of a quest that is a draft again shows as an orphan (SelectScreen `orphanSaves`): decide the wording
     - [ ] ui-dev: e2e that use a user quest from the play list (`editor.spec.ts`, `editorMaps.spec.ts`, `modal.spec.ts`, `boxBars.spec.ts`, `theme.spec.ts`, `frozenArt.spec.ts`) now need Approve first
     - [ ] ui-dev: explicit Save on the Library item card (owner, 2026-11-27)
   - [x] The right card clears when another element category is picked (tool change already did, T1; the Library box chips now do too)

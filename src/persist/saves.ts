@@ -326,6 +326,19 @@ export async function resume(store: SaveStore, level: Level): Promise<Resumed> {
   }
 }
 
+/** Whether a saved game of this quest exists (a game in progress). Pure: `games` is `store.list()`. */
+export const hasOngoingGame = (games: readonly { questId: string }[], questId: string): boolean =>
+  games.some((g) => g.questId === questId);
+
+/** `hasOngoingGame` on a store. A store that cannot be read says no game: nothing is known to protect. */
+export async function questHasOngoingGame(store: SaveStore, questId: string): Promise<boolean> {
+  try {
+    return hasOngoingGame(await store.list(), questId);
+  } catch {
+    return false;
+  }
+}
+
 /** A saved game whose quest is not on this device any more. */
 export interface OrphanSave {
   readonly questId: string;
@@ -337,12 +350,14 @@ export interface OrphanSave {
 /**
  * The saved games that no quest on this device matches (for example a pack that is not installed).
  * `hasQuest` says whether a quest id exists here; `hasPack` whether a pack is installed. Nothing is
- * deleted: the player decides.
+ * deleted: the player decides. `notApprovedTitle` gives the title of a quest that is on this device
+ * but not approved (decision 110): its saved game waits and the message says so.
  */
 export async function orphanSaves(
   store: SaveStore,
   hasQuest: (questId: string) => boolean,
   hasPack: (pack: string) => boolean,
+  notApprovedTitle: (questId: string) => string | undefined = () => undefined,
 ): Promise<OrphanSave[]> {
   let all: SavedGame[];
   try {
@@ -356,8 +371,10 @@ export async function orphanSaves(
       questId: g.questId,
       pack: g.pack,
       message:
-        g.pack !== undefined && !hasPack(g.pack)
-          ? `A saved game of the quest "${g.questId}" belongs to the pack "${g.pack}", which is not installed here. Install the pack to play it again, or delete the save.`
-          : `A saved game of the quest "${g.questId}" has no quest on this device any more. Delete the save, or bring the quest back.`,
+        notApprovedTitle(g.questId) !== undefined
+          ? `The saved game of "${notApprovedTitle(g.questId)}" waits: the quest is not approved. Approve it in the editor to continue, or delete the save.`
+          : g.pack !== undefined && !hasPack(g.pack)
+            ? `A saved game of the quest "${g.questId}" belongs to the pack "${g.pack}", which is not installed here. Install the pack to play it again, or delete the save.`
+            : `A saved game of the quest "${g.questId}" has no quest on this device any more. Delete the save, or bring the quest back.`,
     }));
 }
