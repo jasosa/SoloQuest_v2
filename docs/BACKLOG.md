@@ -364,7 +364,7 @@ All the texts of the application can be translated or modified with a tool, for 
     - [x] ui-dev: Edit it now and Make a copy use `makeCopy` + `store.save` and no longer call `setOverride`; a "Replace the original" button on an approved copy (`replaceOriginal`, then `setOverride(slot, id)`) and "Use original" (`clearOverride`) next to it
     - [x] ui-dev: a saved game of a quest that is a draft again shows as an orphan (SelectScreen `orphanSaves`): decide the wording
     - [x] ui-dev: e2e that use a user quest from the play list (`editor.spec.ts`, `editorMaps.spec.ts`, `modal.spec.ts`, `boxBars.spec.ts`, `theme.spec.ts`, `frozenArt.spec.ts`) now need Approve first
-    - [ ] ui-dev: explicit Save on the Library item card (owner, 2026-11-27)
+    - [x] ui-dev: explicit Save on the Library item card (owner, 2026-11-27)
   - [x] The right card clears when another element category is picked (tool change already did, T1; the Library box chips now do too)
 - [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [x] Editor start screen: an Open button on each quest of the list of quests

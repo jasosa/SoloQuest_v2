@@ -970,6 +970,24 @@
 .lib-token .fr-pic {
   margin-bottom: 6px;
 }
+/* Save, Cancel and the unsaved note of the Library card: pinned to the top while the card scrolls. */
+.lib-save {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 0 0 8px;
+  background: var(--paper-3);
+}
+.lib-save .btn {
+  margin-top: 0;
+}
+.lib-save .fr-help {
+  margin: 0;
+}
 .lib-actions {
   display: flex;
   flex-wrap: wrap;
