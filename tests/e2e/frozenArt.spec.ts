@@ -231,6 +231,35 @@ test.describe('texture pack families (decision 99)', () => {
     expect(statSync(await file.path()).size).toBeGreaterThan(1_000_000);
   });
 
+  test('Preview of the Frozen Horror pack shows its own slots and lists only what is missing', async ({
+    page,
+  }) => {
+    const dlg = await openTextures(page);
+    await dlg.getByTestId('preview-fz-ah-2021').click();
+    const prev = page.getByRole('dialog', { name: 'Preview: Frozen Horror' });
+    const sample = prev.getByTestId('pack-sample');
+    await expect(sample).toBeVisible();
+    await expect(sample.locator('[data-slot^="enemy."]')).toHaveCount(8);
+    await expect(
+      sample.locator('[data-slot^="edgeDoor."] image[data-themed="edge-door"]'),
+    ).toHaveCount(2);
+    await expect(sample.locator('[data-slot^="tunnel."] image[data-themed="tunnel"]')).toHaveCount(
+      3,
+    );
+    await expect(sample.locator('image[data-themed="tile"]')).toHaveCount(18);
+    // only what the pack should cover and does not: no core slot
+    const missing = prev.getByTestId('pack-missing');
+    await expect(missing).toContainText('tunnel design 4');
+    await expect(missing).not.toContainText('monster');
+    await expect(missing).not.toContainText('furniture');
+    await expect(missing).not.toContainText('board picture');
+    // adjust an enemy picture
+    await sample.locator('[data-slot="enemy.yeti"]').click();
+    await expect(prev.getByLabel('Picture to adjust')).toHaveValue('enemy.yeti');
+    await prev.getByRole('button', { name: 'Size: more' }).click();
+    await expect(prev.getByText('Unsaved changes')).toBeVisible();
+  });
+
   test('editor: tokens, tiles and doors are pictures once both are used, and Textures off draws the built-in look', async ({
     page,
   }) => {

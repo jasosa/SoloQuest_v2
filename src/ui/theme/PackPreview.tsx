@@ -8,7 +8,18 @@ import { color } from '../shared/tokens';
 import { MONSTER_LETTER } from '../play/monsterCodes';
 import { ThemeScope } from './activeTheme';
 import { checkPack, type PictureSize } from './check';
-import { BoardArt, blockPiece, doorPiece, floorCell, squarePiece, tokenBox } from './draw';
+import {
+  BoardArt,
+  blockPiece,
+  doorPiece,
+  edgeDoorPiece,
+  floorCell,
+  squarePiece,
+  tilePiece,
+  tokenBox,
+  tunnelPiece,
+} from './draw';
+import { expansionLayout, expansionMissing, type ExpansionLayout } from './expansion';
 import {
   manifestFiles,
   themeFromPack,
@@ -123,7 +134,7 @@ function slotBox(id: string): Box | null {
 }
 
 /** The view that zooms in on a picture: a few squares around it, 3 wide for every 2 high. */
-function closeUpView(box: Box): string {
+function closeUpView(box: Box, cols = board.width, rows = board.height): string {
   let w = Math.max(6 * U, box.w + 2 * U);
   let h = (w * 2) / 3;
   if (h < box.h + U) {
@@ -131,8 +142,8 @@ function closeUpView(box: Box): string {
     w = h * 1.5;
   }
   // never past the edge of the board, where there is nothing to draw
-  const x = Math.min(Math.max(0, box.x + box.w / 2 - w / 2), board.width * U - w);
-  const y = Math.min(Math.max(0, box.y + box.h / 2 - h / 2), board.height * U - h);
+  const x = Math.min(Math.max(0, box.x + box.w / 2 - w / 2), Math.max(0, cols * U - w));
+  const y = Math.min(Math.max(0, box.y + box.h / 2 - h / 2), Math.max(0, rows * U - h));
   return `${x} ${y} ${w} ${h}`;
 }
 
@@ -141,6 +152,104 @@ function dataUrl(f: PackFile): string {
   for (let i = 0; i < f.bytes.length; i += 0x8000)
     bin += String.fromCharCode(...f.bytes.subarray(i, i + 0x8000));
   return `data:${f.mime};base64,${btoa(bin)}`;
+}
+
+/**
+ * The sample of an expansion pack: its own slots on plain floor. Enemy tokens and the block, the entry
+ * and exit doors on a wall line, the ice tunnel designs, and the tile pictures at their footprint.
+ */
+function ExpansionSample({
+  theme,
+  layout,
+  selected,
+  onSelect,
+  view,
+}: {
+  theme: Theme;
+  layout: ExpansionLayout;
+  selected: string | null;
+  onSelect(id: string): void;
+  view?: string | null;
+}) {
+  const tag = (id: string, node: ReactNode) => (
+    <g
+      key={id}
+      data-slot={id}
+      className={selected === id ? 'pv-sel' : undefined}
+      style={{ cursor: 'pointer' }}
+      onClick={() => onSelect(id)}
+    >
+      {node}
+    </g>
+  );
+  const nodes: ReactNode[] = [];
+  for (let y = 0; y < layout.rows; y++)
+    for (let x = 0; x < layout.cols; x++)
+      nodes.push(floorCell(theme, x, y, U, false, `f${x},${y}`));
+  // tiles first, so the tokens and doors lie over them
+  for (const it of layout.items) {
+    if (it.kind !== 'tile') continue;
+    const cells: [number, number][] = [];
+    for (let y = 0; y < it.h; y++) for (let x = 0; x < it.w; x++) cells.push([it.x + x, it.y + y]);
+    nodes.push(<g key={`tile-${it.id}-${it.x}-${it.y}`}>{tilePiece(theme, it.key, cells, U)}</g>);
+  }
+  for (const it of layout.items) {
+    if (it.kind === 'enemy') {
+      const href = theme.enemy?.[it.id];
+      if (!href) continue;
+      nodes.push(
+        tag(
+          `enemy.${it.id}`,
+          <image
+            href={href}
+            {...tokenBox(theme, 'goblin', (it.x + 0.5) * U, (it.y + 0.5) * U, U, it.id)}
+            preserveAspectRatio="xMidYMid meet"
+          />,
+        ),
+      );
+    } else if (it.kind === 'block') {
+      nodes.push(
+        tag(
+          'block.single',
+          squarePiece(theme, { group: 'block', key: 'single' }, it.x, it.y, U, 'block'),
+        ),
+      );
+    } else if (it.kind === 'edgeDoor') {
+      const kind = it.id === 'ironEntry' ? 'ironEntry' : 'woodenExit';
+      const wx = it.x * U;
+      const wy = (it.y + 0.5) * U;
+      nodes.push(
+        tag(
+          `edgeDoor.${kind}`,
+          <g>
+            <line
+              x1={wx}
+              y1={it.y * U}
+              x2={wx}
+              y2={(it.y + 1) * U}
+              stroke={color.ink}
+              strokeWidth={2.5}
+            />
+            {edgeDoorPiece(theme, kind, false, wx, wy, 1, 0, U)}
+          </g>,
+        ),
+      );
+    } else if (it.kind === 'tunnel') {
+      nodes.push(tag(`tunnel.${it.id}`, tunnelPiece(theme, Number(it.id), it.x, it.y, U)));
+    }
+  }
+  return (
+    <svg
+      viewBox={view ?? `0 0 ${layout.cols * U} ${layout.rows * U}`}
+      width="100%"
+      role="img"
+      aria-label={t('theme.PackPreview.sampleBoard', 'Sample board')}
+      data-testid="pack-sample"
+      style={{ display: 'block', border: '1.5px solid var(--ink)', background: color.floor }}
+    >
+      {nodes}
+    </svg>
+  );
 }
 
 /** The sample board: every slot of the theme, with the built-in drawing where the pack has no picture. */
@@ -501,14 +610,32 @@ export function PackPreview({
       live = false;
     };
   }, [files, urls]);
-  const check = useMemo(() => checkPack(draft, sizes), [draft, sizes]);
+  // an expansion pack extends a core pack: it is shown with its own slots, and the core slots are not missing
+  const expansion = draft.box !== undefined;
+  const check = useMemo(() => {
+    const c = checkPack(draft, sizes);
+    return expansion ? { ...c, missing: expansionMissing(draft) } : c;
+  }, [draft, sizes, expansion]);
+  const layout = useMemo(() => (expansion ? expansionLayout(theme) : null), [expansion, theme]);
   const boardSize = pack.manifest.board ? sizes[pack.manifest.board] : undefined;
 
   const slots = useMemo(() => adjustableSlots(draft), [draft]);
   const current = slot && slots.some((s) => s.id === slot) ? slot : null;
   const tune = current ? tuneOfSlot(draft, current) : NO_TUNE;
-  const box = current ? slotBox(current) : null;
-  const view = box && closeUp ? closeUpView(box) : null;
+  const eb = current && layout ? layout.boxes[current] : undefined;
+  const box = current
+    ? eb
+      ? { x: eb.x * U, y: eb.y * U, w: eb.w * U, h: eb.h * U }
+      : layout
+        ? null
+        : slotBox(current)
+    : null;
+  const view =
+    box && closeUp
+      ? layout
+        ? closeUpView(box, layout.cols, layout.rows)
+        : closeUpView(box)
+      : null;
   const changed = JSON.stringify(draft) !== JSON.stringify(pack.manifest);
   const change = (next: Partial<SlotTune>) => {
     if (!current) return;
@@ -604,7 +731,17 @@ export function PackPreview({
                   </button>
                 )}
               </div>
-              <Sample theme={theme} selected={current} onSelect={setSlot} view={view} />
+              {layout ? (
+                <ExpansionSample
+                  theme={theme}
+                  layout={layout}
+                  selected={current}
+                  onSelect={setSlot}
+                  view={view}
+                />
+              ) : (
+                <Sample theme={theme} selected={current} onSelect={setSlot} view={view} />
+              )}
             </div>
             {onSave && slots.length > 0 && (
               <div className="pv-adjust" data-testid="pack-adjust">
@@ -682,10 +819,15 @@ export function PackPreview({
             )}
           </div>
           <p className="fr-help">
-            {t(
-              'theme.PackPreview.squaresAre34Px',
-              'Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then monsters with a single block and a double block, then traps (hidden, pit, spear, falling block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap a picture to adjust it.',
-            )}
+            {layout
+              ? t(
+                  'theme.PackPreview.squaresAre34PxExpansion',
+                  'Squares are 34 px; the real board shows them up to twice as big. Rows: enemy tokens and the block, then the entry and exit doors on a wall line and the ice tunnels, then the tiles at their size. Tap an enemy, door or tunnel to adjust it.',
+                )
+              : t(
+                  'theme.PackPreview.squaresAre34Px',
+                  'Squares are 34 px; the real board shows them up to twice as big. Rows: furniture, then monsters with a single block and a double block, then traps (hidden, pit, spear, falling block, chest, scripted) and doors (closed, open, secret, closed in a vertical wall). Tap a picture to adjust it.',
+                )}
           </p>
           {pack.manifest.board && (
             <>

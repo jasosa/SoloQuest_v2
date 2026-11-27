@@ -8,7 +8,8 @@ import { OFFSET_MAX, SCALE_MAX, SCALE_MIN } from './theme';
  * `trap.pit`). A slot without a change stays a plain file name in `theme.json`.
  */
 
-export type SlotGroup = 'monster' | 'furniture' | 'door' | 'block' | 'trap';
+export type SlotGroup =
+  'monster' | 'furniture' | 'door' | 'block' | 'trap' | 'enemy' | 'edgeDoor' | 'tunnel';
 
 export interface SlotRef {
   /** `group.key`. */
@@ -31,6 +32,9 @@ export const GROUP_NAMES: Readonly<Record<SlotGroup, string>> = {
   door: 'Doors',
   block: 'Blocks',
   trap: 'Traps',
+  enemy: 'Enemies',
+  edgeDoor: 'Entry and exit doors',
+  tunnel: 'Ice tunnels',
 };
 
 const NAMES: Readonly<Record<string, string>> = {
@@ -59,6 +63,10 @@ export function adjustableSlots(m: PackManifest): SlotRef[] {
   for (const k of ['closed', 'open', 'secret'] as const) if (m.door?.[k]) add('door', k, nice(k));
   for (const k of ['single', 'double'] as const) if (m.block?.[k]) add('block', k, nice(k));
   for (const k of ['armed', ...TRAP_KINDS] as const) if (m.trap?.[k]) add('trap', k, nice(k));
+  for (const k of Object.keys(m.enemy ?? {})) add('enemy', k, nice(k));
+  for (const k of ['ironEntry', 'woodenExit'] as const)
+    if (m.edgeDoor?.[k]) add('edgeDoor', k, nice(k));
+  for (const k of Object.keys(m.tunnel ?? {})) add('tunnel', k, `Tunnel ${k}`);
   return out;
 }
 

@@ -164,6 +164,8 @@ and the doors closed, open, secret and in a vertical wall. Above it:
   square up to 68 px wide) and a board picture that is not the shape of the board (26 x 19 squares).
 - **Not in this pack** lists the slots the pack leaves empty (the built-in drawing is used there).
 
+An expansion pack (one with a `box`, like Frozen Horror) is previewed with its own slots instead of the core sample: the enemy tokens, the iron entry and wooden exit doors, the ice tunnels it has, and every tile picture at its footprint. Its "Not in this pack" line lists only enemies of the box, the two edge doors, tunnel designs and tiles it lacks; core slots are never listed. Enemies, edge doors and tunnels can be adjusted like any picture; tile pictures cannot yet.
+
 ### Adjusting from the app
 
 Under the sample, **Adjust a picture** changes the size and position of any picture the pack has. Pick it from the
