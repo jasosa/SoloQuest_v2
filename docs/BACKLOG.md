@@ -351,7 +351,12 @@ All the texts of the application can be translated or modified with a tool, for 
   - [x] M7 (engine-dev): `addAreaMerges(q, main, joins)` merges many rooms in one action, all or nothing (decision 107); `addAreaMerge` and `addAreaMerges` refuse a joiner that has rooms merged into it; the validator errors on such a file. Files: `src/engine/editor/merges.ts`, `src/engine/quest/validate.ts`, `merges.test.ts`. [proposal]
   - [x] M8 (ui-dev): the tool takes more than two rooms (first Stays, every further one Joins, one button, one undo step) and calls `addAreaMerges`; the error names the room that blocks it. Needs a DESIGN.md update first.
 - [ ] Mercenaries and animal allies as a type and a number (Crossbowman, Halberdier, Swordsman, Scout, Snowdasher), in setup and during play; chips with the hero pictures (local only, never in git)
-- [ ] Play screen: look eyes on corridor corners and on squares with a monster; squares where a monster was slain stay inactive; "Rules hint" title on the hint panel; monster tags on the map equal the list tags; drop texts like "You apply this at the table"
+- [ ] Play screen polish (owner list), by point:
+  - [x] Look eyes on corridor corners (decision 113). The eye on a square with a living monster stays as decision 84 (the owner has not asked to change it).
+  - [x] Squares where a monster was slain work again: the eye and the square note are back (decision 113).
+  - [x] "Rules hint" title on the hint panel (small caps label over the free-movement hint, `e2e frozen.spec.ts`)
+  - [x] Monster tags on the map equal the list tags: same code and fill already came from one source (`monsterCodes`, `boxTokenFill`); the list coin with a picture now carries the code in the same ink bar as the map token (`notes.spec.ts`)
+  - [x] Drop texts like "You apply this at the table": removed from the notes of quests fh00 and fh04, "The players apply all of this by hand" from q10, "Reminder for the players:" from q11; the game effect is unchanged
 - [ ] Editor: Frozen Horror monsters not listed as custom; "Searching here is not possible" as an action effect; popups with an explicit Save button (no autosave); approved quests leave draft; the right panel clears when another element category is picked
 - [x] Editor, Actions: a new action does not get the Show message effect by default (it starts with no effect)
 - [x] Editor start screen: an Open button on each quest of the list of quests

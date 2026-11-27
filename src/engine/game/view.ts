@@ -75,6 +75,22 @@ function abilitiesOf(
   return out;
 }
 
+/**
+ * The squares held by a living monster, key "x,y" to monster id. A slain monster frees its square
+ * (decision 113): the eye and the square note work there again.
+ */
+export function monsterSquares(level: Level, state: GameState): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const m of monstersInPlay(level, state))
+    if (m.cell && !m.dead) out.set(`${m.cell[0]},${m.cell[1]}`, m.id);
+  for (const m of level.quest.monsters)
+    if (state.seenMonsters.has(m.id) && !state.monsters[m.id]?.dead) {
+      const c = state.placedMonsterCells[m.id] ?? m.cell;
+      if (c) out.set(`${c[0]},${c[1]}`, m.id);
+    }
+  return out;
+}
+
 /** Monsters the heroes have seen, in quest order. Hidden or unseen monsters are not listed. */
 export function monstersInPlay(level: Level, state: GameState): MonsterView[] {
   const out: MonsterView[] = [];

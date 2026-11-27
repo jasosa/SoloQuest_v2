@@ -2,14 +2,52 @@ import { describe, expect, it } from 'vitest';
 import { buildLevel } from '../board/level';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
-import { isCrossing, lookEyeCells, lookHintCells } from './hints';
+import { isCorner, isCrossing, isEyeSpot, lookEyeCells, lookHintCells } from './hints';
 import { replay } from './reducer';
+import { monsterSquares } from './view';
 
 const level = buildLevel(testQuest());
 const open = (door: string): GameEvent => ({ type: 'OPEN_DOOR', door });
 const look = (x: number, y: number): GameEvent => ({ type: 'LOOK_FROM', cell: [x, y] });
 const run = (...events: GameEvent[]) => replay(level, 1, events);
 const keys = (cells: readonly (readonly [number, number])[]) => cells.map((c) => c.join(','));
+
+const asciiLevel = (rows: string[]) =>
+  ({
+    ...level,
+    board: {
+      width: rows[0]!.length,
+      height: rows.length,
+      cells: rows.map((r) => [...r].map((ch) => (ch === '.' ? 'C' : 'R01'))),
+    },
+  }) as typeof level;
+
+describe('corner and crossing shapes (. corridor, # room)', () => {
+  it('an L turn is a corner, its ends are not', () => {
+    const m = asciiLevel(['#####', '#..##', '#.###', '#####']);
+    expect(isCorner(m, [1, 1])).toBe(true);
+    expect(isCorner(m, [2, 1])).toBe(false);
+    expect(isCorner(m, [1, 2])).toBe(false);
+    expect(isCrossing(m, [1, 1])).toBe(false);
+  });
+
+  it('a straight corridor has no eye spot', () => {
+    const m = asciiLevel(['#####', '#...#', '#####']);
+    expect(isEyeSpot(m, [2, 1])).toBe(false);
+    const v = asciiLevel(['###', '#.#', '#.#', '#.#', '###']);
+    expect(isEyeSpot(v, [1, 2])).toBe(false);
+  });
+
+  it('a T and a crossing stay eye spots, and are not corners', () => {
+    const t = asciiLevel(['#####', '#...#', '##.##', '#####']);
+    expect(isCrossing(t, [2, 1])).toBe(true);
+    expect(isCorner(t, [2, 1])).toBe(false);
+    expect(isEyeSpot(t, [2, 1])).toBe(true);
+    const x = asciiLevel(['##.##', '#...#', '##.##']);
+    expect(isCrossing(x, [2, 1])).toBe(true);
+    expect(isEyeSpot(x, [2, 1])).toBe(true);
+  });
+});
 
 describe('look hint', () => {
   it('is empty before any corridor square is seen', () => {
@@ -64,17 +102,17 @@ describe('look hint', () => {
   });
 });
 
-describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', () => {
+describe('eye glyphs (owner): crossroads and corners, and beside an occupied one', () => {
   const s = run(open('d2'), open('d3'), open('d4'));
   const can = keys(lookHintCells(level, s));
 
-  it('are a quiet subset of the squares where looking can show more: crossroads only', () => {
+  it('are a quiet subset of the squares where looking can show more: crossroads and corners', () => {
     const eyes = lookEyeCells(level, s, new Set());
     expect(eyes.length).toBeGreaterThan(0);
     expect(eyes.length).toBeLessThan(can.length);
     for (const c of eyes) {
       expect(can).toContain(c.join(','));
-      expect(isCrossing(level, c)).toBe(true);
+      expect(isEyeSpot(level, c)).toBe(true);
     }
     expect(isCrossing(level, [12, 12])).toBe(true);
     expect(isCrossing(level, [9, 12])).toBe(false);
@@ -89,7 +127,7 @@ describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', ()
     for (const c of after) {
       expect(can).toContain(c.join(','));
       const near = Math.abs(c[0] - first[0]) + Math.abs(c[1] - first[1]) === 1;
-      expect(isCrossing(level, c) || near).toBe(true);
+      expect(isEyeSpot(level, c) || near).toBe(true);
     }
   });
 
@@ -116,11 +154,59 @@ describe('eye glyphs (owner): crossroads, and beside an occupied crossroads', ()
   it('an occupied crossroads that cannot look gives no glyph to its neighbors', () => {
     // occupy every seen crossroads square that is not a look square: the glyphs do not change
     const dead = [...s.seenCells].filter(
-      (k) => isCrossing(level, k.split(',').map(Number) as [number, number]) && !can.includes(k),
+      (k) => isEyeSpot(level, k.split(',').map(Number) as [number, number]) && !can.includes(k),
     );
     expect(dead.length).toBeGreaterThan(0);
     expect(keys(lookEyeCells(level, s, new Set(dead)))).toEqual(
       keys(lookEyeCells(level, s, new Set())),
     );
+  });
+
+  it('a corner shows an eye when looking shows more, and none when it shows nothing more', () => {
+    const s1 = run(open('d1'));
+    const can1 = keys(lookHintCells(level, s1));
+    const eyeKeys = keys(lookEyeCells(level, s1, new Set()));
+    const seen = [...s1.seenCells].map((k) => k.split(',').map(Number) as [number, number]);
+    const corners = seen.filter((c) => isCorner(level, c));
+    const lookable = corners.filter((c) => can1.includes(c.join(',')));
+    const mute = corners.filter((c) => !can1.includes(c.join(',')));
+    expect(lookable.length).toBeGreaterThan(0);
+    expect(mute.length).toBeGreaterThan(0);
+    for (const c of lookable) expect(eyeKeys).toContain(c.join(','));
+    for (const c of mute) expect(eyeKeys).not.toContain(c.join(','));
+    // every square that carries an eye is a crossing or a corner
+    for (const k of eyeKeys)
+      expect(isEyeSpot(level, k.split(',').map(Number) as [number, number])).toBe(true);
+  });
+
+  it('an occupied corner that can look gives the eye to its seen, lookable neighbors', () => {
+    const s1 = run(open('d1'));
+    const can1 = keys(lookHintCells(level, s1));
+    expect(isCorner(level, [0, 18])).toBe(true);
+    expect(can1).toContain('0,18');
+    const eyes = keys(lookEyeCells(level, s1, new Set(['0,18'])));
+    expect(eyes).not.toContain('0,18');
+    expect(eyes).toContain('1,18'); // straight, lookable, beside the corner
+    for (const k of eyes) expect(can1).toContain(k);
+  });
+
+  it('the eye returns on a square once its monster is slain, and goes again on undo', () => {
+    const quest = testQuest();
+    const lv = buildLevel({
+      ...quest,
+      monsters: quest.monsters.map((m) => (m.id === 'm1' ? { ...m, cell: [0, 18] as const } : m)),
+    });
+    const kill: GameEvent = { type: 'MONSTER_KILL', monster: 'm1' };
+    const alive = replay(lv, 1, [open('d1')]);
+    expect(alive.seenMonsters.has('m1')).toBe(true);
+    const held = monsterSquares(lv, alive);
+    expect(held.get('0,18')).toBe('m1');
+    expect(keys(lookEyeCells(lv, alive, new Set(held.keys())))).not.toContain('0,18');
+    const slain = replay(lv, 1, [open('d1'), kill]);
+    const freed = monsterSquares(lv, slain);
+    expect(freed.has('0,18')).toBe(false);
+    expect(keys(lookEyeCells(lv, slain, new Set(freed.keys())))).toContain('0,18');
+    // undo drops the kill: replay without it
+    expect(monsterSquares(lv, replay(lv, 1, [open('d1')])).get('0,18')).toBe('m1');
   });
 });

@@ -497,7 +497,7 @@
         {
           "type": "showText",
           "title": "The gargoyle wakes",
-          "text": "The gargoyle lurches awake and goes for the searching hero on the spot. Reminder for the players: hits on it count for nothing until it has either moved or attacked."
+          "text": "The gargoyle lurches awake and goes for the searching hero on the spot. Hits on it count for nothing until it has either moved or attacked."
         },
         {
           "type": "setMonsterState",

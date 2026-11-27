@@ -528,7 +528,7 @@
         {
           "type": "showText",
           "title": "Magic doors",
-          "text": "Every door in this castle works as a teleporter. The moment a hero passes through any door, the hero halts and throws 2 red dice. The total names a numbered square, and the hero is moved there. If a figure already stands on that square, the arriving hero lands on it: that hero or monster loses 1 Body Point and, if still alive, throws 2 red dice and is teleported in turn (a total naming the same square is thrown again). The hero who arrived first keeps the square. Each hero may use a single door in a turn. The square marked 2/12 is inside the start room, just in from door d10. From it a hero can walk to the stairs and leave the quest. The players apply all of this by hand."
+          "text": "Every door in this castle works as a teleporter. The moment a hero passes through any door, the hero halts and throws 2 red dice. The total names a numbered square, and the hero is moved there. If a figure already stands on that square, the arriving hero lands on it: that hero or monster loses 1 Body Point and, if still alive, throws 2 red dice and is teleported in turn (a total naming the same square is thrown again). The hero who arrived first keeps the square. Each hero may use a single door in a turn. The square marked 2/12 is inside the start room, just in from door d10. From it a hero can walk to the stairs and leave the quest."
         }
       ]
     },

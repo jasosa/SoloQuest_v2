@@ -5,7 +5,7 @@ import { MONSTER_TYPES } from '../quest/schema';
 import { testQuest } from '../quest/testQuest';
 import type { GameEvent } from './events';
 import { EventError, initialState, reduce, replay, undo, type EventErrorCode } from './reducer';
-import { monstersInPlay } from './view';
+import { monstersInPlay, monsterSquares } from './view';
 
 const level = buildLevel(testQuest());
 const SEED = 5;
@@ -157,5 +157,14 @@ describe('monstersInPlay', () => {
         abilities: [],
       },
     ]);
+  });
+});
+
+describe('monster squares', () => {
+  it('a living monster holds its start square, a slain one frees it (decision 113)', () => {
+    const alive = monsterSquares(level, run(open('d2')));
+    expect(alive.get('6,15')).toBe('m1');
+    const slain = monsterSquares(level, run(open('d2'), kill('m1')));
+    expect(slain.has('6,15')).toBe(false);
   });
 });

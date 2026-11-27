@@ -1291,12 +1291,15 @@ export function PlayScreen({
         </div>
         <div className="aside-foot">
           {ruleHintsOn && unthreatenedMovement(level, state) && (
-            <p className="hint" data-testid="free-move">
-              {t(
-                'play.PlayScreen.noMonsterIsAwake',
-                'No monster is awake: you may move without rolling, counting each red die as 4.',
-              )}
-            </p>
+            <section className="rules-hint" data-testid="free-move">
+              <div className="lbl">{t('play.PlayScreen.rulesHint', 'Rules hint')}</div>
+              <p className="hint">
+                {t(
+                  'play.PlayScreen.noMonsterIsAwake',
+                  'No monster is awake: you may move without rolling, counting each red die as 4.',
+                )}
+              </p>
+            </section>
           )}
           {wandering && (
             <p className="wander">
@@ -1675,7 +1678,7 @@ function RosterRow({
           style={pic ? { backgroundImage: `url(${pic})` } : undefined}
           data-coin-image={pic ? m.id : undefined}
         >
-          {code}
+          {pic ? <span className="tag">{code}</span> : code}
         </span>
         <span>
           <span className="nm">
