@@ -19,6 +19,7 @@ import { parseLines } from './inspectorForms';
 import { MonsterAbilities, MonsterEnemy, MonsterSpells } from './MonsterLists';
 import { deleteSelection } from './selectionActions';
 import { isMonsterDirty } from './monsterDraft';
+import { groupByExpansion } from './monsterKinds';
 import { t } from '../../i18n/t';
 
 const STATES = [
@@ -111,29 +112,33 @@ export function MonstersTab({ store }: { store: EditorStore }) {
                   </option>
                 ))}
               </optgroup>
-              {quest.enemyDefs.length > 0 && (
+              {groupByExpansion(quest.enemyDefs, (e) => expansionOf('enemy', e.id, e)).map((g) => (
                 <optgroup
-                  label={t(
-                    'editor.MonstersTab.customMonstersOfThis',
-                    'Custom monsters of this quest',
-                  )}
+                  key={`q:${g.expansion ?? ''}`}
+                  label={
+                    g.expansion ??
+                    t('editor.MonstersTab.customMonstersOfThis', 'Custom monsters of this quest')
+                  }
                 >
-                  {quest.enemyDefs.map((e) => (
+                  {g.enemies.map((e) => (
                     <option key={e.id} value={`quest:${e.id}`}>
                       {e.name}
                     </option>
                   ))}
                 </optgroup>
-              )}
-              {libEnemies.length > 0 && (
-                <optgroup label={t('editor.MonstersTab.fromTheLibrary', 'From the library')}>
-                  {libEnemies.map((e) => (
+              ))}
+              {groupByExpansion(libEnemies, (e) => expansionOf('enemy', e.id, e)).map((g) => (
+                <optgroup
+                  key={`l:${g.expansion ?? ''}`}
+                  label={g.expansion ?? t('editor.MonstersTab.fromTheLibrary', 'From the library')}
+                >
+                  {g.enemies.map((e) => (
                     <option key={e.id} value={`lib:${e.id}`}>
                       {e.name}
                     </option>
                   ))}
                 </optgroup>
-              )}
+              ))}
             </select>
           </Fld>
           <div className="fr-lbtns">
