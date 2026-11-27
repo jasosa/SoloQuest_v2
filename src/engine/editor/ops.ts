@@ -182,6 +182,7 @@ export function emptyQuest(input: NewQuestInput): Quest {
     title: input.title,
     intro: { summary: 'Write a short summary of this quest.' },
     start: { area: 'R20' },
+    status: 'draft',
     furniture: [
       {
         id: 'f-stairs',

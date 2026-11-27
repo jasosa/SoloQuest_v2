@@ -9,6 +9,7 @@ import {
   addTrap,
   emptyQuest,
 } from '../engine/editor/ops';
+import { playableUserQuests } from '../engine/editor/status';
 import type { Quest } from '../engine/quest/schema';
 import { DexieSaveStore, MemorySaveStore } from './saves';
 import {
@@ -49,8 +50,8 @@ describe.each(stores)('user quest store: %s', (_name, build) => {
     await store.save(a, 100);
     await store.save(b, 200);
     expect(await store.list()).toEqual([
-      { id: 'user-b', title: 'Beta', number: 2, updatedAt: 200 },
-      { id: 'user-a', title: 'Alpha', number: 1, updatedAt: 100 },
+      { id: 'user-b', title: 'Beta', number: 2, updatedAt: 200, status: 'draft' },
+      { id: 'user-a', title: 'Alpha', number: 1, updatedAt: 100, status: 'draft' },
     ]);
     expect(await store.load('user-b')).toEqual(b);
     expect((await store.load('user-b'))?.intro.userText).toBe('private');
@@ -61,7 +62,9 @@ describe.each(stores)('user quest store: %s', (_name, build) => {
     await store.save(make('user-a', 'Alpha'), 100);
     await store.save(make('user-a', 'Alpha 2'), 300);
     const list = await store.list();
-    expect(list).toEqual([{ id: 'user-a', title: 'Alpha 2', number: 1, updatedAt: 300 }]);
+    expect(list).toEqual([
+      { id: 'user-a', title: 'Alpha 2', number: 1, updatedAt: 300, status: 'draft' },
+    ]);
   });
 
   it('removes a quest and its draft', async () => {
@@ -190,6 +193,65 @@ describe('corrupt rows in IndexedDB', () => {
     // the corrupt saved quest is kept, so nothing is lost silently
     expect(await check.table('userQuests').get('user-bad')).toBeDefined();
     check.close();
+  });
+});
+
+describe('quests saved before the status existed (decision 110)', () => {
+  it('stay in the play list as approved, and an old blocksSearch flag becomes the effect', async () => {
+    const name = `uq-legacy-${n++}`;
+    const first = new DexieUserQuestStore(name);
+    first.close();
+    // a row as an older version of the app wrote it: no status, a blocksSearch flag on a note
+    const { status: _status, ...legacy } = make('user-old', 'Old', 3);
+    void _status;
+    const row = {
+      id: 'user-old',
+      title: 'Old',
+      number: 3,
+      updatedAt: 40,
+      quest: {
+        ...legacy,
+        notes: [
+          {
+            id: 'n-cell',
+            trigger: { type: 'treasureSearch', area: 'R17' },
+            effects: [{ type: 'showText', text: 'No.' }],
+            blocksSearch: true,
+          },
+        ],
+      },
+    };
+    const raw = new Dexie(name);
+    raw.version(1).stores({ userQuests: 'id, updatedAt', drafts: 'id, updatedAt' });
+    await raw.table('userQuests').put(row);
+    raw.close();
+
+    const store = new DexieUserQuestStore(name);
+    const list = await store.list();
+    expect(list).toEqual([
+      { id: 'user-old', title: 'Old', number: 3, updatedAt: 40, status: 'approved' },
+    ]);
+    expect(playableUserQuests(list, {}).own).toEqual(['user-old']);
+    const q = await store.load('user-old');
+    expect(q?.status).toBeUndefined(); // nothing is rewritten: a missing status means approved
+    expect(q?.notes[0]?.effects).toEqual([
+      { type: 'showText', text: 'No.' },
+      { type: 'blockSearch' },
+    ]);
+    expect(q?.notes[0] && 'blocksSearch' in q.notes[0]).toBe(false);
+    store.close();
+  });
+
+  it('a draft is listed by the store but is not offered to play', async () => {
+    const store = new MemoryUserQuestStore();
+    await store.save(make('user-new', 'New'), 1);
+    await store.save({ ...make('user-ok', 'Ok'), status: 'approved' }, 2);
+    const list = await store.list();
+    expect(list.map((r) => [r.id, r.status])).toEqual([
+      ['user-ok', 'approved'],
+      ['user-new', 'draft'],
+    ]);
+    expect(playableUserQuests(list, {}).own).toEqual(['user-ok']);
   });
 });
 

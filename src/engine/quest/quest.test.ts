@@ -32,6 +32,35 @@ describe('parseQuest', () => {
     expect(q.notes).toEqual([]);
   });
 
+  describe('old blocksSearch flag (decision 111)', () => {
+    const old = (extra: Record<string, unknown>, effects: unknown[] = []) =>
+      withPatch({
+        notes: [
+          {
+            id: 'n-cell',
+            trigger: { type: 'treasureSearch', area: 'R17' },
+            effects: [{ type: 'showText', text: 'No.' }, ...effects],
+            ...extra,
+          },
+        ],
+      }).notes[0]!;
+
+    it('becomes a blockSearch effect after the other effects, and the flag is gone', () => {
+      const n = old({ blocksSearch: true });
+      expect(n.effects).toEqual([{ type: 'showText', text: 'No.' }, { type: 'blockSearch' }]);
+      expect('blocksSearch' in n).toBe(false);
+    });
+    it('does not add the effect twice', () => {
+      const n = old({ blocksSearch: true }, [{ type: 'blockSearch' }]);
+      expect(n.effects.filter((e) => e.type === 'blockSearch')).toHaveLength(1);
+    });
+    it('blocksSearch false is dropped and adds nothing', () => {
+      const n = old({ blocksSearch: false });
+      expect(n.effects).toEqual([{ type: 'showText', text: 'No.' }]);
+      expect('blocksSearch' in n).toBe(false);
+    });
+  });
+
   it('parses notes with trigger, conditions and nested effects', () => {
     const q = withPatch({
       markers: [{ id: 'k1', label: 'X', cell: [4, 2], visible: 'editor' }],

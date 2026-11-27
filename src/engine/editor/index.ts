@@ -5,6 +5,7 @@ export * from './io';
 export * from './library';
 export * from './usage';
 export * from './ids';
+export * from './status';
 export { referencesTo, type RefTarget } from './refs';
 export {
   validateQuestIssues,

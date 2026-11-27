@@ -389,9 +389,11 @@
         {
           "type": "showText",
           "text": "There is nothing to search for in the cell. The hero keeps the action."
+        },
+        {
+          "type": "blockSearch"
         }
-      ],
-      "blocksSearch": true
+      ]
     },
     {
       "id": "n-A",

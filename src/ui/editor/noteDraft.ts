@@ -53,7 +53,6 @@ export function fullPatch(n: Note): NotePatch {
     effects: n.effects,
     consumesTreasure: n.consumesTreasure ?? null,
     keepMark: n.keepMark ?? null,
-    blocksSearch: n.blocksSearch ?? null,
     map: n.map ?? null,
   };
 }

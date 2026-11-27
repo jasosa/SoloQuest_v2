@@ -446,7 +446,10 @@ export function ActionForm({
             patch(
               note.consumesTreasure
                 ? { consumesTreasure: null }
-                : { consumesTreasure: true, blocksSearch: null },
+                : {
+                    consumesTreasure: true,
+                    effects: note.effects.filter((e) => e.type !== 'blockSearch'),
+                  },
             )
           }
         >
@@ -462,21 +465,6 @@ export function ActionForm({
             onClick={() => patch({ keepMark: note.keepMark ? null : true })}
           >
             {t('editor.NotesPanel.keepTheMarkOn', 'Keep the mark on the map after it fires')}
-          </button>
-        )}
-        {(note.trigger.type === 'treasureSearch' || note.blocksSearch === true) && (
-          <button
-            className="chip ed-wide"
-            aria-pressed={note.blocksSearch === true}
-            onClick={() =>
-              patch(
-                note.blocksSearch
-                  ? { blocksSearch: null }
-                  : { blocksSearch: true, consumesTreasure: null },
-              )
-            }
-          >
-            {t('editor.NotesPanel.searchingHereIsNot', 'Searching here is not possible')}
           </button>
         )}
       </section>
@@ -1052,6 +1040,15 @@ function EffectFields({
     case 'openAllDoors':
       return (
         <p className="ed-note">{t('editor.NotesPanel.everyDoorOpens', 'Every door opens.')}</p>
+      );
+    case 'blockSearch':
+      return (
+        <p className="ed-note">
+          {t(
+            'editor.NotesPanel.noSearchHere',
+            'The search is not made: no card, no chest trap, and the hero keeps the action.',
+          )}
+        </p>
       );
     case 'placeMonster':
       return (

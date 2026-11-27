@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildLevel, type Level } from '../../engine/board/level';
 import { exportQuest } from '../../engine/editor/io';
+import { playableUserQuests } from '../../engine/editor/status';
 import { nextCampaignSlot, nextQuest, skipQuest } from '../../engine/pack/campaign';
 import { labelOf, normalizeTeam, type TeamInput } from '../../engine/data/team';
 import { CampaignsPage, type SavedCampaign } from './CampaignsPage';
@@ -129,22 +130,25 @@ export function SelectScreen({
     };
     void (async () => {
       const map = new Map<number, Level>();
-      const overridden = new Set<string>();
-      for (const [n, id] of Object.entries(getOverrides())) {
-        overridden.add(id);
-        try {
-          const level = await newest(id);
-          if (level) map.set(Number(n), level);
-        } catch {
-          /* a broken copy is ignored: the original is played */
-        }
-      }
       const own: Level[] = [];
       try {
-        for (const r of await userStore.list()) {
-          if (overridden.has(r.id)) continue;
+        // Only approved quests are offered (decision 110); a draft is not listed, and a draft copy
+        // does not replace its original.
+        const { replacing, own: ownIds } = playableUserQuests(
+          await userStore.list(),
+          getOverrides(),
+        );
+        for (const [n, id] of Object.entries(replacing)) {
           try {
-            const level = await newest(r.id);
+            const level = await newest(id);
+            if (level) map.set(Number(n), level);
+          } catch {
+            /* a broken copy is ignored: the original is played */
+          }
+        }
+        for (const id of ownIds) {
+          try {
+            const level = await newest(id);
             if (level) own.push(level);
           } catch {
             /* a quest that cannot be built is not listed */

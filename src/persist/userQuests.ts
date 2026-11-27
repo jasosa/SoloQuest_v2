@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { USER_QUEST_PREFIX, isUserQuestId, newUserQuestId } from '../engine/editor/ids';
+import { questStatus, type QuestStatus } from '../engine/editor/status';
 import { dropLegacy } from '../engine/quest/migrate';
 import { QuestSchema, type Quest } from '../engine/quest/schema';
 
@@ -21,6 +22,13 @@ export interface UserQuestSummary {
   updatedAt: number;
   /** The pack the quest came from (a copy of a printed quest of an expansion); none for one made here. */
   pack?: string | undefined;
+  /**
+   * Draft or approved (decision 110). Not the same as "Unsaved draft" in the editor list, which is
+   * about the autosave. A row saved before the status existed is approved.
+   */
+  status: QuestStatus;
+  /** The bundled quest this one is a copy of. */
+  copyOf?: string | undefined;
 }
 
 export interface UserQuestStore {
@@ -61,6 +69,8 @@ const summary = (q: Quest, updatedAt: number): UserQuestSummary => ({
   number: q.number,
   updatedAt,
   ...(q.pack !== undefined ? { pack: q.pack } : {}),
+  status: questStatus(q),
+  ...(q.copyOf !== undefined ? { copyOf: q.copyOf } : {}),
 });
 
 export class MemoryUserQuestStore implements UserQuestStore {
@@ -127,14 +137,7 @@ export class DexieUserQuestStore implements UserQuestStore {
     const out: UserQuestSummary[] = [];
     for (const r of rows) {
       const q = readBack(r?.quest);
-      if (q && typeof r.updatedAt === 'number')
-        out.push({
-          id: q.id,
-          title: q.title,
-          number: q.number,
-          updatedAt: r.updatedAt,
-          ...(q.pack !== undefined ? { pack: q.pack } : {}),
-        });
+      if (q && typeof r.updatedAt === 'number') out.push(summary(q, r.updatedAt));
     }
     return out;
   }

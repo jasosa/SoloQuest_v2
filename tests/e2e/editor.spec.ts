@@ -1522,35 +1522,34 @@ test.describe('editor: endings and blocked search', () => {
     await expect(page.getByTestId('ending-row')).toHaveCount(1);
   });
 
-  test('the "Searching here is not possible" toggle excludes "No treasure card is drawn"', async ({
+  test('the "Searching here is not possible" effect excludes "No treasure card is drawn"', async ({
     page,
   }) => {
     await newQuest(page);
     await page.getByRole('tab', { name: 'Actions', exact: true }).click();
     await page.getByTestId('actions-list').getByRole('button', { name: 'Add action' }).click();
-    // only a treasure search trigger offers the toggle
+    // it is an effect now: no toggle
     await expect(btn(page, 'Searching here is not possible')).toHaveCount(0);
     await page.getByLabel('Applies to').selectOption('area:R20');
     await page.getByLabel('When').selectOption('treasureSearch');
-    const block = btn(page, 'Searching here is not possible');
+    const row = page.locator('[data-testid="effect-row"][data-effect="blockSearch"]');
     const card = btn(page, 'No treasure card is drawn');
-    await expect(block).toHaveAttribute('aria-pressed', 'false');
+    await expect(row).toHaveCount(0);
     await card.click();
     await expect(card).toHaveAttribute('aria-pressed', 'true');
-    await block.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
-    await expect(card).toHaveAttribute('aria-pressed', 'false');
-    expect((await block.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.getByLabel('Add an effect').selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
     await card.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'false');
-    await block.click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
+    await card.click();
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await expect(row).toHaveCount(0);
+    await page.getByLabel('Add an effect').selectOption('blockSearch');
+    await expect(row).toHaveCount(1);
     // the draft is saved as it stands, and the saved action opens with the same choice
     await btn(page, 'Save action').click();
     await page.getByRole('tab', { name: 'Actions', exact: true }).click();
     await page.getByTestId('note-list').getByRole('button').first().click();
-    await expect(block).toHaveAttribute('aria-pressed', 'true');
-    await expect(card).toHaveAttribute('aria-pressed', 'false');
+    await expect(row).toHaveCount(1);
   });
 });
 

@@ -415,6 +415,7 @@ export type Effect =
   | { type: 'addCounter'; counter: string; by: number }
   | { type: 'completeObjective'; objective: string }
   | { type: 'spawnNpc'; npc: string }
+  | { type: 'blockSearch' }
   | { type: 'promptChoice'; text: string; options: { label: string; effects: Effect[] }[] };
 
 const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
@@ -441,6 +442,8 @@ const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
     z.strictObject({ type: z.literal('addCounter'), counter: nonEmpty, by: z.number() }),
     z.strictObject({ type: z.literal('completeObjective'), objective: id }),
     z.strictObject({ type: z.literal('spawnNpc'), npc: id }),
+    /** Treasure search only (top level of the action): the search is not possible here (decision 111). */
+    z.strictObject({ type: z.literal('blockSearch') }),
     z.strictObject({
       type: z.literal('promptChoice'),
       text: nonEmpty,
@@ -455,25 +458,39 @@ const TargetSchema = z.strictObject({
   id: nonEmpty,
 });
 
-const NoteSchema = z.strictObject({
-  id,
-  target: TargetSchema.optional(),
-  letter: z.string().min(1).optional(),
-  /**
-   * Multi-map quests: the map this note belongs to. A note with no `map` is in force on every map
-   * (a kill note, the quest start). A note on an area, square or zone must name its map.
-   */
-  map: id.optional(),
-  at: cell.optional(),
-  trigger: TriggerSchema,
-  when: z.array(ConditionSchema).optional(),
-  effects: z.array(EffectSchema),
-  consumesTreasure: z.boolean().optional(),
-  /** A square or zone note: its mark stays on the map after the note fired (tap shows what was read). */
-  keepMark: z.boolean().optional(),
-  /** Treasure search only: the note is shown, no card, no chest trap, and the search is not used up. */
-  blocksSearch: z.boolean().optional(),
-});
+/**
+ * Decision 111: "searching here is not possible" is an effect (`blockSearch`), no longer a flag
+ * of the note. An old note with `blocksSearch: true` gets the effect (last) on load.
+ */
+function blocksSearchToEffect(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || !('blocksSearch' in raw)) return raw;
+  const { blocksSearch, ...rest } = raw as Record<string, unknown>;
+  if (blocksSearch !== true) return rest;
+  const effects = Array.isArray(rest.effects) ? (rest.effects as unknown[]) : [];
+  const has = effects.some((e) => (e as { type?: unknown } | null)?.type === 'blockSearch');
+  return has ? rest : { ...rest, effects: [...effects, { type: 'blockSearch' }] };
+}
+
+const NoteSchema = z.preprocess(
+  blocksSearchToEffect,
+  z.strictObject({
+    id,
+    target: TargetSchema.optional(),
+    letter: z.string().min(1).optional(),
+    /**
+     * Multi-map quests: the map this note belongs to. A note with no `map` is in force on every map
+     * (a kill note, the quest start). A note on an area, square or zone must name its map.
+     */
+    map: id.optional(),
+    at: cell.optional(),
+    trigger: TriggerSchema,
+    when: z.array(ConditionSchema).optional(),
+    effects: z.array(EffectSchema),
+    consumesTreasure: z.boolean().optional(),
+    /** A square or zone note: its mark stays on the map after the note fired (tap shows what was read). */
+    keepMark: z.boolean().optional(),
+  }),
+);
 
 // ---- the rest
 
@@ -708,6 +725,14 @@ export const QuestSchema = z.strictObject({
   npcs: z.array(NpcSchema).default([]),
   /** Extra ways to end the quest (for example an NPC died). Optional, no schema bump needed. */
   endings: z.array(EndingSchema).optional(),
+  /**
+   * Quests made on this device (decision 110): `draft` is kept out of the lists of quests to play
+   * until the creator approves it. Left out means approved: bundled quests and quests saved before
+   * the status existed. Never written to an exported file.
+   */
+  status: z.enum(['draft', 'approved']).optional(),
+  /** The id of the bundled quest this quest is a copy of (decision 110). Set by the editor, never in a file. */
+  copyOf: nonEmpty.optional(),
 });
 
 export type Quest = z.infer<typeof QuestSchema>;

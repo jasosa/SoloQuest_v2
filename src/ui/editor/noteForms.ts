@@ -219,6 +219,12 @@ export const EFFECT_TYPES: readonly { type: Effect['type']; label: string }[] = 
     },
   },
   {
+    type: 'blockSearch',
+    get label() {
+      return tr('editor.noteForms.searchingHereIsNot', 'Searching here is not possible');
+    },
+  },
+  {
     type: 'promptChoice',
     get label() {
       return tr('editor.noteForms.askThePlayers', 'Ask the players');
@@ -372,6 +378,7 @@ export function defaultEffect(q: Quest, type: Effect['type']): Made<Effect> {
       return good({ type, area: q.start.area ?? 'R01' });
     case 'revealAll':
     case 'openAllDoors':
+    case 'blockSearch':
       return good({ type });
     case 'placeMonster': {
       const m = q.monsters.find((x) => x.hidden) ?? q.monsters[0];
